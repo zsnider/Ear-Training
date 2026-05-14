@@ -6,6 +6,6 @@ EQ Match is a game to match an equalizer with custom settings.
 
 Compressor is a game to match compression settings. 
 
-Reverb master is a game to match reverb settings. 
+Reverb Master is a game to match reverb settings. 
 
-Distortion master is a game to match distortion settings. 
+Distortion Master is a game to match distortion settings. 
