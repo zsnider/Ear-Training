@@ -326,6 +326,29 @@
   .dl-dot { width:22px; height:3px; border-radius:2px; }
 
   /* Toast */
+
+  .btn-dry {
+    background: var(--surface2); color: var(--muted);
+    border: 1px solid var(--border2);
+    font-size: 12px; padding: 7px 14px; border-radius: 8px;
+    cursor: pointer; font-family: 'IBM Plex Sans', sans-serif;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .btn-dry:hover { border-color: var(--amber); color: var(--amber); }
+  .btn-dry.active { background: rgba(245,166,35,0.1); border-color: var(--amber); color: var(--amber); }
+  .btn-dry:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .btn-action {
+    background: var(--surface2); color: var(--teal2);
+    border: 1px solid rgba(94,232,220,0.3);
+    font-size: 13px; padding: 9px 14px; border-radius: 10px;
+    cursor: pointer; font-family: 'IBM Plex Sans', sans-serif;
+    display: flex; align-items: center; gap: 6px;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .btn-action:hover { background: rgba(94,232,220,0.08); border-color: rgba(94,232,220,0.6); }
+  .btn-action.paused { color: var(--accent2); border-color: rgba(139,111,255,0.5); background: rgba(139,111,255,0.08); }
+  .btn-action:disabled { opacity: 0.35; cursor: not-allowed; }
   .toast {
     position:fixed; bottom:24px; left:50%;
     transform:translateX(-50%) translateY(12px);
@@ -387,7 +410,7 @@
       <span class="label">Params</span>
       <div id="paramPills" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
       <div style="margin-left:auto;font-size:11px;color:var(--muted);white-space:nowrap;">
-        <kbd>Space</kbd> A/B &nbsp;·&nbsp; <kbd>↵</kbd> Check
+        <kbd>Space</kbd> A/B &nbsp;·&nbsp; <kbd>D</kbd> Dry &nbsp;·&nbsp; <kbd>F</kbd> Restart &nbsp;·&nbsp; <kbd>P</kbd> Pause &nbsp;·&nbsp; <kbd>⇧</kbd> New &nbsp;·&nbsp; <kbd>↵</kbd> Check
       </div>
     </div>
   </div>
@@ -472,6 +495,15 @@
         <button class="listen-btn u-btn" id="btnUser" onclick="listenUser()" disabled>
           <span id="userDot"></span> Yours
         </button>
+        <button class="btn-dry" id="btnDry" onclick="toggleDry()" disabled title="Toggle dry signal (D)">Dry</button>
+      </div>
+      <div class="controls-bar">
+        <button class="btn-action" id="btnRestart" onclick="restartAudio()" disabled title="Restart audio (F)">
+          &#9654; Restart
+        </button>
+        <button class="btn-action" id="btnPause" onclick="togglePause()" disabled title="Pause / Resume (P)">
+          &#9646;&#9646; Pause
+        </button>
       </div>
       <div class="controls-bar">
         <button class="btn-secondary" onclick="newRound()" style="flex:1">New Round</button>
@@ -524,6 +556,8 @@ let targetSettings = {}, userSettings = {};
 let roundActive   = false, answered = false;
 let totalScore=0, streak=0, round=0;
 let listeningTo   = 'target';
+let isDry          = false;
+let isPaused       = false;
 let abActive=false, abInterval=null;
 
 // Audio
@@ -534,6 +568,7 @@ let targetConvolver= null, userConvolver = null;
 let targetWetGain  = null, targetDryGain = null;
 let userWetGain    = null, userDryGain   = null;
 let analyserTarget = null, analyserUser  = null, analyserDry = null;
+let dryBypassGain  = null;
 let animFrameId    = null;
 let sourceType     = 'pink';
 let customBuffers  = [], currentBufferIndex = 0;
@@ -821,6 +856,9 @@ function buildAudioGraph() {
   initAudio();
 
   stopBuiltinLoop();
+  isDry = false;
+  const dryBtn = document.getElementById('btnDry');
+  if (dryBtn) dryBtn.classList.remove('active');
 
   if (sourceType === 'builtin') {
     // For builtin one-shots, currentSource is a silent placeholder gain node.
@@ -839,6 +877,11 @@ function buildAudioGraph() {
   // Dry analyser — only connect for continuous sources
   analyserDry = audioCtx.createAnalyser(); analyserDry.fftSize = 256;
   if (sourceType !== 'builtin') currentSource.connect(analyserDry);
+
+  // Dry bypass: source → dryBypassGain → outputGain (silent until dry mode on)
+  dryBypassGain = audioCtx.createGain(); dryBypassGain.gain.value = 0;
+  if (sourceType !== 'builtin') currentSource.connect(dryBypassGain);
+  dryBypassGain.connect(outputGain);
 
   // Build target chain: source → convolver → wetGain → analyser → [output]
   //                     source → dryGain → analyser
@@ -875,7 +918,7 @@ function routeTo(which) {
   try { analyserTarget.disconnect(outputGain); } catch(e){}
   try { analyserUser.disconnect(outputGain);   } catch(e){}
   listeningTo = which;
-  (which === 'target' ? analyserTarget : analyserUser).connect(outputGain);
+  if (!isDry) (which === 'target' ? analyserTarget : analyserUser).connect(outputGain);
   updateListenBtns();
 }
 
@@ -885,7 +928,7 @@ function stopAudio() {
   if (currentSource) { try { if (currentSource.stop) currentSource.stop(); } catch(e){} currentSource = null; }
   targetConvolver = userConvolver = null;
   targetWetGain = userWetGain = targetDryGain = userDryGain = null;
-  analyserTarget = analyserUser = analyserDry = null;
+  analyserTarget = analyserUser = analyserDry = null; dryBypassGain = null;
 }
 
 function liveUpdateUserReverb() {
@@ -1040,6 +1083,9 @@ function newRound() {
   document.getElementById('btnCheck').disabled=false;
   document.getElementById('btnTarget').disabled=false;
   document.getElementById('btnUser').disabled=false;
+  document.getElementById('btnDry').disabled=false;
+  document.getElementById('btnRestart').disabled=false;
+  document.getElementById('btnPause').disabled=false;
   document.getElementById('decayLegend').style.display='none';
 
   renderKnobs('target', targetSettings, true);
@@ -1118,10 +1164,62 @@ function checkAnswer() {
   showToast(`Round: ${score}/100`);
 }
 
+// ── Dry toggle ────────────────────────────────────────────────────────────────
+function toggleDry() {
+  if (!roundActive) return;
+  isDry = !isDry;
+  document.getElementById('btnDry').classList.toggle('active', isDry);
+  if (!audioCtx) return;
+  if (isDry) {
+    try { analyserTarget.disconnect(outputGain); } catch(e){}
+    try { analyserUser.disconnect(outputGain);   } catch(e){}
+    if (dryBypassGain) dryBypassGain.gain.setTargetAtTime(1, audioCtx.currentTime, 0.02);
+  } else {
+    if (dryBypassGain) dryBypassGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.02);
+    try { (listeningTo==='target' ? analyserTarget : analyserUser).connect(outputGain); } catch(e){}
+  }
+}
+
+// ── Restart audio ─────────────────────────────────────────────────────────────
+function restartAudio() {
+  if (!roundActive) return;
+  ensureAudio();
+  if (sourceType === 'builtin') {
+    stopBuiltinLoop(); startBuiltinLoop(); showToast('Restarted'); return;
+  }
+  const wasListening = listeningTo, wasDry = isDry;
+  buildAudioGraph();
+  listeningTo = wasListening; routeTo(listeningTo);
+  if (wasDry) { isDry = false; toggleDry(); }
+  showToast('Restarted');
+}
+
+// ── Pause / Resume ────────────────────────────────────────────────────────────
+function togglePause() {
+  if (!roundActive || !audioCtx) return;
+  const btn = document.getElementById('btnPause');
+  if (isPaused) {
+    audioCtx.resume().then(() => {
+      isPaused = false;
+      btn.innerHTML = '&#9646;&#9646; Pause';
+      btn.classList.remove('paused');
+      if (sourceType === 'builtin') startBuiltinLoop();
+    });
+  } else {
+    stopBuiltinLoop();
+    audioCtx.suspend().then(() => {
+      isPaused = true;
+      btn.innerHTML = '&#9654; Resume';
+      btn.classList.add('paused');
+    });
+  }
+}
+
 // ── Keyboard shortcuts ────────────────────────────────────────────────────────
 window.addEventListener('keydown', e => {
   if(e.target.tagName==='INPUT') return;
-  if(audioCtx&&audioCtx.state==='suspended') audioCtx.resume();
+  // Don't auto-resume on keydown when P key is about to toggle pause
+  if(e.code !== 'KeyP' && audioCtx && audioCtx.state==='suspended') audioCtx.resume();
   if(e.code==='Space'){
     e.preventDefault();
     if(!roundActive) return;
@@ -1131,6 +1229,10 @@ window.addEventListener('keydown', e => {
     if(roundActive&&!answered) checkAnswer();
     else newRound();
   }
+  if(e.code==='KeyD'){ e.preventDefault(); toggleDry(); }
+  if(e.code==='KeyF'){ e.preventDefault(); restartAudio(); }
+  if(e.code==='KeyP'){ e.preventDefault(); togglePause(); }
+  if(e.code==='ShiftLeft'||e.code==='ShiftRight'){ e.preventDefault(); newRound(); }
 });
 
 // ── Toast / init ──────────────────────────────────────────────────────────────
@@ -1214,28 +1316,33 @@ function stopBuiltinLoop() {
   if (builtinLoopTimer) { clearInterval(builtinLoopTimer); builtinLoopTimer = null; }
 }
 
-// Fires a single one-shot through BOTH reverb chains simultaneously
-// so switching A/B mid-loop still sounds right
+// Fires a single one-shot through both reverb chains (or dry if dry mode active)
 function triggerShot() {
   if (!audioCtx || !builtinBuffers.length) return;
   if (!targetConvolver || !userConvolver) return;
+  if (isPaused) return;
 
   const sample = builtinBuffers[builtinIndex % builtinBuffers.length];
   if (!sample) return;
 
-  // Target chain shot
+  if (isDry) {
+    // Dry mode: bypass reverb, play direct to output
+    const srcDry = audioCtx.createBufferSource();
+    srcDry.buffer = sample.buffer;
+    const dryVol = audioCtx.createGain(); dryVol.gain.value = 0.7;
+    srcDry.connect(dryVol); dryVol.connect(outputGain);
+    srcDry.start(0);
+    return;
+  }
+
+  // Normal: fire through both chains so A/B switching sounds right
   const srcT = audioCtx.createBufferSource();
   srcT.buffer = sample.buffer;
-  srcT.connect(targetConvolver);
-  srcT.connect(targetDryGain);
-  srcT.start(0);
+  srcT.connect(targetConvolver); srcT.connect(targetDryGain); srcT.start(0);
 
-  // User chain shot
   const srcU = audioCtx.createBufferSource();
   srcU.buffer = sample.buffer;
-  srcU.connect(userConvolver);
-  srcU.connect(userDryGain);
-  srcU.start(0);
+  srcU.connect(userConvolver); srcU.connect(userDryGain); srcU.start(0);
 }
 
 if('serviceWorker' in navigator){
