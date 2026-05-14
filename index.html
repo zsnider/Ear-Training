@@ -21,6 +21,8 @@
     --comp-accent2: #f0a882;
     --rev-accent:   #5b3fd4;
     --rev-accent2:  #8b6fff;
+    --dist-accent:  #d44a2a;
+    --dist-accent2: #f07050;
   }
 
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -33,7 +35,7 @@
   }
 
   header {
-    width: 100%; max-width: 920px;
+    width: 100%; max-width: 1200px;
     padding: 60px 24px 0; text-align: center;
   }
 
@@ -53,6 +55,7 @@
   .accent-eq   { color: var(--eq-accent2); }
   .accent-comp { color: var(--comp-accent2); }
   .accent-rev  { color: var(--rev-accent2); }
+  .accent-dist { color: var(--dist-accent2); }
 
   .site-sub {
     font-size: 15px; color: var(--muted); font-weight: 300;
@@ -60,14 +63,15 @@
   }
 
   .grid {
-    width: 100%; max-width: 920px;
+    width: 100%; max-width: 1200px;
     padding: 0 24px 80px;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 18px;
   }
-  @media (max-width: 700px)  { .grid { grid-template-columns: 1fr; } }
-  @media (min-width: 701px) and (max-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 600px)  { .grid { grid-template-columns: 1fr; } }
+  @media (min-width: 601px) and (max-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 901px) and (max-width: 1100px) { .grid { grid-template-columns: repeat(2, 1fr); } }
 
   .card {
     background: var(--surface); border: 1px solid var(--border);
@@ -89,6 +93,7 @@
   .card.eq:hover   { border-color: rgba(91,106,255,0.5); }
   .card.comp:hover { border-color: rgba(232,134,90,0.5); }
   .card.rev:hover  { border-color: rgba(91,63,212,0.5); }
+  .card.dist:hover { border-color: rgba(212,74,42,0.55); }
   .card:hover::before { opacity:1; }
 
   .card-icon {
@@ -98,6 +103,7 @@
   .card.eq   .card-icon { background: var(--eq-accent); }
   .card.comp .card-icon { background: var(--comp-accent); }
   .card.rev  .card-icon { background: var(--rev-accent); }
+  .card.dist .card-icon { background: var(--dist-accent); }
 
   .card-name {
     font-family: 'IBM Plex Mono', monospace;
@@ -106,6 +112,7 @@
   .card.eq   .card-name { color: var(--eq-accent2); }
   .card.comp .card-name { color: var(--comp-accent2); }
   .card.rev  .card-name { color: var(--rev-accent2); }
+  .card.dist .card-name { color: var(--dist-accent2); }
 
   .card-desc { font-size: 13px; color: var(--muted); line-height: 1.6; font-weight: 300; }
 
@@ -117,6 +124,7 @@
   .card.eq   .tag { background:rgba(91,106,255,0.12);  color:var(--eq-accent2);   border:1px solid rgba(91,106,255,0.25); }
   .card.comp .tag { background:rgba(232,134,90,0.12);  color:var(--comp-accent2); border:1px solid rgba(232,134,90,0.25); }
   .card.rev  .tag { background:rgba(91,63,212,0.12);   color:var(--rev-accent2);  border:1px solid rgba(91,63,212,0.3); }
+  .card.dist .tag { background:rgba(212,74,42,0.12);   color:var(--dist-accent2); border:1px solid rgba(212,74,42,0.3); }
 
   .card-arrow {
     position:absolute; top:24px; right:24px;
@@ -127,6 +135,7 @@
   .card.eq:hover   .card-arrow { color: var(--eq-accent2); }
   .card.comp:hover .card-arrow { color: var(--comp-accent2); }
   .card.rev:hover  .card-arrow { color: var(--rev-accent2); }
+  .card.dist:hover .card-arrow { color: var(--dist-accent2); }
 
   footer {
     margin-top:auto; padding:0 24px 32px;
@@ -139,12 +148,11 @@
 <header>
   <div class="site-eyebrow">Audio Ear Training</div>
   <h1 class="site-title">
-    Train Your <span class="accent-eq">EQ</span>,
-    <span class="accent-comp">Compression</span><br>
-    &amp; <span class="accent-rev">Reverb</span> Ears
+    Train Your <span class="accent-eq">EQ</span>, <span class="accent-comp">Compression</span>,<br>
+    <span class="accent-rev">Reverb</span> &amp; <span class="accent-dist">Distortion</span> Ears
   </h1>
   <p class="site-sub">
-    Three focused games to sharpen your listening. Ten minutes a day builds real skills.
+    Four focused games to sharpen your listening. Ten minutes a day builds real skills.
   </p>
 </header>
 
@@ -209,6 +217,26 @@
       <span class="tag">Room Size</span>
       <span class="tag">Decay</span>
       <span class="tag">Pre-Delay</span>
+      <span class="tag">Wet / Dry</span>
+    </div>
+  </a>
+
+
+  <!-- Distortion Master -->
+  <a class="card dist" href="./distortion-master/">
+    <div class="card-arrow">↗</div>
+    <div class="card-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <polyline points="1,12 5,12 6,5 7,19 8,5 9,19 10,12 14,12 15,7 16,17 17,7 18,17 19,12 23,12"
+                  stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+    </div>
+    <div class="card-name">Distortion Master</div>
+    <div class="card-desc">A hidden distortion is applied to audio. Match the drive, type, mix, and tone by ear.</div>
+    <div class="card-tags">
+      <span class="tag">Drive</span>
+      <span class="tag">Soft / Hard Clip</span>
+      <span class="tag">Tape / Foldback</span>
       <span class="tag">Wet / Dry</span>
     </div>
   </a>
