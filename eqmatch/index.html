@@ -467,6 +467,13 @@ select:hover {
   <span style="font-size:11px; color:var(--muted);" id="qRangeHint">Random Q: 0.5 – 10</span>
 </div>
 
+<div class="setting-item" style="display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--border); padding:8px 16px; border-radius:12px; margin-bottom:15px; flex-wrap:wrap;">
+  <span class="label">Gain Direction</span>
+  <div class="pill active" id="dirBoth" onclick="setGainDirection('both',this)">Both</div>
+  <div class="pill" id="dirBoost" onclick="setGainDirection('boost',this)">Boost Only (+)</div>
+  <div class="pill" id="dirCut" onclick="setGainDirection('cut',this)">Cut Only (−)</div>
+</div>
+
 <div class="source-bar">
   <span class="label">Audio Source</span>
   
@@ -522,6 +529,7 @@ let gainThreshold = 0; // Default to "All"
 let qMin = 0.5;   // Q range lower bound for random generation
 let qMax = 10.0;  // Q range upper bound for random generation
 let fixedQ = false; // When true, all bands use their filter-type default Q
+let gainDirection = 'both'; // 'both' | 'boost' | 'cut'
 let targetBands = [], userBands = [];
 let enabledFilters = ['peaking', 'lowshelf', 'highshelf', 'lowpass', 'highpass', 'notch'];
 let roundActive = false, answered = false;
@@ -1059,6 +1067,13 @@ function updateTier(val) {
   newRound(); // Starts a new game with the updated range
 }
 
+// ── Gain Direction ───────────────────────────────────────────────────────────
+function setGainDirection(dir, el) {
+  gainDirection = dir;
+  ['dirBoth','dirBoost','dirCut'].forEach(id => document.getElementById(id).classList.remove('active'));
+  el.classList.add('active');
+}
+
 // ── Round ─────────────────────────────────────────────────────────────────────
 function randomBand(index, usedTypes = []) {
   // 1. Filter the enabled types by what hasn't been used in this round yet
@@ -1098,7 +1113,7 @@ function randomBand(index, usedTypes = []) {
 
   const rangeWidth = max - min;
   const absoluteGain = min + (Math.random() * rangeWidth);
-  const direction = Math.random() > 0.5 ? 1 : -1;
+  const direction = gainDirection === 'boost' ? 1 : gainDirection === 'cut' ? -1 : (Math.random() > 0.5 ? 1 : -1);
   const finalGain = absoluteGain * direction;
 
   // 3. Peaking — narrow bell, high Q
@@ -1161,12 +1176,12 @@ function toggleFixedQ() {
 // Default Q per filter type when fixedQ is enabled
 function defaultQ(type) {
   switch (type) {
-    case 'peaking':   return 10.0;
+    case 'peaking':   return 8.0;
     case 'lowshelf':
-    case 'highshelf': return 0.7;
+    case 'highshelf': return 5.0;
     case 'lowpass':
-    case 'highpass':  return 0.7;
-    case 'notch':     return 5.0;
+    case 'highpass':  return 1.0;
+    case 'notch':     return 1.0;
     default:          return 1.0;
   }
 }
@@ -1197,7 +1212,7 @@ function newRound() {
       type: newTarget.type, 
       frequency: startingFreqs[i] || 500-1000, 
       gain: 0, 
-      Q: fixedQ ? defaultQ(newTarget.type) : Math.min(qMax, Math.max(qMin, newTarget.type === 'peaking' ? 10.0 : 1.0))
+      Q: fixedQ ? defaultQ(newTarget.type) : Math.min(qMax, Math.max(qMin, defaultQ(newTarget.type)))
     });
   }
   
