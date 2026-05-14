@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="manifest" href="manifest.json">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EQ Mirror — Ear Training</title>
@@ -445,6 +446,27 @@ select:hover {
 
 </div>
 
+<div class="setting-item" style="display:flex; align-items:center; gap:14px; background:var(--surface); border:1px solid var(--border); padding:8px 16px; border-radius:12px; margin-bottom:15px; flex-wrap:wrap;">
+  <span class="label">Q Range</span>
+  <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted);">
+    <span>Min</span>
+    <input type="number" id="qMinInput" min="0" max="20" step="0.1" value="0.5"
+      style="width:60px; background:var(--surface2); color:var(--text); border:1px solid var(--border2); border-radius:6px; padding:4px 8px; font-family:inherit; font-size:13px;"
+      oninput="updateQRange()">
+  </div>
+  <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted);">
+    <span>Max</span>
+    <input type="number" id="qMaxInput" min="0" max="20" step="0.1" value="10"
+      style="width:60px; background:var(--surface2); color:var(--text); border:1px solid var(--border2); border-radius:6px; padding:4px 8px; font-family:inherit; font-size:13px;"
+      oninput="updateQRange()">
+  </div>
+  <button id="btnFixQ" onclick="toggleFixedQ()"
+    style="background:var(--surface2); color:var(--muted); border:1px solid var(--border2); border-radius:8px; font-family:inherit; font-size:12px; font-weight:500; padding:5px 14px; cursor:pointer; transition:all 0.15s; white-space:nowrap;">
+    Fix Q to Defaults
+  </button>
+  <span style="font-size:11px; color:var(--muted);" id="qRangeHint">Random Q: 0.5 – 10</span>
+</div>
+
 <div class="source-bar">
   <span class="label">Audio Source</span>
   
@@ -497,6 +519,9 @@ const LOG_MIN = Math.log10(20), LOG_MAX = Math.log10(22000);
 // ── State ─────────────────────────────────────────────────────────────────────
 let difficulty = 1;
 let gainThreshold = 0; // Default to "All"
+let qMin = 0.5;   // Q range lower bound for random generation
+let qMax = 10.0;  // Q range upper bound for random generation
+let fixedQ = false; // When true, all bands use their filter-type default Q
 let targetBands = [], userBands = [];
 let enabledFilters = ['peaking', 'lowshelf', 'highshelf', 'lowpass', 'highpass', 'notch'];
 let roundActive = false, answered = false;
@@ -527,45 +552,51 @@ const yToGain = (y, h) => -((y - h/2) / (h/2 - 26)) * 18;
 function getBandGainAt(b, f) {
   const { type, frequency, gain, Q } = b;
   const f0 = frequency;
-  
+  const r = f / f0;
+
+  // 1. Band (Peaking)
+  // Gaussian in log-frequency space. sigma = 0.9/Q keeps the bell
+  // visible and Q-proportional across the peaking Q range (5–20).
   if (type === 'peaking') {
-    const v = Math.pow(10, gain / 20);
-    const w0 = 2 * Math.PI * f / 48000; // Normalized freq
-    const alpha = Math.sin(2 * Math.PI * f0 / 48000) / (2 * Q);
-    // Simplified peaking visualization
-    const dist = Math.abs(Math.log10(f) - Math.log10(f0));
-    return gain * Math.exp(-dist * dist * Q);
+    const logDist = Math.log10(r);   // signed log distance from centre
+    const sigma   = 0.9 / Q;        // narrower bell as Q rises
+    return gain * Math.exp(-0.5 * Math.pow(logDist / sigma, 2));
   }
 
-  if (type === 'lowpass' || type === 'highpass') {
-    const r = f / f0;
-    if (r === 0) return 0;
-    // Standard 2nd order filter magnitude response
-    const magnitude = 1 / Math.sqrt(Math.pow(1 - r * r, 2) + Math.pow(r / Q, 2));
-    let db = 20 * Math.log10(magnitude);
-    
-    // Apply the slope cut
-    if (type === 'lowpass') {
-      return f > f0 ? db - (40 * Math.log10(f / f0)) : db;
-    } else {
-      return f < f0 ? db - (40 * Math.log10(f0 / f)) : db;
-    }
+  // 2. Low Pass — rolls off above cutoff, resonance bump at f0
+  if (type === 'lowpass') {
+    const denom = Math.sqrt(Math.pow(1 - r * r, 2) + Math.pow(r / Q, 2));
+    const resDb = 20 * Math.log10(Math.max(0.0001, 1 / denom));
+    return f > f0 ? resDb - 40 * Math.log10(f / f0) : resDb;
   }
 
+  // 3. High Pass — mirror of lowpass: rolls off BELOW cutoff
+  // Use inv = f0/f so the resonance formula is symmetric with lowpass.
+  if (type === 'highpass') {
+    const inv   = f0 / f;
+    const denom = Math.sqrt(Math.pow(1 - inv * inv, 2) + Math.pow(inv / Q, 2));
+    const resDb = 20 * Math.log10(Math.max(0.0001, 1 / denom));
+    return f < f0 ? resDb - 40 * Math.log10(f0 / f) : resDb;
+  }
+
+  // 3. Notch
   if (type === 'notch') {
-    const r = f / f0;
-    if (r === 1) return -24; // Visual floor for the notch
-    const magnitude = Math.abs(1 - r * r) / Math.sqrt(Math.pow(1 - r * r, 2) + Math.pow(r / Q, 2));
-    return Math.max(-24, 20 * Math.log10(magnitude));
+    const mag = Math.abs(1 - r * r) / Math.sqrt(Math.pow(1 - r * r, 2) + Math.pow(r / Q, 2));
+    return Math.max(-24, 20 * Math.log10(Math.max(0.001, mag)));
   }
+
+  // 4. Shelves — Q controls slope steepness (higher Q = steeper transition)
   if (type === 'lowshelf') {
-    const t = Math.min(1, Math.max(0, (Math.log10(frequency) - Math.log10(f)) * 4 + 0.5));
+    const S = Math.max(0.1, Q);
+    const t = 1 / (1 + Math.pow(f / f0, 2 * S));
     return gain * t;
   }
   if (type === 'highshelf') {
-    const t = Math.min(1, Math.max(0, (Math.log10(f) - Math.log10(frequency)) * 4 + 0.5));
+    const S = Math.max(0.1, Q);
+    const t = 1 / (1 + Math.pow(f0 / f, 2 * S));
     return gain * t;
   }
+
   return 0;
 }
 
@@ -769,10 +800,15 @@ canvas.addEventListener('wheel', e => {
   if (i >= 0) {
     e.preventDefault();
     const b = userBands[i];
-    
-    // Multiplier for geometric scaling
     const factor = e.deltaY > 0 ? 0.9 : 1.1;
-    b.Q = Math.max(0.1, Math.min(10, b.Q * factor)); 
+    
+    if (b.type === 'peaking') {
+      // New constraints for Peaking (Band)
+      b.Q = Math.max(5, Math.min(20, b.Q * factor));
+    } else {
+      // General constraints for other filters
+      b.Q = Math.max(0.1, Math.min(10, b.Q * factor));
+    }
     
     liveUpdateFilter(i);
     updateBandChip(i);
@@ -1043,10 +1079,11 @@ function randomBand(index, usedTypes = []) {
       type: type,
       frequency: frequency,
       gain: 0, // Lock visual gain to center
-      Q: type === 'notch' ? 5.0 : 0.7 + Math.random() * 1.5 // Q capped at 10
+      Q: fixedQ ? defaultQ(type) : qMin + Math.random() * Math.max(0, qMax - qMin)
     };
   }
-  
+
+  // Shared gain calculation (used by peaking, lowshelf, highshelf)
   let min, max;
   switch (Number(gainThreshold)) {
     case 0:  min = 0.5; max = 12; break; // All
@@ -1064,12 +1101,74 @@ function randomBand(index, usedTypes = []) {
   const direction = Math.random() > 0.5 ? 1 : -1;
   const finalGain = absoluteGain * direction;
 
+  // 3. Peaking — narrow bell, high Q
+  if (type === 'peaking') {
+    return {
+      type: type,
+      frequency: frequency,
+      gain: Math.round(finalGain * 10) / 10,
+      Q: fixedQ ? defaultQ(type) : qMin + Math.random() * Math.max(0, qMax - qMin)
+    };
+  }
+
+  // 4. Shelves (lowshelf / highshelf)
   return {
     type: type,
     frequency: frequency,
     gain: Math.round(finalGain * 10) / 10,
-    Q: 0.7 + Math.random() * 2.0
+    Q: fixedQ ? defaultQ(type) : qMin + Math.random() * Math.max(0, qMax - qMin)
   };
+}
+
+// ── Q Settings ───────────────────────────────────────────────────────────────
+function updateQRange() {
+  const minEl = document.getElementById('qMinInput');
+  const maxEl = document.getElementById('qMaxInput');
+  let newMin = parseFloat(minEl.value);
+  let newMax = parseFloat(maxEl.value);
+
+  // Clamp to [0, 20]
+  newMin = Math.max(0, Math.min(20, isNaN(newMin) ? 0.5 : newMin));
+  newMax = Math.max(0, Math.min(20, isNaN(newMax) ? 10 : newMax));
+
+  // Ensure min <= max
+  if (newMin > newMax) { newMax = newMin; maxEl.value = newMax.toFixed(1); }
+
+  qMin = newMin;
+  qMax = newMax;
+  document.getElementById('qRangeHint').textContent = fixedQ
+    ? 'Q fixed to defaults'
+    : `Random Q: ${qMin.toFixed(1)} – ${qMax.toFixed(1)}`;
+}
+
+function toggleFixedQ() {
+  fixedQ = !fixedQ;
+  const btn = document.getElementById('btnFixQ');
+  const hint = document.getElementById('qRangeHint');
+  if (fixedQ) {
+    btn.style.color = 'var(--accent2)';
+    btn.style.borderColor = 'var(--accent)';
+    btn.style.background = 'rgba(91,106,255,0.1)';
+    hint.textContent = 'Q fixed to defaults';
+  } else {
+    btn.style.color = 'var(--muted)';
+    btn.style.borderColor = 'var(--border2)';
+    btn.style.background = 'var(--surface2)';
+    hint.textContent = `Random Q: ${qMin.toFixed(1)} – ${qMax.toFixed(1)}`;
+  }
+}
+
+// Default Q per filter type when fixedQ is enabled
+function defaultQ(type) {
+  switch (type) {
+    case 'peaking':   return 10.0;
+    case 'lowshelf':
+    case 'highshelf': return 0.7;
+    case 'lowpass':
+    case 'highpass':  return 0.7;
+    case 'notch':     return 5.0;
+    default:          return 1.0;
+  }
 }
 
 function newRound() {
@@ -1096,9 +1195,9 @@ function newRound() {
     // Spread user handles so they are easier to grab
     userBands.push({
       type: newTarget.type, 
-      frequency: startingFreqs[i] || 1000, 
+      frequency: startingFreqs[i] || 500-1000, 
       gain: 0, 
-      Q: 1.0
+      Q: fixedQ ? defaultQ(newTarget.type) : Math.min(qMax, Math.max(qMin, newTarget.type === 'peaking' ? 10.0 : 1.0))
     });
   }
   
@@ -1296,6 +1395,14 @@ function showToast(msg) {
 
 window.addEventListener('resize',drawEQ);
 drawEQ();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('PWA Service Worker registered!'))
+      .catch(err => console.log('PWA Service Worker failed:', err));
+  });
+}
 </script>
 </body>
 </html>
