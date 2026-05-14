@@ -288,6 +288,19 @@
   .btn-play-restart:hover { background:rgba(232,160,48,0.08); border-color:rgba(232,160,48,0.6); }
   .btn-play-restart:disabled { opacity:0.35; cursor:not-allowed; }
 
+  .btn-pause {
+    background: var(--surface2);
+    color: var(--muted);
+    border: 1px solid var(--border2);
+    font-size: 13px; padding: 9px 16px; border-radius: 10px;
+    cursor: pointer; font-family: 'IBM Plex Sans', sans-serif;
+    display: flex; align-items: center; gap: 7px;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .btn-pause:hover { border-color: var(--accent2); color: var(--accent2); }
+  .btn-pause.paused { background: rgba(212,74,42,0.1); border-color: var(--accent2); color: var(--accent2); }
+  .btn-pause:disabled { opacity:0.35; cursor:not-allowed; }
+
   .controls-bar { display:flex; gap:10px; flex-wrap:wrap; }
 
   .pulse { width:6px; height:6px; border-radius:50%; animation:pulse 1.1s infinite; flex-shrink:0; }
@@ -371,7 +384,7 @@
       <span class="label">Params</span>
       <div id="paramPills" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
       <div style="margin-left:auto;font-size:11px;color:var(--muted);white-space:nowrap;">
-        <kbd>Space</kbd> A/B &nbsp;·&nbsp; <kbd>D</kbd> Dry &nbsp;·&nbsp; <kbd>F</kbd> Restart &nbsp;·&nbsp; <kbd>⇧</kbd> New &nbsp;·&nbsp; <kbd>↵</kbd> Check
+        <kbd>Space</kbd> A/B &nbsp;·&nbsp; <kbd>D</kbd> Dry &nbsp;·&nbsp; <kbd>F</kbd> Restart &nbsp;·&nbsp; <kbd>P</kbd> Pause &nbsp;·&nbsp; <kbd>⇧</kbd> New &nbsp;·&nbsp; <kbd>↵</kbd> Check
       </div>
     </div>
   </div>
@@ -443,8 +456,8 @@
         <div class="source-pill active" id="srcPink" onclick="setSource('pink')">Pink Noise</div>
         <div class="source-pill" id="srcCustom" onclick="triggerUpload()" style="border-style:dashed;">
           <span id="uploadLabel">📁 Upload Music Folder</span>
-          <input type="file" id="folderInput" webkitdirectory directory multiple onchange="handleFolderUpload(event)">
         </div>
+        <input type="file" id="folderInput" webkitdirectory directory multiple onchange="handleFolderUpload(event)" style="display:none;">
       </div>
 
       <!-- Controls -->
@@ -460,6 +473,9 @@
       <div class="controls-bar">
         <button class="btn-play-restart" id="btnPlayRestart" onclick="restartAudio()" disabled title="Restart audio (F)">
           &#9654; Restart
+        </button>
+        <button class="btn-pause" id="btnPause" onclick="togglePause()" disabled title="Pause / Resume (P)">
+          &#9646;&#9646; Pause
         </button>
       </div>
       <div class="controls-bar">
@@ -514,6 +530,7 @@ let roundActive  = false, answered = false;
 let totalScore=0, streak=0, round=0;
 let listeningTo  = 'target';
 let isDry        = false;
+let isPaused     = false;  // true = audio context suspended
 let abActive=false, abInterval=null;
 
 // Audio
@@ -1054,14 +1071,41 @@ function toggleDry() {
   if (!roundActive) return;
   isDry = !isDry;
   document.getElementById('btnDry').classList.toggle('active', isDry);
-  if (!audioCtx || !dryBypassGain) return;
+  if (!audioCtx) return;
+
   if (isDry) {
+    // Disconnect wet/processed chains from output
     try { analyserTarget.disconnect(outputGain); } catch(e){}
     try { analyserUser.disconnect(outputGain);   } catch(e){}
-    dryBypassGain.gain.setTargetAtTime(1, audioCtx.currentTime, 0.02);
+    // For continuous sources, open the bypass gain
+    if (dryBypassGain) dryBypassGain.gain.setTargetAtTime(1, audioCtx.currentTime, 0.02);
+    // For builtin one-shots, triggerShot will now route direct (handled below)
   } else {
-    dryBypassGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.02);
-    (listeningTo==='target' ? analyserTarget : analyserUser).connect(outputGain);
+    if (dryBypassGain) dryBypassGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.02);
+    try { (listeningTo==='target' ? analyserTarget : analyserUser).connect(outputGain); } catch(e){}
+  }
+}
+
+// ── Pause / Resume ────────────────────────────────────────────────────────────
+function togglePause() {
+  if (!roundActive || !audioCtx) return;
+  const btn = document.getElementById('btnPause');
+  if (isPaused) {
+    // Resume
+    audioCtx.resume().then(() => {
+      isPaused = false;
+      btn.innerHTML = '&#9646;&#9646; Pause';
+      btn.classList.remove('paused');
+      if (sourceType === 'builtin') startBuiltinLoop();
+    });
+  } else {
+    // Pause
+    stopBuiltinLoop();
+    audioCtx.suspend().then(() => {
+      isPaused = true;
+      btn.innerHTML = '&#9654; Resume';
+      btn.classList.add('paused');
+    });
   }
 }
 
@@ -1153,9 +1197,21 @@ function stopBuiltinLoop() {
 function triggerShot() {
   if (!audioCtx || !builtinBuffers.length) return;
   if (!targetDistNode || !userDistNode) return;
+  if (isPaused) return;
   const sample = builtinBuffers[builtinIndex % builtinBuffers.length];
   if (!sample) return;
-  // Fire through both chains
+
+  if (isDry) {
+    // Dry mode: bypass all distortion, play sample direct to output
+    const srcDry = audioCtx.createBufferSource();
+    srcDry.buffer = sample.buffer;
+    const dryVol = audioCtx.createGain(); dryVol.gain.value = 0.7;
+    srcDry.connect(dryVol); dryVol.connect(outputGain);
+    srcDry.start(0);
+    return;
+  }
+
+  // Normal mode: fire through both target and user chains simultaneously
   const srcT = audioCtx.createBufferSource(); srcT.buffer = sample.buffer;
   srcT.connect(targetDistNode); srcT.connect(targetMixDry); srcT.start(0);
   const srcU = audioCtx.createBufferSource(); srcU.buffer = sample.buffer;
@@ -1165,6 +1221,8 @@ function triggerShot() {
 // ── Round ─────────────────────────────────────────────────────────────────────
 function newRound() {
   stopBuiltinLoop(); stopAB();
+  // Resume if paused
+  if (isPaused && audioCtx) { audioCtx.resume(); isPaused=false; }
   roundActive=false; answered=false;
   round++; document.getElementById('roundCount').textContent=round;
 
@@ -1196,6 +1254,7 @@ function newRound() {
   document.getElementById('btnUser').disabled=false;
   document.getElementById('btnDry').disabled=false;
   document.getElementById('btnPlayRestart').disabled=false;
+  document.getElementById('btnPause').disabled=false;
   document.getElementById('specLegend').style.display='none';
   document.getElementById('targetSpectrum').classList.add('hidden-spectrum');
 
@@ -1289,6 +1348,7 @@ window.addEventListener('keydown', e => {
   }
   if(e.code==='KeyD'){ e.preventDefault(); toggleDry(); }
   if(e.code==='KeyF'){ e.preventDefault(); restartAudio(); }
+  if(e.code==='KeyP'){ e.preventDefault(); togglePause(); }
   if(e.code==='ShiftLeft'||e.code==='ShiftRight'){ e.preventDefault(); newRound(); }
 });
 
