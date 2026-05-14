@@ -1,0 +1,16 @@
+{
+  "name": "Quick Compress — Ear Training",
+  "short_name": "Quick Compress",
+  "description": "Train your ears to hear compression. Two signals play — pick the compressed one.",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#080c0a",
+  "theme_color": "#2dd4a0",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "categories": ["education", "music", "productivity"],
+  "lang": "en"
+}

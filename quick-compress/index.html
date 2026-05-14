@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quick Compress</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg:       #080c0a;
+    --bg2:      #0b0f0d;
+    --surface:  #101a14;
+    --surface2: #172019;
+    --surface3: #1e2a20;
+    --border:   rgba(255,255,255,0.07);
+    --border2:  rgba(255,255,255,0.13);
+    --text:     #ddf0e4;
+    --muted:    #4a6054;
+    --accent:   #2dd4a0;
+    --accent2:  #5eefc0;
+    --a-col:    #5b8fff;
+    --a-col2:   #8ab4ff;
+    --b-col:    #e8a030;
+    --b-col2:   #f0c060;
+    --green:    #3ecf8e;
+    --red:      #f45b69;
+    --amber:    #f5a623;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family:'IBM Plex Sans',sans-serif;
+    background:var(--bg); color:var(--text);
+    min-height:100vh;
+    display:flex; flex-direction:column; align-items:center;
+    padding-bottom:40px;
+    user-select:none;
+  }
+
+  header {
+    width:100%; max-width:780px;
+    padding:20px 24px 0;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+
+  .brand { display:flex; align-items:center; gap:10px; }
+  .brand-icon {
+    width:32px; height:32px; background:var(--accent);
+    border-radius:8px; display:flex; align-items:center; justify-content:center;
+  }
+  .brand-name {
+    font-family:'IBM Plex Mono',monospace;
+    font-size:15px; font-weight:700; letter-spacing:0.06em;
+  }
+  .brand-name span { color:var(--accent2); }
+
+  .score-row { display:flex; gap:18px; align-items:center; }
+  .stat { text-align:center; }
+  .stat-val { font-family:'IBM Plex Mono',monospace; font-size:20px; font-weight:700; color:var(--accent2); }
+  .stat-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; }
+  .vdiv { width:1px; height:20px; background:var(--border2); }
+
+  .main {
+    width:100%; max-width:780px;
+    padding:14px 24px 0;
+    display:flex; flex-direction:column; gap:14px;
+  }
+
+  .settings-row {
+    display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    background:var(--surface); border:1px solid var(--border);
+    padding:7px 14px; border-radius:12px;
+  }
+
+  .label {
+    font-size:11px; font-weight:600; color:var(--muted);
+    text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap;
+  }
+
+  select {
+    background:var(--surface2); color:var(--text);
+    border:1px solid var(--border2);
+    padding:5px 10px; border-radius:8px;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:12px; outline:none; cursor:pointer;
+  }
+  select:focus { border-color:var(--accent); }
+
+  kbd {
+    font-family:'IBM Plex Mono',monospace; font-size:10px;
+    background:var(--surface2); border:1px solid var(--border2);
+    border-radius:4px; padding:1px 5px; color:var(--muted);
+  }
+
+  /* ── Prompt bar ── */
+  .prompt-bar {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:12px 18px;
+    min-height:58px; display:flex; align-items:center; gap:14px;
+    transition:border-color 0.3s, box-shadow 0.3s;
+    flex-wrap:wrap;
+  }
+  .prompt-bar.correct-flash { border-color:var(--green); box-shadow:0 0 16px rgba(62,207,142,0.14); }
+  .prompt-bar.wrong-flash   { border-color:var(--red);   box-shadow:0 0 14px rgba(244,91,105,0.12); }
+
+  .prompt-text { font-size:15px; color:var(--text); flex:1; line-height:1.4; }
+  .prompt-text span { color:var(--accent2); font-family:'IBM Plex Mono',monospace; font-weight:600; }
+
+  .result-inline {
+    font-family:'IBM Plex Mono',monospace; font-size:18px; font-weight:700;
+    opacity:0; transition:opacity 0.15s; white-space:nowrap;
+  }
+  .result-inline.good { opacity:1; color:var(--green); }
+  .result-inline.bad  { opacity:1; color:var(--red); }
+
+  .next-bar { height:3px; background:var(--border2); border-radius:2px; overflow:hidden; margin-top:6px; }
+  .next-fill { height:100%; border-radius:2px; background:var(--accent); width:100%; transition:none; }
+
+  /* ── AB Buttons ── */
+  .ab-row {
+    display:grid; grid-template-columns:1fr 1fr; gap:16px;
+  }
+
+  .ab-btn {
+    border:none; border-radius:16px;
+    font-family:'IBM Plex Sans',sans-serif;
+    cursor:pointer; transition:all 0.15s;
+    padding:0;
+    display:flex; flex-direction:column; align-items:center;
+    position:relative; overflow:hidden;
+  }
+  .ab-btn:disabled { opacity:0.4; cursor:not-allowed; }
+
+  .ab-btn-inner {
+    width:100%; padding:32px 20px 20px;
+    display:flex; flex-direction:column; align-items:center; gap:12px;
+    border-radius:16px;
+    border:2px solid transparent;
+    transition:all 0.15s;
+    background:var(--surface);
+  }
+
+  .ab-btn.btn-a .ab-btn-inner {
+    border-color:rgba(91,143,255,0.3);
+  }
+  .ab-btn.btn-b .ab-btn-inner {
+    border-color:rgba(232,160,48,0.3);
+  }
+
+  .ab-btn.btn-a:hover:not(:disabled) .ab-btn-inner {
+    background:rgba(91,143,255,0.08);
+    border-color:rgba(91,143,255,0.7);
+    transform:translateY(-2px);
+  }
+  .ab-btn.btn-b:hover:not(:disabled) .ab-btn-inner {
+    background:rgba(232,160,48,0.08);
+    border-color:rgba(232,160,48,0.7);
+    transform:translateY(-2px);
+  }
+
+  /* Playing state */
+  .ab-btn.playing.btn-a .ab-btn-inner {
+    background:rgba(91,143,255,0.12);
+    border-color:var(--a-col);
+    box-shadow:0 0 24px rgba(91,143,255,0.15);
+  }
+  .ab-btn.playing.btn-b .ab-btn-inner {
+    background:rgba(232,160,48,0.12);
+    border-color:var(--b-col);
+    box-shadow:0 0 24px rgba(232,160,48,0.15);
+  }
+
+  /* Correct reveal */
+  .ab-btn.correct .ab-btn-inner {
+    background:rgba(62,207,142,0.1);
+    border-color:var(--green);
+    box-shadow:0 0 20px rgba(62,207,142,0.2);
+  }
+  .ab-btn.wrong .ab-btn-inner {
+    background:rgba(244,91,105,0.08);
+    border-color:var(--red);
+  }
+  .ab-btn.dimmed .ab-btn-inner {
+    opacity:0.35;
+  }
+
+  .ab-letter {
+    font-family:'IBM Plex Mono',monospace;
+    font-size:52px; font-weight:700; line-height:1;
+  }
+  .btn-a .ab-letter { color:var(--a-col2); }
+  .btn-b .ab-letter { color:var(--b-col2); }
+  .ab-btn.correct .ab-letter { color:var(--green); }
+  .ab-btn.wrong   .ab-letter { color:var(--red); }
+
+  .ab-sub {
+    font-size:12px; color:var(--muted); font-weight:500;
+    letter-spacing:0.05em; text-transform:uppercase;
+  }
+
+  .pulse-ring {
+    position:absolute; top:12px; right:12px;
+    width:10px; height:10px; border-radius:50%;
+    opacity:0; transition:opacity 0.2s;
+  }
+  .btn-a .pulse-ring { background:var(--a-col); }
+  .btn-b .pulse-ring { background:var(--b-col); }
+  .ab-btn.playing .pulse-ring {
+    opacity:1;
+    animation:pring 1.1s infinite;
+  }
+  @keyframes pring { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.3;transform:scale(0.6);} }
+
+  /* Result badge on button */
+  .ab-result-badge {
+    position:absolute; top:12px; left:12px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px; font-weight:700;
+    padding:3px 8px; border-radius:6px;
+    opacity:0; transition:opacity 0.2s;
+  }
+  .ab-btn.correct .ab-result-badge { opacity:1; background:rgba(62,207,142,0.2); color:var(--green); }
+  .ab-btn.correct .ab-result-badge::after { content:'✓ Compressed'; }
+  .ab-btn.wrong   .ab-result-badge { opacity:1; background:rgba(244,91,105,0.15); color:var(--red); }
+  .ab-btn.wrong   .ab-result-badge::after { content:'✗ Wrong'; }
+  .ab-btn.dimmed  .ab-result-badge { opacity:1; background:rgba(255,255,255,0.06); color:var(--muted); }
+  .ab-btn.dimmed  .ab-result-badge::after { content:'Dry'; }
+
+  /* Compression tier indicator */
+  .tier-badge {
+    position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
+    font-family:'IBM Plex Mono',monospace; font-size:10px;
+    opacity:0; transition:opacity 0.3s; white-space:nowrap;
+    padding:2px 8px; border-radius:4px;
+  }
+  .ab-btn.correct .tier-badge { opacity:1; color:var(--accent2); background:rgba(45,212,160,0.1); }
+
+  /* ── History / GR meter ── */
+  .gr-row {
+    display:flex; gap:10px; align-items:center;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:10px 16px;
+  }
+  .gr-label { font-size:11px; color:var(--muted); width:80px; flex-shrink:0; }
+  .gr-track { flex:1; height:8px; background:var(--surface3); border-radius:4px; overflow:hidden; }
+  .gr-fill   { height:100%; border-radius:4px; background:linear-gradient(to right,var(--accent),var(--accent2)); transition:width 0.08s; }
+  .gr-val    { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text); width:48px; text-align:right; flex-shrink:0; }
+
+  /* ── History ── */
+  .history-strip { display:flex; gap:5px; flex-wrap:wrap; min-height:14px; }
+  .hist-dot { width:10px; height:10px; border-radius:50%; }
+  .hist-dot.c { background:var(--green); }
+  .hist-dot.w { background:var(--red); }
+
+  /* ── Audio controls ── */
+  .audio-bar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+
+  button.ctrl {
+    border:none; border-radius:10px;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:12px; font-weight:500;
+    cursor:pointer; padding:8px 14px; transition:all 0.15s;
+    display:flex; align-items:center; gap:5px;
+  }
+  .btn-action {
+    background:var(--surface2); color:var(--muted);
+    border:1px solid var(--border2);
+  }
+  .btn-action:hover { border-color:var(--accent); color:var(--accent); }
+  .btn-action.paused { background:rgba(244,91,105,0.08); border-color:var(--red); color:var(--red); }
+  .btn-action:disabled { opacity:0.35; cursor:not-allowed; }
+
+  .source-wrap {
+    display:flex; align-items:center; gap:7px; margin-left:auto; flex-wrap:wrap;
+  }
+  .source-pill {
+    background:var(--surface2); border:1px solid var(--border2);
+    border-radius:8px; padding:5px 11px; font-size:12px;
+    color:var(--muted); cursor:pointer; transition:all 0.15s; white-space:nowrap;
+  }
+  .source-pill:hover { border-color:var(--accent); color:var(--text); }
+  .source-pill.active { border-color:var(--accent2); color:var(--accent2); background:rgba(45,212,160,0.07); }
+
+  /* ── Toast ── */
+  .toast {
+    position:fixed; bottom:24px; left:50%;
+    transform:translateX(-50%) translateY(12px);
+    background:var(--surface2); border:1px solid var(--border2);
+    border-radius:10px; padding:10px 16px; font-size:13px; color:var(--text);
+    opacity:0; transition:all 0.2s; pointer-events:none; z-index:999; white-space:nowrap;
+  }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-icon">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <!-- Compression ratio line (squashed waveform) -->
+        <path d="M1 9 L4 4 L5 7 L6 5 L7 8 L8 6.5 L9 7.5 L10 6 L11 8 L12 5.5 L13 7.5 L14 9" stroke="black" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <path d="M1 9 L4 7 L5 8 L6 7.5 L7 8.5 L8 7.8 L9 8.2 L10 7.5 L11 8.5 L12 7.2 L13 8.2 L14 9" stroke="black" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.5"/>
+        <text x="15.5" y="9.5" fill="black" font-size="4" font-weight="bold">∫</text>
+      </svg>
+    </div>
+    <span class="brand-name">QUICK <span>COMPRESS</span></span>
+  </div>
+  <div class="score-row">
+    <div class="stat">
+      <div class="stat-val" id="scoreVal">0</div>
+      <div class="stat-label">Score</div>
+    </div>
+    <div class="vdiv"></div>
+    <div class="stat">
+      <div class="stat-val" id="streakVal">0</div>
+      <div class="stat-label">Streak</div>
+    </div>
+    <div class="vdiv"></div>
+    <div class="stat">
+      <div class="stat-val" id="accuracyVal">—</div>
+      <div class="stat-label">Accuracy</div>
+    </div>
+    <div class="vdiv"></div>
+    <div class="stat">
+      <div class="stat-val" id="roundVal">0</div>
+      <div class="stat-label">Round</div>
+    </div>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- Settings -->
+  <div class="settings-row">
+    <span class="label">Compression</span>
+    <select id="tierSelect" onchange="setTier(this.value)">
+      <option value="easy" selected>Easy (20:1)</option>
+      <option value="medium">Medium (8:1)</option>
+      <option value="hard">Hard (4:1)</option>
+      <option value="subtle">Subtle (2.5:1)</option>
+    </select>
+    <div class="vdiv"></div>
+    <span id="tierDesc" style="font-size:11px;color:var(--muted);">Ratio 8:1 · Threshold −24dB · Attack 5ms · Release 50ms</span>
+    <div class="vdiv" style="margin-left:auto;"></div>
+    <span style="font-size:11px;color:var(--muted);white-space:nowrap;">
+      <kbd>A</kbd> play A &nbsp;·&nbsp; <kbd>B</kbd> play B &nbsp;·&nbsp;
+      <kbd>P</kbd> pause &nbsp;·&nbsp; <kbd>F</kbd> restart &nbsp;·&nbsp;
+      <kbd>←→</kbd> seek &nbsp;·&nbsp; <kbd>↑↓</kbd> track
+    </span>
+  </div>
+
+  <!-- Prompt -->
+  <div class="prompt-bar" id="promptBar">
+    <div style="flex:1;">
+      <div class="prompt-text" id="promptText">
+        Click <span>Play</span> to start — then click <span>A</span> or <span>B</span> to pick the compressed signal
+      </div>
+      <div class="next-bar" id="nextBar" style="display:none;"><div class="next-fill" id="nextFill"></div></div>
+    </div>
+    <div class="result-inline" id="resultInline"></div>
+  </div>
+
+  <!-- A / B buttons -->
+  <div class="ab-row">
+    <button class="ab-btn btn-a" id="btnA" onclick="selectAnswer('A')" disabled>
+      <div class="pulse-ring"></div>
+      <div class="ab-result-badge"></div>
+      <div class="ab-btn-inner">
+        <div class="ab-letter">A</div>
+        <div class="ab-sub">Click to select</div>
+      </div>
+      <div class="tier-badge" id="tierBadgeA"></div>
+    </button>
+    <button class="ab-btn btn-b" id="btnB" onclick="selectAnswer('B')" disabled>
+      <div class="pulse-ring"></div>
+      <div class="ab-result-badge"></div>
+      <div class="ab-btn-inner">
+        <div class="ab-letter">B</div>
+        <div class="ab-sub">Click to select</div>
+      </div>
+      <div class="tier-badge" id="tierBadgeB"></div>
+    </button>
+  </div>
+
+  <!-- GR meter -->
+  <div class="gr-row" id="grRow" style="display:none;">
+    <span class="gr-label">Gain Reduction</span>
+    <div class="gr-track"><div class="gr-fill" id="grFill" style="width:0%"></div></div>
+    <span class="gr-val" id="grVal">— dB</span>
+  </div>
+
+  <!-- History -->
+  <div class="history-strip" id="historyStrip"></div>
+
+  <!-- Audio controls -->
+  <div class="audio-bar">
+    <button class="ctrl btn-action" id="btnPlayA" onclick="listenTo('A')" disabled>▶ Play A</button>
+    <button class="ctrl btn-action" id="btnPlayB" onclick="listenTo('B')" disabled>▶ Play B</button>
+    <button class="ctrl btn-action" id="btnPause"   onclick="togglePause()"  disabled>⏸ Pause</button>
+    <button class="ctrl btn-action" id="btnRestart" onclick="restartAudio()" disabled>↺ Restart</button>
+    <button class="ctrl btn-action" id="btnNew"     onclick="newRound()">⟳ New Round</button>
+
+    <div class="source-wrap">
+      <span class="label">Source</span>
+      <div class="source-pill active" id="srcPink"    onclick="setSource('pink')">Pink Noise</div>
+      <div class="source-pill"        id="srcBuiltin" onclick="setSource('builtin')">Sample One-shots</div>
+      <div class="source-pill"        id="srcCustom"  onclick="triggerUpload()" style="border-style:dashed;">
+        <span id="uploadLabel">📁 Upload Music</span>
+      </div>
+      <input type="file" id="folderInput" webkitdirectory directory multiple
+             onchange="handleFolderUpload(event)" style="display:none;">
+    </div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Compression tiers ─────────────────────────────────────────────────────────
+// makeup is computed automatically for gain staging — see calcMakeup()
+const TIERS = {
+  easy:   { threshold:-30, ratio:20,  attack:0.003, release:0.05,  knee:2,  label:'Ratio 20:1 · Thresh −30dB · Attack 3ms · Release 50ms'   },
+  medium: { threshold:-24, ratio:8,   attack:0.005, release:0.08,  knee:4,  label:'Ratio 8:1 · Thresh −24dB · Attack 5ms · Release 80ms'    },
+  hard:   { threshold:-18, ratio:4,   attack:0.008, release:0.12,  knee:6,  label:'Ratio 4:1 · Thresh −18dB · Attack 8ms · Release 120ms'   },
+  subtle: { threshold:-14, ratio:2.5, attack:0.012, release:0.18,  knee:8,  label:'Ratio 2.5:1 · Thresh −14dB · Attack 12ms · Release 180ms'},
+};
+
+// Compute makeup gain for compressed side.
+// After preGain(0.18), signal peaks around −21 dBFS.
+// Makeup compensates only the GR above threshold at that level.
+function calcMakeup(tier) {
+  const signalPeakAfterPreGain = -21; // dBFS after 0.18 linear pre-gain
+  const excess = Math.max(0, signalPeakAfterPreGain - tier.threshold);
+  const gr     = excess * (1 - 1 / tier.ratio);
+  return gr;
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let currentTier    = 'easy';
+let compressedSide = null; // 'A' or 'B'
+let listeningTo    = 'A';
+let roundActive    = false;
+let answered       = false;
+let totalScore=0, streak=0, totalRounds=0, correctCount=0;
+let isPaused       = false;
+
+// Audio
+let audioCtx       = null;
+let sourceA        = null, sourceB = null; // continuously playing sources
+let compNode       = null;  // DynamicsCompressorNode on compressed side
+let gainA          = null,  gainB = null;  // output gains to toggle A/B
+let masterOut      = null;
+let shotTimerA     = null,  shotTimerB = null;
+let sourceType     = 'pink';
+let customBuffers  = [], customIdx=0, musicOffset=0, musicStartedAt=0;
+let builtinBuffers = [], builtinLoaded=false, builtinIdx=0;
+let currentShotSrcA= null, currentShotSrcB = null;
+let animFrameId    = null;
+
+// ── Tier ─────────────────────────────────────────────────────────────────────
+function setTier(t) {
+  currentTier = t;
+  document.getElementById('tierDesc').textContent = TIERS[t].label;
+  if (roundActive) newRound();
+}
+
+// ── Round ─────────────────────────────────────────────────────────────────────
+function newRound() {
+  clearTimeout(window._nextTimeout);
+  stopAudio();
+  answered   = false;
+  roundActive = true;
+  totalRounds++;
+  document.getElementById('roundVal').textContent = totalRounds;
+
+  // Randomly assign compressed side
+  compressedSide = Math.random() > 0.5 ? 'A' : 'B';
+
+  // Reset UI
+  document.getElementById('promptBar').classList.remove('correct-flash','wrong-flash');
+  document.getElementById('resultInline').className = 'result-inline';
+  document.getElementById('resultInline').textContent = '';
+  document.getElementById('nextBar').style.display = 'none';
+
+  ['btnA','btnB'].forEach(id => {
+    const btn = document.getElementById(id);
+    btn.className = btn.id === 'btnA' ? 'ab-btn btn-a' : 'ab-btn btn-b';
+    btn.disabled  = false;
+  });
+  document.getElementById('tierBadgeA').textContent = '';
+  document.getElementById('tierBadgeB').textContent = '';
+  document.getElementById('grRow').style.display = 'none';
+
+  document.getElementById('btnPlayA').disabled   = false;
+  document.getElementById('btnPlayB').disabled   = false;
+  document.getElementById('btnPause').disabled   = false;
+  document.getElementById('btnRestart').disabled = false;
+
+  document.getElementById('promptText').innerHTML =
+    `Which signal is <span>compressed</span>? Click <span>A</span> or <span>B</span>`;
+
+  // Advance sources
+  if (sourceType==='custom' && customBuffers.length>0)
+    customIdx = (customIdx+1) % customBuffers.length;
+  if (sourceType==='builtin' && builtinBuffers.length>0)
+    builtinIdx = (builtinIdx+1) % builtinBuffers.length;
+
+  musicOffset = 0;
+
+  // Start audio listening to A first
+  listeningTo = 'A';
+  buildAudioGraph();
+  updateListenBtns();
+}
+
+// ── Answer ────────────────────────────────────────────────────────────────────
+function selectAnswer(side) {
+  if (!roundActive || answered) return;
+  answered = true;
+
+  const correct = (side === compressedSide);
+  if (correct) { totalScore += 10; streak++; correctCount++; }
+  else streak = 0;
+
+  document.getElementById('scoreVal').textContent    = totalScore;
+  document.getElementById('streakVal').textContent   = streak;
+  document.getElementById('accuracyVal').textContent =
+    totalRounds > 0 ? Math.round(correctCount/totalRounds*100)+'%' : '—';
+
+  // Update buttons
+  const correctBtn = document.getElementById(`btn${compressedSide}`);
+  const wrongSide  = compressedSide === 'A' ? 'B' : 'A';
+  const wrongBtn   = document.getElementById(`btn${wrongSide}`);
+  const selectedBtn= document.getElementById(`btn${side}`);
+
+  correctBtn.classList.add('correct');
+  document.getElementById('tierBadgeA').textContent =
+    compressedSide === 'A' ? `${currentTier} compression` : 'Dry';
+  document.getElementById('tierBadgeB').textContent =
+    compressedSide === 'B' ? `${currentTier} compression` : 'Dry';
+  document.getElementById('tierBadgeA').style.opacity = '1';
+  document.getElementById('tierBadgeB').style.opacity = '1';
+
+  if (!correct) {
+    selectedBtn.classList.add('wrong');
+    wrongBtn.classList.add('dimmed');
+  } else {
+    wrongBtn.classList.add('dimmed');
+  }
+
+  document.getElementById('btnA').disabled = true;
+  document.getElementById('btnB').disabled = true;
+
+  // Prompt
+  document.getElementById('promptBar').classList.add(correct ? 'correct-flash' : 'wrong-flash');
+  const ri = document.getElementById('resultInline');
+  ri.textContent = correct ? '✓ Correct!' : `✗ It was ${compressedSide}`;
+  ri.className   = `result-inline ${correct ? 'good' : 'bad'}`;
+
+  document.getElementById('promptText').innerHTML = correct
+    ? `🎯 Correct! <span>${compressedSide}</span> was compressed · Ratio ${TIERS[currentTier].ratio}:1 · Thresh ${TIERS[currentTier].threshold}dB`
+    : `✗ Nope — <span>${compressedSide}</span> was the compressed one · Keep training`;
+
+  // Show GR meter (listen to compressed side)
+  document.getElementById('grRow').style.display = 'flex';
+  listenTo(compressedSide);
+
+  addHistory(correct);
+
+  const delay = correct ? 1500 : 2500;
+  const bar  = document.getElementById('nextBar');
+  const fill = document.getElementById('nextFill');
+  bar.style.display = 'block';
+  fill.style.transition='none'; fill.style.width='100%';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    fill.style.transition=`width ${delay}ms linear`; fill.style.width='0%';
+  }));
+  window._nextTimeout = setTimeout(newRound, delay);
+}
+
+// ── Listen to A or B ──────────────────────────────────────────────────────────
+function listenTo(side) {
+  if (!audioCtx || !gainA || !gainB) return;
+  listeningTo = side;
+  gainA.gain.setTargetAtTime(side==='A' ? 0.55 : 0, audioCtx.currentTime, 0.01);
+  gainB.gain.setTargetAtTime(side==='B' ? 0.55 : 0, audioCtx.currentTime, 0.01);
+  updateListenBtns();
+}
+
+function updateListenBtns() {
+  document.getElementById('btnA').classList.toggle('playing', listeningTo==='A' && roundActive && !answered);
+  document.getElementById('btnB').classList.toggle('playing', listeningTo==='B' && roundActive && !answered);
+  document.getElementById('btnPlayA').textContent = listeningTo==='A' ? '⏸ Playing A' : '▶ Play A';
+  document.getElementById('btnPlayB').textContent = listeningTo==='B' ? '⏸ Playing B' : '▶ Play B';
+}
+
+// ── Audio ─────────────────────────────────────────────────────────────────────
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function makePinkNoise(secs) {
+  const rate=audioCtx.sampleRate, len=Math.ceil(rate*secs);
+  const buf=audioCtx.createBuffer(1,len,rate);
+  const d=buf.getChannelData(0);
+  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+  for(let i=0;i<len;i++){
+    const w=Math.random()*2-1;
+    b0=0.99886*b0+w*0.0555179;b1=0.99332*b1+w*0.0750759;
+    b2=0.96900*b2+w*0.1538520;b3=0.86650*b3+w*0.3104856;
+    b4=0.55000*b4+w*0.5329522;b5=-0.7616*b5-w*0.0168980;
+    d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11;
+    b6=w*0.115926;
+  }
+  const src=audioCtx.createBufferSource();
+  src.buffer=buf; src.loop=true; return src;
+}
+
+function buildAudioGraph() {
+  stopAudio();
+  initAudio();
+  if (audioCtx.state==='suspended') audioCtx.resume();
+
+  const tier = TIERS[currentTier];
+  masterOut  = audioCtx.createGain(); masterOut.gain.value=1;
+  masterOut.connect(audioCtx.destination);
+
+  // Two output gains — only one active at a time
+  gainA = audioCtx.createGain(); gainA.gain.value = listeningTo==='A' ? 0.55 : 0;
+  gainB = audioCtx.createGain(); gainB.gain.value = listeningTo==='B' ? 0.55 : 0;
+  gainA.connect(masterOut); gainB.connect(masterOut);
+
+  // Compressor node on the compressed side
+  compNode = audioCtx.createDynamicsCompressor();
+  compNode.threshold.value = tier.threshold;
+  compNode.ratio.value     = tier.ratio;
+  compNode.attack.value    = tier.attack;
+  compNode.release.value   = tier.release;
+  compNode.knee.value      = tier.knee;
+
+  // Compute makeup gain to match perceived loudness of dry signal.
+  // Apply the same gain to BOTH compressed and dry sides so they are
+  // gain-staged equally — the only difference will be dynamics, not level.
+  const makeupDb     = calcMakeup(tier);
+  const makeupLinear = Math.pow(10, makeupDb / 20);
+
+  const makeupGain = audioCtx.createGain();
+  makeupGain.gain.value = makeupLinear;
+
+  // Dry side: no extra gain — preGain is already applied, output gain handles level
+  // This ensures dry and compressed are gain-staged correctly:
+  // dry:        preGain(0.18) → dryGain(1.0) → outputGain(0.55)
+  // compressed: preGain(0.18) → compressor → makeupGain → outputGain(0.55)
+  const dryGain = audioCtx.createGain();
+  dryGain.gain.value = 1.0; // unity — no extra boost on dry side
+
+  // Route: source → compressor chain (compressed side) OR direct (dry side)
+  if (sourceType==='builtin') {
+    startBuiltinLoop(tier, makeupGain, dryGain);
+    return;
+  }
+
+  // Create two identical sources from the same buffer
+  const makeSrc = () => {
+    if (sourceType==='custom' && customBuffers.length>0) {
+      const s=audioCtx.createBufferSource();
+      s.buffer=customBuffers[customIdx%customBuffers.length];
+      s.loop=true; return s;
+    }
+    return makePinkNoise(5);
+  };
+
+  sourceA = makeSrc();
+  sourceB = makeSrc();
+
+  // Both sources run through individual pre-gain nodes (~−15 dB) before processing
+  const preGainA = audioCtx.createGain(); preGainA.gain.value = 0.18;
+  const preGainB = audioCtx.createGain(); preGainB.gain.value = 0.18;
+  sourceA.connect(preGainA);
+  sourceB.connect(preGainB);
+
+  // Wire: compressed side gets makeup; dry side goes direct
+  if (compressedSide==='A') {
+    preGainA.connect(compNode); compNode.connect(makeupGain); makeupGain.connect(gainA);
+    preGainB.connect(dryGain); dryGain.connect(gainB);
+  } else {
+    preGainB.connect(compNode); compNode.connect(makeupGain); makeupGain.connect(gainB);
+    preGainA.connect(dryGain); dryGain.connect(gainA);
+  }
+
+  const offset = musicOffset;
+  if (sourceType==='custom') {
+    sourceA.start(0, offset); sourceB.start(0, offset);
+    musicStartedAt = audioCtx.currentTime - offset;
+  } else {
+    sourceA.start(0); sourceB.start(0);
+  }
+
+  startGRMeter();
+}
+
+function startBuiltinLoop(tier, makeupGain, dryGain) {
+  if (!builtinBuffers.length) return;
+
+  const fire = () => {
+    if (!roundActive) return;
+    const sample = builtinBuffers[builtinIdx%builtinBuffers.length];
+
+    const sA=audioCtx.createBufferSource(); sA.buffer=sample.buffer;
+    const sB=audioCtx.createBufferSource(); sB.buffer=sample.buffer;
+
+    const pgA=audioCtx.createGain(); pgA.gain.value=0.18;
+    const pgB=audioCtx.createGain(); pgB.gain.value=0.18;
+    sA.connect(pgA); sB.connect(pgB);
+
+    if (compressedSide==='A') {
+      pgA.connect(compNode); compNode.connect(makeupGain); makeupGain.connect(gainA);
+      pgB.connect(dryGain); dryGain.connect(gainB);
+    } else {
+      pgB.connect(compNode); compNode.connect(makeupGain); makeupGain.connect(gainB);
+      pgA.connect(dryGain); dryGain.connect(gainA);
+    }
+
+    sA.start(0); sB.start(0);
+    currentShotSrcA=sA; currentShotSrcB=sB;
+  };
+
+  fire(); shotTimerA = setInterval(fire, 5000);
+  startGRMeter();
+}
+
+function startGRMeter() {
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  const loop = () => {
+    animFrameId = requestAnimationFrame(loop);
+    if (!compNode) return;
+    const gr  = -compNode.reduction;
+    const pct = Math.min(100, (gr / 20) * 100);
+    document.getElementById('grFill').style.width = pct+'%';
+    document.getElementById('grVal').textContent  = gr > 0.1 ? `−${gr.toFixed(1)} dB` : '0.0 dB';
+  };
+  loop();
+}
+
+function stopAudio() {
+  if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId=null; }
+  if (shotTimerA)  { clearInterval(shotTimerA); shotTimerA=null; }
+  if (shotTimerB)  { clearInterval(shotTimerB); shotTimerB=null; }
+  [sourceA,sourceB,currentShotSrcA,currentShotSrcB].forEach(s=>{
+    if(s){try{s.stop();}catch(e){}}
+  });
+  sourceA=sourceB=currentShotSrcA=currentShotSrcB=null;
+  if(compNode){try{compNode.disconnect();}catch(e){}compNode=null;}
+  if(gainA){try{gainA.disconnect();}catch(e){}gainA=null;}
+  if(gainB){try{gainB.disconnect();}catch(e){}gainB=null;}
+  if(masterOut){try{masterOut.disconnect();}catch(e){}masterOut=null;}
+}
+
+// ── Pause / Restart ───────────────────────────────────────────────────────────
+function togglePause() {
+  if (!roundActive||!audioCtx) return;
+  const btn=document.getElementById('btnPause');
+  if (isPaused) {
+    audioCtx.resume().then(()=>{
+      isPaused=false; btn.textContent='⏸ Pause'; btn.classList.remove('paused');
+      if(sourceType==='builtin'&&roundActive){
+        const tier=TIERS[currentTier];
+        const mg=audioCtx.createGain(); mg.gain.value=Math.pow(10,tier.makeup/20);
+        startBuiltinLoop(tier,mg);
+      }
+    });
+  } else {
+    if(shotTimerA){clearInterval(shotTimerA);shotTimerA=null;}
+    audioCtx.suspend().then(()=>{isPaused=true;btn.textContent='▶ Resume';btn.classList.add('paused');});
+  }
+}
+
+function restartAudio() {
+  if (!roundActive) return;
+  if (isPaused&&audioCtx){audioCtx.resume();isPaused=false;const b=document.getElementById('btnPause');b.textContent='⏸ Pause';b.classList.remove('paused');}
+  musicOffset=0; buildAudioGraph(); updateListenBtns(); showToast('Restarted');
+}
+
+// ── Seek / Skip ───────────────────────────────────────────────────────────────
+function seekMusic(delta) {
+  if (sourceType!=='custom'||!customBuffers.length||!audioCtx) return;
+  const buf=customBuffers[customIdx%customBuffers.length];
+  const elapsed=audioCtx.currentTime-musicStartedAt;
+  const newOffset=Math.max(0,Math.min(buf.duration-0.5,musicOffset+elapsed+delta));
+  musicOffset=newOffset; buildAudioGraph(); updateListenBtns();
+  showToast(`${delta>0?'+':''}${delta}s`);
+}
+
+function skipTrack(delta) {
+  if (sourceType!=='custom'||!customBuffers.length) return;
+  customIdx=((customIdx+delta)%customBuffers.length+customBuffers.length)%customBuffers.length;
+  musicOffset=0; buildAudioGraph(); updateListenBtns();
+  showToast(`Track ${customIdx+1} / ${customBuffers.length}`);
+}
+
+// ── Source ────────────────────────────────────────────────────────────────────
+function setSource(type) {
+  if (type==='builtin'&&!builtinLoaded) {
+    showToast('Loading samples…');
+    loadBuiltinSamples().then(()=>{sourceType='builtin';updateSourceUI();if(roundActive)buildAudioGraph();});
+    return;
+  }
+  sourceType=type; updateSourceUI();
+  if (roundActive) buildAudioGraph();
+}
+function updateSourceUI() {
+  document.getElementById('srcPink').classList.toggle('active',    sourceType==='pink');
+  document.getElementById('srcCustom').classList.toggle('active',  sourceType==='custom');
+  document.getElementById('srcBuiltin').classList.toggle('active', sourceType==='builtin');
+}
+function triggerUpload() {
+  if(customBuffers.length>0){setSource('custom');return;}
+  document.getElementById('folderInput').click();
+}
+async function handleFolderUpload(e) {
+  const files=Array.from(e.target.files).filter(f=>f.type.startsWith('audio/'));
+  if(!files.length)return;
+  initAudio(); customBuffers=[]; showToast(`Loading ${files.length} tracks…`);
+  for(const f of files){try{const ab=await f.arrayBuffer();customBuffers.push(await audioCtx.decodeAudioData(ab));}catch(e){console.warn(e);}}
+  if(customBuffers.length>0){document.getElementById('uploadLabel').textContent=`📁 Folder (${customBuffers.length} tracks)`;setSource('custom');showToast('Music loaded!');}
+}
+
+const SAMPLE_FILES=[
+  'CLAP_DEEP_001.wav','CLAP_DEEP_002.wav','CLAP_DEEP_003.wav','CLAP_DEEP_004.wav','CLAP_DEEP_005.wav',
+  'CLAP_LAYER_001.wav','CLAP_LAYER_002.wav','CLAP_LAYER_003.wav','CLAP_LAYER_004.wav',
+  'SNARE_DEEP_001.wav','SNARE_DEEP_002.wav','SNARE_DEEP_003.wav','SNARE_DEEP_004.wav','SNARE_DEEP_005.wav','SNARE_DEEP_006.wav',
+];
+
+// ── Shared loop files (../../samples/loops/) ────────────────────────────────
+const LOOP_FILES = [
+  'tunetank-soft-house-music-348241.mp3',
+  'cyberwave-orchestra-orchestral-music-loop-287416.mp3',
+  'mkgomez-minimal-techno-background-loop-475852.mp3',
+  'nastelbom-lounge-house-314576.mp3',
+  'ohpalmusic-passive-hip-hop-beat-90bpm-d-minor-177334.mp3',
+  'openmindaudio-deep-club-organic-house-music-ashen-palms-524258.mp3',
+  'openmindaudio-epic-organic-house-music-driftwood-ritual-524274.mp3',
+  'sonican-acoustic-senses-loop-313230.mp3',
+  'sonican-feelgood-acoustic-loop-320856.mp3',
+  'sonican-positive-corporate-music-optimistic-loop-464544.mp3',
+  'sonofevan-gravel-in-my-lungs-470048.mp3',
+  'the_mountain-deep-house-483808.mp3',
+  'the_mountain-hi-tech-loop-151203.mp3',
+  'the_mountain-loop-beat-130010.mp3',
+  'the_mountain-soft-loop-130012.mp3'
+];
+async function loadBuiltinSamples() {
+  if(builtinLoaded)return; initAudio(); builtinBuffers=[];
+  await Promise.all(SAMPLE_FILES.map(async fname=>{
+    try{const r=await fetch(`../../samples/one-shots/${fname}`);if(!r.ok)throw new Error();
+    builtinBuffers.push({name:fname.replace(/\.\w+$/,''),buffer:await audioCtx.decodeAudioData(await r.arrayBuffer())});}
+    catch(e){console.warn('Could not load',fname);}
+  }));
+  builtinBuffers.sort((a,b)=>a.name.localeCompare(b.name));
+  builtinLoaded=builtinBuffers.length>0;
+  if(!builtinLoaded){showToast('No samples found');sourceType='pink';updateSourceUI();}
+}
+// ── Load loops from shared samples/loops/ folder ─────────────────────────────
+let loopBuffers    = [];
+let loopLoaded     = false;
+let loopIdx        = 0;
+
+async function loadLoopFiles() {
+  if (loopLoaded) return;
+  initAudio(); loopBuffers = [];
+  await Promise.all(LOOP_FILES.map(async fname => {
+    try {
+      const r = await fetch(`../../samples/loops/${fname}`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      loopBuffers.push({ name: fname.replace(/\.\w+$/, ''), buffer: await audioCtx.decodeAudioData(await r.arrayBuffer()) });
+    } catch(e) { console.warn('Could not load loop', fname, e.message); }
+  }));
+  loopBuffers.sort((a,b) => a.name.localeCompare(b.name));
+  loopLoaded = loopBuffers.length > 0;
+  if (!loopLoaded) showToast('No loops found — check samples/loops/ folder');
+}
+function _placeholder_after_loop_load() {
+}
+
+// ── History ───────────────────────────────────────────────────────────────────
+function addHistory(correct) {
+  const strip=document.getElementById('historyStrip');
+  const dot=document.createElement('div');
+  dot.className=`hist-dot ${correct?'c':'w'}`;
+  strip.appendChild(dot);
+  while(strip.children.length>40)strip.removeChild(strip.firstChild);
+}
+
+// ── Keyboard ──────────────────────────────────────────────────────────────────
+window.addEventListener('keydown', e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
+  if(e.code!=='KeyP'&&audioCtx&&audioCtx.state==='suspended') audioCtx.resume();
+  if(e.code==='KeyA'&&roundActive)       { e.preventDefault(); listenTo('A'); if(!answered) selectAnswer('A'); }
+  if(e.code==='KeyB'&&roundActive)       { e.preventDefault(); listenTo('B'); if(!answered) selectAnswer('B'); }
+  if(e.code==='Space')                   { e.preventDefault(); if(roundActive) listenTo(listeningTo==='A'?'B':'A'); }
+  if(e.code==='KeyP')                    { e.preventDefault(); togglePause(); }
+  if(e.code==='KeyF')                    { e.preventDefault(); restartAudio(); }
+  if(e.code==='Enter')                   { newRound(); }
+  if(e.code==='ArrowLeft')               { e.preventDefault(); seekMusic(-10); }
+  if(e.code==='ArrowRight')              { e.preventDefault(); seekMusic(+10); }
+  if(e.code==='ArrowUp')                 { e.preventDefault(); skipTrack(+1); }
+  if(e.code==='ArrowDown')               { e.preventDefault(); skipTrack(-1); }
+});
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.getElementById('tierDesc').textContent = TIERS[currentTier].label;
+document.getElementById('tierSelect').value = currentTier;
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js').then(()=>{}).catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
