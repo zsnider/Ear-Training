@@ -15,177 +15,122 @@
     --border2:  rgba(255,255,255,0.14);
     --text:     #dde2ee;
     --muted:    #6b7280;
-    --eq-accent:   #5b6aff;
-    --eq-accent2:  #8892ff;
+    --eq-accent:    #5b6aff;
+    --eq-accent2:   #8892ff;
     --comp-accent:  #e8865a;
     --comp-accent2: #f0a882;
-    --green:  #3ecf8e;
+    --rev-accent:   #5b3fd4;
+    --rev-accent2:  #8b6fff;
   }
 
   * { margin:0; padding:0; box-sizing:border-box; }
 
   body {
     font-family: 'IBM Plex Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
+    background: var(--bg); color: var(--text);
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    display: flex; flex-direction: column; align-items: center;
   }
 
-  /* ── Header ── */
   header {
-    width: 100%;
-    max-width: 860px;
-    padding: 60px 24px 0;
-    text-align: center;
+    width: 100%; max-width: 920px;
+    padding: 60px 24px 0; text-align: center;
   }
 
   .site-eyebrow {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 16px;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 16px;
   }
 
   .site-title {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: clamp(28px, 5vw, 48px);
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    line-height: 1.1;
-    color: var(--text);
-    margin-bottom: 16px;
+    font-size: clamp(24px, 4vw, 42px);
+    font-weight: 600; letter-spacing: -0.02em; line-height: 1.2;
+    color: var(--text); margin-bottom: 16px;
   }
-
-  .site-title .accent-eq   { color: var(--eq-accent2); }
-  .site-title .accent-comp { color: var(--comp-accent2); }
+  .accent-eq   { color: var(--eq-accent2); }
+  .accent-comp { color: var(--comp-accent2); }
+  .accent-rev  { color: var(--rev-accent2); }
 
   .site-sub {
-    font-size: 16px;
-    color: var(--muted);
-    font-weight: 300;
-    max-width: 480px;
-    margin: 0 auto 48px;
-    line-height: 1.6;
+    font-size: 15px; color: var(--muted); font-weight: 300;
+    max-width: 480px; margin: 0 auto 48px; line-height: 1.6;
   }
 
-  /* ── Card grid ── */
   .grid {
-    width: 100%;
-    max-width: 860px;
+    width: 100%; max-width: 920px;
     padding: 0 24px 80px;
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
   }
-
-  @media (max-width: 600px) {
-    .grid { grid-template-columns: 1fr; }
-  }
+  @media (max-width: 700px)  { .grid { grid-template-columns: 1fr; } }
+  @media (min-width: 701px) and (max-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
 
   .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 32px 28px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    text-decoration: none;
-    color: inherit;
-    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
-    position: relative;
-    overflow: hidden;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 28px 24px;
+    display: flex; flex-direction: column; gap: 14px;
+    text-decoration: none; color: inherit;
+    transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
+    position: relative; overflow: hidden;
   }
-
   .card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 20px;
-    opacity: 0;
-    transition: opacity 0.2s;
+    content:''; position:absolute; inset:0;
+    border-radius:20px; opacity:0; transition:opacity 0.2s;
   }
-
   .card.eq::before   { background: radial-gradient(ellipse at top left, rgba(91,106,255,0.12), transparent 60%); }
   .card.comp::before { background: radial-gradient(ellipse at top left, rgba(232,134,90,0.12), transparent 60%); }
+  .card.rev::before  { background: radial-gradient(ellipse at top left, rgba(91,63,212,0.14),  transparent 60%); }
 
-  .card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
-  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
   .card.eq:hover   { border-color: rgba(91,106,255,0.5); }
   .card.comp:hover { border-color: rgba(232,134,90,0.5); }
-  .card:hover::before { opacity: 1; }
+  .card.rev:hover  { border-color: rgba(91,63,212,0.5); }
+  .card:hover::before { opacity:1; }
 
   .card-icon {
-    width: 48px; height: 48px;
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
+    width:46px; height:46px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
   }
   .card.eq   .card-icon { background: var(--eq-accent); }
   .card.comp .card-icon { background: var(--comp-accent); }
+  .card.rev  .card-icon { background: var(--rev-accent); }
 
   .card-name {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 18px;
-    font-weight: 600;
-    letter-spacing: 0.03em;
+    font-size: 17px; font-weight: 600; letter-spacing: 0.03em;
   }
   .card.eq   .card-name { color: var(--eq-accent2); }
   .card.comp .card-name { color: var(--comp-accent2); }
+  .card.rev  .card-name { color: var(--rev-accent2); }
 
-  .card-desc {
-    font-size: 14px;
-    color: var(--muted);
-    line-height: 1.6;
-    font-weight: 300;
-  }
+  .card-desc { font-size: 13px; color: var(--muted); line-height: 1.6; font-weight: 300; }
 
-  .card-tags {
-    display: flex;
-    gap: 7px;
-    flex-wrap: wrap;
-    margin-top: auto;
-    padding-top: 8px;
-  }
-
+  .card-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:auto; padding-top:8px; }
   .tag {
-    font-size: 11px;
-    font-weight: 500;
-    border-radius: 20px;
-    padding: 3px 10px;
-    letter-spacing: 0.04em;
+    font-size: 10px; font-weight: 500;
+    border-radius: 20px; padding: 3px 9px; letter-spacing: 0.04em;
   }
-  .card.eq   .tag { background: rgba(91,106,255,0.12);  color: var(--eq-accent2);   border: 1px solid rgba(91,106,255,0.25); }
-  .card.comp .tag { background: rgba(232,134,90,0.12);  color: var(--comp-accent2); border: 1px solid rgba(232,134,90,0.25); }
+  .card.eq   .tag { background:rgba(91,106,255,0.12);  color:var(--eq-accent2);   border:1px solid rgba(91,106,255,0.25); }
+  .card.comp .tag { background:rgba(232,134,90,0.12);  color:var(--comp-accent2); border:1px solid rgba(232,134,90,0.25); }
+  .card.rev  .tag { background:rgba(91,63,212,0.12);   color:var(--rev-accent2);  border:1px solid rgba(91,63,212,0.3); }
 
   .card-arrow {
-    position: absolute;
-    top: 28px; right: 28px;
-    font-size: 18px;
-    color: var(--border2);
+    position:absolute; top:24px; right:24px;
+    font-size:16px; color:var(--border2);
     transition: color 0.18s, transform 0.18s;
   }
-  .card:hover .card-arrow {
-    transform: translate(3px, -3px);
-  }
+  .card:hover .card-arrow { transform: translate(3px,-3px); }
   .card.eq:hover   .card-arrow { color: var(--eq-accent2); }
   .card.comp:hover .card-arrow { color: var(--comp-accent2); }
+  .card.rev:hover  .card-arrow { color: var(--rev-accent2); }
 
-  /* ── Footer ── */
   footer {
-    margin-top: auto;
-    padding: 0 24px 32px;
-    text-align: center;
-    font-size: 12px;
-    color: var(--muted);
+    margin-top:auto; padding:0 24px 32px;
+    text-align:center; font-size:12px; color:var(--muted);
   }
 </style>
 </head>
@@ -194,11 +139,12 @@
 <header>
   <div class="site-eyebrow">Audio Ear Training</div>
   <h1 class="site-title">
-    Train Your <span class="accent-eq">EQ</span> &<br>
-    <span class="accent-comp">Compression</span> Ears
+    Train Your <span class="accent-eq">EQ</span>,
+    <span class="accent-comp">Compression</span><br>
+    &amp; <span class="accent-rev">Reverb</span> Ears
   </h1>
   <p class="site-sub">
-    Two focused games to sharpen your listening. Ten minutes a day builds real skills.
+    Three focused games to sharpen your listening. Ten minutes a day builds real skills.
   </p>
 </header>
 
@@ -208,23 +154,18 @@
   <a class="card eq" href="./eq-match/">
     <div class="card-arrow">↗</div>
     <div class="card-icon">
-      <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- EQ curve icon -->
+      <svg width="24" height="24" viewBox="0 0 26 26" fill="none">
         <path d="M2 13 Q5 13 7 8 Q9 3 11 13 Q13 23 15 13 Q17 3 19 8 Q21 13 24 13"
               stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
       </svg>
     </div>
-    <div>
-      <div class="card-name">EQ Match</div>
-    </div>
-    <div class="card-desc">
-      A hidden EQ curve is applied to audio. Drag your bands to match it by ear — frequency, gain, and Q.
-    </div>
+    <div class="card-name">EQ Match</div>
+    <div class="card-desc">A hidden EQ curve is applied to audio. Drag your bands to match it by ear — frequency, gain, and Q.</div>
     <div class="card-tags">
       <span class="tag">Frequency</span>
       <span class="tag">Gain</span>
       <span class="tag">Q / Resonance</span>
-      <span class="tag">5 Filter Types</span>
+      <span class="tag">6 Filter Types</span>
     </div>
   </a>
 
@@ -232,25 +173,43 @@
   <a class="card comp" href="./compressor/">
     <div class="card-arrow">↗</div>
     <div class="card-icon">
-      <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Knob icon -->
+      <svg width="24" height="24" viewBox="0 0 26 26" fill="none">
         <path d="M5.5 19.5 A10 10 0 1 1 20.5 19.5" stroke="rgba(255,255,255,0.3)" stroke-width="2.2" stroke-linecap="round"/>
         <path d="M5.5 19.5 A10 10 0 1 1 18 7.3"    stroke="white"                  stroke-width="2.2" stroke-linecap="round"/>
         <circle cx="13" cy="13" r="3.5" fill="white"/>
         <line x1="13" y1="13" x2="18" y2="7.3" stroke="white" stroke-width="2" stroke-linecap="round"/>
       </svg>
     </div>
-    <div>
-      <div class="card-name">Compressor</div>
-    </div>
-    <div class="card-desc">
-      A target compressor is applied to audio. Dial in threshold, ratio, attack, release, and knee to match it.
-    </div>
+    <div class="card-name">Compressor</div>
+    <div class="card-desc">A target compressor is applied to audio. Dial in threshold, ratio, attack, release, and knee to match it.</div>
     <div class="card-tags">
       <span class="tag">Threshold</span>
       <span class="tag">Ratio</span>
       <span class="tag">Attack / Release</span>
       <span class="tag">Knee</span>
+    </div>
+  </a>
+
+  <!-- Reverb Master -->
+  <a class="card rev" href="./reverb-master/">
+    <div class="card-arrow">↗</div>
+    <div class="card-icon">
+      <svg width="24" height="24" viewBox="0 0 20 20" fill="none">
+        <path d="M2 10 Q4 6.5 6 10 Q8 13.5 10 10 Q12 7 14 10 Q16 12.5 18 10"
+              stroke="white" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+        <path d="M2 10 Q4 7 6 10 Q8 13 10 10 Q12 7.5 14 10 Q15.5 11.5 17 10"
+              stroke="white" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.5"/>
+        <path d="M2 10 Q4 7.5 6 10 Q8 12.5 10 10 Q11.5 8 13 10"
+              stroke="white" stroke-width="0.7" stroke-linecap="round" fill="none" opacity="0.25"/>
+      </svg>
+    </div>
+    <div class="card-name">Reverb Master</div>
+    <div class="card-desc">A hidden reverb is applied to audio. Match the room size, decay, pre-delay, damping, and wet/dry by ear.</div>
+    <div class="card-tags">
+      <span class="tag">Room Size</span>
+      <span class="tag">Decay</span>
+      <span class="tag">Pre-Delay</span>
+      <span class="tag">Wet / Dry</span>
     </div>
   </a>
 
