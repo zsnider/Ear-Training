@@ -384,7 +384,7 @@
     <div class="pill"        id="dirCut"   onclick="setDirection('cut',this)">Cut Only</div>
     <div class="vdiv" style="margin-left:auto;"></div>
     <span style="font-size:11px;color:var(--muted);white-space:nowrap;">
-      <kbd>Space</kbd>/<kbd>D</kbd> dry &nbsp;·&nbsp; <kbd>P</kbd> pause &nbsp;·&nbsp; <kbd>F</kbd> restart &nbsp;·&nbsp; <kbd>←→</kbd> seek &nbsp;·&nbsp; <kbd>1–9</kbd> answer
+      <kbd>Space</kbd>/<kbd>D</kbd> dry &nbsp;·&nbsp; <kbd>P</kbd> pause &nbsp;·&nbsp; <kbd>F</kbd> restart &nbsp;·&nbsp; <kbd>←→</kbd> seek 10s &nbsp;·&nbsp; <kbd>↑↓</kbd> track &nbsp;·&nbsp; <kbd>1–9</kbd> answer
     </span>
   </div>
 
@@ -996,19 +996,102 @@ function restartAudio() {
   showToast('Restarted');
 }
 
-// ── Seek (custom music only, ±10s) ────────────────────────────────────────────
+// ── Seek within current track (custom music only, ±10s) ──────────────────────
 function seekMusic(deltaSecs) {
   if (!roundActive || sourceType !== 'custom' || customBuffers.length === 0) return;
-  if (!isPlaying) return;
-  // Compute current position
+  if (!isPlaying || !audioCtx) return;
+
   const buf = customBuffers[customIdx % customBuffers.length];
-  const elapsed = audioCtx.currentTime - musicStartedAt;
-  const currentPos = elapsed;
-  const newOffset = Math.max(0, Math.min(buf.duration - 0.5, currentPos + deltaSecs));
-  // Stop current source and restart at new offset
-  if (noiseSource) { try { noiseSource.stop(); } catch(e){} noiseSource = null; }
-  playNoiseBurst(newOffset);
+
+  // Current playback position = time elapsed since we started this source + the offset we started from
+  const elapsedSinceStart = audioCtx.currentTime - musicStartedAt;
+  const currentPos = musicOffset + elapsedSinceStart;
+  const newOffset  = Math.max(0, Math.min(buf.duration - 0.5, currentPos + deltaSecs));
+
+  // Stop old source node without triggering onended chain
+  if (noiseSource) {
+    noiseSource.onended = null; // detach so it doesn't chain to next track
+    try { noiseSource.stop(); } catch(e){}
+    noiseSource = null;
+  }
+
+  // Create a new source node on the EXISTING filter/gain graph
+  // (eqFilter and outGain are still connected — don't rebuild them)
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf;
+  src.loop = false;
+  src.connect(eqFilter);
+
+  musicOffset    = newOffset;
+  musicStartedAt = audioCtx.currentTime;
+
+  // Rewire onended to cycle to next track when this seek-to position reaches the end
+  src.onended = () => {
+    if (!isPlaying || noiseSource !== src) return;
+    customIdx  = (customIdx + 1) % customBuffers.length;
+    musicOffset = 0;
+    if (eqFilter && outGain) {
+      const nextSrc = audioCtx.createBufferSource();
+      nextSrc.buffer = customBuffers[customIdx];
+      nextSrc.loop   = false;
+      nextSrc.connect(eqFilter);
+      musicStartedAt = audioCtx.currentTime;
+      nextSrc.onended = src.onended;
+      nextSrc.start(0);
+      noiseSource = nextSrc;
+    }
+  };
+
+  src.start(0, newOffset);
+  noiseSource = src;
   showToast(`${deltaSecs > 0 ? '+' : ''}${deltaSecs}s`);
+}
+
+// ── Skip track (custom music only, ±1 track) ──────────────────────────────────
+function skipTrack(delta) {
+  if (!roundActive || sourceType !== 'custom' || customBuffers.length === 0) return;
+  if (!isPlaying || !audioCtx) return;
+
+  // Detach current source's onended so it doesn't chain
+  if (noiseSource) {
+    noiseSource.onended = null;
+    try { noiseSource.stop(); } catch(e){}
+    noiseSource = null;
+  }
+
+  // Advance or reverse track index
+  customIdx   = ((customIdx + delta) % customBuffers.length + customBuffers.length) % customBuffers.length;
+  musicOffset = 0;
+
+  // Start new track on existing filter/gain graph
+  const buf = customBuffers[customIdx];
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf;
+  src.loop   = false;
+  src.connect(eqFilter);
+  musicStartedAt = audioCtx.currentTime;
+
+  src.onended = () => {
+    if (!isPlaying || noiseSource !== src) return;
+    customIdx   = (customIdx + 1) % customBuffers.length;
+    musicOffset = 0;
+    if (eqFilter && outGain) {
+      const nextSrc = audioCtx.createBufferSource();
+      nextSrc.buffer     = customBuffers[customIdx];
+      nextSrc.loop       = false;
+      nextSrc.connect(eqFilter);
+      musicStartedAt     = audioCtx.currentTime;
+      nextSrc.onended    = src.onended;
+      nextSrc.start(0);
+      noiseSource = nextSrc;
+    }
+  };
+
+  src.start(0);
+  noiseSource = src;
+
+  const name = SAMPLE_FILES ? '' : ''; // placeholder
+  showToast(`Track ${customIdx + 1} / ${customBuffers.length}`);
 }
 
 // ── Keyboard shortcuts ────────────────────────────────────────────────────────
@@ -1023,6 +1106,8 @@ window.addEventListener('keydown', e => {
   if (e.code === 'KeyD') { e.preventDefault(); toggleDry(); }
   if (e.code === 'ArrowLeft')  { e.preventDefault(); seekMusic(-10); }
   if (e.code === 'ArrowRight') { e.preventDefault(); seekMusic(+10); }
+  if (e.code === 'ArrowUp')    { e.preventDefault(); skipTrack(+1); }
+  if (e.code === 'ArrowDown')  { e.preventDefault(); skipTrack(-1); }
   if (e.code === 'KeyP') { e.preventDefault(); togglePause(); }
   if (e.code === 'KeyF') { e.preventDefault(); restartAudio(); }
 
