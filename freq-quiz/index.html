@@ -384,7 +384,7 @@
     <div class="pill"        id="dirCut"   onclick="setDirection('cut',this)">Cut Only</div>
     <div class="vdiv" style="margin-left:auto;"></div>
     <span style="font-size:11px;color:var(--muted);white-space:nowrap;">
-      <kbd>Space</kbd> replay &nbsp;·&nbsp; <kbd>D</kbd> dry &nbsp;·&nbsp; <kbd>P</kbd> pause &nbsp;·&nbsp; <kbd>F</kbd> restart &nbsp;·&nbsp; <kbd>1–9</kbd> answer
+      <kbd>Space</kbd>/<kbd>D</kbd> dry &nbsp;·&nbsp; <kbd>P</kbd> pause &nbsp;·&nbsp; <kbd>F</kbd> restart &nbsp;·&nbsp; <kbd>←→</kbd> seek &nbsp;·&nbsp; <kbd>1–9</kbd> answer
     </span>
   </div>
 
@@ -465,7 +465,7 @@ let shotLoopTimer = null;
 let playTimeout   = null;
 let nextTimeout   = null;
 let sourceType    = 'pink';
-let customBuffers = [], customIdx = 0;
+let customBuffers = [], customIdx = 0, musicOffset = 0, musicStartedAt = 0;
 let builtinBuffers= [], builtinLoaded=false, builtinIdx=0;
 let currentShotSrc = null; // track one-shot for stopping
 
@@ -564,6 +564,11 @@ function buildFreqGrid() {
 function newRound() {
   clearTimeout(nextTimeout);
   stopPlayback();
+  musicOffset = 0;
+  // Advance music track each new round
+  if (sourceType === 'custom' && customBuffers.length > 0) {
+    customIdx = (customIdx + 1) % customBuffers.length;
+  }
   answered = false;
   roundActive = true;
   // Reset dry and pause states
@@ -643,7 +648,7 @@ function playCurrentRound() {
   document.getElementById('btnPlay').classList.add('playing');
 }
 
-function playNoiseBurst() {
+function playNoiseBurst(offset) {
   // Build EQ filter (or bypass if dry)
   eqFilter = audioCtx.createBiquadFilter();
   eqFilter.type = 'peaking';
@@ -656,16 +661,42 @@ function playNoiseBurst() {
 
   let src;
   if (sourceType === 'custom' && customBuffers.length > 0) {
+    const buf = customBuffers[customIdx % customBuffers.length];
     src = audioCtx.createBufferSource();
-    src.buffer = customBuffers[customIdx % customBuffers.length];
-    src.loop = true; // loop the music continuously
+    src.buffer = buf;
+    src.loop = false;
+    const startOffset = Math.min(offset ?? musicOffset, buf.duration - 0.1);
+    musicStartedAt = audioCtx.currentTime - startOffset;
+    musicOffset = startOffset;
+
+    // When a song ends, advance to next track
+    src.onended = () => {
+      if (!isPlaying) return;
+      customIdx = (customIdx + 1) % customBuffers.length;
+      musicOffset = 0;
+      if (noiseSource === src) {
+        // Rebuild with next track
+        if (eqFilter && outGain) {
+          const nextSrc = audioCtx.createBufferSource();
+          nextSrc.buffer = customBuffers[customIdx];
+          nextSrc.loop = false;
+          nextSrc.connect(eqFilter);
+          nextSrc.start(0);
+          noiseSource = nextSrc;
+          musicStartedAt = audioCtx.currentTime;
+          nextSrc.onended = src.onended; // chain
+        }
+      }
+    };
+    src.start(0, startOffset);
   } else {
     // Pink noise: generate a long looping buffer
     src = makePinkNoise(5);
     src.loop = true;
+    src.start(0);
+    musicOffset = 0; musicStartedAt = audioCtx.currentTime;
   }
   src.connect(eqFilter);
-  src.start(0);
   noiseSource = src;
   isPlaying = true;
   // No timeout — plays until stopped
@@ -959,9 +990,25 @@ function restartAudio() {
     const btn = document.getElementById('btnPause');
     btn.innerHTML = '&#9646;&#9646; Pause'; btn.classList.remove('paused'); }
   if (audioCtx.state === 'suspended') audioCtx.resume();
+  musicOffset = 0; // restart from beginning
   stopPlayback();
   playCurrentRound();
   showToast('Restarted');
+}
+
+// ── Seek (custom music only, ±10s) ────────────────────────────────────────────
+function seekMusic(deltaSecs) {
+  if (!roundActive || sourceType !== 'custom' || customBuffers.length === 0) return;
+  if (!isPlaying) return;
+  // Compute current position
+  const buf = customBuffers[customIdx % customBuffers.length];
+  const elapsed = audioCtx.currentTime - musicStartedAt;
+  const currentPos = elapsed;
+  const newOffset = Math.max(0, Math.min(buf.duration - 0.5, currentPos + deltaSecs));
+  // Stop current source and restart at new offset
+  if (noiseSource) { try { noiseSource.stop(); } catch(e){} noiseSource = null; }
+  playNoiseBurst(newOffset);
+  showToast(`${deltaSecs > 0 ? '+' : ''}${deltaSecs}s`);
 }
 
 // ── Keyboard shortcuts ────────────────────────────────────────────────────────
@@ -971,9 +1018,11 @@ window.addEventListener('keydown', e => {
 
   if (e.code === 'Space') {
     e.preventDefault();
-    playCurrentRound();
+    toggleDry(); // Space = A/B (dry/wet toggle)
   }
   if (e.code === 'KeyD') { e.preventDefault(); toggleDry(); }
+  if (e.code === 'ArrowLeft')  { e.preventDefault(); seekMusic(-10); }
+  if (e.code === 'ArrowRight') { e.preventDefault(); seekMusic(+10); }
   if (e.code === 'KeyP') { e.preventDefault(); togglePause(); }
   if (e.code === 'KeyF') { e.preventDefault(); restartAudio(); }
 
