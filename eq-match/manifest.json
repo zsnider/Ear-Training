@@ -1,6 +1,6 @@
 {
-  "name": "EQ Mirror Trainer",
-  "short_name": "EQ Mirror",
+  "name": "EQ Trainer",
+  "short_name": "EQ Match",
   "description": "Critical listening trainer for music production.",
   "start_url": "./index.html",
   "display": "standalone",
