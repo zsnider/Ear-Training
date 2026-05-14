@@ -5,3 +5,7 @@ Upload your own music or audio loops to play the games. Or use pink noise by def
 EQ Match is a game to match an equalizer with custom settings. 
 
 Compressor is a game to match compression settings. 
+
+Reverb master is a game to match reverb settings. 
+
+Distortion master is a game to match distortion settings. 
