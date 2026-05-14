@@ -216,6 +216,10 @@
     display:block; width:100%; height:90px;
     border-radius:6px; background:var(--bg2);
   }
+  .decay-canvas.hidden-decay {
+    filter: blur(12px);
+    opacity: 0;
+  }
 
   /* ── Right column ── */
   .right-col { display:flex; flex-direction:column; gap:14px; }
@@ -430,7 +434,7 @@
         <div class="knob-grid" id="targetKnobs"></div>
         <div class="decay-wrap">
           <div class="decay-label">Decay Envelope</div>
-          <canvas class="decay-canvas" id="targetDecay"></canvas>
+          <canvas class="decay-canvas hidden-decay" id="targetDecay"></canvas>
         </div>
       </div>
 
@@ -1087,6 +1091,7 @@ function newRound() {
   document.getElementById('btnRestart').disabled=false;
   document.getElementById('btnPause').disabled=false;
   document.getElementById('decayLegend').style.display='none';
+  document.getElementById('targetDecay').classList.add('hidden-decay');
 
   renderKnobs('target', targetSettings, true);
   renderKnobs('user',   userSettings,   false);
@@ -1104,6 +1109,7 @@ function checkAnswer() {
   answered=true;
 
   renderKnobs('target', targetSettings, false);
+  document.getElementById('targetDecay').classList.remove('hidden-decay');
   drawDecay('compare', document.getElementById('userDecay'));
   document.getElementById('decayLegend').style.display='flex';
   if(currentSource) routeTo('user');
