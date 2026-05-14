@@ -23,6 +23,8 @@
     --rev-accent2:  #8b6fff;
     --dist-accent:  #d44a2a;
     --dist-accent2: #f07050;
+    --fq-accent:    #00d4ff;
+    --fq-accent2:   #60e8ff;
   }
 
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -35,7 +37,7 @@
   }
 
   header {
-    width: 100%; max-width: 1200px;
+    width: 100%; max-width: 1400px;
     padding: 60px 24px 0; text-align: center;
   }
 
@@ -63,15 +65,15 @@
   }
 
   .grid {
-    width: 100%; max-width: 1200px;
+    width: 100%; max-width: 1400px;
     padding: 0 24px 80px;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 18px;
   }
   @media (max-width: 600px)  { .grid { grid-template-columns: 1fr; } }
   @media (min-width: 601px) and (max-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
-  @media (min-width: 901px) and (max-width: 1100px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 901px) and (max-width: 1200px) { .grid { grid-template-columns: repeat(3, 1fr); } }
 
   .card {
     background: var(--surface); border: 1px solid var(--border);
@@ -94,6 +96,7 @@
   .card.comp:hover { border-color: rgba(232,134,90,0.5); }
   .card.rev:hover  { border-color: rgba(91,63,212,0.5); }
   .card.dist:hover { border-color: rgba(212,74,42,0.55); }
+  .card.fq:hover   { border-color: rgba(0,212,255,0.5); }
   .card:hover::before { opacity:1; }
 
   .card-icon {
@@ -104,6 +107,7 @@
   .card.comp .card-icon { background: var(--comp-accent); }
   .card.rev  .card-icon { background: var(--rev-accent); }
   .card.dist .card-icon { background: var(--dist-accent); }
+  .card.fq   .card-icon { background: var(--fq-accent); }
 
   .card-name {
     font-family: 'IBM Plex Mono', monospace;
@@ -113,6 +117,7 @@
   .card.comp .card-name { color: var(--comp-accent2); }
   .card.rev  .card-name { color: var(--rev-accent2); }
   .card.dist .card-name { color: var(--dist-accent2); }
+  .card.fq   .card-name { color: var(--fq-accent2); }
 
   .card-desc { font-size: 13px; color: var(--muted); line-height: 1.6; font-weight: 300; }
 
@@ -125,6 +130,7 @@
   .card.comp .tag { background:rgba(232,134,90,0.12);  color:var(--comp-accent2); border:1px solid rgba(232,134,90,0.25); }
   .card.rev  .tag { background:rgba(91,63,212,0.12);   color:var(--rev-accent2);  border:1px solid rgba(91,63,212,0.3); }
   .card.dist .tag { background:rgba(212,74,42,0.12);   color:var(--dist-accent2); border:1px solid rgba(212,74,42,0.3); }
+  .card.fq   .tag { background:rgba(0,212,255,0.08);    color:var(--fq-accent2);   border:1px solid rgba(0,212,255,0.2); }
 
   .card-arrow {
     position:absolute; top:24px; right:24px;
@@ -136,6 +142,7 @@
   .card.comp:hover .card-arrow { color: var(--comp-accent2); }
   .card.rev:hover  .card-arrow { color: var(--rev-accent2); }
   .card.dist:hover .card-arrow { color: var(--dist-accent2); }
+  .card.fq:hover   .card-arrow { color: var(--fq-accent2); }
 
   footer {
     margin-top:auto; padding:0 24px 32px;
@@ -152,7 +159,7 @@
     <span class="accent-rev">Reverb</span> &amp; <span class="accent-dist">Distortion</span> Ears
   </h1>
   <p class="site-sub">
-    Four focused games to sharpen your listening.
+    Five focused games to sharpen your listening. Ten minutes a day builds real skills.
   </p>
 </header>
 
@@ -238,6 +245,29 @@
       <span class="tag">Soft / Hard Clip</span>
       <span class="tag">Tape / Foldback</span>
       <span class="tag">Wet / Dry</span>
+    </div>
+  </a>
+
+
+  <!-- Freq Quiz -->
+  <a class="card fq" href="./freq-quiz/">
+    <div class="card-arrow">↗</div>
+    <div class="card-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <rect x="2"  y="16" width="2.5" height="6" rx="1" fill="white" opacity="0.4"/>
+        <rect x="6"  y="14" width="2.5" height="8" rx="1" fill="white" opacity="0.5"/>
+        <rect x="10" y="10" width="2.5" height="12" rx="1" fill="white" opacity="0.65"/>
+        <rect x="14" y="4"  width="2.5" height="18" rx="1" fill="white"/>
+        <rect x="18" y="12" width="2.5" height="10" rx="1" fill="white" opacity="0.5"/>
+      </svg>
+    </div>
+    <div class="card-name">Freq Quiz</div>
+    <div class="card-desc">A frequency is boosted or cut. Listen and pick the right frequency from 9 choices — fast, multiple choice ear training.</div>
+    <div class="card-tags">
+      <span class="tag">63Hz – 16kHz</span>
+      <span class="tag">Boost / Cut</span>
+      <span class="tag">Multiple Choice</span>
+      <span class="tag">Quick Rounds</span>
     </div>
   </a>
 
