@@ -25,6 +25,8 @@
     --dist-accent2: #f07050;
     --fq-accent:    #00d4ff;
     --fq-accent2:   #60e8ff;
+    --fh-accent:    #00e5cc;
+    --fh-accent2:   #50f0d8;
   }
 
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -37,7 +39,7 @@
   }
 
   header {
-    width: 100%; max-width: 1400px;
+    width: 100%; max-width: 1600px;
     padding: 60px 24px 0; text-align: center;
   }
 
@@ -65,10 +67,10 @@
   }
 
   .grid {
-    width: 100%; max-width: 1400px;
+    width: 100%; max-width: 1600px;
     padding: 0 24px 80px;
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 18px;
   }
   @media (max-width: 600px)  { .grid { grid-template-columns: 1fr; } }
@@ -97,6 +99,7 @@
   .card.rev:hover  { border-color: rgba(91,63,212,0.5); }
   .card.dist:hover { border-color: rgba(212,74,42,0.55); }
   .card.fq:hover   { border-color: rgba(0,212,255,0.5); }
+  .card.fh:hover   { border-color: rgba(0,229,204,0.5); }
   .card:hover::before { opacity:1; }
 
   .card-icon {
@@ -108,6 +111,7 @@
   .card.rev  .card-icon { background: var(--rev-accent); }
   .card.dist .card-icon { background: var(--dist-accent); }
   .card.fq   .card-icon { background: var(--fq-accent); }
+  .card.fh   .card-icon { background: var(--fh-accent); }
 
   .card-name {
     font-family: 'IBM Plex Mono', monospace;
@@ -118,6 +122,7 @@
   .card.rev  .card-name { color: var(--rev-accent2); }
   .card.dist .card-name { color: var(--dist-accent2); }
   .card.fq   .card-name { color: var(--fq-accent2); }
+  .card.fh   .card-name { color: var(--fh-accent2); }
 
   .card-desc { font-size: 13px; color: var(--muted); line-height: 1.6; font-weight: 300; }
 
@@ -131,6 +136,7 @@
   .card.rev  .tag { background:rgba(91,63,212,0.12);   color:var(--rev-accent2);  border:1px solid rgba(91,63,212,0.3); }
   .card.dist .tag { background:rgba(212,74,42,0.12);   color:var(--dist-accent2); border:1px solid rgba(212,74,42,0.3); }
   .card.fq   .tag { background:rgba(0,212,255,0.08);    color:var(--fq-accent2);   border:1px solid rgba(0,212,255,0.2); }
+  .card.fh   .tag { background:rgba(0,229,204,0.08);    color:var(--fh-accent2);   border:1px solid rgba(0,229,204,0.2); }
 
   .card-arrow {
     position:absolute; top:24px; right:24px;
@@ -143,6 +149,7 @@
   .card.rev:hover  .card-arrow { color: var(--rev-accent2); }
   .card.dist:hover .card-arrow { color: var(--dist-accent2); }
   .card.fq:hover   .card-arrow { color: var(--fq-accent2); }
+  .card.fh:hover   .card-arrow { color: var(--fh-accent2); }
 
   footer {
     margin-top:auto; padding:0 24px 32px;
@@ -159,7 +166,7 @@
     <span class="accent-rev">Reverb</span> &amp; <span class="accent-dist">Distortion</span> Ears
   </h1>
   <p class="site-sub">
-    Five focused games to sharpen your listening. Ten minutes a day builds real skills.
+    Six focused games to sharpen your listening. Ten minutes a day builds real skills.
   </p>
 </header>
 
@@ -268,6 +275,29 @@
       <span class="tag">Boost / Cut</span>
       <span class="tag">Multiple Choice</span>
       <span class="tag">Quick Rounds</span>
+    </div>
+  </a>
+
+
+  <!-- Freq Hunter -->
+  <a class="card fh" href="./freq-hunter/">
+    <div class="card-arrow">↗</div>
+    <div class="card-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="2.5" fill="white"/>
+        <circle cx="12" cy="12" r="6" stroke="white" stroke-width="1.5" fill="none" opacity="0.6"/>
+        <circle cx="12" cy="12" r="10" stroke="white" stroke-width="1" fill="none" opacity="0.3"/>
+        <line x1="12" y1="12" x2="19" y2="6" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+        <circle cx="17.2" cy="7.8" r="2" fill="white" opacity="0.8"/>
+      </svg>
+    </div>
+    <div class="card-name">Freq Hunter</div>
+    <div class="card-desc">A bandpass-filtered sound plays at a hidden stereo position. Click the 2D grid to identify both the frequency and pan.</div>
+    <div class="card-tags">
+      <span class="tag">Frequency</span>
+      <span class="tag">Stereo Pan</span>
+      <span class="tag">2D Grid</span>
+      <span class="tag">Spatial Hearing</span>
     </div>
   </a>
 
