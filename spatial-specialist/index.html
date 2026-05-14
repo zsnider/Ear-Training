@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stereo Specialist</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg:       #080a10;
+    --bg2:      #0b0e16;
+    --surface:  #101420;
+    --surface2: #171c2c;
+    --surface3: #1d2438;
+    --border:   rgba(255,255,255,0.07);
+    --border2:  rgba(255,255,255,0.13);
+    --text:     #dde8f8;
+    --muted:    #4c5878;
+    --accent:   #7c5cfc;
+    --accent2:  #a58aff;
+    --left:     #f45b69;
+    --right:    #3ecf8e;
+    --center:   #f5a623;
+    --green:    #3ecf8e;
+    --red:      #f45b69;
+    --amber:    #f5a623;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding-bottom: 40px;
+    user-select: none;
+  }
+
+  header {
+    width:100%; max-width:800px;
+    padding:22px 24px 0;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+
+  .brand { display:flex; align-items:center; gap:10px; }
+  .brand-icon {
+    width:32px; height:32px;
+    background:var(--accent);
+    border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .brand-name {
+    font-family:'IBM Plex Mono',monospace;
+    font-size:15px; font-weight:700; letter-spacing:0.06em;
+  }
+  .brand-name span { color:var(--accent2); }
+
+  .score-row { display:flex; gap:18px; align-items:center; }
+  .stat { text-align:center; }
+  .stat-val { font-family:'IBM Plex Mono',monospace; font-size:20px; font-weight:700; color:var(--accent2); }
+  .stat-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; }
+  .vdiv { width:1px; height:20px; background:var(--border2); }
+
+  .main {
+    width:100%; max-width:800px;
+    padding:14px 24px 0;
+    display:flex; flex-direction:column; gap:14px;
+  }
+
+  .settings-row {
+    display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    background:var(--surface); border:1px solid var(--border);
+    padding:7px 14px; border-radius:12px;
+  }
+
+  .label {
+    font-size:11px; font-weight:600; color:var(--muted);
+    text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap;
+  }
+
+  .pill {
+    background:var(--surface2); border:1px solid var(--border2);
+    border-radius:20px; padding:4px 13px;
+    font-size:12px; color:var(--muted);
+    cursor:pointer; transition:all 0.15s;
+    font-family:'IBM Plex Sans',sans-serif;
+  }
+  .pill:hover { border-color:var(--accent); color:var(--text); }
+  .pill.active { border-color:var(--accent2); color:var(--accent2); background:rgba(124,92,252,0.08); }
+
+  kbd {
+    font-family:'IBM Plex Mono',monospace; font-size:10px;
+    background:var(--surface2); border:1px solid var(--border2);
+    border-radius:4px; padding:1px 5px; color:var(--muted);
+  }
+
+  /* ── Prompt bar ── */
+  .prompt-bar {
+    display:flex; align-items:center; gap:14px;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:12px 18px;
+    min-height:60px; flex-wrap:wrap;
+    transition:border-color 0.3s, box-shadow 0.3s;
+  }
+  .prompt-bar.correct-flash { border-color:var(--green); box-shadow:0 0 16px rgba(62,207,142,0.15); }
+  .prompt-bar.wrong-flash   { border-color:var(--red);   box-shadow:0 0 16px rgba(244,91,105,0.12); }
+
+  .prompt-text { font-size:15px; color:var(--text); flex:1; line-height:1.4; }
+  .prompt-text span { color:var(--accent2); font-family:'IBM Plex Mono',monospace; font-weight:600; }
+
+  .result-inline {
+    font-family:'IBM Plex Mono',monospace;
+    font-size:20px; font-weight:700;
+    opacity:0; transition:opacity 0.15s; white-space:nowrap;
+  }
+  .result-inline.show-good { opacity:1; color:var(--green); }
+  .result-inline.show-ok   { opacity:1; color:var(--amber); }
+  .result-inline.show-bad  { opacity:1; color:var(--red); }
+
+  .next-bar { height:3px; background:var(--border2); border-radius:2px; overflow:hidden; margin-top:6px; }
+  .next-fill { height:100%; border-radius:2px; background:var(--accent); width:100%; transition:none; }
+
+  /* ── Stereo field visualizer ── */
+  .stereo-card {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:28px 24px 20px;
+    display:flex; flex-direction:column; gap:24px;
+  }
+
+  /* Speaker icons + field */
+  .field-row {
+    display:flex; align-items:center; gap:14px;
+  }
+
+  .speaker-label {
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px; font-weight:700; letter-spacing:0.08em;
+    color:var(--muted); flex-shrink:0; width:32px; text-align:center;
+    transition:color 0.2s;
+    user-select:none;
+  }
+  .speaker-label.label-l { color:var(--left); opacity:0.5; transition:opacity 0.2s; }
+  .speaker-label.label-r { color:var(--right); opacity:0.5; transition:opacity 0.2s; }
+
+/* Center Mono label for Width mode */
+  .center-mono-label {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+    color: var(--muted);
+    opacity: 0; 
+    transition: opacity 0.2s;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  /* Pan field track (height now set in large click zone section above) */
+
+  /* Track bar */
+  .pan-track {
+    width:100%; height:8px;
+    background:var(--surface2);
+    border-radius:4px;
+    position:relative;
+    box-shadow:inset 0 1px 3px rgba(0,0,0,0.4);
+  }
+
+  /* Fill from center to handle */
+  .pan-fill {
+    position:absolute; top:0; height:100%;
+    border-radius:4px;
+    transition:left 0.05s, right 0.05s, width 0.05s;
+  }
+
+  /* Tick marks */
+  .pan-tick {
+    position:absolute; top:-12px;
+    width:1px; height:8px;
+    transform:translateX(-50%);
+  }
+  .pan-tick-label {
+    position:absolute; bottom:-18px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:9px; color:var(--muted);
+    transform:translateX(-50%);
+    white-space:nowrap;
+  }
+
+  /* User handle — draggable */
+  .pan-handle {
+    position:absolute; top:50%;
+    width:28px; height:28px;
+    border-radius:50%;
+    transform:translate(-50%, -50%);
+    cursor:grab;
+    display:flex; align-items:center; justify-content:center;
+    border:2.5px solid;
+    touch-action:none;
+    transition:box-shadow 0.12s, width 0.1s, height 0.1s;
+    z-index:10;
+  }
+  .pan-handle:active { cursor:grabbing; }
+  .pan-handle.user-handle {
+    background:var(--surface3);
+    border-color:var(--accent2);
+    box-shadow:0 0 0 4px rgba(124,92,252,0.18);
+  }
+  .pan-handle.user-handle:hover {
+    box-shadow:0 0 0 6px rgba(124,92,252,0.25);
+    width:32px; height:32px;
+  }
+  .pan-handle.target-handle {
+    background:rgba(0,229,204,0.15);
+    border-color:rgba(0,229,204,0.8);
+    cursor:default; pointer-events:none;
+    opacity:0; transition:opacity 0.3s;
+  }
+  .pan-handle.target-handle.visible { opacity:1; }
+
+  .handle-label {
+    font-family:'IBM Plex Mono',monospace;
+    font-size:9px; font-weight:700;
+    pointer-events:none;
+  }
+
+  /* ── Large click zone ── */
+  .stereo-card {
+    cursor: crosshair;
+  }
+  .stereo-card.answered {
+    cursor: default;
+  }
+  /* The pan-field is tall and wide — it's the primary interaction area */
+  .pan-field {
+    flex:1; position:relative;
+    padding: 28px 0; /* tall hit area */
+    display: flex; align-items: center;
+    cursor: crosshair;
+  }
+
+  /* Pan value readout */
+  .pan-readout {
+    text-align:center;
+    display:flex; gap:24px; justify-content:center; align-items:baseline;
+  }
+  .readout-item { text-align:center; }
+  .readout-val {
+    font-family:'IBM Plex Mono',monospace;
+    font-size:26px; font-weight:700;
+  }
+  .readout-label {
+    font-size:10px; color:var(--muted); text-transform:uppercase;
+    letter-spacing:0.07em; margin-top:2px;
+  }
+  .readout-item.user-read .readout-val { color:var(--accent2); }
+  .readout-item.target-read .readout-val { color:rgba(0,229,204,0.9); opacity:0; transition:opacity 0.3s; }
+  .readout-item.target-read .readout-val.visible { opacity:1; }
+
+  /* Position description labels */
+  .position-label {
+    font-size:13px; color:var(--muted); text-align:center; min-height:20px;
+  }
+  .position-label span { color:var(--text); font-weight:500; }
+
+  /* ── Error indicator ── */
+  .error-bar-wrap {
+    display:none;
+    flex-direction:column; gap:6px;
+  }
+  .error-bar-wrap.visible { display:flex; }
+  .error-track {
+    height:6px; background:var(--border2); border-radius:3px; overflow:hidden;
+    position:relative;
+  }
+  .error-fill {
+    height:100%; border-radius:3px;
+    transition:width 0.8s cubic-bezier(0.16,1,0.3,1);
+  }
+  .error-labels {
+    display:flex; justify-content:space-between;
+    font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--muted);
+  }
+
+  /* ── History ── */
+  .history-strip { display:flex; gap:5px; flex-wrap:wrap; min-height:14px; }
+  .hist-dot { width:10px; height:10px; border-radius:50%; }
+  .hist-dot.perfect { background:var(--accent2); }
+  .hist-dot.good    { background:var(--green); }
+  .hist-dot.ok      { background:var(--amber); }
+  .hist-dot.bad     { background:var(--red); }
+
+  /* ── Audio bar ── */
+  .audio-bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
+  button {
+    border:none; border-radius:10px;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:13px; font-weight:500;
+    cursor:pointer; padding:9px 16px; transition:all 0.15s;
+  }
+  .btn-listen {
+    background:var(--surface2); color:var(--accent2);
+    border:1px solid rgba(124,92,252,0.35);
+    display:flex; align-items:center; gap:6px;
+  }
+  .btn-listen:hover { background:rgba(124,92,252,0.1); border-color:rgba(124,92,252,0.7); }
+  .btn-listen.playing { background:rgba(124,92,252,0.15); border-color:var(--accent2); }
+  .btn-listen:disabled { opacity:0.35; cursor:not-allowed; }
+
+  .btn-primary { background:var(--accent); color:#fff; }
+  .btn-primary:hover { background:var(--accent2); }
+  .btn-primary:disabled { opacity:0.35; cursor:not-allowed; }
+
+  .btn-secondary {
+    background:var(--surface2); color:var(--text); border:1px solid var(--border2);
+  }
+  .btn-secondary:hover { border-color:var(--accent); color:var(--accent2); }
+
+  .btn-action {
+    background:var(--surface2); color:var(--muted);
+    border:1px solid var(--border2);
+    font-size:12px; padding:7px 13px; border-radius:8px;
+    display:flex; align-items:center; gap:5px;
+    transition:all 0.15s;
+  }
+  .btn-action:hover { border-color:var(--accent); color:var(--accent); }
+  .btn-action.center-active {
+    background:rgba(245,166,35,0.08); border-color:var(--amber); color:var(--amber);
+  }
+  .btn-action.paused {
+    background:rgba(244,91,105,0.08); border-color:var(--red); color:var(--red);
+  }
+  .btn-action:disabled { opacity:0.35; cursor:not-allowed; }
+
+  .source-wrap {
+    display:flex; align-items:center; gap:8px; margin-left:auto; flex-wrap:wrap;
+  }
+  .source-pill {
+    background:var(--surface2); border:1px solid var(--border2);
+    border-radius:8px; padding:5px 12px; font-size:12px;
+    color:var(--muted); cursor:pointer; transition:all 0.15s; white-space:nowrap;
+  }
+  .source-pill:hover { border-color:var(--accent); color:var(--text); }
+  .source-pill.active { border-color:var(--accent2); color:var(--accent2); background:rgba(124,92,252,0.07); }
+
+  .pulse-dot {
+    width:7px; height:7px; border-radius:50%;
+    background:var(--accent2); flex-shrink:0;
+    animation:pdot 1.1s infinite;
+  }
+  @keyframes pdot { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.3;transform:scale(0.6);} }
+
+  /* ── Cursor guide line ── */
+  .cursor-line {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: rgba(165,138,255,0.55);
+    pointer-events: none;
+    transform: translateX(-50%);
+    display: none;
+    border-radius: 1px;
+  }
+  .cursor-line::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 10px; height: 10px;
+    background: var(--accent2);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(165,138,255,0.6);
+  }
+  .cursor-line::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 10px; height: 10px;
+    background: var(--accent2);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(165,138,255,0.6);
+  }
+  /* Mirror line for width mode */
+  .cursor-line-mirror {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: rgba(165,138,255,0.35);
+    pointer-events: none;
+    transform: translateX(-50%);
+    display: none;
+    border-radius: 1px;
+    border-style: dashed;
+  }
+
+  /* ── Toast ── */
+  .toast {
+    position:fixed; bottom:24px; left:50%;
+    transform:translateX(-50%) translateY(12px);
+    background:var(--surface2); border:1px solid var(--border2);
+    border-radius:10px; padding:10px 16px; font-size:13px; color:var(--text);
+    opacity:0; transition:all 0.2s; pointer-events:none; z-index:999; white-space:nowrap;
+  }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-icon">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <!-- Stereo arrows -->
+        <path d="M5 9 L2 6 L2 12 Z" fill="black" opacity="0.9"/>
+        <path d="M13 9 L16 6 L16 12 Z" fill="black" opacity="0.9"/>
+        <line x1="4" y1="9" x2="14" y2="9" stroke="black" stroke-width="1.8" stroke-linecap="round"/>
+        <circle cx="9" cy="9" r="2.2" fill="black"/>
+      </svg>
+    </div>
+    <span class="brand-name">STEREO <span>SPECIALIST</span></span>
+  </div>
+  <div class="score-row">
+    <div class="stat">
+      <div class="stat-val" id="scoreVal">0</div>
+      <div class="stat-label">Score</div>
+    </div>
+    <div class="vdiv"></div>
+    <div class="stat">
+      <div class="stat-val" id="streakVal">0</div>
+      <div class="stat-label">Streak</div>
+    </div>
+    <div class="vdiv"></div>
+    <div class="stat">
+      <div class="stat-val" id="avgErrVal">—</div>
+      <div class="stat-label">Avg Err</div>
+    </div>
+    <div class="vdiv"></div>
+    <div class="stat">
+      <div class="stat-val" id="roundVal">0</div>
+      <div class="stat-label">Round</div>
+    </div>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- Settings -->
+  <div class="settings-row">
+    <span class="label">Game Mode</span>
+    <div class="pill active" id="modePanning" onclick="setGameMode('panning',this)">↔ Panning</div>
+    <div class="pill"        id="modeWidth"   onclick="setGameMode('width',this)">⟺ Width</div>
+    <div class="vdiv"></div>
+    <span id="modeDesc" style="font-size:11px;color:var(--muted);">Identify where the sound is panned in the stereo field</span>
+    <div class="vdiv" style="margin-left:auto;"></div>
+    <span style="font-size:11px;color:var(--muted);white-space:nowrap;">
+      <kbd>Space</kbd>/<kbd>D</kbd> center &nbsp;·&nbsp; <kbd>P</kbd> pause &nbsp;·&nbsp; <kbd>F</kbd> restart &nbsp;·&nbsp; <kbd>←→</kbd> seek &nbsp;·&nbsp; <kbd>↑↓</kbd> track &nbsp;·&nbsp; <kbd>↵</kbd> new round
+    </span>
+  </div>
+
+  <!-- Prompt -->
+  <div class="prompt-bar" id="promptBar">
+    <div style="flex:1;">
+      <div class="prompt-text" id="promptText">Click <span>Play</span> to start — then click anywhere to place your guess</div>
+      <div class="next-bar" id="nextBar" style="display:none;"><div class="next-fill" id="nextFill"></div></div>
+    </div>
+    <div class="result-inline" id="resultInline"></div>
+  </div>
+
+  <!-- Stereo field -->
+  <div class="stereo-card" id="stereoCard">
+
+    <div class="field-row">
+      <div class="speaker-label label-l" id="speakerL" style="min-width:36px;text-align:center;">L</div>
+
+      <div class="pan-field" id="panField" style="position:relative;">
+        <div id="centerMonoLabel" class="center-mono-label">MONO</div>
+        <div class="cursor-line" id="cursorLine"></div>
+        <div class="cursor-line-mirror" id="cursorMirror"></div>
+        <div class="pan-track" id="panTrack">
+          <!-- Tick marks injected by JS -->
+          <div class="pan-fill" id="panFill"></div>
+          <!-- User handle -->
+          <div class="pan-handle user-handle" id="userHandle">
+            <span class="handle-label" style="color:var(--accent2)">▼</span>
+          </div>
+          <!-- Target handle (hidden until answered) -->
+          <div class="pan-handle target-handle" id="targetHandle">
+            <span class="handle-label" style="color:rgba(0,229,204,0.9)">◆</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="speaker-label label-r" id="speakerR" style="min-width:36px;text-align:center;">R</div>
+    </div>
+
+    <!-- Readout row -->
+    <div class="pan-readout">
+      <div class="readout-item user-read">
+        <div class="readout-val" id="userReadout">C</div>
+        <div class="readout-label">Your Answer</div>
+      </div>
+      <div class="readout-item target-read">
+        <div class="readout-val" id="targetReadout" style="opacity:0;">—</div>
+        <div class="readout-label">Target</div>
+      </div>
+    </div>
+
+    <div class="position-label" id="posLabel">Drag the handle to set your pan position</div>
+
+    <!-- Error bar (after answering) -->
+    <div class="error-bar-wrap" id="errorWrap">
+      <div class="error-labels">
+        <span>Error</span>
+        <span id="errorPct"></span>
+      </div>
+      <div class="error-track">
+        <div class="error-fill" id="errorFill" style="width:0%"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- History -->
+  <div class="history-strip" id="historyStrip"></div>
+
+  <!-- Audio bar -->
+  <div class="audio-bar">
+    <button class="btn-listen" id="btnPlay" onclick="startRound()">
+      <span id="playDot"></span> Play
+    </button>
+    <button class="btn-action" id="btnCenter"  onclick="toggleCenter()"  disabled title="Monitor at center (Space/D)">Center</button>
+    <button class="btn-action" id="btnPause"   onclick="togglePause()"   disabled title="Pause (P)">&#9646;&#9646; Pause</button>
+    <button class="btn-action" id="btnRestart" onclick="restartAudio()"  disabled title="Restart (F)">&#9654; Restart</button>
+
+    <div class="source-wrap">
+      <span class="label">Source</span>
+      <div class="source-pill active" id="srcPink"    onclick="setSource('pink')">Pink Noise</div>
+      <div class="source-pill"        id="srcBuiltin" onclick="setSource('builtin')">Sample One-shots</div>
+      <div class="source-pill"        id="srcCustom"  onclick="triggerUpload()" style="border-style:dashed;">
+        <span id="uploadLabel">📁 Upload Music</span>
+      </div>
+      <input type="file" id="folderInput" webkitdirectory directory multiple
+             onchange="handleFolderUpload(event)" style="display:none;">
+    </div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+let gameMode    = 'panning';  // 'panning' | 'width'
+let targetPan   = 0;   // panning: -1 to +1; width: 0=mono (center), 1=full stereo (edge)
+let userClickedX = 0.5; // track the raw click fraction (0–1) for handle display in width mode
+let userPan     = 0;
+let roundActive = false;
+let answered    = false;
+let totalScore  = 0, streak = 0, totalRounds = 0, totalErr = 0;
+let isCenter    = false;
+let isPaused    = false;
+
+// Audio
+let audioCtx      = null;
+let noiseSource   = null;
+let pannerNode    = null;
+let outGain       = null;
+let isPlaying     = false;
+let shotLoopTimer = null;
+let sourceType    = 'pink';
+let customBuffers = [], customIdx = 0, musicOffset = 0, musicStartedAt = 0;
+let _seekDebounce = null;
+let builtinBuffers= [], builtinLoaded=false, builtinIdx=0;
+let currentShotSrc= null;
+
+// Drag
+let isDragging = false;
+let dragStartX = 0, dragStartPan = 0;
+
+// ── Build track ticks ─────────────────────────────────────────────────────────
+function buildTicks() {
+  const track = document.getElementById('panTrack');
+  // Remove old ticks
+  track.querySelectorAll('.pan-tick,.pan-tick-label').forEach(e=>e.remove());
+
+  const ticks = [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1];
+  const labels = {'-1':'L 100','-0.75':'L 75','-0.5':'L 50','-0.25':'L 25','0':'C','0.25':'R 25','0.5':'R 50','0.75':'R 75','1':'R 100'};
+
+  ticks.forEach(v => {
+    const pct = ((v + 1) / 2) * 100;
+    const tick = document.createElement('div');
+    tick.className = 'pan-tick';
+    tick.style.cssText = `left:${pct}%; background:${v===0?'rgba(245,166,35,0.4)':'rgba(255,255,255,0.1)'};`;
+    track.appendChild(tick);
+
+    const lbl = document.createElement('div');
+    lbl.className = 'pan-tick-label';
+    lbl.style.left = pct + '%';
+    lbl.textContent = labels[String(v)] || '';
+    track.appendChild(lbl);
+  });
+}
+
+// ── Difficulty ────────────────────────────────────────────────────────────────
+function setGameMode(mode, el) {
+  gameMode = mode;
+  ['modePanning','modeWidth'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('modeDesc').textContent = mode === 'panning'
+    ? 'Identify where the sound is panned in the stereo field'
+    : 'Identify how wide the stereo image is (0% = mono → 100% = full stereo)';
+  
+  // Update L/R labels for width mode
+  if (mode === 'width') {
+    document.getElementById('speakerL').textContent = 'Wide';
+    document.getElementById('speakerR').textContent = 'Wide';
+    document.getElementById('speakerL').style.color = 'var(--accent2)';
+    document.getElementById('speakerR').style.color = 'var(--accent2)';
+  } else {
+    document.getElementById('speakerL').textContent = 'L';
+    document.getElementById('speakerR').textContent = 'R';
+    document.getElementById('speakerL').style.color = '';
+    document.getElementById('speakerR').style.color = '';
+  }
+  // Force a UI update so the opacities snap correctly right away
+  updatePanUI(userPan); 
+}
+
+// ── Pan value formatting ──────────────────────────────────────────────────────
+function fmtPan(v) {
+  if (gameMode === 'width') {
+    const pct = Math.round(Math.abs(v) * 100); // |v| so both sides read correctly
+    if (pct < 2) return '0% (Mono)';
+    if (pct > 98) return '100% (Wide)';
+    return pct + '% Wide';
+  }
+  if (Math.abs(v) < 0.01) return 'C';
+  const pct = Math.round(Math.abs(v) * 100);
+  return (v < 0 ? 'L ' : 'R ') + pct + '%';
+}
+
+// ── Update UI from userPan ────────────────────────────────────────────────────
+function updatePanUI(pan) {
+  userPan = gameMode === 'width' ? Math.max(0, Math.min(1, pan)) : Math.max(-1, Math.min(1, pan));
+  // For width mode: handle sits at the clicked position (either side of center is valid).
+  // userClickedX tracks which side (0–1 fraction of track). We compute pct from that.
+  const pct = gameMode === 'width'
+    ? userClickedX * 100   // show handle exactly where user clicked
+    : ((userPan + 1) / 2) * 100;
+
+  const handle = document.getElementById('userHandle');
+  handle.style.left = pct + '%';
+
+  // Fill from center to handle
+  const fill = document.getElementById('panFill');
+  const center = 50;
+  if (gameMode === 'width') {
+    // Show fill symmetrically from center outward (width = how far from center)
+    const halfFill = userPan * 50; // 0% at mono, 50% at full stereo
+    fill.style.left  = (50 - halfFill) + '%';
+    fill.style.width = (halfFill * 2) + '%';
+    fill.style.background = 'linear-gradient(to right, rgba(244,91,105,0.4), rgba(124,92,252,0.6), rgba(62,207,142,0.4))';
+  } else if (userPan < 0) {
+    fill.style.left  = pct + '%';
+    fill.style.width = (center - pct) + '%';
+    fill.style.background = 'linear-gradient(to left, rgba(124,92,252,0.6), rgba(244,91,105,0.4))';
+  } else {
+    fill.style.left  = center + '%';
+    fill.style.width = (pct - center) + '%';
+    fill.style.background = 'linear-gradient(to right, rgba(124,92,252,0.6), rgba(62,207,142,0.4))';
+  }
+
+  document.getElementById('userReadout').textContent = fmtPan(userPan);
+
+  if (gameMode === 'width') {
+    const w = userPan; // 0=mono, 1=full stereo
+    // Both Left and Right "Wide" labels brighten as width increases
+    document.getElementById('speakerL').style.opacity = 0.2 + w*0.8;
+    document.getElementById('speakerR').style.opacity = 0.2 + w*0.8;
+    
+    // The center "Mono" label brightens as width approaches 0
+    const monoLabel = document.getElementById('centerMonoLabel');
+    if (monoLabel) monoLabel.style.opacity = 0.2 + (1 - w)*0.8;
+
+    const wDesc = w < 0.02 ? 'Mono (0%)' : w > 0.98 ? 'Full Stereo (100%)' : `${Math.round(w*100)}% Wide`;
+    document.getElementById('posLabel').innerHTML = `Your guess: <span>${wDesc}</span>`;
+  } else {
+    const absV = Math.abs(userPan);
+    document.getElementById('speakerL').style.opacity = userPan <= 0 ? 0.5 + absV*0.5 : Math.max(0.15, 0.5 - absV*0.4);
+    document.getElementById('speakerR').style.opacity = userPan >= 0 ? 0.5 + absV*0.5 : Math.max(0.15, 0.5 - absV*0.4);
+    
+    // Hide the Mono label entirely in Panning mode
+    const monoLabel = document.getElementById('centerMonoLabel');
+    if (monoLabel) monoLabel.style.opacity = '0';
+
+    const desc = Math.abs(userPan) < 0.05 ? 'Center' :
+                 Math.abs(userPan) > 0.95 ? (userPan<0?'Hard Left':'Hard Right') :
+                 (userPan<0?'Left ':'Right ') + Math.round(Math.abs(userPan)*100) + '%';
+    document.getElementById('posLabel').innerHTML = `Your guess: <span>${desc}</span>`;
+  }
+}
+
+// ── Handle drag ───────────────────────────────────────────────────────────────
+const userHandle = document.getElementById('userHandle');
+
+function getTrackX(e) {
+  const track = document.getElementById('panTrack');
+  const rect  = track.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+  return (x / rect.width) * 2 - 1; // -1 to +1
+}
+
+userHandle.addEventListener('mousedown', e => {
+  if (!roundActive || answered) return;
+  isDragging = true; dragStartX = e.clientX; dragStartPan = userPan;
+  e.preventDefault();
+});
+
+window.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  const track = document.getElementById('panTrack');
+  const rect  = track.getBoundingClientRect();
+  const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+  const pan = panFromTrackX(x, rect.width);
+  updatePanUI(pan);
+  if (!isCenter) applyUserPanToAudio(pan);
+});
+
+window.addEventListener('mouseup', () => { if (isDragging) { isDragging = false; } });
+
+// Touch support
+userHandle.addEventListener('touchstart', e => {
+  if (!roundActive || answered) return;
+  isDragging = true; e.preventDefault();
+}, {passive:false});
+
+window.addEventListener('touchmove', e => {
+  if (!isDragging) return;
+  const track = document.getElementById('panTrack');
+  const rect  = track.getBoundingClientRect();
+  const x = Math.max(0, Math.min(rect.width, e.touches[0].clientX - rect.left));
+  const pan = panFromTrackX(x, rect.width);
+  updatePanUI(pan);
+  if (!isCenter) applyUserPanToAudio(pan);
+  e.preventDefault();
+}, {passive:false});
+
+window.addEventListener('touchend', () => { isDragging = false; });
+
+// ── Cursor guide line on hover ────────────────────────────────────────────────
+document.getElementById('stereoCard').addEventListener('mousemove', e => {
+  if (!roundActive || answered) return;
+  const panField = document.getElementById('panField');
+  const rect = panField.getBoundingClientRect();
+  const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+
+  const line   = document.getElementById('cursorLine');
+  const mirror = document.getElementById('cursorMirror');
+
+  line.style.display = 'block';
+  line.style.left    = x + 'px';
+
+  if (gameMode === 'width') {
+    // Show mirror at symmetric position — both sides represent the same width
+    mirror.style.display = 'block';
+    mirror.style.left    = (rect.width - x) + 'px';
+  } else {
+    mirror.style.display = 'none';
+  }
+});
+
+document.getElementById('stereoCard').addEventListener('mouseleave', () => {
+  document.getElementById('cursorLine').style.display   = 'none';
+  document.getElementById('cursorMirror').style.display = 'none';
+});
+
+// Allow clicking anywhere on the stereo card to set pan + immediately submit
+document.getElementById('stereoCard').addEventListener('click', e => {
+  if (!roundActive || answered) return;
+  // Ignore clicks on controls
+  if (e.target.closest('button')) return;
+  if (e.target.closest('.pan-readout')) return;
+  if (e.target.closest('.error-bar-wrap')) return;
+
+  if (isDragging) return; // don't submit if user just finished dragging
+  const panField = document.getElementById('panField');
+  const rect = panField.getBoundingClientRect();
+  // If click is outside the pan field's horizontal span, clamp to edges
+  const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+  const pan = panFromTrackX(x, rect.width);
+  updatePanUI(pan);
+  if (!isCenter) applyUserPanToAudio(pan);
+  // Auto-submit on click (like PanGirl)
+  submitAnswer();
+});
+
+// Also keep track drag working without submit-on-release
+document.getElementById('panTrack').addEventListener('click', e => {
+  // Handled by stereoCard click — stop propagation from handle
+  if (e.target === userHandle || e.target.closest('.pan-handle')) e.stopPropagation();
+});
+
+// Width mode maps 0–1 to the same track range (left=0%, right=100%)
+// For panning: returns -1 to +1. For width: returns 0 (center=mono) to 1 (edge=full stereo).
+// Both sides of center mean the same width — |distance from center|.
+function panFromTrackX(x, trackWidth) {
+  const v = (x / trackWidth) * 2 - 1; // -1 to +1
+  if (gameMode === 'width') {
+    userClickedX = x / trackWidth; // remember which side the user clicked for handle display
+    return Math.abs(v); // 0 at center, 1 at either edge
+  }
+  return Math.max(-1, Math.min(1, v));
+}
+
+// ── Apply user pan value to panner node (handles both modes) ─────────────────
+function applyUserPanToAudio(pan) {
+  if (!pannerNode || !audioCtx) return;
+  if (gameMode === 'width') {
+    // In width mode userPan is 0–1; left panner and right panner are symmetric
+    // We use a single panner so can't truly do symmetric width.
+    // Map so that dragging right feels "wider" — pan goes 0 (L side) for left source.
+    // Audio feedback: map width 0=center, 1=hard pan → treat as pan value L or R
+    // The audio is already playing through startAudio which uses the target width.
+    // Don't change audio during drag for width mode — user hears target.
+  } else {
+    pannerNode.pan.setTargetAtTime(pan, audioCtx.currentTime, 0.02);
+  }
+}
+
+// ── Round ─────────────────────────────────────────────────────────────────────
+function startRound() {
+  if (roundActive && !answered) return;
+  clearTimeout(window._nextTimeout);
+  answered   = false;
+  isCenter   = false;
+  roundActive = true;
+  totalRounds++;
+  document.getElementById('roundVal').textContent = totalRounds;
+
+  // Pick random continuous target based on game mode
+  if (gameMode === 'width') {
+    // Width: 0 (mono) to 1 (full stereo), avoid extremes
+    targetPan = Math.round((0.1 + Math.random() * 0.85) * 100) / 100; // 10%–95% wide
+  } else {
+    // Panning: -1 to +1, avoid dead center
+    do { targetPan = Math.round((Math.random() * 2 - 1) * 100) / 100; }
+    while (Math.abs(targetPan) < 0.05);
+  }
+
+  // Reset UI
+  document.getElementById('stereoCard').classList.remove('answered');
+  userClickedX = 0.5; // reset handle to visual center
+  userPan = 0; // both modes start at center (panning=center, width=mono)
+  updatePanUI(userPan);
+  document.getElementById('promptBar').classList.remove('correct-flash','wrong-flash');
+  const ri = document.getElementById('resultInline');
+  ri.className = 'result-inline'; ri.textContent = '';
+  document.getElementById('nextBar').style.display = 'none';
+  document.getElementById('errorWrap').classList.remove('visible');
+  document.getElementById('targetReadout').style.opacity = '0';
+  document.getElementById('targetReadout').textContent = '—';
+
+  const th = document.getElementById('targetHandle');
+  th.classList.remove('visible');
+
+  document.getElementById('btnCenter').disabled = false;
+  document.getElementById('btnPause').disabled  = false;
+  document.getElementById('btnRestart').disabled = false;
+  document.getElementById('btnCenter').classList.remove('center-active');
+  document.getElementById('btnCenter').textContent = 'Center';
+
+  document.getElementById('promptText').innerHTML = gameMode === 'width'
+    ? `How <span>wide</span> is the stereo image? Drag right for wider, left for narrower — click to submit`
+    : `Where is the sound <span>panned</span>? Click anywhere on the field to place your guess`;
+
+  // Advance custom track each round
+  if (sourceType === 'custom' && customBuffers.length > 0) {
+    customIdx = (customIdx + 1) % customBuffers.length;
+    musicOffset = 0;
+  }
+  if (sourceType === 'builtin' && builtinBuffers.length > 0) {
+    builtinIdx = (builtinIdx + 1) % builtinBuffers.length;
+  }
+
+  startAudio();
+}
+
+// ── Submit answer ─────────────────────────────────────────────────────────────
+function submitAnswer() {
+  if (!roundActive || answered) return;
+  answered = true;
+  document.getElementById('stereoCard').classList.add('answered');
+  document.getElementById('cursorLine').style.display   = 'none';
+  document.getElementById('cursorMirror').style.display = 'none';
+
+  const err  = Math.abs(userPan - targetPan); // 0–2 range
+  const errPct = (err / 2) * 100;             // 0–100%
+  const pts  = Math.round(Math.max(0, 100 - errPct * 1.6));
+
+  totalScore += pts;
+  totalErr    = totalErr === 0 ? errPct : (totalErr * (totalRounds-1) + errPct) / totalRounds;
+  if (pts >= 70) streak++; else streak = 0;
+
+  document.getElementById('scoreVal').textContent  = totalScore;
+  document.getElementById('streakVal').textContent = streak;
+  document.getElementById('avgErrVal').textContent  = Math.round(totalErr) + '%';
+
+  // Reveal target handle
+  const th  = document.getElementById('targetHandle');
+  // For width mode: place target handle at the right-side mirror position (center + width/2)
+  const tPct = gameMode === 'width'
+    ? 50 + targetPan * 50          // right side of center
+    : ((targetPan + 1) / 2) * 100;
+  th.style.left = tPct + '%';
+  th.classList.add('visible');
+
+  // Show target readout
+  const tr = document.getElementById('targetReadout');
+  tr.textContent = fmtPan(targetPan);
+  tr.style.opacity = '1';
+
+  // Route audio to true target position for comparison
+  if (pannerNode && audioCtx) {
+    pannerNode.pan.setTargetAtTime(targetPan, audioCtx.currentTime, 0.03);
+  }
+
+  // Result
+  const tier = pts >= 85 ? 'perfect' : pts >= 65 ? 'good' : pts >= 40 ? 'ok' : 'bad';
+  const msgs = { perfect:'🎯 Spot on!', good:'👍 Close!', ok:'🔶 Getting there', bad:'🔻 Keep training' };
+
+  document.getElementById('promptBar').classList.add(pts >= 65 ? 'correct-flash' : 'wrong-flash');
+  const ri = document.getElementById('resultInline');
+  ri.textContent = `+${pts}`;
+  ri.className   = `result-inline ${pts>=65?'show-good':pts>=40?'show-ok':'show-bad'}`;
+
+  // Compute difference display
+  let diffStr;
+  if (gameMode === 'width') {
+    const diffPct = Math.round((userPan - targetPan) * 100);
+    diffStr = diffPct === 0 ? 'exact' : (diffPct > 0 ? '+' : '') + diffPct + '% off';
+  } else {
+    const diffPct = Math.round((userPan - targetPan) * 100);
+    diffStr = diffPct === 0 ? 'exact' : (diffPct > 0 ? 'R +' : 'L ') + Math.abs(diffPct) + '% off';
+  }
+  document.getElementById('promptText').innerHTML =
+    `${msgs[tier]} &nbsp;·&nbsp; Target: <span>${fmtPan(targetPan)}</span> &nbsp;·&nbsp; Yours: <span>${fmtPan(userPan)}</span> &nbsp;·&nbsp; Diff: <span>${diffStr}</span>`;
+
+  // Error bar
+  const ew = document.getElementById('errorWrap');
+  const ef = document.getElementById('errorFill');
+  const ep = document.getElementById('errorPct');
+  ew.classList.add('visible');
+  ef.style.background = pts>=65?'var(--green)':pts>=40?'var(--amber)':'var(--red)';
+  ep.textContent = Math.round(errPct) + '% off';
+  setTimeout(()=>{ ef.style.width = Math.min(100, errPct*1.5) + '%'; }, 60);
+
+  addHistory(tier);
+
+  const delay = pts >= 65 ? 1800 : 2600;
+  const bar = document.getElementById('nextBar');
+  const fill= document.getElementById('nextFill');
+  bar.style.display = 'block';
+  fill.style.transition='none'; fill.style.width='100%';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    fill.style.transition=`width ${delay}ms linear`; fill.style.width='0%';
+  }));
+  window._nextTimeout = setTimeout(startRound, delay);
+}
+
+// ── History ───────────────────────────────────────────────────────────────────
+function addHistory(tier) {
+  const strip = document.getElementById('historyStrip');
+  const dot   = document.createElement('div');
+  dot.className = `hist-dot ${tier}`;
+  strip.appendChild(dot);
+  while (strip.children.length > 40) strip.removeChild(strip.firstChild);
+}
+
+// ── Audio ─────────────────────────────────────────────────────────────────────
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function makePinkNoise(secs) {
+  const rate=audioCtx.sampleRate, len=Math.ceil(rate*secs);
+  const buf=audioCtx.createBuffer(1,len,rate);
+  const d=buf.getChannelData(0);
+  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+  for(let i=0;i<len;i++){
+    const w=Math.random()*2-1;
+    b0=0.99886*b0+w*0.0555179;b1=0.99332*b1+w*0.0750759;
+    b2=0.96900*b2+w*0.1538520;b3=0.86650*b3+w*0.3104856;
+    b4=0.55000*b4+w*0.5329522;b5=-0.7616*b5-w*0.0168980;
+    d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11;
+    b6=w*0.115926;
+  }
+  const src=audioCtx.createBufferSource();
+  src.buffer=buf; src.loop=true; return src;
+}
+
+// Extra nodes for width mode second channel
+let pannerNodeR = null; // right channel panner for width mode
+let noiseSourceR = null; // second source for width mode
+
+function startAudio() {
+  stopAudio();
+  initAudio();
+  if (audioCtx.state==='suspended') audioCtx.resume();
+
+  outGain = audioCtx.createGain(); outGain.gain.value = 0.6;
+  outGain.connect(audioCtx.destination);
+
+  if (gameMode === 'width' && !isCenter) {
+    // Width mode: two sources at ±targetPan
+    pannerNode  = audioCtx.createStereoPanner();
+    pannerNode.pan.value  = -targetPan; // left source
+    pannerNodeR = audioCtx.createStereoPanner();
+    pannerNodeR.pan.value = targetPan;  // right source
+    pannerNode.connect(outGain);
+    pannerNodeR.connect(outGain);
+    outGain.gain.value = 0.4; // slightly quieter to avoid clipping from two sources
+
+    const makeSource = () => {
+      if (sourceType === 'builtin') return null;
+      if (sourceType === 'custom' && customBuffers.length > 0) {
+        const s = audioCtx.createBufferSource();
+        s.buffer = customBuffers[customIdx % customBuffers.length];
+        s.loop = true; return s;
+      }
+      const s = makePinkNoise(5); return s;
+    };
+
+    if (sourceType === 'builtin') {
+      startBuiltinLoopWidth();
+    } else {
+      const srcL = makeSource(); const srcR = makeSource();
+      srcL.connect(pannerNode);  srcL.start(0, musicOffset);
+      srcR.connect(pannerNodeR); srcR.start(0, musicOffset);
+      noiseSource = srcL; noiseSourceR = srcR;
+      musicStartedAt = audioCtx.currentTime - musicOffset;
+    }
+  } else {
+    // Panning mode (or center reference): single panner
+    pannerNode = audioCtx.createStereoPanner();
+    pannerNode.pan.value = isCenter ? 0 : targetPan;
+    pannerNode.connect(outGain);
+
+    if (sourceType === 'builtin') {
+      startBuiltinLoop();
+    } else if (sourceType === 'custom' && customBuffers.length > 0) {
+      const src = audioCtx.createBufferSource();
+      src.buffer = customBuffers[customIdx % customBuffers.length];
+      src.loop = true;
+      src.connect(pannerNode); src.start(0, musicOffset);
+      noiseSource = src; musicStartedAt = audioCtx.currentTime - musicOffset;
+    } else {
+      const src = makePinkNoise(5);
+      src.connect(pannerNode); src.start(0);
+      noiseSource = src;
+    }
+  }
+
+  isPlaying = true;
+  document.getElementById('playDot').className = 'pulse-dot';
+  document.getElementById('btnPlay').classList.add('playing');
+}
+
+function startBuiltinLoopWidth() {
+  if (!builtinBuffers.length) return;
+  const fire = () => {
+    if (!isPlaying || sourceType !== 'builtin') return;
+    const s = builtinBuffers[builtinIdx % builtinBuffers.length];
+    const sL = audioCtx.createBufferSource(); sL.buffer = s.buffer;
+    const sR = audioCtx.createBufferSource(); sR.buffer = s.buffer;
+    if (pannerNode)  sL.connect(pannerNode);
+    if (pannerNodeR) sR.connect(pannerNodeR);
+    sL.start(0); sR.start(0);
+    currentShotSrc = sL;
+  };
+  fire(); shotLoopTimer = setInterval(fire, 5000);
+}
+
+function stopAudio() {
+  if (shotLoopTimer){clearInterval(shotLoopTimer);shotLoopTimer=null;}
+  if (noiseSource)   {try{noiseSource.stop();}   catch(e){}noiseSource=null;}
+  if (noiseSourceR)  {try{noiseSourceR.stop();}  catch(e){}noiseSourceR=null;}
+  if (currentShotSrc){try{currentShotSrc.stop();}catch(e){}currentShotSrc=null;}
+  if (pannerNode)    {try{pannerNode.disconnect();}  catch(e){}pannerNode=null;}
+  if (pannerNodeR)   {try{pannerNodeR.disconnect();} catch(e){}pannerNodeR=null;}
+  if (outGain)       {try{outGain.disconnect();}    catch(e){}outGain=null;}
+  isPlaying=false;
+  document.getElementById('playDot').className='';
+  document.getElementById('btnPlay').classList.remove('playing');
+}
+
+function startBuiltinLoop() {
+  if (!builtinBuffers.length) return;
+  const fire=()=>{
+    if(!isPlaying||sourceType!=='builtin')return;
+    const s=builtinBuffers[builtinIdx%builtinBuffers.length];
+    const src=audioCtx.createBufferSource();
+    src.buffer=s.buffer; src.connect(pannerNode); src.start(0);
+    currentShotSrc=src;
+  };
+  fire(); shotLoopTimer=setInterval(fire,5000);
+}
+
+// ── Center / Pause / Restart ──────────────────────────────────────────────────
+function toggleCenter() {
+  if (!roundActive) return;
+  isCenter = !isCenter;
+  const btn = document.getElementById('btnCenter');
+  btn.classList.toggle('center-active', isCenter);
+  if (gameMode === 'width') {
+    btn.textContent = isCenter ? 'Wide' : 'Mono Ref';
+  } else {
+    btn.textContent = isCenter ? 'Panned' : 'Center';
+  }
+  // For width mode, rebuild audio (center = mono, panned = two sources)
+  if (gameMode === 'width') {
+    startAudio(); return;
+  }
+  if (pannerNode && audioCtx) {
+    pannerNode.pan.setTargetAtTime(isCenter ? 0 : targetPan, audioCtx.currentTime, 0.02);
+  }
+}
+
+function togglePause() {
+  if (!roundActive || !audioCtx) return;
+  const btn = document.getElementById('btnPause');
+  if (isPaused) {
+    audioCtx.resume().then(()=>{
+      isPaused=false; btn.innerHTML='&#9646;&#9646; Pause'; btn.classList.remove('paused');
+      if(sourceType==='builtin'&&isPlaying){
+        if(shotLoopTimer)clearInterval(shotLoopTimer);
+        const fire=()=>{if(!isPlaying)return;const s=builtinBuffers[builtinIdx%builtinBuffers.length];const src=audioCtx.createBufferSource();src.buffer=s.buffer;if(pannerNode)src.connect(pannerNode);src.start(0);currentShotSrc=src;};
+        fire();shotLoopTimer=setInterval(fire,5000);
+      }
+    });
+  } else {
+    if(shotLoopTimer){clearInterval(shotLoopTimer);shotLoopTimer=null;}
+    audioCtx.suspend().then(()=>{isPaused=true;btn.innerHTML='&#9654; Resume';btn.classList.add('paused');});
+  }
+}
+
+function restartAudio() {
+  if (!roundActive) return;
+  if (isPaused && audioCtx){audioCtx.resume();isPaused=false;const btn=document.getElementById('btnPause');btn.innerHTML='&#9646;&#9646; Pause';btn.classList.remove('paused');}
+  musicOffset=0; startAudio(); showToast('Restarted');
+}
+
+// ── Source ────────────────────────────────────────────────────────────────────
+function setSource(type) {
+  if (type==='builtin' && !builtinLoaded) {
+    showToast('Loading samples…');
+    loadBuiltinSamples().then(()=>{sourceType='builtin';updateSourceUI();if(roundActive&&isPlaying)startAudio();});
+    return;
+  }
+  sourceType=type; updateSourceUI();
+  if (roundActive&&isPlaying) startAudio();
+}
+function updateSourceUI() {
+  document.getElementById('srcPink').classList.toggle('active',    sourceType==='pink');
+  document.getElementById('srcCustom').classList.toggle('active',  sourceType==='custom');
+  document.getElementById('srcBuiltin').classList.toggle('active', sourceType==='builtin');
+}
+function triggerUpload() {
+  if(customBuffers.length>0){setSource('custom');return;}
+  document.getElementById('folderInput').click();
+}
+async function handleFolderUpload(e) {
+  const files=Array.from(e.target.files).filter(f=>f.type.startsWith('audio/'));
+  if(!files.length)return;
+  initAudio();customBuffers=[];showToast(`Loading ${files.length} tracks…`);
+  for(const f of files){try{const ab=await f.arrayBuffer();customBuffers.push(await audioCtx.decodeAudioData(ab));}catch(e){console.warn(e);}}
+  if(customBuffers.length>0){document.getElementById('uploadLabel').textContent=`📁 Folder (${customBuffers.length} tracks)`;setSource('custom');showToast('Music loaded!');}
+}
+
+const SAMPLE_FILES=[
+  'CLAP_DEEP_001.wav','CLAP_DEEP_002.wav','CLAP_DEEP_003.wav','CLAP_DEEP_004.wav','CLAP_DEEP_005.wav',
+  'CLAP_LAYER_001.wav','CLAP_LAYER_002.wav','CLAP_LAYER_003.wav','CLAP_LAYER_004.wav',
+  'SNARE_DEEP_001.wav','SNARE_DEEP_002.wav','SNARE_DEEP_003.wav','SNARE_DEEP_004.wav','SNARE_DEEP_005.wav','SNARE_DEEP_006.wav',
+];
+async function loadBuiltinSamples() {
+  if(builtinLoaded)return; initAudio(); builtinBuffers=[];
+  await Promise.all(SAMPLE_FILES.map(async fname=>{
+    try{const r=await fetch(`./samples/${fname}`);if(!r.ok)throw new Error();builtinBuffers.push({name:fname.replace(/\.\w+$/,''),buffer:await audioCtx.decodeAudioData(await r.arrayBuffer())});}
+    catch(e){console.warn('Could not load',fname);}
+  }));
+  builtinBuffers.sort((a,b)=>a.name.localeCompare(b.name));
+  builtinLoaded=builtinBuffers.length>0;
+  if(!builtinLoaded){showToast('No samples found');sourceType='pink';updateSourceUI();}
+}
+
+// ── Seek within current track (custom music, ±10s) ───────────────────────────
+function seekMusic(deltaSecs) {
+  if (sourceType !== 'custom' || customBuffers.length === 0) return;
+  if (!isPlaying || !audioCtx || !pannerNode) return;
+  const buf = customBuffers[customIdx % customBuffers.length];
+  const elapsed = audioCtx.currentTime - musicStartedAt;
+  const currentPos = musicOffset + elapsed;
+  const newOffset  = Math.max(0, Math.min(buf.duration - 0.5, currentPos + deltaSecs));
+  // Detach onended, stop old source, start new at offset
+  if (noiseSource) {
+    noiseSource.onended = null;
+    try { noiseSource.stop(); } catch(e){}
+    noiseSource = null;
+  }
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf; src.loop = false;
+  src.connect(pannerNode);
+  musicOffset    = newOffset;
+  musicStartedAt = audioCtx.currentTime;
+  src.onended = () => {
+    if (!isPlaying || noiseSource !== src) return;
+    customIdx = (customIdx + 1) % customBuffers.length; musicOffset = 0;
+    if (pannerNode && outGain) {
+      const next = audioCtx.createBufferSource();
+      next.buffer = customBuffers[customIdx]; next.loop = false;
+      next.connect(pannerNode); musicStartedAt = audioCtx.currentTime;
+      next.onended = src.onended; next.start(0); noiseSource = next;
+    }
+  };
+  src.start(0, newOffset);
+  noiseSource = src;
+  showToast(`${deltaSecs > 0 ? '+' : ''}${deltaSecs}s`);
+}
+
+// ── Skip track (custom music, ±1 track) ───────────────────────────────────────
+function skipTrack(delta) {
+  if (sourceType !== 'custom' || customBuffers.length === 0) return;
+  if (!isPlaying || !audioCtx || !pannerNode) return;
+  if (noiseSource) { noiseSource.onended = null; try { noiseSource.stop(); } catch(e){} noiseSource = null; }
+  customIdx   = ((customIdx + delta) % customBuffers.length + customBuffers.length) % customBuffers.length;
+  musicOffset = 0;
+  const src = audioCtx.createBufferSource();
+  src.buffer = customBuffers[customIdx]; src.loop = false;
+  src.connect(pannerNode); musicStartedAt = audioCtx.currentTime;
+  src.onended = () => {
+    if (!isPlaying || noiseSource !== src) return;
+    customIdx = (customIdx+1)%customBuffers.length; musicOffset = 0;
+    if (pannerNode && outGain) {
+      const next = audioCtx.createBufferSource();
+      next.buffer = customBuffers[customIdx]; next.loop = false;
+      next.connect(pannerNode); musicStartedAt = audioCtx.currentTime;
+      next.onended = src.onended; next.start(0); noiseSource = next;
+    }
+  };
+  src.start(0);
+  noiseSource = src;
+  showToast(`Track ${customIdx + 1} / ${customBuffers.length}`);
+}
+
+// ── Keyboard ──────────────────────────────────────────────────────────────────
+window.addEventListener('keydown', e => {
+  if (e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
+  if (e.code!=='KeyP' && audioCtx && audioCtx.state==='suspended') audioCtx.resume();
+  if (e.code==='Space')   { e.preventDefault(); toggleCenter(); }
+  if (e.code==='KeyD')    { e.preventDefault(); toggleCenter(); }
+  if (e.code==='KeyP')    { e.preventDefault(); togglePause(); }
+  if (e.code==='KeyF')    { e.preventDefault(); restartAudio(); }
+  if (e.code==='Enter')      { startRound(); }
+  if (e.code==='ArrowLeft')  { e.preventDefault(); seekMusic(-10); }
+  if (e.code==='ArrowRight') { e.preventDefault(); seekMusic(+10); }
+  if (e.code==='ArrowUp')    { e.preventDefault(); skipTrack(+1); }
+  if (e.code==='ArrowDown')  { e.preventDefault(); skipTrack(-1); }
+});
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+buildTicks();
+updatePanUI(0);
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js').then(()=>{}).catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
