@@ -51,11 +51,22 @@
     justify-content: space-between;
   }
 
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  .header-left { display:flex; align-items:center; gap:14px; }
+
+  .back-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 6px 12px;
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    transition: all 0.15s;
+    white-space: nowrap;
   }
+  .back-btn:hover { color: var(--text); border-color: var(--accent); }
+
+  .brand { display:flex; align-items:center; gap:10px; }
   .brand-icon {
     width: 32px; height: 32px;
     background: var(--accent);
@@ -65,10 +76,8 @@
   }
   .brand-name {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 16px;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    color: var(--text);
+    font-size: 16px; font-weight: 600;
+    letter-spacing: 0.05em; color: var(--text);
   }
   .brand-name span { color: var(--accent); }
 
@@ -101,8 +110,7 @@
   }
 
   .label {
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 11px; font-weight: 600;
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.07em;
@@ -127,6 +135,13 @@
     color: var(--accent2);
     box-shadow: 0 0 8px rgba(232,134,90,0.15);
   }
+
+  /* param pills in custom mode become toggleable */
+  .param-pill-toggle {
+    cursor: pointer !important;
+    transition: all 0.15s;
+  }
+  .param-pill-toggle:hover { opacity: 0.85; transform: scale(1.04); }
 
   select {
     background: var(--surface2);
@@ -177,8 +192,7 @@
   }
   .panel-title {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 11px; font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--muted);
@@ -200,6 +214,11 @@
     transition: opacity 0.2s;
   }
   .listening-pill.visible { opacity: 1; }
+  .listening-pill.dry-pill {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.2);
+    color: var(--muted);
+  }
   .pulse { width:6px; height:6px; background:var(--green); border-radius:50%; animation: pulse 1.1s infinite; }
   @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.3;transform:scale(0.6);} }
 
@@ -223,40 +242,21 @@
   }
   .knob-cell:hover { background: var(--surface2); }
 
-  /* ── Target panel hidden states (before answer) ── */
-  .transfer-wrap.hidden-panel {
-    filter: blur(20px);
-    opacity: 0;
-    pointer-events: none;
-    user-select: none;
-  }
-  .makeup-badge.hidden-panel {
-    filter: blur(20px);
-    opacity: 0;
-  }
+  .transfer-wrap.hidden-panel { filter:blur(20px); opacity:0; pointer-events:none; user-select:none; }
+  .makeup-badge.hidden-panel  { filter:blur(20px); opacity:0; }
 
-  /* ── Target knob hidden state (before answer) ── */
-  .knob-cell.hidden-target .knob-wrap {
-    filter: blur(20px);
-    opacity: 0;
-    pointer-events: none;
-  }
-  .knob-cell.hidden-target .knob-val {
-    filter: blur(20px);
-    opacity: 0;
-  }
-  .knob-cell.locked { opacity: 0.35; pointer-events: none; }
+  .knob-cell.hidden-target .knob-wrap { filter:blur(20px); opacity:0; pointer-events:none; }
+  .knob-cell.hidden-target .knob-val  { filter:blur(20px); opacity:0; }
+  .knob-cell.locked { opacity:0.35; pointer-events:none; }
 
   .knob-label {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    font-weight: 600;
+    font-size: 10px; font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--muted);
   }
 
-  /* SVG Knob */
   .knob-wrap {
     position: relative;
     width: 68px; height: 68px;
@@ -268,40 +268,26 @@
 
   .knob-val {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
-    font-weight: 500;
+    font-size: 12px; font-weight: 500;
     color: var(--text);
     text-align: center;
     min-height: 18px;
   }
 
   /* ── Transfer curve ── */
-  .transfer-wrap {
-    padding: 12px 16px 14px;
-    border-top: 1px solid var(--border);
-  }
+  .transfer-wrap { padding: 12px 16px 14px; border-top: 1px solid var(--border); }
   .transfer-label {
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 8px;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 8px;
   }
   canvas.transfer-canvas {
-    display: block;
-    width: 100%;
-    height: 120px;
-    border-radius: 6px;
-    background: var(--bg2);
+    display: block; width: 100%; height: 120px;
+    border-radius: 6px; background: var(--bg2);
   }
 
   /* ── Right column ── */
-  .right-col {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
+  .right-col { display:flex; flex-direction:column; gap:14px; }
 
   /* ── GR Meter panel ── */
   .meter-panel {
@@ -309,55 +295,31 @@
     border: 1px solid var(--border);
     border-radius: 14px;
     padding: 14px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    display: flex; flex-direction: column; gap: 10px;
   }
 
-  .meter-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+  .meter-row { display:flex; align-items:center; gap:10px; }
   .meter-name {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    width: 52px;
-    flex-shrink: 0;
+    font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    width: 52px; flex-shrink: 0;
   }
   .meter-name.target-c { color: var(--blue2); }
-  .meter-name.user-c { color: var(--green); }
+  .meter-name.user-c   { color: var(--green); }
 
   .meter-track {
-    flex: 1;
-    height: 14px;
+    flex: 1; height: 14px;
     background: var(--surface3);
-    border-radius: 3px;
-    overflow: hidden;
-    position: relative;
+    border-radius: 3px; overflow: hidden;
   }
-  .meter-fill {
-    height: 100%;
-    border-radius: 3px;
-    transition: width 0.05s linear;
-    position: relative;
-  }
-  .meter-fill.target-fill {
-    background: linear-gradient(to right, #5b7fff, #7b96ff);
-  }
-  .meter-fill.user-fill {
-    background: linear-gradient(to right, #3ecf8e, #7fffc8);
-  }
+  .meter-fill { height:100%; border-radius:3px; transition: width 0.05s linear; }
+  .meter-fill.target-fill { background: linear-gradient(to right, #5b7fff, #7b96ff); }
+  .meter-fill.user-fill   { background: linear-gradient(to right, #3ecf8e, #7fffc8); }
   .meter-db {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    color: var(--text);
-    width: 42px;
-    text-align: right;
-    flex-shrink: 0;
+    font-size: 11px; color: var(--text);
+    width: 42px; text-align: right; flex-shrink: 0;
   }
 
   /* ── Source panel ── */
@@ -366,62 +328,52 @@
     border: 1px solid var(--border);
     border-radius: 14px;
     padding: 14px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    display: flex; flex-direction: column; gap: 8px;
   }
 
   .source-pill {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    padding: 7px 14px;
-    border-radius: 10px;
+    display: flex; align-items: center; gap: 7px;
+    padding: 7px 14px; border-radius: 10px;
     font-size: 13px;
     background: var(--surface2);
     border: 1px solid var(--border2);
-    cursor: pointer;
-    transition: all 0.15s;
+    cursor: pointer; transition: all 0.15s;
   }
   .source-pill:hover { border-color: var(--accent); }
   .source-pill.active { border-color: var(--accent); background: rgba(232,134,90,0.1); color: var(--accent2); }
   .source-pill input[type=file] { display:none; }
 
   /* ── Controls bar ── */
-  .controls-bar {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-  }
+  .controls-bar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
 
   button {
-    border: none;
-    border-radius: 10px;
+    border: none; border-radius: 10px;
     font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    padding: 10px 18px;
-    transition: all 0.15s;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer; padding: 9px 16px; transition: all 0.15s;
   }
   .btn-primary { background: var(--accent); color: #fff; }
   .btn-primary:hover { background: var(--accent2); }
-  .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-primary:disabled { opacity:0.35; cursor:not-allowed; }
   .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border2); }
   .btn-secondary:hover { border-color: var(--accent); color: var(--accent2); }
+  .btn-secondary:disabled { opacity:0.35; cursor:not-allowed; }
+  .btn-secondary.paused { background:rgba(244,91,105,0.08); border-color:var(--red); color:var(--red); }
 
   .listen-btn {
     background: var(--surface2);
     border: 1px solid var(--border2);
     display: flex; align-items: center; gap: 7px;
-    padding: 9px 16px; font-size: 13px;
-    transition: all 0.15s;
+    padding: 9px 14px; font-size: 13px;
+    transition: all 0.15s; flex: 1;
   }
   .listen-btn.target-btn { color: var(--blue2); border-color: rgba(91,127,255,0.3); }
   .listen-btn.target-btn.active { background: rgba(91,127,255,0.12); border-color: rgba(91,127,255,0.6); }
+  .listen-btn.dry-btn { color: var(--muted); border-color: rgba(255,255,255,0.15); }
+  .listen-btn.dry-btn.active { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.3); color: var(--text); }
   .listen-btn.user-btn { color: var(--green); border-color: rgba(62,207,142,0.3); }
   .listen-btn.user-btn.active { background: rgba(62,207,142,0.12); border-color: rgba(62,207,142,0.6); }
-  .listen-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .listen-btn:disabled { opacity:0.35; cursor:not-allowed; }
 
   /* ── Result bar ── */
   .result-bar {
@@ -429,9 +381,7 @@
     border: 1px solid var(--border);
     border-radius: 14px;
     padding: 18px 20px;
-    display: none;
-    flex-direction: column;
-    gap: 12px;
+    display: none; flex-direction: column; gap: 12px;
   }
   .result-bar.visible { display: flex; }
   .result-top { display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
@@ -447,12 +397,11 @@
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 6px 12px;
-    font-size: 12px;
-    color: var(--muted);
+    font-size: 12px; color: var(--muted);
     font-family: 'IBM Plex Mono', monospace;
   }
   .pr-chip .good { color: var(--green); }
-  .pr-chip .bad { color: var(--red); }
+  .pr-chip .bad  { color: var(--red); }
 
   /* ── Toast ── */
   .toast {
@@ -461,59 +410,48 @@
     background: var(--surface2);
     border: 1px solid var(--border2);
     border-radius: 10px;
-    padding: 10px 16px;
-    font-size: 13px;
-    color: var(--text);
-    opacity: 0;
-    transition: all 0.2s;
-    pointer-events: none;
-    z-index: 999;
-    white-space: nowrap;
+    padding: 10px 16px; font-size: 13px; color: var(--text);
+    opacity: 0; transition: all 0.2s;
+    pointer-events: none; z-index: 999; white-space: nowrap;
   }
   .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
-  /* ── Reveal overlay on transfer canvas ── */
-  .transfer-compare {
-    display: flex;
-    gap: 10px;
-    margin-top: 4px;
-    flex-wrap: wrap;
-  }
-  .tc-legend {
-    display: flex; align-items: center; gap: 5px;
-    font-size: 11px; color: var(--muted);
-  }
+  .transfer-compare { display:flex; gap:10px; margin-top:4px; flex-wrap:wrap; }
+  .tc-legend { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); }
   .tc-dot { width:10px; height:3px; border-radius:2px; }
 
-  /* Makeup gain badge */
   .makeup-badge {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 10px;
     background: rgba(245,166,35,0.1);
     border: 1px solid rgba(245,166,35,0.3);
     color: var(--amber);
-    border-radius: 6px;
-    padding: 2px 7px;
+    border-radius: 6px; padding: 2px 7px;
+  }
+
+  /* Custom mode hint */
+  .custom-hint {
+    font-size:10px; color:var(--muted); font-style:italic;
+    padding: 0 2px;
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="brand">
-    <div class="brand-icon">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Outer ring track -->
-        <path d="M4.5 14.5 A7 7 0 1 1 15.5 14.5" stroke="rgba(255,255,255,0.25)" stroke-width="2" stroke-linecap="round"/>
-        <!-- Filled arc (about 70% of range) -->
-        <path d="M4.5 14.5 A7 7 0 1 1 13.5 4.9" stroke="white" stroke-width="2" stroke-linecap="round"/>
-        <!-- Center dot -->
-        <circle cx="10" cy="10" r="2.5" fill="white"/>
-        <!-- Pointer line -->
-        <line x1="10" y1="10" x2="13.5" y2="4.9" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
-      </svg>
+  <div class="header-left">
+    <a href="../index.html" class="back-btn">← Back</a>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4.5 14.5 A7 7 0 1 1 15.5 14.5" stroke="rgba(255,255,255,0.25)" stroke-width="2" stroke-linecap="round"/>
+          <path d="M4.5 14.5 A7 7 0 1 1 13.5 4.9" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="10" cy="10" r="2.5" fill="white"/>
+          <line x1="10" y1="10" x2="13.5" y2="4.9" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="brand-name">COMPRES<span>SOR</span></span>
     </div>
-    <span class="brand-name">COMPRES<span>SOR</span></span>
   </div>
   <div class="score-row">
     <div class="stat">
@@ -542,13 +480,15 @@
     <div class="pill" onclick="setDifficulty('medium',this)">Medium</div>
     <div class="pill" onclick="setDifficulty('hard',this)">Hard</div>
     <div class="pill" onclick="setDifficulty('pro',this)">Pro</div>
-    <div class="pill" onclick="setDifficulty('legend',this)">Legend</div>
+    <div class="pill" onclick="setDifficulty('custom',this)">Custom</div>
     <div class="vdiv"></div>
     <span class="label">Active Params</span>
-    <div id="paramPills" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+    <div id="paramPills" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;"></div>
     <div class="vdiv" style="margin-left:auto;"></div>
     <span style="font-size:11px;color:var(--muted);white-space:nowrap;">
-      <kbd>Space</kbd> A/B &nbsp;·&nbsp; <kbd>↵</kbd> Check
+      <kbd>Space</kbd> A/B &nbsp;·&nbsp; <kbd>D</kbd> dry &nbsp;·&nbsp;
+      <kbd>P</kbd> pause &nbsp;·&nbsp; <kbd>F</kbd> restart &nbsp;·&nbsp;
+      <kbd>↑↓</kbd> skip &nbsp;·&nbsp; <kbd>←→</kbd> seek &nbsp;·&nbsp; <kbd>↵</kbd> Check
     </span>
   </div>
 
@@ -587,10 +527,9 @@
           </div>
         </div>
       </div>
-
     </div>
 
-    <!-- Right: meters + source -->
+    <!-- Right: meters + source + controls -->
     <div class="right-col">
 
       <!-- GR Meters -->
@@ -609,32 +548,40 @@
           <div class="meter-track"><div class="meter-fill user-fill" id="userGRFill" style="width:0%"></div></div>
           <span class="meter-db" id="userGRdb">0.0 dB</span>
         </div>
-        <!-- Mini waveform / level meter -->
         <canvas id="levelCanvas" style="width:100%;height:48px;border-radius:6px;background:var(--bg2);margin-top:4px;"></canvas>
       </div>
 
       <!-- Source -->
       <div class="source-panel">
         <span class="label">Audio Source</span>
-        <div class="source-pill active" id="srcPink" onclick="setSource('pink')">
-          Pink Noise
-        </div>
+        <div class="source-pill active" id="srcPink" onclick="setSource('pink')">Pink Noise</div>
+        <div class="source-pill" id="srcOneShot" onclick="setSource('oneshot')">One-shots</div>
+        <div class="source-pill" id="srcLoop" onclick="setSource('loop')">Loops</div>
         <div class="source-pill" id="srcCustom" onclick="triggerUpload()" style="border-style:dashed;">
           <span id="uploadLabel">📁 Upload Music Folder</span>
-          <input type="file" id="folderInput" webkitdirectory directory multiple onchange="handleFolderUpload(event)" style="display:none">
+          <input type="file" id="folderInput" webkitdirectory directory multiple onchange="handleFolderUpload(event)">
         </div>
       </div>
 
-      <!-- Controls -->
-      <div class="controls-bar" style="flex-wrap:wrap;">
+      <!-- Listen buttons -->
+      <div class="controls-bar">
         <button class="listen-btn target-btn" id="btnTarget" onclick="listenTarget()" disabled>
           <span id="targetDot"></span> Target
         </button>
-        <button class="listen-btn user-btn" id="btnUser" onclick="listenUser()" disabled>
+        <button class="listen-btn dry-btn"    id="btnDry"    onclick="listenDry()"    disabled>○ Dry</button>
+        <button class="listen-btn user-btn"   id="btnUser"   onclick="listenUser()"   disabled>
           <span id="userDot"></span> Yours
         </button>
       </div>
-      <div class="controls-bar" style="flex-wrap:wrap;">
+
+      <!-- Transport controls -->
+      <div class="controls-bar">
+        <button class="btn-secondary" id="btnPause"   onclick="togglePause()"   disabled style="flex:1;">⏸ Pause</button>
+        <button class="btn-secondary" id="btnRestart" onclick="restartAudio()" disabled style="flex:1;">↺ Restart</button>
+      </div>
+
+      <!-- Round controls -->
+      <div class="controls-bar">
         <button class="btn-secondary" onclick="newRound()" style="flex:1;">New Round</button>
         <button class="btn-primary" id="btnCheck" onclick="checkAnswer()" disabled style="flex:1;">Check Answer</button>
       </div>
@@ -673,81 +620,142 @@ const PARAMS = {
 };
 
 const DIFFICULTY = {
-  easy:   { params: ['threshold'],                                        label:'Easy'   },
-  medium: { params: ['threshold','ratio'],                               label:'Medium' },
-  hard:   { params: ['threshold','ratio','attack'],                      label:'Hard'   },
-  pro:    { params: ['threshold','ratio','attack','release'],             label:'Pro'    },
-  legend: { params: ['threshold','ratio','attack','release','knee'],     label:'Legend' },
+  easy:   { params: ['threshold'],                                 label:'Easy'   },
+  medium: { params: ['threshold','ratio'],                         label:'Medium' },
+  hard:   { params: ['threshold','ratio','attack'],                label:'Hard'   },
+  pro:    { params: ['threshold','ratio','attack','release'],      label:'Pro'    },
+  // 'custom' is handled dynamically
 };
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let difficulty = 'easy';
+let difficulty   = 'easy';
 let activeParams = [...DIFFICULTY.easy.params];
 let targetSettings = {};
 let userSettings   = {};
-let roundActive    = false;
-let answered       = false;
+let roundActive  = false;
+let answered     = false;
 let totalScore=0, streak=0, round=0;
-let listeningTo    = 'target';
+let listeningTo  = 'target';
 let abActive=false, abInterval=null;
+let isPaused     = false;
 
 // Audio
-let audioCtx       = null;
-let currentSource  = null;
-let outputGain     = null;
-let targetCompNode = null; // DynamicsCompressorNode
-let userCompNode   = null;
+let audioCtx         = null;
+let sourceBus        = null;   // single GainNode — all sources connect here
+let currentSource    = null;   // looping or continuous source
+let currentShotSrc   = null;   // one-shot source
+let shotTimer        = null;
+let outputGain       = null;
+let targetCompNode   = null;
+let userCompNode     = null;
 let targetMakeupGain = null;
 let userMakeupGain   = null;
-let sourceType     = 'pink';
-let customBuffers  = [];
-let currentBufferIndex = 0;
+let analyserTarget   = null;
+let analyserUser     = null;
+let analyserDry      = null;
+let animFrameId      = null;
 
-// GR metering
-let analyserTarget = null, analyserUser = null;
-let analyserDry    = null;
-let animFrameId    = null;
+let sourceType       = 'pink';
+let customBuffers    = [], customIdx = 0;
+let oneShotBuffers   = [], oneShotLoaded = false, oneShotIdx = 0;
+let loopBuffers      = [], loopLoaded = false, loopIdx = 0;
+let musicOffset      = 0, musicStartedAt = 0;
 
-// Knob drag state
-let draggingKnob   = null; // { id, panel, startY, startVal }
+// Knob drag
+let draggingKnob = null;
+
+// ── Sample file lists ─────────────────────────────────────────────────────────
+const ONE_SHOT_FILES = [
+  'CLAP_DEEP_001.wav','CLAP_DEEP_002.wav','CLAP_DEEP_003.wav','CLAP_DEEP_004.wav','CLAP_DEEP_005.wav',
+  'CLAP_LAYER_001.wav','CLAP_LAYER_002.wav','CLAP_LAYER_003.wav','CLAP_LAYER_004.wav',
+  'SNARE_DEEP_001.wav','SNARE_DEEP_002.wav','SNARE_DEEP_003.wav','SNARE_DEEP_004.wav','SNARE_DEEP_005.wav','SNARE_DEEP_006.wav',
+];
+const LOOP_FILES = [
+  'tunetank-soft-house-music-348241.mp3',
+  'cyberwave-orchestra-orchestral-music-loop-287416.mp3',
+  'mkgomez-minimal-techno-background-loop-475852.mp3',
+  'nastelbom-lounge-house-314576.mp3',
+  'ohpalmusic-passive-hip-hop-beat-90bpm-d-minor-177334.mp3',
+  'openmindaudio-deep-club-organic-house-music-ashen-palms-524258.mp3',
+  'openmindaudio-epic-organic-house-music-driftwood-ritual-524274.mp3',
+  'sonican-acoustic-senses-loop-313230.mp3',
+  'sonican-feelgood-acoustic-loop-320856.mp3',
+  'sonican-positive-corporate-music-optimistic-loop-464544.mp3',
+  'sonofevan-gravel-in-my-lungs-470048.mp3',
+  'the_mountain-deep-house-483808.mp3',
+  'the_mountain-hi-tech-loop-151203.mp3',
+  'the_mountain-loop-beat-130010.mp3',
+  'the_mountain-soft-loop-130012.mp3',
+];
 
 // ── Difficulty / param pills ──────────────────────────────────────────────────
 function setDifficulty(d, el) {
   difficulty = d;
-  activeParams = DIFFICULTY[d].params;
+  if (d === 'custom') {
+    // Preserve current activeParams so user can refine; default to all if coming fresh
+    if (!activeParams.length) activeParams = Object.keys(PARAMS).filter(k => k !== 'makeup');
+  } else {
+    activeParams = [...DIFFICULTY[d].params];
+  }
   document.querySelectorAll('.settings-bar .pill').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
   renderParamPills();
   if (roundActive) newRound();
 }
 
+function toggleCustomParam(key) {
+  if (difficulty !== 'custom') return;
+  const idx = activeParams.indexOf(key);
+  if (idx >= 0) { activeParams.splice(idx, 1); }
+  else          { activeParams.push(key); }
+  renderParamPills();
+  if (roundActive) {
+    renderKnobs('user', userSettings, false);
+    drawTransfer('user', document.getElementById('userTransfer'));
+  }
+}
+
 function renderParamPills() {
   const container = document.getElementById('paramPills');
   container.innerHTML = '';
+
+  if (difficulty === 'custom') {
+    const hint = document.createElement('span');
+    hint.className = 'custom-hint';
+    hint.textContent = 'click to toggle →';
+    container.appendChild(hint);
+  }
+
   Object.keys(PARAMS).forEach(key => {
+    // makeup is always shown as active in non-custom modes (always guessed)
+    const isActive = activeParams.includes(key) || (key === 'makeup' && difficulty !== 'custom');
     const span = document.createElement('span');
     span.style.cssText = `font-size:11px;padding:3px 9px;border-radius:10px;border:1px solid;`;
-    if (activeParams.includes(key)) {
+    if (isActive) {
       span.style.borderColor = 'var(--accent)';
-      span.style.color = 'var(--accent2)';
-      span.style.background = 'rgba(232,134,90,0.1)';
+      span.style.color       = 'var(--accent2)';
+      span.style.background  = 'rgba(232,134,90,0.1)';
     } else {
       span.style.borderColor = 'var(--border2)';
-      span.style.color = 'var(--muted)';
-      span.style.background = 'var(--surface2)';
+      span.style.color       = 'var(--muted)';
+      span.style.background  = 'var(--surface2)';
     }
     span.textContent = PARAMS[key].label;
+    if (difficulty === 'custom') {
+      span.className = 'param-pill-toggle';
+      span.title = `Click to ${isActive ? 'remove' : 'add'} ${PARAMS[key].label}`;
+      span.onclick = () => toggleCustomParam(key);
+    }
     container.appendChild(span);
   });
 }
 
 // ── Knob rendering ────────────────────────────────────────────────────────────
-const KNOB_START = -135; // degrees
+const KNOB_START = -135;
 const KNOB_END   =  135;
 
 function paramToAngle(key, val) {
   const p = PARAMS[key];
-  // Use log scale for attack/release, linear for others
   let t;
   if (key === 'attack' || key === 'release') {
     t = (Math.log(val) - Math.log(p.min)) / (Math.log(p.max) - Math.log(p.min));
@@ -757,25 +765,12 @@ function paramToAngle(key, val) {
   return KNOB_START + t * (KNOB_END - KNOB_START);
 }
 
-function angleToParam(key, angle) {
-  const p = PARAMS[key];
-  const t = (angle - KNOB_START) / (KNOB_END - KNOB_START);
-  let val;
-  if (key === 'attack' || key === 'release') {
-    val = Math.exp(Math.log(p.min) + t * (Math.log(p.max) - Math.log(p.min)));
-  } else {
-    val = p.min + t * (p.max - p.min);
-  }
-  return Math.max(p.min, Math.min(p.max, val));
-}
-
 function makeKnobSVG(key, val, color, isLocked) {
-  const p = PARAMS[key];
   const angle = paramToAngle(key, val);
   const cx=34, cy=34, r=26;
   const toRad = a => (a - 90) * Math.PI / 180;
-  const arcX = (a,rr) => cx + rr * Math.cos(toRad(a));
-  const arcY = (a,rr) => cy + rr * Math.sin(toRad(a));
+  const arcX  = (a,rr) => cx + rr * Math.cos(toRad(a));
+  const arcY  = (a,rr) => cy + rr * Math.sin(toRad(a));
 
   const trackPath = `M ${arcX(KNOB_START,r)} ${arcY(KNOB_START,r)} A ${r} ${r} 0 1 1 ${arcX(KNOB_END,r)} ${arcY(KNOB_END,r)}`;
   const fillLarge = (angle - KNOB_START) > 180 ? 1 : 0;
@@ -793,31 +788,32 @@ function makeKnobSVG(key, val, color, isLocked) {
 }
 
 function renderKnobs(panel, settings, hideActive) {
-  // hideActive=true  → target panel before answer: active params are blurred, inactive are grayed
-  // hideActive=false → target panel after answer (revealed), or user panel always
   const container = document.getElementById(panel === 'target' ? 'targetKnobs' : 'userKnobs');
   container.innerHTML = '';
   const color = panel === 'target' ? 'var(--blue2)' : 'var(--green)';
 
+  // Effective active params for locking/hiding
+  // Makeup is special: always editable in user panel, always hidden in target
+  const effectiveActive = key =>
+    activeParams.includes(key) || (key === 'makeup' && difficulty !== 'custom') || (key === 'makeup' && activeParams.includes('makeup'));
+
   Object.keys(PARAMS).forEach(key => {
     const p = PARAMS[key];
-    // For user panel: non-active params (except makeup) are locked/greyed out
-    const userLocked = panel === 'user' && !activeParams.includes(key) && key !== 'makeup';
-    // For target panel before answer: active params AND makeup are blurred; other inactive are greyed
-    const targetHidden  = panel === 'target' && hideActive && (activeParams.includes(key) || key === 'makeup');
-    const targetGreyed  = panel === 'target' && hideActive && !activeParams.includes(key) && key !== 'makeup';
+    const isMakeupActive = key === 'makeup' && (difficulty !== 'custom' || activeParams.includes('makeup'));
+    const userLocked    = panel === 'user'   && !activeParams.includes(key) && !isMakeupActive;
+    const targetHidden  = panel === 'target' && hideActive && (activeParams.includes(key) || isMakeupActive);
+    const targetGreyed  = panel === 'target' && hideActive && !activeParams.includes(key) && !isMakeupActive;
 
     const cell = document.createElement('div');
     let cls = 'knob-cell';
-    if (userLocked)    cls += ' locked';
-    if (targetHidden)  cls += ' hidden-target';
-    if (targetGreyed)  cls += ' locked';
+    if (userLocked)   cls += ' locked';
+    if (targetHidden) cls += ' hidden-target';
+    if (targetGreyed) cls += ' locked';
     cell.className = cls;
     cell.dataset.key   = key;
     cell.dataset.panel = panel;
 
     const val = settings[key] ?? p.default;
-    // Show "?" for hidden active target knobs, real value otherwise
     const displayVal = targetHidden ? '?' : p.fmt(val);
 
     cell.innerHTML = `
@@ -842,31 +838,24 @@ function renderKnobs(panel, settings, hideActive) {
 function startKnobDrag(e) {
   if (!roundActive) return;
   const wrap = e.currentTarget;
-  const key   = wrap.dataset.key;
-  const panel = wrap.dataset.panel;
-  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-  draggingKnob = { key, panel, startY: clientY, startVal: userSettings[key] };
+  draggingKnob = { key: wrap.dataset.key, panel: wrap.dataset.panel,
+    startY: e.touches ? e.touches[0].clientY : e.clientY,
+    startVal: userSettings[wrap.dataset.key] };
   e.preventDefault();
 }
 
 window.addEventListener('mousemove', e => {
   if (!draggingKnob) return;
   const { key, startY, startVal } = draggingKnob;
-  const dy = startY - (e.clientY); // up = increase
+  const dy = startY - e.clientY;
   const p  = PARAMS[key];
-  let delta;
   if (key === 'attack' || key === 'release') {
-    const logRange = Math.log(p.max) - Math.log(p.min);
-    delta = (dy / 200) * logRange;
-    const newLog = Math.log(startVal) + delta;
-    userSettings[key] = Math.max(p.min, Math.min(p.max, Math.exp(newLog)));
+    const delta = (dy / 200) * (Math.log(p.max) - Math.log(p.min));
+    userSettings[key] = Math.max(p.min, Math.min(p.max, Math.exp(Math.log(startVal) + delta)));
   } else {
-    const range = p.max - p.min;
-    delta = (dy / 200) * range;
-    userSettings[key] = Math.max(p.min, Math.min(p.max, startVal + delta));
+    userSettings[key] = Math.max(p.min, Math.min(p.max, startVal + (dy / 200) * (p.max - p.min)));
   }
-  updateUserKnob(key);
-  liveUpdateUserComp();
+  updateUserKnob(key); liveUpdateUserComp();
 });
 
 window.addEventListener('touchmove', e => {
@@ -874,16 +863,12 @@ window.addEventListener('touchmove', e => {
   const { key, startY, startVal } = draggingKnob;
   const dy = startY - e.touches[0].clientY;
   const p  = PARAMS[key];
-  let delta;
   if (key === 'attack' || key === 'release') {
-    const logRange = Math.log(p.max) - Math.log(p.min);
-    delta = (dy / 200) * logRange;
-    userSettings[key] = Math.max(p.min, Math.min(p.max, Math.exp(Math.log(startVal) + delta)));
+    userSettings[key] = Math.max(p.min, Math.min(p.max, Math.exp(Math.log(startVal) + (dy/200)*(Math.log(p.max)-Math.log(p.min)))));
   } else {
-    userSettings[key] = Math.max(p.min, Math.min(p.max, startVal + (dy / 200) * (p.max - p.min)));
+    userSettings[key] = Math.max(p.min, Math.min(p.max, startVal + (dy/200)*(p.max-p.min)));
   }
-  updateUserKnob(key);
-  liveUpdateUserComp();
+  updateUserKnob(key); liveUpdateUserComp();
   e.preventDefault();
 }, { passive: false });
 
@@ -900,23 +885,18 @@ function onKnobWheel(e) {
   } else {
     userSettings[key] = Math.max(p.min, Math.min(p.max, userSettings[key] + dir * p.step));
   }
-  updateUserKnob(key);
-  liveUpdateUserComp();
+  updateUserKnob(key); liveUpdateUserComp();
   e.preventDefault();
 }
 
 function updateUserKnob(key) {
   const val  = userSettings[key];
-  const p    = PARAMS[key];
   const wrap = document.getElementById(`knob-user-${key}`);
   const lbl  = document.getElementById(`kval-user-${key}`);
   if (!wrap || !lbl) return;
   wrap.innerHTML = makeKnobSVG(key, val, 'var(--green)', false);
-  lbl.textContent = p.fmt(val);
-
-  if (key === 'makeup') {
-    document.getElementById('makeupBadge').textContent = `Makeup: +${val.toFixed(1)} dB`;
-  }
+  lbl.textContent = PARAMS[key].fmt(val);
+  if (key === 'makeup') document.getElementById('makeupBadge').textContent = `Makeup: +${val.toFixed(1)} dB`;
   drawTransfer('user', document.getElementById('userTransfer'));
   if (answered) drawTransfer('compare', document.getElementById('userTransfer'));
 }
@@ -924,49 +904,35 @@ function updateUserKnob(key) {
 // ── Transfer curve ────────────────────────────────────────────────────────────
 function computeTransferPoint(inputDb, threshold, ratio, kneeDb) {
   const halfKnee = kneeDb / 2;
-  if (inputDb < threshold - halfKnee) {
-    return inputDb; // below knee
-  } else if (inputDb > threshold + halfKnee) {
-    return threshold + (inputDb - threshold) / ratio; // above threshold
-  } else {
-    // In the knee
-    const x = inputDb - threshold + halfKnee;
-    return inputDb + ((1/ratio - 1) * x * x) / (2 * kneeDb);
-  }
+  if (inputDb < threshold - halfKnee) return inputDb;
+  if (inputDb > threshold + halfKnee) return threshold + (inputDb - threshold) / ratio;
+  const x = inputDb - threshold + halfKnee;
+  return inputDb + ((1/ratio - 1) * x * x) / (2 * kneeDb);
 }
 
 function drawTransfer(mode, canvas) {
-  const dpr  = window.devicePixelRatio || 1;
-  const W    = canvas.clientWidth || 200;
-  const H    = canvas.clientHeight || 120;
+  const dpr = window.devicePixelRatio || 1;
+  const W   = canvas.clientWidth || 200;
+  const H   = canvas.clientHeight || 120;
   canvas.width  = W * dpr;
   canvas.height = H * dpr;
   const c = canvas.getContext('2d');
   c.scale(dpr, dpr);
 
-  // Background
   c.fillStyle = '#0f1115';
   c.fillRect(0, 0, W, H);
 
-  // Grid
   const dbMin = -60, dbMax = 0;
   const dbToX = db => ((db - dbMin) / (dbMax - dbMin)) * W;
   const dbToY = db => H - ((db - dbMin) / (dbMax - dbMin)) * H;
 
-  c.strokeStyle = 'rgba(255,255,255,0.05)';
-  c.lineWidth = 1;
+  c.strokeStyle = 'rgba(255,255,255,0.05)'; c.lineWidth = 1;
   for (let db = -60; db <= 0; db += 10) {
-    const x = dbToX(db);
-    c.beginPath(); c.moveTo(x, 0); c.lineTo(x, H); c.stroke();
-    const y = dbToY(db);
-    c.beginPath(); c.moveTo(0, y); c.lineTo(W, y); c.stroke();
+    const x = dbToX(db); c.beginPath(); c.moveTo(x,0); c.lineTo(x,H); c.stroke();
+    const y = dbToY(db); c.beginPath(); c.moveTo(0,y); c.lineTo(W,y); c.stroke();
   }
-
-  // 1:1 reference line
-  c.strokeStyle = 'rgba(255,255,255,0.08)';
-  c.lineWidth = 1;
-  c.setLineDash([4,4]);
-  c.beginPath(); c.moveTo(0, H); c.lineTo(W, 0); c.stroke();
+  c.strokeStyle = 'rgba(255,255,255,0.08)'; c.setLineDash([4,4]);
+  c.beginPath(); c.moveTo(0,H); c.lineTo(W,0); c.stroke();
   c.setLineDash([]);
 
   const drawCurve = (settings, color) => {
@@ -975,13 +941,9 @@ function drawTransfer(mode, canvas) {
     for (let i = 0; i <= W; i++) {
       const inputDb  = dbMin + (i / W) * (dbMax - dbMin);
       const outputDb = computeTransferPoint(inputDb, threshold, ratio, knee);
-      const x = dbToX(inputDb);
-      const y = dbToY(outputDb);
-      i === 0 ? c.moveTo(x, y) : c.lineTo(x, y);
+      i === 0 ? c.moveTo(dbToX(inputDb), dbToY(outputDb)) : c.lineTo(dbToX(inputDb), dbToY(outputDb));
     }
-    c.strokeStyle = color;
-    c.lineWidth   = 2.5;
-    c.stroke();
+    c.strokeStyle = color; c.lineWidth = 2.5; c.stroke();
   };
 
   if (mode === 'user') {
@@ -993,42 +955,36 @@ function drawTransfer(mode, canvas) {
     drawCurve(targetSettings, 'rgba(91,127,255,0.9)');
   }
 
-  // Threshold line
-  const s = mode === 'user' || mode === 'compare' ? userSettings : targetSettings;
+  const s  = mode === 'user' || mode === 'compare' ? userSettings : targetSettings;
   const tx = dbToX(s.threshold);
-  c.strokeStyle = 'rgba(245,166,35,0.3)';
-  c.lineWidth = 1;
-  c.setLineDash([3,3]);
-  c.beginPath(); c.moveTo(tx, 0); c.lineTo(tx, H); c.stroke();
+  c.strokeStyle = 'rgba(245,166,35,0.3)'; c.lineWidth = 1; c.setLineDash([3,3]);
+  c.beginPath(); c.moveTo(tx,0); c.lineTo(tx,H); c.stroke();
   c.setLineDash([]);
 }
 
 // ── Audio ─────────────────────────────────────────────────────────────────────
 function initAudio() {
   if (audioCtx) return;
-  audioCtx    = new (window.AudioContext || window.webkitAudioContext)();
-  outputGain  = audioCtx.createGain();
+  audioCtx   = new (window.AudioContext || window.webkitAudioContext)();
+  outputGain = audioCtx.createGain();
   outputGain.gain.value = 0.7;
   outputGain.connect(audioCtx.destination);
 }
 
 function makePinkNoise() {
-  const rate = audioCtx.sampleRate;
-  const len  = rate * 5;
+  const rate = audioCtx.sampleRate, len = rate * 5;
   const buf  = audioCtx.createBuffer(1, len, rate);
   const d    = buf.getChannelData(0);
   let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
-  for (let i=0; i<len; i++) {
+  for (let i=0;i<len;i++) {
     const w=Math.random()*2-1;
     b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
     b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
     b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
-    d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11;
-    b6=w*0.115926;
+    d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11; b6=w*0.115926;
   }
-  const src=audioCtx.createBufferSource();
-  src.buffer=buf; src.loop=true;
-  return src;
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf; src.loop = true; return src;
 }
 
 function applyCompSettings(compNode, makeupNode, settings) {
@@ -1043,68 +999,121 @@ function applyCompSettings(compNode, makeupNode, settings) {
 function buildAudioGraph() {
   stopAudio();
   initAudio();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  isPaused = false;
 
-  if (sourceType === 'custom' && customBuffers.length > 0) {
-    currentSource = audioCtx.createBufferSource();
-    currentSource.buffer = customBuffers[currentBufferIndex];
-    currentSource.loop = true;
-  } else {
-    currentSource = makePinkNoise();
-  }
+  // Source bus — sources connect here; everything else is wired from it
+  sourceBus = audioCtx.createGain(); sourceBus.gain.value = 1;
 
-  // Target chain: source → targetComp → targetMakeup → [analyser] → output
-  targetCompNode    = audioCtx.createDynamicsCompressor();
-  targetMakeupGain  = audioCtx.createGain();
-  analyserTarget    = audioCtx.createAnalyser();
-  analyserTarget.fftSize = 256;
+  // Both compressor chains
+  targetCompNode   = audioCtx.createDynamicsCompressor();
+  targetMakeupGain = audioCtx.createGain();
+  analyserTarget   = audioCtx.createAnalyser(); analyserTarget.fftSize = 256;
 
-  // User chain: source → userComp → userMakeup → [analyser] → output
-  userCompNode      = audioCtx.createDynamicsCompressor();
-  userMakeupGain    = audioCtx.createGain();
-  analyserUser      = audioCtx.createAnalyser();
-  analyserUser.fftSize = 256;
+  userCompNode     = audioCtx.createDynamicsCompressor();
+  userMakeupGain   = audioCtx.createGain();
+  analyserUser     = audioCtx.createAnalyser(); analyserUser.fftSize = 256;
 
-  // Dry analyser for input level reference
-  analyserDry = audioCtx.createAnalyser();
-  analyserDry.fftSize = 256;
-  currentSource.connect(analyserDry);
+  // Dry path — bypasses all compression
+  analyserDry      = audioCtx.createAnalyser(); analyserDry.fftSize = 256;
 
   applyCompSettings(targetCompNode, targetMakeupGain, targetSettings);
   applyCompSettings(userCompNode,   userMakeupGain,   userSettings);
 
-  // Wire chains (both built, routing happens in routeTo)
-  currentSource.connect(targetCompNode);
-  targetCompNode.connect(targetMakeupGain);
-  targetMakeupGain.connect(analyserTarget);
+  // Wire chains
+  sourceBus.connect(targetCompNode); targetCompNode.connect(targetMakeupGain); targetMakeupGain.connect(analyserTarget);
+  sourceBus.connect(userCompNode);   userCompNode.connect(userMakeupGain);     userMakeupGain.connect(analyserUser);
+  sourceBus.connect(analyserDry);
 
-  currentSource.connect(userCompNode);
-  userCompNode.connect(userMakeupGain);
-  userMakeupGain.connect(analyserUser);
-
+  // Route to current listening target
   routeTo(listeningTo);
-  currentSource.start(0);
+
+  // Build the actual audio source
+  if      (sourceType === 'oneshot') buildOneShotSources();
+  else if (sourceType === 'loop')    buildLoopSources();
+  else                               buildContinuousSource();
+
   startMeterLoop();
+}
+
+function buildContinuousSource() {
+  if (sourceType === 'custom' && customBuffers.length > 0) {
+    currentSource = audioCtx.createBufferSource();
+    currentSource.buffer = customBuffers[customIdx % customBuffers.length];
+    currentSource.loop = true;
+    currentSource.connect(sourceBus);
+    if (musicOffset > 0) {
+      currentSource.start(0, musicOffset);
+      musicStartedAt = audioCtx.currentTime - musicOffset;
+    } else {
+      currentSource.start(0);
+      musicStartedAt = audioCtx.currentTime;
+    }
+  } else {
+    currentSource = makePinkNoise();
+    currentSource.connect(sourceBus);
+    currentSource.start(0);
+  }
+}
+
+function buildOneShotSources() {
+  if (!oneShotBuffers.length) return;
+  const fire = () => {
+    if (!sourceBus) return;
+    if (currentShotSrc) { try { currentShotSrc.stop(); } catch(e){} }
+    const s = audioCtx.createBufferSource();
+    s.buffer = oneShotBuffers[oneShotIdx % oneShotBuffers.length].buffer;
+    s.connect(sourceBus);
+    s.start(0);
+    currentShotSrc = s;
+  };
+  fire();
+  shotTimer = setInterval(fire, 4000);
+}
+
+function buildLoopSources() {
+  if (!loopBuffers.length) return;
+  currentSource = audioCtx.createBufferSource();
+  currentSource.buffer = loopBuffers[loopIdx % loopBuffers.length].buffer;
+  currentSource.loop = true;
+  currentSource.connect(sourceBus);
+  const dur = currentSource.buffer.duration;
+  const offset = musicOffset % dur;
+  if (offset > 0) {
+    currentSource.start(0, offset);
+    musicStartedAt = audioCtx.currentTime - offset;
+  } else {
+    currentSource.start(0);
+    musicStartedAt = audioCtx.currentTime;
+  }
 }
 
 function routeTo(which) {
   if (!audioCtx || !outputGain) return;
-  // Disconnect both analysers from output
-  try { analyserTarget.disconnect(outputGain); } catch(e){}
-  try { analyserUser.disconnect(outputGain);   } catch(e){}
+  try { analyserTarget && analyserTarget.disconnect(outputGain); } catch(e){}
+  try { analyserUser   && analyserUser.disconnect(outputGain);   } catch(e){}
+  try { analyserDry    && analyserDry.disconnect(outputGain);    } catch(e){}
 
   listeningTo = which;
-  if (which === 'target') {
-    analyserTarget.connect(outputGain);
-  } else {
-    analyserUser.connect(outputGain);
-  }
+  if      (which === 'target') analyserTarget && analyserTarget.connect(outputGain);
+  else if (which === 'user')   analyserUser   && analyserUser.connect(outputGain);
+  else if (which === 'dry')    analyserDry    && analyserDry.connect(outputGain);
   updateListenBtns();
 }
 
 function stopAudio() {
   if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
-  if (currentSource) { try { currentSource.stop(); } catch(e){} currentSource = null; }
-  targetCompNode = userCompNode = null;
+  if (shotTimer)   { clearInterval(shotTimer); shotTimer = null; }
+
+  [currentSource, currentShotSrc].forEach(s => { if(s){try{s.stop();}catch(e){}} });
+  currentSource = currentShotSrc = null;
+
+  [analyserTarget, analyserUser, analyserDry,
+   targetMakeupGain, userMakeupGain,
+   targetCompNode, userCompNode, sourceBus].forEach(n => {
+    if (n) try { n.disconnect(); } catch(e) {}
+  });
+  sourceBus = targetCompNode = userCompNode = null;
   targetMakeupGain = userMakeupGain = null;
   analyserTarget = analyserUser = analyserDry = null;
 }
@@ -1113,7 +1122,71 @@ function liveUpdateUserComp() {
   if (!userCompNode || !userMakeupGain) return;
   applyCompSettings(userCompNode, userMakeupGain, userSettings);
   drawTransfer('user', document.getElementById('userTransfer'));
-  if (answered) drawCompareTransfer();
+  if (answered) drawTransfer('compare', document.getElementById('userTransfer'));
+}
+
+// ── Transport controls ────────────────────────────────────────────────────────
+function togglePause() {
+  if (!roundActive || !audioCtx) return;
+  const btn = document.getElementById('btnPause');
+  if (isPaused) {
+    audioCtx.resume().then(() => {
+      isPaused = false;
+      btn.textContent = '⏸ Pause';
+      btn.classList.remove('paused');
+      // Restart one-shot timer if needed
+      if (sourceType === 'oneshot' && roundActive) buildOneShotSources();
+    });
+  } else {
+    if (shotTimer) { clearInterval(shotTimer); shotTimer = null; }
+    audioCtx.suspend().then(() => {
+      isPaused = true;
+      btn.textContent = '▶ Resume';
+      btn.classList.add('paused');
+    });
+  }
+}
+
+function restartAudio() {
+  if (!roundActive) return;
+  musicOffset = 0;
+  buildAudioGraph();
+  updateListenBtns();
+  showToast('Restarted');
+}
+
+function seekMusic(delta) {
+  if (!audioCtx) return;
+  if (sourceType === 'custom' && customBuffers.length > 0) {
+    const buf     = customBuffers[customIdx % customBuffers.length];
+    const elapsed = audioCtx.currentTime - musicStartedAt;
+    musicOffset   = Math.max(0, Math.min(buf.duration - 0.5, musicOffset + elapsed + delta));
+    buildAudioGraph(); updateListenBtns();
+    showToast(`${delta > 0 ? '+' : ''}${delta}s`);
+  } else if (sourceType === 'loop' && loopBuffers.length > 0) {
+    const buf     = loopBuffers[loopIdx % loopBuffers.length].buffer;
+    const elapsed = audioCtx.currentTime - musicStartedAt;
+    musicOffset   = ((musicOffset + elapsed + delta) % buf.duration + buf.duration) % buf.duration;
+    buildAudioGraph(); updateListenBtns();
+    showToast(`${delta > 0 ? '+' : ''}${delta}s`);
+  }
+}
+
+function skipTrack(delta) {
+  if (sourceType === 'custom' && customBuffers.length > 0) {
+    customIdx   = ((customIdx + delta) % customBuffers.length + customBuffers.length) % customBuffers.length;
+    musicOffset = 0; buildAudioGraph(); updateListenBtns();
+    showToast(`Track ${customIdx + 1} / ${customBuffers.length}`);
+  } else if (sourceType === 'oneshot' && oneShotBuffers.length > 0) {
+    oneShotIdx = ((oneShotIdx + delta) % oneShotBuffers.length + oneShotBuffers.length) % oneShotBuffers.length;
+    buildAudioGraph(); updateListenBtns();
+    showToast(`Sample ${oneShotIdx + 1} / ${oneShotBuffers.length}`);
+  } else if (sourceType === 'loop' && loopBuffers.length > 0) {
+    loopIdx = ((loopIdx + delta) % loopBuffers.length + loopBuffers.length) % loopBuffers.length;
+    musicOffset = 0;
+    buildAudioGraph(); updateListenBtns();
+    showToast(`Loop ${loopIdx + 1} / ${loopBuffers.length}`);
+  }
 }
 
 // ── Meter loop ────────────────────────────────────────────────────────────────
@@ -1125,7 +1198,6 @@ function startMeterLoop() {
   function loop() {
     animFrameId = requestAnimationFrame(loop);
 
-    // GR meters — read reduction from DynamicsCompressorNode
     const targetGR = targetCompNode ? -targetCompNode.reduction : 0;
     const userGR   = userCompNode   ? -userCompNode.reduction   : 0;
     const maxGR    = 24;
@@ -1135,11 +1207,9 @@ function startMeterLoop() {
     document.getElementById('targetGRdb').textContent   = `−${targetGR.toFixed(1)} dB`;
     document.getElementById('userGRdb').textContent     = `−${userGR.toFixed(1)} dB`;
 
-    // Mini level display
     const W = levelCvs.clientWidth, H = levelCvs.clientHeight;
     if (levelCvs.width !== W * dpr) { levelCvs.width = W*dpr; levelCvs.height = H*dpr; }
     const lc = levelCvs.getContext('2d');
-    lc.scale(dpr/levelCvs.width*W || 1, dpr/levelCvs.height*H || 1); // reset
     lc.setTransform(dpr, 0, 0, dpr, 0, 0);
     lc.clearRect(0, 0, W, H);
     lc.fillStyle = '#0f1115';
@@ -1147,26 +1217,19 @@ function startMeterLoop() {
 
     if (analyserDry) {
       analyserDry.getFloatTimeDomainData(buf);
-      lc.strokeStyle = 'rgba(255,255,255,0.15)';
-      lc.lineWidth   = 1;
+      lc.strokeStyle = 'rgba(255,255,255,0.15)'; lc.lineWidth = 1;
       lc.beginPath();
-      for (let i=0; i<256; i++) {
-        const x = (i/256)*W, y = H/2 - buf[i]*H*0.45;
-        i===0 ? lc.moveTo(x,y) : lc.lineTo(x,y);
-      }
+      for (let i=0;i<256;i++) { const x=(i/256)*W,y=H/2-buf[i]*H*0.45; i===0?lc.moveTo(x,y):lc.lineTo(x,y); }
       lc.stroke();
     }
 
-    const activeAnalyser = listeningTo === 'target' ? analyserTarget : analyserUser;
-    if (activeAnalyser) {
-      activeAnalyser.getFloatTimeDomainData(buf);
-      lc.strokeStyle = listeningTo==='target' ? 'rgba(91,127,255,0.8)' : 'rgba(62,207,142,0.8)';
-      lc.lineWidth   = 1.5;
+    const activeAn = listeningTo==='target' ? analyserTarget : listeningTo==='user' ? analyserUser : analyserDry;
+    if (activeAn) {
+      activeAn.getFloatTimeDomainData(buf);
+      lc.strokeStyle = listeningTo==='target' ? 'rgba(91,127,255,0.8)' : listeningTo==='user' ? 'rgba(62,207,142,0.8)' : 'rgba(200,200,200,0.6)';
+      lc.lineWidth = 1.5;
       lc.beginPath();
-      for (let i=0; i<256; i++) {
-        const x=(i/256)*W, y=H/2-buf[i]*H*0.45;
-        i===0?lc.moveTo(x,y):lc.lineTo(x,y);
-      }
+      for (let i=0;i<256;i++) { const x=(i/256)*W,y=H/2-buf[i]*H*0.45; i===0?lc.moveTo(x,y):lc.lineTo(x,y); }
       lc.stroke();
     }
   }
@@ -1176,39 +1239,28 @@ function startMeterLoop() {
 // ── Listen buttons ────────────────────────────────────────────────────────────
 function updateListenBtns() {
   document.getElementById('btnTarget').classList.toggle('active', listeningTo==='target');
+  document.getElementById('btnDry').classList.toggle('active',    listeningTo==='dry');
   document.getElementById('btnUser').classList.toggle('active',   listeningTo==='user');
   document.getElementById('targetListenPill').classList.toggle('visible', listeningTo==='target');
   document.getElementById('userListenPill').classList.toggle('visible',   listeningTo==='user');
 
   const td = document.getElementById('targetDot');
   const ud = document.getElementById('userDot');
-  td.className = listeningTo==='target' ? 'pulse' : '';
-  td.style.cssText = listeningTo==='target' ? 'width:6px;height:6px;background:var(--blue2);border-radius:50%;animation:pulse 1.1s infinite;' : '';
-  ud.className = listeningTo==='user' ? 'pulse' : '';
-  ud.style.cssText = listeningTo==='user' ? 'width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 1.1s infinite;' : '';
+  td.style.cssText = listeningTo==='target' ? 'width:6px;height:6px;background:var(--blue2);border-radius:50%;animation:pulse 1.1s infinite;display:inline-block;' : 'display:none;';
+  ud.style.cssText = listeningTo==='user'   ? 'width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 1.1s infinite;display:inline-block;' : 'display:none;';
 }
 
 function ensureAudio() {
   initAudio();
   if (audioCtx.state === 'suspended') audioCtx.resume();
-  if (!currentSource) buildAudioGraph();
+  if (!sourceBus) buildAudioGraph();
 }
 
-function listenTarget() {
-  if (!roundActive) return;
-  ensureAudio();
-  if (abActive) stopAB();
-  routeTo('target');
-}
+function listenTarget() { if (!roundActive) return; ensureAudio(); if (abActive) stopAB(); routeTo('target'); }
+function listenUser()   { if (!roundActive) return; ensureAudio(); if (abActive) stopAB(); routeTo('user'); }
+function listenDry()    { if (!roundActive) return; ensureAudio(); if (abActive) stopAB(); routeTo('dry'); }
 
-function listenUser() {
-  if (!roundActive) return;
-  ensureAudio();
-  if (abActive) stopAB();
-  routeTo('user');
-}
-
-// ── A/B ───────────────────────────────────────────────────────────────────────
+// ── A/B toggle ────────────────────────────────────────────────────────────────
 function toggleAB() {
   if (!roundActive) return;
   ensureAudio();
@@ -1226,62 +1278,110 @@ function stopAB() {
 
 // ── Source ────────────────────────────────────────────────────────────────────
 function setSource(type) {
+  if (type === 'oneshot' && !oneShotLoaded) {
+    showToast('Loading one-shots…');
+    loadOneShotSamples().then(() => {
+      sourceType = 'oneshot'; updateSourceUI();
+      if (roundActive) buildAudioGraph();
+    });
+    return;
+  }
+  if (type === 'loop' && !loopLoaded) {
+    showToast('Loading loops…');
+    loadLoopSamples().then(() => {
+      sourceType = 'loop'; updateSourceUI();
+      if (roundActive) buildAudioGraph();
+    });
+    return;
+  }
   sourceType = type;
-  document.getElementById('srcPink').classList.toggle('active',   type==='pink');
-  document.getElementById('srcCustom').classList.toggle('active', type==='custom');
+  updateSourceUI();
   if (roundActive) buildAudioGraph();
 }
+
+function updateSourceUI() {
+  document.getElementById('srcPink').classList.toggle('active',    sourceType==='pink');
+  document.getElementById('srcOneShot').classList.toggle('active', sourceType==='oneshot');
+  document.getElementById('srcLoop').classList.toggle('active',    sourceType==='loop');
+  document.getElementById('srcCustom').classList.toggle('active',  sourceType==='custom');
+}
+
 function triggerUpload() {
   if (customBuffers.length > 0) { setSource('custom'); return; }
   document.getElementById('folderInput').click();
 }
+
 async function handleFolderUpload(e) {
   const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
   if (!files.length) return;
-  initAudio();
-  customBuffers = [];
-  showToast(`Loading ${files.length} tracks…`);
+  initAudio(); customBuffers = []; showToast(`Loading ${files.length} tracks…`);
   for (const f of files) {
-    try {
-      const ab = await f.arrayBuffer();
-      customBuffers.push(await audioCtx.decodeAudioData(ab));
-    } catch(err) { console.warn('Decode error', f.name); }
+    try { customBuffers.push(await audioCtx.decodeAudioData(await f.arrayBuffer())); }
+    catch(err) { console.warn('Decode error', f.name); }
   }
   if (customBuffers.length > 0) {
     document.getElementById('uploadLabel').textContent = `📁 Folder (${customBuffers.length} tracks)`;
-    setSource('custom');
-    showToast('Music loaded!');
+    setSource('custom'); showToast('Music loaded!');
   }
+}
+
+async function loadOneShotSamples() {
+  if (oneShotLoaded) return;
+  initAudio(); oneShotBuffers = [];
+  await Promise.all(ONE_SHOT_FILES.map(async fname => {
+    try {
+      const r = await fetch(`../samples/one-shots/${fname}`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      oneShotBuffers.push({ name: fname.replace(/\.\w+$/,''), buffer: await audioCtx.decodeAudioData(await r.arrayBuffer()) });
+    } catch(e) { console.warn('Could not load one-shot:', fname); }
+  }));
+  oneShotBuffers.sort((a,b) => a.name.localeCompare(b.name));
+  oneShotLoaded = oneShotBuffers.length > 0;
+  if (!oneShotLoaded) { showToast('No one-shots found'); sourceType = 'pink'; updateSourceUI(); }
+}
+
+async function loadLoopSamples() {
+  if (loopLoaded) return;
+  initAudio(); loopBuffers = [];
+  await Promise.all(LOOP_FILES.map(async fname => {
+    try {
+      const r = await fetch(`../samples/loops/${fname}`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      loopBuffers.push({ name: fname.replace(/\.\w+$/,''), buffer: await audioCtx.decodeAudioData(await r.arrayBuffer()) });
+    } catch(e) { console.warn('Could not load loop:', fname); }
+  }));
+  loopBuffers.sort((a,b) => a.name.localeCompare(b.name));
+  loopLoaded = loopBuffers.length > 0;
+  if (!loopLoaded) { showToast('No loops found'); sourceType = 'pink'; updateSourceUI(); }
 }
 
 // ── Round ─────────────────────────────────────────────────────────────────────
 function randomSetting(key) {
   const p = PARAMS[key];
-  if (key === 'makeup') return 0; // start with 0 makeup; user sets it
-  if (key === 'attack' || key === 'release') {
+  if (key === 'makeup') return Math.round(Math.random() * 12 * 2) / 2; // 0–12 dB
+  if (key === 'attack' || key === 'release')
     return Math.exp(Math.log(p.min) + Math.random() * (Math.log(p.max) - Math.log(p.min)));
-  }
-  if (key === 'ratio') {
-    const ratios = [1.5, 2, 3, 4, 6, 8, 10, 20];
-    return ratios[Math.floor(Math.random() * ratios.length)];
-  }
+  if (key === 'ratio') return [1.5,2,3,4,6,8,10,20][Math.floor(Math.random()*8)];
   return p.min + Math.random() * (p.max - p.min);
 }
 
 function newRound() {
   stopAudio(); stopAB();
   roundActive = false; answered = false;
+  isPaused = false;
   round++;
   document.getElementById('roundCount').textContent = round;
 
-  // Build target settings — only active params vary, rest at defaults
   targetSettings = {};
   userSettings   = {};
   Object.keys(PARAMS).forEach(key => {
     const p = PARAMS[key];
+    const isMakeupActive = key === 'makeup' && (difficulty !== 'custom' || activeParams.includes('makeup'));
     if (key === 'makeup') {
-      // Compute a sensible target makeup: roughly compensate GR
-      targetSettings[key] = 0;
+      // In custom mode with makeup active, randomize it. Otherwise compute from GR.
+      targetSettings[key] = (difficulty === 'custom' && activeParams.includes('makeup'))
+        ? randomSetting('makeup')
+        : 0; // will be overwritten below for non-custom
     } else if (activeParams.includes(key)) {
       targetSettings[key] = randomSetting(key);
     } else {
@@ -1290,28 +1390,34 @@ function newRound() {
     userSettings[key] = p.default;
   });
 
-  // Compute approximate makeup gain to compensate target GR
-  // Rough estimate: GR ≈ (ratio-1)/ratio * max(0, peak_input - threshold)
-  // We'll just use a heuristic: ~half the expected GR
-  const estGR = Math.max(0, -targetSettings.threshold) * (1 - 1/targetSettings.ratio) * 0.4;
-  targetSettings.makeup = Math.min(24, Math.round(estGR * 2) / 2);
-
-  if (customBuffers.length > 0) {
-    currentBufferIndex = (currentBufferIndex + 1) % customBuffers.length;
+  // Compute heuristic makeup for non-custom or when makeup not in active params
+  if (difficulty !== 'custom' || !activeParams.includes('makeup')) {
+    const estGR = Math.max(0, -targetSettings.threshold) * (1 - 1/targetSettings.ratio) * 0.4;
+    targetSettings.makeup = Math.min(24, Math.round(estGR * 2) / 2);
   }
+
+  // Advance sample index each round
+  if (sourceType === 'custom'  && customBuffers.length > 0)  customIdx  = (customIdx  + 1) % customBuffers.length;
+  if (sourceType === 'oneshot' && oneShotBuffers.length > 0) oneShotIdx = (oneShotIdx + 1) % oneShotBuffers.length;
+  if (sourceType === 'loop'    && loopBuffers.length > 0)    loopIdx    = (loopIdx    + 1) % loopBuffers.length;
+  musicOffset = 0;
 
   roundActive = true;
   document.getElementById('resultBar').classList.remove('visible');
-  document.getElementById('btnCheck').disabled = false;
-  document.getElementById('btnTarget').disabled = false;
-  document.getElementById('btnUser').disabled = false;
+  document.getElementById('btnCheck').disabled   = false;
+  document.getElementById('btnTarget').disabled  = false;
+  document.getElementById('btnDry').disabled     = false;
+  document.getElementById('btnUser').disabled    = false;
+  document.getElementById('btnPause').disabled   = false;
+  document.getElementById('btnRestart').disabled = false;
+  document.getElementById('btnPause').textContent = '⏸ Pause';
+  document.getElementById('btnPause').classList.remove('paused');
   document.getElementById('transferCompare').style.display = 'none';
   document.getElementById('makeupBadge').textContent = 'Makeup: +0 dB';
 
-  renderKnobs('target', targetSettings, true);   // target knobs locked/hidden
+  renderKnobs('target', targetSettings, true);
   renderKnobs('user',   userSettings,   false);
 
-  // Hide target transfer curve and makeup badge until answer
   document.getElementById('targetTransferWrap').classList.add('hidden-panel');
   document.getElementById('makeupBadge').classList.add('hidden-panel');
 
@@ -1330,20 +1436,19 @@ function checkAnswer() {
   if (!roundActive || answered) return;
   answered = true;
 
-  // Reveal target knobs, transfer curve, and makeup badge
   renderKnobs('target', targetSettings, false);
   document.getElementById('targetTransferWrap').classList.remove('hidden-panel');
   document.getElementById('makeupBadge').classList.remove('hidden-panel');
-  drawCompareTransfer();
+  drawTransfer('compare', document.getElementById('userTransfer'));
   document.getElementById('transferCompare').style.display = 'flex';
 
   // Score: compare transfer curves at 50 input points
   const points = 50;
   let totalErr = 0;
   for (let i = 0; i <= points; i++) {
-    const inputDb    = -60 + (i / points) * 60;
-    const targetOut  = computeTransferPoint(inputDb, targetSettings.threshold, targetSettings.ratio, targetSettings.knee);
-    const userOut    = computeTransferPoint(inputDb, userSettings.threshold,   userSettings.ratio,   userSettings.knee);
+    const inputDb   = -60 + (i / points) * 60;
+    const targetOut = computeTransferPoint(inputDb, targetSettings.threshold, targetSettings.ratio, targetSettings.knee);
+    const userOut   = computeTransferPoint(inputDb, userSettings.threshold,   userSettings.ratio,   userSettings.knee);
     totalErr += Math.abs(targetOut - userOut);
   }
   const avgErr = totalErr / (points + 1);
@@ -1364,59 +1469,55 @@ function checkAnswer() {
   for (const [t,m] of msgs) if (score >= t) { msg = m; col = score>=70?'var(--green)':score>=40?'var(--amber)':'var(--red)'; break; }
 
   document.getElementById('resultBar').classList.add('visible');
-  document.getElementById('resultBig').textContent = score;
-  document.getElementById('resultBig').style.color = col;
-  document.getElementById('resultMsg').textContent = msg;
+  document.getElementById('resultBig').textContent  = score;
+  document.getElementById('resultBig').style.color  = col;
+  document.getElementById('resultMsg').textContent  = msg;
   const fill = document.getElementById('accFill');
   fill.style.background = col;
   setTimeout(() => { fill.style.width = score + '%'; }, 60);
 
-  // Per-param detail chips
+  // Per-param breakdown
   const pr = document.getElementById('paramResults');
   pr.innerHTML = '';
-  activeParams.forEach(key => {
+  const paramsToShow = [...activeParams];
+  if (!paramsToShow.includes('makeup') && difficulty !== 'custom') paramsToShow.push('makeup');
+  paramsToShow.forEach(key => {
     const p  = PARAMS[key];
     const tv = targetSettings[key], uv = userSettings[key];
-    const range = p.max - p.min;
-    const pctErr = Math.abs(tv - uv) / range;
+    const pctErr = Math.abs(tv - uv) / (p.max - p.min);
     const ok = pctErr < 0.1;
     const chip = document.createElement('div');
     chip.className = 'pr-chip';
-    chip.innerHTML = `${p.label}: Yours <span class="${ok?'good':'bad'}">${p.fmt(uv)}</span> → <span class="${ok?'good':'bad'}">${p.fmt(tv)}</span>`;
+    chip.innerHTML = `${p.label}: Yours <span class="${ok?'good':'bad'}">${p.fmt(uv)}</span> → Target <span class="${ok?'good':'bad'}">${p.fmt(tv)}</span>`;
     pr.appendChild(chip);
   });
 
-  // Switch to user so they can compare against target now
   routeTo('user');
   showToast(`Round: ${score}/100`);
 }
 
-function drawCompareTransfer() {
-  drawTransfer('compare', document.getElementById('userTransfer'));
-}
-
-// ── Source ────────────────────────────────────────────────────────────────────
-function setSource(type) {
-  sourceType = type;
-  document.getElementById('srcPink').classList.toggle('active',   type==='pink');
-  document.getElementById('srcCustom').classList.toggle('active', type==='custom');
-  if (roundActive) buildAudioGraph();
-}
-
 // ── Keyboard shortcuts ────────────────────────────────────────────────────────
 window.addEventListener('keydown', e => {
-  if (e.target.tagName === 'INPUT') return;
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
   if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 
   if (e.code === 'Space') {
     e.preventDefault();
     if (!roundActive) return;
+    // Cycle Target → User → back
     routeTo(listeningTo === 'target' ? 'user' : 'target');
   }
+  if (e.code === 'KeyD' && roundActive) { e.preventDefault(); listenDry(); }
+  if (e.code === 'KeyP')               { e.preventDefault(); togglePause(); }
+  if (e.code === 'KeyF')               { e.preventDefault(); restartAudio(); }
   if (e.code === 'Enter') {
     if (roundActive && !answered) checkAnswer();
     else newRound();
   }
+  if (e.code === 'ArrowLeft')  { e.preventDefault(); seekMusic(-10); }
+  if (e.code === 'ArrowRight') { e.preventDefault(); seekMusic(+10); }
+  if (e.code === 'ArrowUp')    { e.preventDefault(); skipTrack(+1); }
+  if (e.code === 'ArrowDown')  { e.preventDefault(); skipTrack(-1); }
 });
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
@@ -1428,13 +1529,12 @@ function showToast(msg) {
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 renderParamPills();
-// Draw empty transfers
 drawTransfer('target', document.getElementById('targetTransfer'));
 drawTransfer('user',   document.getElementById('userTransfer'));
 window.addEventListener('resize', () => {
   if (roundActive) {
     drawTransfer('target', document.getElementById('targetTransfer'));
-    if (answered) drawCompareTransfer();
+    if (answered) drawTransfer('compare', document.getElementById('userTransfer'));
     else drawTransfer('user', document.getElementById('userTransfer'));
   }
 });
