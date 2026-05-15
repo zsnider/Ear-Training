@@ -290,11 +290,11 @@
   .btn-action:disabled { opacity:0.35; cursor:not-allowed; }
 
   .source-wrap {
-    display:flex; align-items:center; gap:7px; margin-left:auto; flex-wrap:wrap;
+    display:flex; align-items:center; gap:5px; margin-left:auto;
   }
   .source-pill {
     background:var(--surface2); border:1px solid var(--border2);
-    border-radius:8px; padding:5px 11px; font-size:12px;
+    border-radius:7px; padding:4px 9px; font-size:11px;
     color:var(--muted); cursor:pointer; transition:all 0.15s; white-space:nowrap;
   }
   .source-pill:hover { border-color:var(--accent); color:var(--text); }
@@ -423,8 +423,7 @@
     <button class="ctrl btn-action" id="btnNew"     onclick="newRound()">⟳ New Round</button>
 
     <div class="source-wrap">
-      <span class="label">Source</span>
-      <div class="source-pill active" id="srcPink"    onclick="setSource('pink')">Pink Noise</div>
+      <div class="source-pill active" id="srcPink"    onclick="setSource('pink')">Pink</div>
       <div class="source-pill"        id="srcOneShot" onclick="setSource('oneshot')">One-shots</div>
       <div class="source-pill"        id="srcLoop"    onclick="setSource('loop')">Loops</div>
       <div class="source-pill"        id="srcCustom"  onclick="triggerUpload()" style="border-style:dashed;">
@@ -997,41 +996,23 @@ async function handleFolderUpload(e) {
   }
 }
 
-// ── Sample file lists ─────────────────────────────────────────────────────────
-const ONE_SHOT_FILES = [
-  'CLAP_DEEP_001.wav','CLAP_DEEP_002.wav','CLAP_DEEP_003.wav','CLAP_DEEP_004.wav','CLAP_DEEP_005.wav',
-  'CLAP_LAYER_001.wav','CLAP_LAYER_002.wav','CLAP_LAYER_003.wav','CLAP_LAYER_004.wav',
-  'SNARE_DEEP_001.wav','SNARE_DEEP_002.wav','SNARE_DEEP_003.wav','SNARE_DEEP_004.wav','SNARE_DEEP_005.wav','SNARE_DEEP_006.wav',
-];
-
-const LOOP_FILES = [
-  'tunetank-soft-house-music-348241.mp3',
-  'cyberwave-orchestra-orchestral-music-loop-287416.mp3',
-  'mkgomez-minimal-techno-background-loop-475852.mp3',
-  'nastelbom-lounge-house-314576.mp3',
-  'ohpalmusic-passive-hip-hop-beat-90bpm-d-minor-177334.mp3',
-  'openmindaudio-deep-club-organic-house-music-ashen-palms-524258.mp3',
-  'openmindaudio-epic-organic-house-music-driftwood-ritual-524274.mp3',
-  'sonican-acoustic-senses-loop-313230.mp3',
-  'sonican-feelgood-acoustic-loop-320856.mp3',
-  'sonican-positive-corporate-music-optimistic-loop-464544.mp3',
-  'sonofevan-gravel-in-my-lungs-470048.mp3',
-  'the_mountain-deep-house-483808.mp3',
-  'the_mountain-hi-tech-loop-151203.mp3',
-  'the_mountain-loop-beat-130010.mp3',
-  'the_mountain-soft-loop-130012.mp3',
-];
-
+// ── Sample loaders (dynamic directory discovery) ──────────────────────────────
 async function loadOneShotSamples() {
   if (oneShotLoaded) return;
   initAudio(); oneShotBuffers = [];
-  await Promise.all(ONE_SHOT_FILES.map(async fname => {
-    try {
-      const r = await fetch(`../../samples/one-shots/${fname}`);
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      oneShotBuffers.push({ name: fname.replace(/\.\w+$/, ''), buffer: await audioCtx.decodeAudioData(await r.arrayBuffer()) });
-    } catch(e) { console.warn('Could not load one-shot:', fname, e.message); }
-  }));
+  try {
+    const resp = await fetch('../samples/one-shots/');
+    const html = await resp.text();
+    const matches = [...html.matchAll(/href="([^"?#]+\.(wav|mp3|ogg|flac|aif{1,2}))"[^>]*>/gi)];
+    const files = [...new Set(matches.map(m => m[1]).filter(f => !f.startsWith('/') && !f.includes('/')))];
+    await Promise.all(files.map(async fname => {
+      try {
+        const r = await fetch(`../samples/one-shots/${fname}`);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        oneShotBuffers.push({ name: fname.replace(/\.\w+$/, ''), buffer: await audioCtx.decodeAudioData(await r.arrayBuffer()) });
+      } catch(e) { console.warn('Could not load one-shot:', fname, e.message); }
+    }));
+  } catch(e) { console.warn('one-shots folder error', e); }
   oneShotBuffers.sort((a,b) => a.name.localeCompare(b.name));
   oneShotLoaded = oneShotBuffers.length > 0;
   if (!oneShotLoaded) { showToast('No one-shots found'); sourceType = 'pink'; updateSourceUI(); }
@@ -1040,16 +1021,22 @@ async function loadOneShotSamples() {
 async function loadLoopSamples() {
   if (loopLoaded) return;
   initAudio(); loopBuffers = [];
-  await Promise.all(LOOP_FILES.map(async fname => {
-    try {
-      const r = await fetch(`../../samples/loops/${fname}`);
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      loopBuffers.push({ name: fname.replace(/\.\w+$/, ''), buffer: await audioCtx.decodeAudioData(await r.arrayBuffer()) });
-    } catch(e) { console.warn('Could not load loop:', fname, e.message); }
-  }));
+  try {
+    const resp = await fetch('../samples/loops/');
+    const html = await resp.text();
+    const matches = [...html.matchAll(/href="([^"?#]+\.(wav|mp3|ogg|flac|aif{1,2}))"[^>]*>/gi)];
+    const files = [...new Set(matches.map(m => m[1]).filter(f => !f.startsWith('/') && !f.includes('/')))];
+    await Promise.all(files.map(async fname => {
+      try {
+        const r = await fetch(`../samples/loops/${fname}`);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        loopBuffers.push({ name: fname.replace(/\.\w+$/, ''), buffer: await audioCtx.decodeAudioData(await r.arrayBuffer()) });
+      } catch(e) { console.warn('Could not load loop:', fname, e.message); }
+    }));
+  } catch(e) { console.warn('loops folder error', e); }
   loopBuffers.sort((a,b) => a.name.localeCompare(b.name));
   loopLoaded = loopBuffers.length > 0;
-  if (!loopLoaded) { showToast('No loops found — check samples/loops/ folder'); sourceType = 'pink'; updateSourceUI(); }
+  if (!loopLoaded) { showToast('No loops found'); sourceType = 'pink'; updateSourceUI(); }
 }
 
 // ── History ───────────────────────────────────────────────────────────────────
