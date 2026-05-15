@@ -559,15 +559,14 @@ let loopBuffers = [], loopLoaded = false, loopIndex = 0;
 let draggingKnob = null;
 
 // ── Sample file lists ─────────────────────────────────────────────────────────
-const ONE_SHOT_FILES = [
-  'CLAP_DEEP_001.wav','CLAP_DEEP_002.wav','CLAP_DEEP_003.wav','CLAP_DEEP_004.wav','CLAP_DEEP_005.wav',
-  'CLAP_LAYER_001.wav','CLAP_LAYER_002.wav','CLAP_LAYER_003.wav','CLAP_LAYER_004.wav',
-  'SNARE_DEEP_001.wav','SNARE_DEEP_002.wav','SNARE_DEEP_003.wav','SNARE_DEEP_004.wav','SNARE_DEEP_005.wav','SNARE_DEEP_006.wav',
-];
-const LOOP_FILES = [
-  'LOOP_001.wav','LOOP_002.wav','LOOP_003.wav','LOOP_004.wav','LOOP_005.wav',
-  'LOOP_006.wav','LOOP_007.wav','LOOP_008.wav','LOOP_009.wav','LOOP_010.wav',
-];
+// ── Samples manifest (edit samples/manifest.json to add new files) ────────────
+let samplesManifest = null;
+async function getManifest() {
+  if (samplesManifest) return samplesManifest;
+  const r = await fetch('../samples/manifest.json');
+  samplesManifest = await r.json();
+  return samplesManifest;
+}
 
 // ── Load status helper ────────────────────────────────────────────────────────
 function setLoadStatus(msg, isLoading) {
@@ -1198,7 +1197,8 @@ async function loadOneShotSamples() {
   if (oneShotLoaded) return;
   initAudio(); oneShotBuffers=[];
   setLoadStatus('Loading one-shots…', true);
-  await Promise.all(ONE_SHOT_FILES.map(async fname => {
+  const manifest = await getManifest();
+  await Promise.all(manifest.oneShots.map(async fname => {
     try {
       const r = await fetch(`../samples/one-shots/${fname}`);
       if (!r.ok) throw new Error();
@@ -1219,7 +1219,8 @@ async function loadLoopSamples() {
   if (loopLoaded) return;
   initAudio(); loopBuffers=[];
   setLoadStatus('Loading loops…', true);
-  await Promise.all(LOOP_FILES.map(async fname => {
+  const manifest = await getManifest();
+  await Promise.all(manifest.loops.map(async fname => {
     try {
       const r = await fetch(`../samples/loops/${fname}`);
       if (!r.ok) throw new Error();
