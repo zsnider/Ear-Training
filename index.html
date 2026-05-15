@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ear Training — Audio Tools</title>
+<title>SonicSandbox — Ear Training Games for Music Producers</title>
+<meta name="description" content="Eight interactive ear training games for producers and audio engineers. Train your EQ, compression, reverb, distortion, and stereo perception — free, in your browser.">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
 
@@ -15,6 +16,8 @@
     --border2:  rgba(255,255,255,0.14);
     --text:     #dde2ee;
     --muted:    #6b7280;
+    --accent:   #5b6aff;
+    --accent2:  #8892ff;
     --eq-accent:    #5b6aff;
     --eq-accent2:   #8892ff;
     --comp-accent:  #e8865a;
@@ -42,34 +45,93 @@
     display: flex; flex-direction: column; align-items: center;
   }
 
-  header {
+  /* ── Nav ─────────────────────────────────────────────── */
+  nav {
     width: 100%; max-width: 1600px;
-    padding: 60px 24px 0; text-align: center;
+    padding: 20px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .nav-logo {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 17px; font-weight: 600;
+    color: var(--text); text-decoration: none;
+    letter-spacing: -0.01em;
+  }
+  .nav-logo span { color: var(--accent2); }
+
+  .nav-right {
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .bmac-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: #FFDD00; color: #000;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px; font-weight: 600;
+    padding: 8px 16px; border-radius: 8px;
+    text-decoration: none;
+    transition: opacity 0.15s, transform 0.15s;
+    white-space: nowrap;
+  }
+  .bmac-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+  .bmac-btn svg { flex-shrink: 0; }
+
+  /* ── Hero ─────────────────────────────────────────────── */
+  header {
+    width: 100%; max-width: 900px;
+    padding: 60px 24px 20px;
+    text-align: center;
   }
 
   .site-eyebrow {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 11px; font-weight: 600;
     letter-spacing: 0.18em; text-transform: uppercase;
-    color: var(--muted); margin-bottom: 16px;
+    color: var(--muted); margin-bottom: 20px;
   }
 
   .site-title {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: clamp(24px, 4vw, 42px);
-    font-weight: 600; letter-spacing: -0.02em; line-height: 1.2;
-    color: var(--text); margin-bottom: 16px;
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 600; letter-spacing: -0.03em; line-height: 1.15;
+    color: var(--text); margin-bottom: 20px;
   }
-  .accent-eq   { color: var(--eq-accent2); }
-  .accent-comp { color: var(--comp-accent2); }
-  .accent-rev  { color: var(--rev-accent2); }
-  .accent-dist { color: var(--dist-accent2); }
+  .site-title .highlight {
+    background: linear-gradient(90deg, var(--accent2), var(--fq-accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 
   .site-sub {
-    font-size: 15px; color: var(--muted); font-weight: 300;
-    max-width: 480px; margin: 0 auto 48px; line-height: 1.6;
+    font-size: 16px; color: var(--muted); font-weight: 300;
+    max-width: 520px; margin: 0 auto 20px; line-height: 1.7;
   }
 
+  .hero-tags {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    justify-content: center; margin-bottom: 56px;
+  }
+  .hero-tag {
+    font-size: 11px; font-weight: 500; letter-spacing: 0.06em;
+    padding: 4px 12px; border-radius: 20px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    color: var(--muted);
+  }
+
+  /* ── Section label ───────────────────────────────────── */
+  .section-label {
+    width: 100%; max-width: 1600px;
+    padding: 0 28px 16px;
+  }
+  .section-label h2 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ── Cards grid ──────────────────────────────────────── */
   .grid {
     width: 100%; max-width: 1600px;
     padding: 0 24px 80px;
@@ -166,24 +228,99 @@
   .card.pan:hover  .card-arrow { color: var(--pan-accent2); }
   .card.qc:hover   .card-arrow { color: var(--qc-accent2); }
 
+  /* ── About strip ─────────────────────────────────────── */
+  .about-strip {
+    width: 100%; max-width: 1600px;
+    padding: 0 28px 80px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+  @media (max-width: 700px) { .about-strip { grid-template-columns: 1fr; } }
+
+  .about-tile {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px 22px;
+  }
+  .about-tile-icon { font-size: 22px; margin-bottom: 10px; }
+  .about-tile h3 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; font-weight: 600;
+    color: var(--text); margin-bottom: 8px;
+  }
+  .about-tile p {
+    font-size: 13px; color: var(--muted); line-height: 1.6; font-weight: 300;
+  }
+
+  /* ── Footer ──────────────────────────────────────────── */
   footer {
-    margin-top:auto; padding:0 24px 32px;
-    text-align:center; font-size:12px; color:var(--muted);
+    margin-top: auto;
+    width: 100%; border-top: 1px solid var(--border);
+    padding: 28px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .footer-left {
+    font-size: 13px; color: var(--muted);
+  }
+  .footer-left a {
+    color: var(--muted); text-decoration: none;
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  }
+  .footer-left a:hover { color: var(--text); }
+  .footer-right {
+    font-size: 12px; color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
   }
 </style>
 </head>
 <body>
 
+<!-- Nav -->
+<nav>
+  <a class="nav-logo" href="/">Sonic<span>Sandbox</span></a>
+  <div class="nav-right">
+    <a class="bmac-btn" href="https://www.buymeacoffee.com/sonicsandbox" target="_blank" rel="noopener">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M18 8h1a4 4 0 0 1 0 8h-1" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <line x1="6" y1="1" x2="6" y2="4" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+        <line x1="10" y1="1" x2="10" y2="4" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+        <line x1="14" y1="1" x2="14" y2="4" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      Buy me a coffee
+    </a>
+  </div>
+</nav>
+
+<!-- Hero -->
 <header>
-  <div class="site-eyebrow">Audio Ear Training</div>
+  <div class="site-eyebrow">Free · Browser-based · No signup needed</div>
   <h1 class="site-title">
-    Train Your Ears
+    Train your ears.<br>
+    <span class="highlight">Hear the difference.</span>
   </h1>
   <p class="site-sub">
-    Eight focused games to sharpen your listening.
+    Eight interactive games to sharpen your listening skills — EQ, compression, reverb, distortion, and spatial perception. Built for producers, engineers, and curious musicians.
   </p>
+  <div class="hero-tags">
+    <span class="hero-tag">EQ</span>
+    <span class="hero-tag">Compression</span>
+    <span class="hero-tag">Reverb</span>
+    <span class="hero-tag">Distortion</span>
+    <span class="hero-tag">Frequency</span>
+    <span class="hero-tag">Stereo &amp; Pan</span>
+    <span class="hero-tag">No signup required</span>
+    <span class="hero-tag">Real audio</span>
+  </div>
 </header>
 
+<!-- Games label -->
+<div class="section-label">
+  <h2>The Games</h2>
+</div>
+
+<!-- Cards -->
 <div class="grid">
 
   <!-- EQ Match -->
@@ -346,7 +483,7 @@
       </svg>
     </div>
     <div class="card-name">Spatial Specialist</div>
-    <div class="card-desc">2 games in 1! In panning mode, a sound plays at a hidden stereo position. Guess the panned position. In width mode, 2 audio sources are panned left and right. Guess the width.</div>
+    <div class="card-desc">2 games in 1! In panning mode, a sound plays at a hidden stereo position. In width mode, guess the stereo width.</div>
     <div class="card-tags">
       <span class="tag">Stereo Pan</span>
       <span class="tag">Width</span>
@@ -357,8 +494,39 @@
 
 </div>
 
+<!-- About strip -->
+<div class="section-label" style="padding-bottom:16px;">
+  <h2>Why SonicSandbox?</h2>
+</div>
+<div class="about-strip">
+  <div class="about-tile">
+    <div class="about-tile-icon">🎧</div>
+    <h3>Real audio, real decisions</h3>
+    <p>Every game uses actual music loops and drum one-shots — not sine tones. You practice on the kind of material you work with every day.</p>
+  </div>
+  <div class="about-tile">
+    <div class="about-tile-icon">🎯</div>
+    <h3>Focused on what matters</h3>
+    <p>Each game targets a specific production skill: EQ matching, compression feel, reverb space, distortion character, frequency recognition, and stereo perception.</p>
+  </div>
+  <div class="about-tile">
+    <div class="about-tile-icon">⚡</div>
+    <h3>No app, no account, no catch</h3>
+    <p>Runs entirely in your browser using the Web Audio API. Free to use. No signup required. Works in Chrome and Safari.</p>
+  </div>
+</div>
+
+<!-- Footer -->
 <footer>
-  Built for daily ear training · Open in Chrome or Safari for best audio support
+  <div class="footer-left">
+    <a href="/">SonicSandbox</a>
+    &nbsp;·&nbsp; Free ear training for producers &nbsp;·&nbsp; Open in Chrome or Safari for best audio support
+  </div>
+  <div class="footer-right">
+    <a class="bmac-btn" href="https://www.buymeacoffee.com/sonicsandbox" target="_blank" rel="noopener" style="font-size:12px; padding:6px 13px;">
+      ☕ Support the project
+    </a>
+  </div>
 </footer>
 
 </body>
