@@ -543,56 +543,43 @@ function setLoadStatus(pillId, msg, loading) {
 }
 
 // ── Sample loading ────────────────────────────────────────────────────────────
+// ── Samples manifest (edit samples/manifest.json to add new files) ────────────
+let samplesManifest = null;
+async function getManifest() {
+  if (samplesManifest) return samplesManifest;
+  const r = await fetch('../samples/manifest.json');
+  samplesManifest = await r.json();
+  return samplesManifest;
+}
+
 async function loadOneShotSamples() {
   if (oneShotLoaded) return;
   initAudio();
   setLoadStatus('srcOneShot', 'Loading…', true);
-  try {
-    const resp = await fetch('../samples/one-shots/');
-    const html = await resp.text();
-    const matches = [...html.matchAll(/href="([^"?#]+\.(wav|mp3|ogg|flac|aif{1,2}))"[^>]*>/gi)];
-    const files = [...new Set(matches.map(m => m[1]).filter(f => !f.startsWith('/') && !f.includes('/')))];
-    oneShotBuffers = [];
-    await Promise.all(files.map(async fname => {
-      try {
-        const r = await fetch(`../samples/one-shots/${fname}`);
-        if (!r.ok) return;
-        const ab = await r.arrayBuffer();
-        oneShotBuffers.push({ name: fname.replace(/\.\w+$/, ''), buffer: await audioCtx.decodeAudioData(ab) });
-      } catch(e) { console.warn('one-shot load fail:', fname, e); }
-    }));
-    oneShotBuffers.sort((a,b) => a.name.localeCompare(b.name));
-    oneShotLoaded = oneShotBuffers.length > 0;
-  } catch(e) { console.warn('one-shots folder error', e); }
+  oneShotBuffers = [];
+  const manifest = await getManifest();
+  await Promise.all(manifest.oneShots.map(async fname => {
+    try {
+      const r = await fetch(`../samples/one-shots/${fname}`);
+      if (!r.ok) return;
+      const ab = await r.arrayBuffer();
+      oneShotBuffers.push({ name: fname.replace(/\.\w+$/, ''), buffer: await audioCtx.decodeAudioData(ab) });
+    } catch(e) { console.warn('one-shot load fail:', fname, e); }
+  }));
+  oneShotBuffers.sort((a,b) => a.name.localeCompare(b.name));
+  oneShotLoaded = oneShotBuffers.length > 0;
   document.getElementById('srcOneShot').textContent = 'One-Shots';
   setLoadStatus('srcOneShot', '', false);
   if (!oneShotLoaded) { showToast('No one-shots found in samples/one-shots/'); sourceType='pink'; updateSourceUI(); }
 }
-
-const LOOP_FILES = [
-  'cyberwave-orchestra-orchestral-music-loop-287416.mp3',
-  'mkgomez-minimal-techno-background-loop-475852.mp3',
-  'nastelbom-lounge-house-314576.mp3',
-  'ohpalmusic-passive-hip-hop-beat-90bpm-d-minor-177334.mp3',
-  'openmindaudio-deep-club-organic-house-music-ashen-palms-524258.mp3',
-  'openmindaudio-epic-organic-house-music-driftwood-ritual-524274.mp3',
-  'sonican-acoustic-senses-loop-313230.mp3',
-  'sonican-feelgood-acoustic-loop-320856.mp3',
-  'sonican-positive-corporate-music-optimistic-loop-464544.mp3',
-  'sonofevan-gravel-in-my-lungs-470048.mp3',
-  'the_mountain-deep-house-483808.mp3',
-  'the_mountain-hi-tech-loop-151203.mp3',
-  'the_mountain-loop-beat-130010.mp3',
-  'the_mountain-soft-loop-130012.mp3',
-  'tunetank-soft-house-music-348241.mp3',
-];
 
 async function loadLoopSamples() {
   if (loopLoaded) return;
   initAudio();
   setLoadStatus('srcLoop', 'Loading…', true);
   loopBuffers = [];
-  await Promise.all(LOOP_FILES.map(async fname => {
+  const manifest = await getManifest();
+  await Promise.all(manifest.loops.map(async fname => {
     try {
       const r = await fetch(`../samples/loops/${fname}`);
       if (!r.ok) return;
