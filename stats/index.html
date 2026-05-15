@@ -45,6 +45,27 @@
   .nav-sep { color: var(--border2); }
   .nav-page { font-size: 14px; color: var(--muted); }
 
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--muted); text-decoration: none;
+    font-family: 'IBM Plex Mono', monospace;
+    padding: 6px 12px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface);
+    transition: color 0.15s, border-color 0.15s;
+    margin-left: auto;
+  }
+  .back-btn:hover { color: var(--text); border-color: var(--border2); }
+
+  .reset-btn {
+    font-size: 11px; color: var(--muted);
+    background: none; border: 1px solid var(--border);
+    border-radius: 6px; padding: 3px 9px;
+    cursor: pointer; font-family: inherit;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+  .reset-btn:hover { color: var(--red); border-color: var(--red); background: rgba(244,91,105,0.07); }
+  .reset-btn:disabled { opacity: 0.4; cursor: default; }
+
   /* ── Page layout ─────────────────────────────────────── */
   .page { max-width: 1100px; margin: 0 auto; padding: 0 28px 80px; }
 
@@ -171,6 +192,7 @@
   <a class="nav-logo" href="../">Sonic<span>Sandbox</span></a>
   <span class="nav-sep">/</span>
   <span class="nav-page">My Stats</span>
+  <a class="back-btn" href="../">← Back</a>
 </nav>
 
 <div class="page">
@@ -270,7 +292,10 @@ function buildGameCard(game, rows) {
     <div class="game-card">
       <div class="game-card-header">
         <div class="game-name">${GAME_LABELS[game] || game}</div>
-        <div class="game-rounds">${total} round${total !== 1 ? 's' : ''}</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="game-rounds">${total} round${total !== 1 ? 's' : ''}</div>
+          <button class="reset-btn" onclick="resetGame('${game}', this)">Reset</button>
+        </div>
       </div>
       <div class="stat-row">
         <div class="stat-item">
@@ -346,6 +371,31 @@ async function loadStats(user) {
   // Recent 20 rounds
   const recent = scores.slice(0, 20);
   document.getElementById('activityList').innerHTML = recent.map(buildActivityRow).join('');
+}
+
+async function resetGame(game, btn) {
+  const label = GAME_LABELS[game] || game;
+  if (!confirm(`Reset all scores for ${label}? This cannot be undone.`)) return;
+
+  btn.disabled = true;
+  btn.textContent = '…';
+
+  const user = SonicSandbox.getUser();
+  const { error } = await SonicSandbox.client
+    .from('scores')
+    .delete()
+    .eq('user_id', user.id)
+    .eq('game', game);
+
+  if (error) {
+    btn.textContent = 'Error';
+    btn.disabled = false;
+    console.warn('Reset failed:', error.message);
+    return;
+  }
+
+  // Reload the full stats view
+  await loadStats(user);
 }
 
 // Wait for auth to initialize
