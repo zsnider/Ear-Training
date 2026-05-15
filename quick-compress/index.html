@@ -46,6 +46,22 @@
     display:flex; align-items:center; justify-content:space-between;
   }
 
+  .header-left { display:flex; align-items:center; gap:14px; }
+
+  .back-btn {
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px; font-weight:500;
+    color:var(--muted);
+    text-decoration:none;
+    padding:6px 12px;
+    border:1px solid var(--border2);
+    border-radius:8px;
+    transition:all 0.15s;
+    white-space:nowrap;
+    letter-spacing:0.03em;
+  }
+  .back-btn:hover { color:var(--text); border-color:var(--accent); }
+
   .brand { display:flex; align-items:center; gap:10px; }
   .brand-icon {
     width:32px; height:32px; background:var(--accent);
@@ -238,7 +254,7 @@
   }
   .ab-btn.correct .tier-badge { opacity:1; color:var(--accent2); background:rgba(45,212,160,0.1); }
 
-  /* ── History / GR meter ── */
+  /* ── GR meter ── */
   .gr-row {
     display:flex; gap:10px; align-items:center;
     background:var(--surface); border:1px solid var(--border);
@@ -298,16 +314,18 @@
 <body>
 
 <header>
-  <div class="brand">
-    <div class="brand-icon">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-        <!-- Compression ratio line (squashed waveform) -->
-        <path d="M1 9 L4 4 L5 7 L6 5 L7 8 L8 6.5 L9 7.5 L10 6 L11 8 L12 5.5 L13 7.5 L14 9" stroke="black" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-        <path d="M1 9 L4 7 L5 8 L6 7.5 L7 8.5 L8 7.8 L9 8.2 L10 7.5 L11 8.5 L12 7.2 L13 8.2 L14 9" stroke="black" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.5"/>
-        <text x="15.5" y="9.5" fill="black" font-size="4" font-weight="bold">∫</text>
-      </svg>
+  <div class="header-left">
+    <a href="../index.html" class="back-btn">← Back</a>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M1 9 L4 4 L5 7 L6 5 L7 8 L8 6.5 L9 7.5 L10 6 L11 8 L12 5.5 L13 7.5 L14 9" stroke="black" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <path d="M1 9 L4 7 L5 8 L6 7.5 L7 8.5 L8 7.8 L9 8.2 L10 7.5 L11 8.5 L12 7.2 L13 8.2 L14 9" stroke="black" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.5"/>
+          <text x="15.5" y="9.5" fill="black" font-size="4" font-weight="bold">∫</text>
+        </svg>
+      </div>
+      <span class="brand-name">QUICK <span>COMPRESS</span></span>
     </div>
-    <span class="brand-name">QUICK <span>COMPRESS</span></span>
   </div>
   <div class="score-row">
     <div class="stat">
@@ -407,7 +425,8 @@
     <div class="source-wrap">
       <span class="label">Source</span>
       <div class="source-pill active" id="srcPink"    onclick="setSource('pink')">Pink Noise</div>
-      <div class="source-pill"        id="srcBuiltin" onclick="setSource('builtin')">Sample One-shots</div>
+      <div class="source-pill"        id="srcOneShot" onclick="setSource('oneshot')">One-shots</div>
+      <div class="source-pill"        id="srcLoop"    onclick="setSource('loop')">Loops</div>
       <div class="source-pill"        id="srcCustom"  onclick="triggerUpload()" style="border-style:dashed;">
         <span id="uploadLabel">📁 Upload Music</span>
       </div>
@@ -421,7 +440,6 @@
 
 <script>
 // ── Compression tiers ─────────────────────────────────────────────────────────
-// makeup is computed automatically for gain staging — see calcMakeup()
 const TIERS = {
   easy:   { threshold:-30, ratio:20,  attack:0.003, release:0.05,  knee:2,  label:'Ratio 20:1 · Thresh −30dB · Attack 3ms · Release 50ms'   },
   medium: { threshold:-24, ratio:8,   attack:0.005, release:0.08,  knee:4,  label:'Ratio 8:1 · Thresh −24dB · Attack 5ms · Release 80ms'    },
@@ -429,37 +447,36 @@ const TIERS = {
   subtle: { threshold:-14, ratio:2.5, attack:0.012, release:0.18,  knee:8,  label:'Ratio 2.5:1 · Thresh −14dB · Attack 12ms · Release 180ms'},
 };
 
-// Compute makeup gain for compressed side.
-// After preGain(0.18), signal peaks around −21 dBFS.
-// Makeup compensates only the GR above threshold at that level.
-function calcMakeup(tier) {
-  const signalPeakAfterPreGain = -21; // dBFS after 0.18 linear pre-gain
-  const excess = Math.max(0, signalPeakAfterPreGain - tier.threshold);
-  const gr     = excess * (1 - 1 / tier.ratio);
-  return gr;
-}
-
 // ── State ─────────────────────────────────────────────────────────────────────
 let currentTier    = 'easy';
-let compressedSide = null; // 'A' or 'B'
+let compressedSide = null;   // 'A' or 'B'
 let listeningTo    = 'A';
 let roundActive    = false;
 let answered       = false;
 let totalScore=0, streak=0, totalRounds=0, correctCount=0;
 let isPaused       = false;
 
-// Audio
+// Audio nodes
 let audioCtx       = null;
-let sourceA        = null, sourceB = null; // continuously playing sources
-let compNode       = null;  // DynamicsCompressorNode on compressed side
-let gainA          = null,  gainB = null;  // output gains to toggle A/B
+let sourceA        = null, sourceB = null;
+let compNode       = null;
+let gainA          = null,  gainB = null;
+let junctionA      = null,  junctionB = null; // tap points: audio splits to output + measurement
+let kNodesA        = [],    kNodesB   = [];   // K-weighting filter nodes (measurement branch)
+let analyserA      = null,  analyserB = null;
+let sourceBusA     = null,  sourceBusB = null;
 let masterOut      = null;
-let shotTimerA     = null,  shotTimerB = null;
+let shotTimerA     = null;
 let sourceType     = 'pink';
 let customBuffers  = [], customIdx=0, musicOffset=0, musicStartedAt=0;
-let builtinBuffers = [], builtinLoaded=false, builtinIdx=0;
+let oneShotBuffers = [], oneShotLoaded=false, oneShotIdx=0;
+let loopBuffers    = [], loopLoaded=false, loopIdx=0;
 let currentShotSrcA= null, currentShotSrcB = null;
 let animFrameId    = null;
+let lufsIntervalId = null;
+
+// Per-path target output gains (updated continuously by LUFS matcher)
+let pathGainA = 0.55, pathGainB = 0.55;
 
 // ── Tier ─────────────────────────────────────────────────────────────────────
 function setTier(t) {
@@ -472,13 +489,13 @@ function setTier(t) {
 function newRound() {
   clearTimeout(window._nextTimeout);
   stopAudio();
-  answered   = false;
+  answered    = false;
   roundActive = true;
   totalRounds++;
   document.getElementById('roundVal').textContent = totalRounds;
 
-  // Randomly assign compressed side
   compressedSide = Math.random() > 0.5 ? 'A' : 'B';
+  pathGainA = pathGainB = 0.55; // reset per-path gains each round
 
   // Reset UI
   document.getElementById('promptBar').classList.remove('correct-flash','wrong-flash');
@@ -503,15 +520,12 @@ function newRound() {
   document.getElementById('promptText').innerHTML =
     `Which signal is <span>compressed</span>? Click <span>A</span> or <span>B</span>`;
 
-  // Advance sources
-  if (sourceType==='custom' && customBuffers.length>0)
-    customIdx = (customIdx+1) % customBuffers.length;
-  if (sourceType==='builtin' && builtinBuffers.length>0)
-    builtinIdx = (builtinIdx+1) % builtinBuffers.length;
+  // Advance sample index each round
+  if (sourceType==='custom'  && customBuffers.length>0)  customIdx  = (customIdx+1)  % customBuffers.length;
+  if (sourceType==='oneshot' && oneShotBuffers.length>0) oneShotIdx = (oneShotIdx+1) % oneShotBuffers.length;
+  if (sourceType==='loop'    && loopBuffers.length>0)    loopIdx    = (loopIdx+1)    % loopBuffers.length;
 
   musicOffset = 0;
-
-  // Start audio listening to A first
   listeningTo = 'A';
   buildAudioGraph();
   updateListenBtns();
@@ -531,7 +545,6 @@ function selectAnswer(side) {
   document.getElementById('accuracyVal').textContent =
     totalRounds > 0 ? Math.round(correctCount/totalRounds*100)+'%' : '—';
 
-  // Update buttons
   const correctBtn = document.getElementById(`btn${compressedSide}`);
   const wrongSide  = compressedSide === 'A' ? 'B' : 'A';
   const wrongBtn   = document.getElementById(`btn${wrongSide}`);
@@ -555,7 +568,6 @@ function selectAnswer(side) {
   document.getElementById('btnA').disabled = true;
   document.getElementById('btnB').disabled = true;
 
-  // Prompt
   document.getElementById('promptBar').classList.add(correct ? 'correct-flash' : 'wrong-flash');
   const ri = document.getElementById('resultInline');
   ri.textContent = correct ? '✓ Correct!' : `✗ It was ${compressedSide}`;
@@ -565,7 +577,6 @@ function selectAnswer(side) {
     ? `🎯 Correct! <span>${compressedSide}</span> was compressed · Ratio ${TIERS[currentTier].ratio}:1 · Thresh ${TIERS[currentTier].threshold}dB`
     : `✗ Nope — <span>${compressedSide}</span> was the compressed one · Keep training`;
 
-  // Show GR meter (listen to compressed side)
   document.getElementById('grRow').style.display = 'flex';
   listenTo(compressedSide);
 
@@ -583,11 +594,18 @@ function selectAnswer(side) {
 }
 
 // ── Listen to A or B ──────────────────────────────────────────────────────────
+// applyGains() is the single place that sets gainA/gainB, incorporating the
+// current LUFS correction stored in pathGainA/pathGainB.
+function applyGains() {
+  if (!gainA || !gainB || !audioCtx) return;
+  gainA.gain.setTargetAtTime(listeningTo==='A' ? pathGainA : 0, audioCtx.currentTime, 0.02);
+  gainB.gain.setTargetAtTime(listeningTo==='B' ? pathGainB : 0, audioCtx.currentTime, 0.02);
+}
+
 function listenTo(side) {
   if (!audioCtx || !gainA || !gainB) return;
   listeningTo = side;
-  gainA.gain.setTargetAtTime(side==='A' ? 0.55 : 0, audioCtx.currentTime, 0.01);
-  gainB.gain.setTargetAtTime(side==='B' ? 0.55 : 0, audioCtx.currentTime, 0.01);
+  applyGains();
   updateListenBtns();
 }
 
@@ -598,7 +616,100 @@ function updateListenBtns() {
   document.getElementById('btnPlayB').textContent = listeningTo==='B' ? '⏸ Playing B' : '▶ Play B';
 }
 
-// ── Audio ─────────────────────────────────────────────────────────────────────
+// ── K-weighted LUFS loudness matching ────────────────────────────────────────
+// Strategy: both signal paths branch at a "junction" GainNode.
+//   Audio branch  → gainA/B → masterOut   (unchanged output sound)
+//   Measure branch → K-shelf → K-HP → analyser  (dead-end, no audio out)
+//
+// The K-weighting filter chain (ITU-R BS.1770-4) approximates how humans
+// perceive loudness — a high-shelf boost (~+4 dB above 1.7 kHz) followed by
+// a high-pass rolloff (~38 Hz). Measuring RMS on K-weighted signal ≈ LUFS.
+//
+// We measure both paths simultaneously (even the muted one, since the
+// junction receives signal regardless of whether gainA/B is open).
+// Every 200 ms we compute the ratio and smoothly adjust gainA/B so the
+// two perceived loudnesses stay equal. The 0.6 s ramp time constant makes
+// the correction completely inaudible.
+
+function createKWeightedAnalyser(sourceNode) {
+  // Stage 1 — pre-filter (high-shelf): compensates head acoustics
+  const shelf = audioCtx.createBiquadFilter();
+  shelf.type            = 'highshelf';
+  shelf.frequency.value = 1681.97;  // Hz  (ITU-R BS.1770 spec)
+  shelf.gain.value      = 4.0;      // dB
+
+  // Stage 2 — revised filter (high-pass): low-frequency roll-off
+  const hp = audioCtx.createBiquadFilter();
+  hp.type            = 'highpass';
+  hp.frequency.value = 38.13;  // Hz
+  hp.Q.value         = 0.5;
+
+  // Analyser — large FFT for stable short-term loudness
+  const analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 8192;  // ~185 ms at 44.1 kHz — good for momentary LUFS
+
+  sourceNode.connect(shelf);
+  shelf.connect(hp);
+  hp.connect(analyser);
+  // analyser output intentionally left unconnected — measurement only
+
+  return { analyser, nodes: [shelf, hp] };
+}
+
+function getKWeightedRms(analyser) {
+  const buf = new Float32Array(analyser.fftSize);
+  analyser.getFloatTimeDomainData(buf);
+  let sum = 0;
+  for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
+  return Math.sqrt(sum / buf.length);
+}
+
+function matchLufsLevels() {
+  if (!analyserA || !analyserB || !compressedSide || !gainA || !gainB) return;
+
+  const lufsA = getKWeightedRms(analyserA);
+  const lufsB = getKWeightedRms(analyserB);
+
+  // Skip if either path is silent (gap between one-shots, etc.)
+  if (lufsA < 0.00003 || lufsB < 0.00003) return;
+
+  // Target: pathGainWet * lufsWet  ≈  pathGainDry * lufssDry
+  // Anchor: keep average gain = 0.55 so master level stays constant.
+  //   pathGainDry  = 1.1 / (ratio + 1)
+  //   pathGainWet  = ratio * pathGainDry
+  // where ratio = lufsWet / lufssDry.
+  //
+  // Compression raises average energy (squashes dynamics) so lufsWet > lufssDry.
+  // ratio > 1 → pathGainWet gets the smaller value, pathGainDry gets bigger.
+  // This REDUCES the compressed (louder) path and BOOSTS the dry (quieter) path.
+
+  let lufsWet, lufsDry;
+  if (compressedSide === 'A') { lufsWet = lufsA; lufsDry = lufsB; }
+  else                        { lufsWet = lufsB; lufsDry = lufsA; }
+
+  const ratio   = lufsWet / lufsDry;                           // > 1 = wet is louder
+  const gainWet = Math.min(Math.max(1.1 / (ratio + 1), 0.05), 1.0);
+  const gainDry = Math.min(Math.max(ratio * gainWet,   0.05), 1.0);
+
+  if (compressedSide === 'A') { pathGainA = gainWet; pathGainB = gainDry; }
+  else                        { pathGainA = gainDry; pathGainB = gainWet; }
+
+  // Ramp smoothly — 0.6 s time constant is imperceptible
+  const now = audioCtx.currentTime;
+  gainA.gain.setTargetAtTime(listeningTo==='A' ? pathGainA : 0, now, 0.6);
+  gainB.gain.setTargetAtTime(listeningTo==='B' ? pathGainB : 0, now, 0.6);
+}
+
+function startLufsMatching() {
+  if (lufsIntervalId) { clearInterval(lufsIntervalId); lufsIntervalId = null; }
+  // 200 ms warmup so compressor and K-filters have settled
+  setTimeout(() => {
+    if (!roundActive) return;
+    lufsIntervalId = setInterval(matchLufsLevels, 200);
+  }, 200);
+}
+
+// ── Audio graph ───────────────────────────────────────────────────────────────
 function initAudio() {
   if (audioCtx) return;
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -627,15 +738,22 @@ function buildAudioGraph() {
   if (audioCtx.state==='suspended') audioCtx.resume();
 
   const tier = TIERS[currentTier];
-  masterOut  = audioCtx.createGain(); masterOut.gain.value=1;
+
+  // Master output
+  masterOut = audioCtx.createGain(); masterOut.gain.value = 1;
   masterOut.connect(audioCtx.destination);
 
-  // Two output gains — only one active at a time
-  gainA = audioCtx.createGain(); gainA.gain.value = listeningTo==='A' ? 0.55 : 0;
-  gainB = audioCtx.createGain(); gainB.gain.value = listeningTo==='B' ? 0.55 : 0;
+  // Per-path output gains (one active at a time)
+  gainA = audioCtx.createGain(); gainA.gain.value = listeningTo==='A' ? pathGainA : 0;
+  gainB = audioCtx.createGain(); gainB.gain.value = listeningTo==='B' ? pathGainB : 0;
   gainA.connect(masterOut); gainB.connect(masterOut);
 
-  // Compressor node on the compressed side
+  // Source buses — sources connect here (avoids duplicate compressor connections
+  // when one-shot sources are re-fired mid-round)
+  sourceBusA = audioCtx.createGain(); sourceBusA.gain.value = 1;
+  sourceBusB = audioCtx.createGain(); sourceBusB.gain.value = 1;
+
+  // Compressor — no static makeup gain; LUFS correction handles loudness
   compNode = audioCtx.createDynamicsCompressor();
   compNode.threshold.value = tier.threshold;
   compNode.ratio.value     = tier.ratio;
@@ -643,34 +761,46 @@ function buildAudioGraph() {
   compNode.release.value   = tier.release;
   compNode.knee.value      = tier.knee;
 
-  // Compute makeup gain to match perceived loudness of dry signal.
-  // Apply the same gain to BOTH compressed and dry sides so they are
-  // gain-staged equally — the only difference will be dynamics, not level.
-  const makeupDb     = calcMakeup(tier);
-  const makeupLinear = Math.pow(10, makeupDb / 20);
+  // Junction nodes: one per path, AFTER any compression.
+  // Audio branch  → gainA/B → masterOut
+  // Measure branch → K-weighting filters → analyser (dead-end, no audio out)
+  junctionA = audioCtx.createGain(); junctionA.gain.value = 1;
+  junctionB = audioCtx.createGain(); junctionB.gain.value = 1;
 
-  const makeupGain = audioCtx.createGain();
-  makeupGain.gain.value = makeupLinear;
-
-  // Dry side: no extra gain — preGain is already applied, output gain handles level
-  // This ensures dry and compressed are gain-staged correctly:
-  // dry:        preGain(0.18) → dryGain(1.0) → outputGain(0.55)
-  // compressed: preGain(0.18) → compressor → makeupGain → outputGain(0.55)
-  const dryGain = audioCtx.createGain();
-  dryGain.gain.value = 1.0; // unity — no extra boost on dry side
-
-  // Route: source → compressor chain (compressed side) OR direct (dry side)
-  if (sourceType==='builtin') {
-    startBuiltinLoop(tier, makeupGain, dryGain);
-    return;
+  if (compressedSide === 'A') {
+    sourceBusA.connect(compNode); compNode.connect(junctionA);
+    sourceBusB.connect(junctionB);
+  } else {
+    sourceBusB.connect(compNode); compNode.connect(junctionB);
+    sourceBusA.connect(junctionA);
   }
 
-  // Create two identical sources from the same buffer
+  // Audio path: junction → output gain
+  junctionA.connect(gainA);
+  junctionB.connect(gainB);
+
+  // Measurement path: junction → K-weighting → analyser (no audio output)
+  const measA = createKWeightedAnalyser(junctionA);
+  const measB = createKWeightedAnalyser(junctionB);
+  analyserA = measA.analyser; kNodesA = measA.nodes;
+  analyserB = measB.analyser; kNodesB = measB.nodes;
+
+  // Build sources
+  if      (sourceType === 'oneshot') buildOneShotSources();
+  else if (sourceType === 'loop')    buildLoopSources();
+  else                               buildContinuousSources();
+
+  startGRMeter();
+  startLufsMatching();
+}
+
+// ── Continuous sources (pink noise / uploaded music) ─────────────────────────
+function buildContinuousSources() {
   const makeSrc = () => {
     if (sourceType==='custom' && customBuffers.length>0) {
-      const s=audioCtx.createBufferSource();
-      s.buffer=customBuffers[customIdx%customBuffers.length];
-      s.loop=true; return s;
+      const s = audioCtx.createBufferSource();
+      s.buffer = customBuffers[customIdx % customBuffers.length];
+      s.loop = true; return s;
     }
     return makePinkNoise(5);
   };
@@ -678,62 +808,65 @@ function buildAudioGraph() {
   sourceA = makeSrc();
   sourceB = makeSrc();
 
-  // Both sources run through individual pre-gain nodes (~−15 dB) before processing
-  const preGainA = audioCtx.createGain(); preGainA.gain.value = 0.18;
-  const preGainB = audioCtx.createGain(); preGainB.gain.value = 0.18;
-  sourceA.connect(preGainA);
-  sourceB.connect(preGainB);
+  const pgA = audioCtx.createGain(); pgA.gain.value = 0.18;
+  const pgB = audioCtx.createGain(); pgB.gain.value = 0.18;
+  sourceA.connect(pgA); pgA.connect(sourceBusA);
+  sourceB.connect(pgB); pgB.connect(sourceBusB);
 
-  // Wire: compressed side gets makeup; dry side goes direct
-  if (compressedSide==='A') {
-    preGainA.connect(compNode); compNode.connect(makeupGain); makeupGain.connect(gainA);
-    preGainB.connect(dryGain); dryGain.connect(gainB);
-  } else {
-    preGainB.connect(compNode); compNode.connect(makeupGain); makeupGain.connect(gainB);
-    preGainA.connect(dryGain); dryGain.connect(gainA);
-  }
-
-  const offset = musicOffset;
-  if (sourceType==='custom') {
-    sourceA.start(0, offset); sourceB.start(0, offset);
-    musicStartedAt = audioCtx.currentTime - offset;
+  if (sourceType === 'custom') {
+    sourceA.start(0, musicOffset); sourceB.start(0, musicOffset);
+    musicStartedAt = audioCtx.currentTime - musicOffset;
   } else {
     sourceA.start(0); sourceB.start(0);
   }
-
-  startGRMeter();
 }
 
-function startBuiltinLoop(tier, makeupGain, dryGain) {
-  if (!builtinBuffers.length) return;
+// ── One-shot sources (samples/one-shots/) — replayed every 4 s ───────────────
+function buildOneShotSources() {
+  if (!oneShotBuffers.length) return;
 
   const fire = () => {
-    if (!roundActive) return;
-    const sample = builtinBuffers[builtinIdx%builtinBuffers.length];
+    if (!roundActive || !sourceBusA || !sourceBusB) return;
+    const sample = oneShotBuffers[oneShotIdx % oneShotBuffers.length];
 
-    const sA=audioCtx.createBufferSource(); sA.buffer=sample.buffer;
-    const sB=audioCtx.createBufferSource(); sB.buffer=sample.buffer;
+    // Stop previous pair if still playing
+    [currentShotSrcA, currentShotSrcB].forEach(s => { if(s){try{s.stop();}catch(e){}} });
 
-    const pgA=audioCtx.createGain(); pgA.gain.value=0.18;
-    const pgB=audioCtx.createGain(); pgB.gain.value=0.18;
-    sA.connect(pgA); sB.connect(pgB);
+    const sA = audioCtx.createBufferSource(); sA.buffer = sample.buffer;
+    const sB = audioCtx.createBufferSource(); sB.buffer = sample.buffer;
 
-    if (compressedSide==='A') {
-      pgA.connect(compNode); compNode.connect(makeupGain); makeupGain.connect(gainA);
-      pgB.connect(dryGain); dryGain.connect(gainB);
-    } else {
-      pgB.connect(compNode); compNode.connect(makeupGain); makeupGain.connect(gainB);
-      pgA.connect(dryGain); dryGain.connect(gainA);
-    }
+    const pgA = audioCtx.createGain(); pgA.gain.value = 0.18;
+    const pgB = audioCtx.createGain(); pgB.gain.value = 0.18;
+    sA.connect(pgA); pgA.connect(sourceBusA);
+    sB.connect(pgB); pgB.connect(sourceBusB);
 
     sA.start(0); sB.start(0);
-    currentShotSrcA=sA; currentShotSrcB=sB;
+    currentShotSrcA = sA; currentShotSrcB = sB;
   };
 
-  fire(); shotTimerA = setInterval(fire, 5000);
-  startGRMeter();
+  fire();
+  shotTimerA = setInterval(fire, 4000); // replay every 4 seconds
 }
 
+// ── Loop sources (samples/loops/) — auto-loop continuously ───────────────────
+function buildLoopSources() {
+  if (!loopBuffers.length) return;
+
+  const sample = loopBuffers[loopIdx % loopBuffers.length];
+
+  const sA = audioCtx.createBufferSource(); sA.buffer = sample.buffer; sA.loop = true;
+  const sB = audioCtx.createBufferSource(); sB.buffer = sample.buffer; sB.loop = true;
+
+  const pgA = audioCtx.createGain(); pgA.gain.value = 0.18;
+  const pgB = audioCtx.createGain(); pgB.gain.value = 0.18;
+  sA.connect(pgA); pgA.connect(sourceBusA);
+  sB.connect(pgB); pgB.connect(sourceBusB);
+
+  sA.start(0); sB.start(0);
+  sourceA = sA; sourceB = sB;
+}
+
+// ── GR meter ──────────────────────────────────────────────────────────────────
 function startGRMeter() {
   if (animFrameId) cancelAnimationFrame(animFrameId);
   const loop = () => {
@@ -747,96 +880,130 @@ function startGRMeter() {
   loop();
 }
 
+// ── Stop all audio ────────────────────────────────────────────────────────────
 function stopAudio() {
-  if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId=null; }
-  if (shotTimerA)  { clearInterval(shotTimerA); shotTimerA=null; }
-  if (shotTimerB)  { clearInterval(shotTimerB); shotTimerB=null; }
-  [sourceA,sourceB,currentShotSrcA,currentShotSrcB].forEach(s=>{
-    if(s){try{s.stop();}catch(e){}}
+  if (lufsIntervalId) { clearInterval(lufsIntervalId); lufsIntervalId = null; }
+  if (animFrameId)    { cancelAnimationFrame(animFrameId); animFrameId = null; }
+  if (shotTimerA)     { clearInterval(shotTimerA); shotTimerA = null; }
+
+  [sourceA, sourceB, currentShotSrcA, currentShotSrcB].forEach(s => {
+    if (s) { try { s.stop(); } catch(e) {} }
   });
-  sourceA=sourceB=currentShotSrcA=currentShotSrcB=null;
-  if(compNode){try{compNode.disconnect();}catch(e){}compNode=null;}
-  if(gainA){try{gainA.disconnect();}catch(e){}gainA=null;}
-  if(gainB){try{gainB.disconnect();}catch(e){}gainB=null;}
-  if(masterOut){try{masterOut.disconnect();}catch(e){}masterOut=null;}
+  sourceA = sourceB = currentShotSrcA = currentShotSrcB = null;
+
+  [...kNodesA, ...kNodesB, analyserA, analyserB,
+   junctionA, junctionB, compNode,
+   sourceBusA, sourceBusB, gainA, gainB, masterOut].forEach(n => {
+    if (n) { try { n.disconnect(); } catch(e) {} }
+  });
+  kNodesA = []; kNodesB = [];
+  analyserA = analyserB = junctionA = junctionB = null;
+  compNode = sourceBusA = sourceBusB = gainA = gainB = masterOut = null;
 }
 
 // ── Pause / Restart ───────────────────────────────────────────────────────────
 function togglePause() {
-  if (!roundActive||!audioCtx) return;
-  const btn=document.getElementById('btnPause');
+  if (!roundActive || !audioCtx) return;
+  const btn = document.getElementById('btnPause');
   if (isPaused) {
-    audioCtx.resume().then(()=>{
-      isPaused=false; btn.textContent='⏸ Pause'; btn.classList.remove('paused');
-      if(sourceType==='builtin'&&roundActive){
-        const tier=TIERS[currentTier];
-        const mg=audioCtx.createGain(); mg.gain.value=Math.pow(10,tier.makeup/20);
-        startBuiltinLoop(tier,mg);
-      }
+    audioCtx.resume().then(() => {
+      isPaused = false; btn.textContent = '⏸ Pause'; btn.classList.remove('paused');
+      if (sourceType==='oneshot' && roundActive) buildOneShotSources();
     });
   } else {
-    if(shotTimerA){clearInterval(shotTimerA);shotTimerA=null;}
-    audioCtx.suspend().then(()=>{isPaused=true;btn.textContent='▶ Resume';btn.classList.add('paused');});
+    if (shotTimerA) { clearInterval(shotTimerA); shotTimerA = null; }
+    audioCtx.suspend().then(() => {
+      isPaused = true; btn.textContent = '▶ Resume'; btn.classList.add('paused');
+    });
   }
 }
 
 function restartAudio() {
   if (!roundActive) return;
-  if (isPaused&&audioCtx){audioCtx.resume();isPaused=false;const b=document.getElementById('btnPause');b.textContent='⏸ Pause';b.classList.remove('paused');}
-  musicOffset=0; buildAudioGraph(); updateListenBtns(); showToast('Restarted');
+  if (isPaused && audioCtx) {
+    audioCtx.resume(); isPaused = false;
+    const b = document.getElementById('btnPause');
+    b.textContent = '⏸ Pause'; b.classList.remove('paused');
+  }
+  musicOffset = 0;
+  pathGainA = pathGainB = 0.55; // reset RMS correction on manual restart
+  buildAudioGraph(); updateListenBtns(); showToast('Restarted');
 }
 
-// ── Seek / Skip ───────────────────────────────────────────────────────────────
+// ── Seek / Skip (custom music only) ──────────────────────────────────────────
 function seekMusic(delta) {
-  if (sourceType!=='custom'||!customBuffers.length||!audioCtx) return;
-  const buf=customBuffers[customIdx%customBuffers.length];
-  const elapsed=audioCtx.currentTime-musicStartedAt;
-  const newOffset=Math.max(0,Math.min(buf.duration-0.5,musicOffset+elapsed+delta));
-  musicOffset=newOffset; buildAudioGraph(); updateListenBtns();
+  if (sourceType!=='custom' || !customBuffers.length || !audioCtx) return;
+  const buf = customBuffers[customIdx % customBuffers.length];
+  const elapsed = audioCtx.currentTime - musicStartedAt;
+  const newOffset = Math.max(0, Math.min(buf.duration - 0.5, musicOffset + elapsed + delta));
+  musicOffset = newOffset; pathGainA = pathGainB = 0.55;
+  buildAudioGraph(); updateListenBtns();
   showToast(`${delta>0?'+':''}${delta}s`);
 }
 
 function skipTrack(delta) {
-  if (sourceType!=='custom'||!customBuffers.length) return;
-  customIdx=((customIdx+delta)%customBuffers.length+customBuffers.length)%customBuffers.length;
-  musicOffset=0; buildAudioGraph(); updateListenBtns();
+  if (sourceType!=='custom' || !customBuffers.length) return;
+  customIdx = ((customIdx + delta) % customBuffers.length + customBuffers.length) % customBuffers.length;
+  musicOffset = 0; pathGainA = pathGainB = 0.55;
+  buildAudioGraph(); updateListenBtns();
   showToast(`Track ${customIdx+1} / ${customBuffers.length}`);
 }
 
-// ── Source ────────────────────────────────────────────────────────────────────
+// ── Source selection ──────────────────────────────────────────────────────────
 function setSource(type) {
-  if (type==='builtin'&&!builtinLoaded) {
-    showToast('Loading samples…');
-    loadBuiltinSamples().then(()=>{sourceType='builtin';updateSourceUI();if(roundActive)buildAudioGraph();});
+  if (type === 'oneshot' && !oneShotLoaded) {
+    showToast('Loading one-shots…');
+    loadOneShotSamples().then(() => {
+      sourceType = 'oneshot'; updateSourceUI();
+      if (roundActive) buildAudioGraph();
+    });
     return;
   }
-  sourceType=type; updateSourceUI();
+  if (type === 'loop' && !loopLoaded) {
+    showToast('Loading loops…');
+    loadLoopSamples().then(() => {
+      sourceType = 'loop'; updateSourceUI();
+      if (roundActive) buildAudioGraph();
+    });
+    return;
+  }
+  sourceType = type; updateSourceUI();
   if (roundActive) buildAudioGraph();
 }
+
 function updateSourceUI() {
   document.getElementById('srcPink').classList.toggle('active',    sourceType==='pink');
+  document.getElementById('srcOneShot').classList.toggle('active', sourceType==='oneshot');
+  document.getElementById('srcLoop').classList.toggle('active',    sourceType==='loop');
   document.getElementById('srcCustom').classList.toggle('active',  sourceType==='custom');
-  document.getElementById('srcBuiltin').classList.toggle('active', sourceType==='builtin');
-}
-function triggerUpload() {
-  if(customBuffers.length>0){setSource('custom');return;}
-  document.getElementById('folderInput').click();
-}
-async function handleFolderUpload(e) {
-  const files=Array.from(e.target.files).filter(f=>f.type.startsWith('audio/'));
-  if(!files.length)return;
-  initAudio(); customBuffers=[]; showToast(`Loading ${files.length} tracks…`);
-  for(const f of files){try{const ab=await f.arrayBuffer();customBuffers.push(await audioCtx.decodeAudioData(ab));}catch(e){console.warn(e);}}
-  if(customBuffers.length>0){document.getElementById('uploadLabel').textContent=`📁 Folder (${customBuffers.length} tracks)`;setSource('custom');showToast('Music loaded!');}
 }
 
-const SAMPLE_FILES=[
+function triggerUpload() {
+  if (customBuffers.length > 0) { setSource('custom'); return; }
+  document.getElementById('folderInput').click();
+}
+
+async function handleFolderUpload(e) {
+  const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
+  if (!files.length) return;
+  initAudio(); customBuffers = []; showToast(`Loading ${files.length} tracks…`);
+  for (const f of files) {
+    try { customBuffers.push(await audioCtx.decodeAudioData(await f.arrayBuffer())); }
+    catch(e) { console.warn(e); }
+  }
+  if (customBuffers.length > 0) {
+    document.getElementById('uploadLabel').textContent = `📁 Folder (${customBuffers.length} tracks)`;
+    setSource('custom'); showToast('Music loaded!');
+  }
+}
+
+// ── Sample file lists ─────────────────────────────────────────────────────────
+const ONE_SHOT_FILES = [
   'CLAP_DEEP_001.wav','CLAP_DEEP_002.wav','CLAP_DEEP_003.wav','CLAP_DEEP_004.wav','CLAP_DEEP_005.wav',
   'CLAP_LAYER_001.wav','CLAP_LAYER_002.wav','CLAP_LAYER_003.wav','CLAP_LAYER_004.wav',
   'SNARE_DEEP_001.wav','SNARE_DEEP_002.wav','SNARE_DEEP_003.wav','SNARE_DEEP_004.wav','SNARE_DEEP_005.wav','SNARE_DEEP_006.wav',
 ];
 
-// ── Shared loop files (../../samples/loops/) ────────────────────────────────
 const LOOP_FILES = [
   'tunetank-soft-house-music-348241.mp3',
   'cyberwave-orchestra-orchestral-music-loop-287416.mp3',
@@ -852,25 +1019,25 @@ const LOOP_FILES = [
   'the_mountain-deep-house-483808.mp3',
   'the_mountain-hi-tech-loop-151203.mp3',
   'the_mountain-loop-beat-130010.mp3',
-  'the_mountain-soft-loop-130012.mp3'
+  'the_mountain-soft-loop-130012.mp3',
 ];
-async function loadBuiltinSamples() {
-  if(builtinLoaded)return; initAudio(); builtinBuffers=[];
-  await Promise.all(SAMPLE_FILES.map(async fname=>{
-    try{const r=await fetch(`../../samples/one-shots/${fname}`);if(!r.ok)throw new Error();
-    builtinBuffers.push({name:fname.replace(/\.\w+$/,''),buffer:await audioCtx.decodeAudioData(await r.arrayBuffer())});}
-    catch(e){console.warn('Could not load',fname);}
-  }));
-  builtinBuffers.sort((a,b)=>a.name.localeCompare(b.name));
-  builtinLoaded=builtinBuffers.length>0;
-  if(!builtinLoaded){showToast('No samples found');sourceType='pink';updateSourceUI();}
-}
-// ── Load loops from shared samples/loops/ folder ─────────────────────────────
-let loopBuffers    = [];
-let loopLoaded     = false;
-let loopIdx        = 0;
 
-async function loadLoopFiles() {
+async function loadOneShotSamples() {
+  if (oneShotLoaded) return;
+  initAudio(); oneShotBuffers = [];
+  await Promise.all(ONE_SHOT_FILES.map(async fname => {
+    try {
+      const r = await fetch(`../../samples/one-shots/${fname}`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      oneShotBuffers.push({ name: fname.replace(/\.\w+$/, ''), buffer: await audioCtx.decodeAudioData(await r.arrayBuffer()) });
+    } catch(e) { console.warn('Could not load one-shot:', fname, e.message); }
+  }));
+  oneShotBuffers.sort((a,b) => a.name.localeCompare(b.name));
+  oneShotLoaded = oneShotBuffers.length > 0;
+  if (!oneShotLoaded) { showToast('No one-shots found'); sourceType = 'pink'; updateSourceUI(); }
+}
+
+async function loadLoopSamples() {
   if (loopLoaded) return;
   initAudio(); loopBuffers = [];
   await Promise.all(LOOP_FILES.map(async fname => {
@@ -878,53 +1045,51 @@ async function loadLoopFiles() {
       const r = await fetch(`../../samples/loops/${fname}`);
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       loopBuffers.push({ name: fname.replace(/\.\w+$/, ''), buffer: await audioCtx.decodeAudioData(await r.arrayBuffer()) });
-    } catch(e) { console.warn('Could not load loop', fname, e.message); }
+    } catch(e) { console.warn('Could not load loop:', fname, e.message); }
   }));
   loopBuffers.sort((a,b) => a.name.localeCompare(b.name));
   loopLoaded = loopBuffers.length > 0;
-  if (!loopLoaded) showToast('No loops found — check samples/loops/ folder');
-}
-function _placeholder_after_loop_load() {
+  if (!loopLoaded) { showToast('No loops found — check samples/loops/ folder'); sourceType = 'pink'; updateSourceUI(); }
 }
 
 // ── History ───────────────────────────────────────────────────────────────────
 function addHistory(correct) {
-  const strip=document.getElementById('historyStrip');
-  const dot=document.createElement('div');
-  dot.className=`hist-dot ${correct?'c':'w'}`;
+  const strip = document.getElementById('historyStrip');
+  const dot   = document.createElement('div');
+  dot.className = `hist-dot ${correct ? 'c' : 'w'}`;
   strip.appendChild(dot);
-  while(strip.children.length>40)strip.removeChild(strip.firstChild);
+  while (strip.children.length > 40) strip.removeChild(strip.firstChild);
 }
 
 // ── Keyboard ──────────────────────────────────────────────────────────────────
-window.addEventListener('keydown', e=>{
-  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
-  if(e.code!=='KeyP'&&audioCtx&&audioCtx.state==='suspended') audioCtx.resume();
-  if(e.code==='KeyA'&&roundActive)       { e.preventDefault(); listenTo('A'); if(!answered) selectAnswer('A'); }
-  if(e.code==='KeyB'&&roundActive)       { e.preventDefault(); listenTo('B'); if(!answered) selectAnswer('B'); }
-  if(e.code==='Space')                   { e.preventDefault(); if(roundActive) listenTo(listeningTo==='A'?'B':'A'); }
-  if(e.code==='KeyP')                    { e.preventDefault(); togglePause(); }
-  if(e.code==='KeyF')                    { e.preventDefault(); restartAudio(); }
-  if(e.code==='Enter')                   { newRound(); }
-  if(e.code==='ArrowLeft')               { e.preventDefault(); seekMusic(-10); }
-  if(e.code==='ArrowRight')              { e.preventDefault(); seekMusic(+10); }
-  if(e.code==='ArrowUp')                 { e.preventDefault(); skipTrack(+1); }
-  if(e.code==='ArrowDown')               { e.preventDefault(); skipTrack(-1); }
+window.addEventListener('keydown', e => {
+  if (e.target.tagName==='INPUT' || e.target.tagName==='SELECT') return;
+  if (e.code!=='KeyP' && audioCtx && audioCtx.state==='suspended') audioCtx.resume();
+  if (e.code==='KeyA' && roundActive) { e.preventDefault(); listenTo('A'); if (!answered) selectAnswer('A'); }
+  if (e.code==='KeyB' && roundActive) { e.preventDefault(); listenTo('B'); if (!answered) selectAnswer('B'); }
+  if (e.code==='Space')               { e.preventDefault(); if (roundActive) listenTo(listeningTo==='A'?'B':'A'); }
+  if (e.code==='KeyP')                { e.preventDefault(); togglePause(); }
+  if (e.code==='KeyF')                { e.preventDefault(); restartAudio(); }
+  if (e.code==='Enter')               { newRound(); }
+  if (e.code==='ArrowLeft')           { e.preventDefault(); seekMusic(-10); }
+  if (e.code==='ArrowRight')          { e.preventDefault(); seekMusic(+10); }
+  if (e.code==='ArrowUp')             { e.preventDefault(); skipTrack(+1); }
+  if (e.code==='ArrowDown')           { e.preventDefault(); skipTrack(-1); }
 });
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function showToast(msg) {
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),3000);
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 document.getElementById('tierDesc').textContent = TIERS[currentTier].label;
 document.getElementById('tierSelect').value = currentTier;
 
-if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').then(()=>{}).catch(()=>{});
   });
 }
