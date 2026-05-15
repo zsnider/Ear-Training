@@ -46,6 +46,21 @@
     display:flex; align-items:center; justify-content:space-between;
   }
 
+  .header-left { display:flex; align-items:center; gap:14px; }
+
+  .back-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; color: var(--muted);
+    text-decoration: none;
+    padding: 4px 10px;
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    background: var(--surface2);
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .back-btn:hover { color: var(--accent2); border-color: var(--accent); }
+
   .brand { display:flex; align-items:center; gap:10px; }
   .brand-icon {
     width:34px; height:34px;
@@ -65,11 +80,7 @@
   .stat-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-top:2px; }
   .vdiv { width:1px; height:22px; background:var(--border2); }
 
-  .main {
-    width:100%; max-width:980px;
-    padding:18px 24px 0;
-    display:flex; flex-direction:column; gap:14px;
-  }
+  .main { width:100%; max-width:980px; padding:18px 24px 0; display:flex; flex-direction:column; gap:14px; }
 
   .setting-item {
     background:var(--surface); border:1px solid var(--border);
@@ -96,16 +107,22 @@
     color:var(--accent2); box-shadow:0 0 8px rgba(240,112,80,0.15);
   }
 
+  /* Param pill in custom mode */
+  .param-pill-toggle {
+    font-size:11px; padding:3px 9px; border-radius:10px; border:1px solid;
+    transition: all 0.15s;
+  }
+  .param-pill-toggle.togglable { cursor: pointer; }
+  .param-pill-toggle.togglable:hover { opacity: 0.85; }
+
   kbd {
     font-family:'IBM Plex Mono',monospace; font-size:10px;
     background:var(--surface2); border:1px solid var(--border2);
     border-radius:4px; padding:1px 5px; color:var(--muted);
   }
 
-  /* ── Type selector pills (replaces knob for distortion type) ── */
-  .type-selector {
-    display:flex; gap:6px; flex-wrap:wrap; justify-content:center;
-  }
+  /* ── Type selector pills ── */
+  .type-selector { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; }
   .type-pill {
     background:var(--surface2); border:1px solid var(--border2);
     border-radius:8px; padding:4px 10px;
@@ -118,9 +135,7 @@
   .type-pill.locked-type { opacity:0.25; pointer-events:none; }
 
   /* ── Workspace ── */
-  .workspace {
-    display:grid; grid-template-columns:1fr 300px; gap:14px;
-  }
+  .workspace { display:grid; grid-template-columns:1fr 300px; gap:14px; }
 
   .dist-panel {
     background:var(--surface); border:1px solid var(--border);
@@ -146,15 +161,11 @@
     opacity:0; transition:opacity 0.2s;
   }
   .listen-pill.t-pill { background:rgba(212,74,42,0.12); border:1px solid rgba(212,74,42,0.35); color:var(--accent2); }
-  .listen-pill.u-pill { background:rgba(232,160,48,0.1); border:1px solid rgba(232,160,48,0.3); color:var(--gold2); }
+  .listen-pill.u-pill { background:rgba(232,160,48,0.1);  border:1px solid rgba(232,160,48,0.3);  color:var(--gold2); }
   .listen-pill.visible { opacity:1; }
 
   /* Knob grid */
-  .knob-grid {
-    display:grid; grid-template-columns:repeat(4,1fr);
-    gap:1px; background:var(--border); flex:1;
-  }
-  /* Type cell spans differently */
+  .knob-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); flex:1; }
   .knob-cell {
     background:var(--surface); padding:14px 10px 12px;
     display:flex; flex-direction:column; align-items:center; gap:9px;
@@ -171,36 +182,17 @@
     font-size:9px; font-weight:600;
     letter-spacing:0.1em; text-transform:uppercase; color:var(--muted);
   }
-  .knob-wrap {
-    position:relative; width:62px; height:62px;
-    cursor:grab; touch-action:none;
-  }
+  .knob-wrap { position:relative; width:62px; height:62px; cursor:grab; touch-action:none; }
   .knob-wrap:active { cursor:grabbing; }
   .knob-svg { width:100%; height:100%; }
-  .knob-val {
-    font-family:'IBM Plex Mono',monospace;
-    font-size:11px; font-weight:500; color:var(--text);
-    text-align:center; min-height:16px;
-  }
+  .knob-val { font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:500; color:var(--text); text-align:center; min-height:16px; }
 
   /* Harmonic spectrum visualizer */
-  .spectrum-wrap {
-    padding:10px 16px 12px; border-top:1px solid var(--border);
-  }
-  .spectrum-label {
-    font-size:10px; font-weight:600;
-    letter-spacing:0.08em; text-transform:uppercase;
-    color:var(--muted); margin-bottom:7px;
-  }
-  canvas.spectrum-canvas {
-    display:block; width:100%; height:90px;
-    border-radius:6px; background:var(--bg2);
-  }
-  .spectrum-canvas.hidden-spectrum {
-    filter:blur(12px); opacity:0;
-  }
+  .spectrum-wrap { padding:10px 16px 12px; border-top:1px solid var(--border); }
+  .spectrum-label { font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); margin-bottom:7px; }
+  canvas.spectrum-canvas { display:block; width:100%; height:90px; border-radius:6px; background:var(--bg2); }
+  .spectrum-canvas.hidden-spectrum { filter:blur(12px); opacity:0; }
 
-  /* Spectrum legend */
   .spec-legend { display:flex; gap:14px; margin-top:5px; }
   .sl-item { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); }
   .sl-dot { width:22px; height:3px; border-radius:2px; }
@@ -214,11 +206,7 @@
     display:flex; flex-direction:column; gap:10px;
   }
   .meter-row { display:flex; align-items:center; gap:10px; }
-  .meter-name {
-    font-family:'IBM Plex Mono',monospace; font-size:10px;
-    font-weight:600; text-transform:uppercase; letter-spacing:0.08em;
-    width:52px; flex-shrink:0;
-  }
+  .meter-name { font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; width:52px; flex-shrink:0; }
   .meter-name.t-c { color:var(--accent2); }
   .meter-name.u-c { color:var(--gold2); }
   .meter-track { flex:1; height:12px; background:var(--surface3); border-radius:3px; overflow:hidden; }
@@ -226,7 +214,6 @@
   .meter-fill.t-fill { background:linear-gradient(to right,var(--accent),var(--accent2)); }
   .meter-fill.u-fill { background:linear-gradient(to right,var(--gold),var(--gold2)); }
   .meter-db { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text); width:40px; text-align:right; flex-shrink:0; }
-
   #levelCanvas { width:100%; height:44px; border-radius:6px; background:var(--bg2); display:block; }
 
   .source-panel {
@@ -242,6 +229,11 @@
   }
   .source-pill:hover { border-color:var(--accent); }
   .source-pill.active { border-color:var(--accent); background:rgba(212,74,42,0.1); color:var(--accent2); }
+
+  #sourceLoadStatus {
+    font-size:11px; font-family:'IBM Plex Mono',monospace;
+    color:var(--muted); min-height:16px;
+  }
 
   button {
     border:none; border-radius:10px;
@@ -289,16 +281,15 @@
   .btn-play-restart:disabled { opacity:0.35; cursor:not-allowed; }
 
   .btn-pause {
-    background: var(--surface2);
-    color: var(--muted);
-    border: 1px solid var(--border2);
-    font-size: 13px; padding: 9px 16px; border-radius: 10px;
-    cursor: pointer; font-family: 'IBM Plex Sans', sans-serif;
-    display: flex; align-items: center; gap: 7px;
-    transition: all 0.15s; white-space: nowrap;
+    background:var(--surface2); color:var(--muted);
+    border:1px solid var(--border2);
+    font-size:13px; padding:9px 16px; border-radius:10px;
+    cursor:pointer; font-family:'IBM Plex Sans',sans-serif;
+    display:flex; align-items:center; gap:7px;
+    transition:all 0.15s; white-space:nowrap;
   }
-  .btn-pause:hover { border-color: var(--accent2); color: var(--accent2); }
-  .btn-pause.paused { background: rgba(212,74,42,0.1); border-color: var(--accent2); color: var(--accent2); }
+  .btn-pause:hover { border-color:var(--accent2); color:var(--accent2); }
+  .btn-pause.paused { background:rgba(212,74,42,0.1); border-color:var(--accent2); color:var(--accent2); }
   .btn-pause:disabled { opacity:0.35; cursor:not-allowed; }
 
   .controls-bar { display:flex; gap:10px; flex-wrap:wrap; }
@@ -320,11 +311,7 @@
   .acc-fill { height:100%; border-radius:3px; width:0; transition:width 0.9s cubic-bezier(0.16,1,0.3,1); }
 
   .param-results { display:flex; gap:8px; flex-wrap:wrap; }
-  .pr-chip {
-    background:var(--surface2); border:1px solid var(--border);
-    border-radius:8px; padding:6px 12px; font-size:12px; color:var(--muted);
-    font-family:'IBM Plex Mono',monospace;
-  }
+  .pr-chip { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:6px 12px; font-size:12px; color:var(--muted); font-family:'IBM Plex Mono',monospace; }
   .pr-chip .good { color:var(--green); }
   .pr-chip .bad  { color:var(--red); }
 
@@ -341,15 +328,17 @@
 <body>
 
 <header>
-  <div class="brand">
-    <div class="brand-icon">
-      <!-- Waveform clipping icon -->
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <polyline points="1,10 5,10 6,4 7,16 8,4 9,16 10,10 14,10 15,6 16,14 17,6 18,14 19,10"
-                  stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-      </svg>
+  <div class="header-left">
+    <a class="back-btn" href="../index.html">← Back</a>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <polyline points="1,10 5,10 6,4 7,16 8,4 9,16 10,10 14,10 15,6 16,14 17,6 18,14 19,10"
+                    stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+      </div>
+      <span class="brand-name">DISTORTION <span>MASTER</span></span>
     </div>
-    <span class="brand-name">DISTORTION <span>MASTER</span></span>
   </div>
   <div class="score-row">
     <div class="stat">
@@ -378,13 +367,14 @@
       <div class="pill" onclick="setDifficulty('medium',this)">Medium</div>
       <div class="pill" onclick="setDifficulty('hard',this)">Hard</div>
       <div class="pill" onclick="setDifficulty('pro',this)">Pro</div>
-      <div class="pill" onclick="setDifficulty('legend',this)">Legend</div>
+      <div class="pill" onclick="setDifficulty('custom',this)">Custom</div>
     </div>
     <div class="setting-item" style="flex:1;">
       <span class="label">Params</span>
+      <span id="customHint" style="font-size:10px;color:var(--muted);display:none;white-space:nowrap;">— click to toggle</span>
       <div id="paramPills" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
       <div style="margin-left:auto;font-size:11px;color:var(--muted);white-space:nowrap;">
-        <kbd>Space</kbd> A/B &nbsp;·&nbsp; <kbd>D</kbd> Dry &nbsp;·&nbsp; <kbd>F</kbd> Restart &nbsp;·&nbsp; <kbd>P</kbd> Pause &nbsp;·&nbsp; <kbd>⇧</kbd> New &nbsp;·&nbsp; <kbd>↵</kbd> Check
+        <kbd>Space</kbd> A/B &nbsp;·&nbsp; <kbd>D</kbd> Dry &nbsp;·&nbsp; <kbd>F</kbd> Restart &nbsp;·&nbsp; <kbd>P</kbd> Pause &nbsp;·&nbsp; <kbd>←→</kbd> Seek &nbsp;·&nbsp; <kbd>↑↓</kbd> Track &nbsp;·&nbsp; <kbd>⇧</kbd> New &nbsp;·&nbsp; <kbd>↵</kbd> Check
       </div>
     </div>
   </div>
@@ -452,12 +442,14 @@
       <!-- Source -->
       <div class="source-panel">
         <span class="label">Audio Source</span>
-        <div class="source-pill" id="srcBuiltin" onclick="setSource('builtin')">Sample One-shots</div>
+        <div class="source-pill" id="srcOneShot" onclick="setSource('oneShot')">One-shots</div>
+        <div class="source-pill" id="srcLoop"    onclick="setSource('loop')">Loops</div>
         <div class="source-pill active" id="srcPink" onclick="setSource('pink')">Pink Noise</div>
         <div class="source-pill" id="srcCustom" onclick="triggerUpload()" style="border-style:dashed;">
           <span id="uploadLabel">📁 Upload Music Folder</span>
         </div>
         <input type="file" id="folderInput" webkitdirectory directory multiple onchange="handleFolderUpload(event)" style="display:none;">
+        <span id="sourceLoadStatus"></span>
       </div>
 
       <!-- Controls -->
@@ -508,29 +500,30 @@ const DIST_TYPES = ['softclip','hardclip','tape','foldback'];
 const DIST_TYPE_LABELS = { softclip:'Soft Clip', hardclip:'Hard Clip', tape:'Tape', foldback:'Foldback' };
 
 const PARAMS = {
-  drive:  { label:'Drive',   min:0,    max:1,    default:0.3,  fmt: v=>`${Math.round(v*100)}%`      },
-  mix:    { label:'Mix',     min:0,    max:1,    default:0.5,  fmt: v=>`${Math.round(v*100)}%`      },
-  tone:   { label:'Tone',    min:-12,  max:12,   default:0,    fmt: v=>`${v>0?'+':''}${v.toFixed(1)}dB` },
-  type:   { label:'Type',    min:0,    max:3,    default:0,    fmt: v=>DIST_TYPE_LABELS[DIST_TYPES[Math.round(v)]]||'Soft Clip', isType:true },
+  drive: { label:'Drive',   min:0,   max:1,   default:0.3, fmt: v=>`${Math.round(v*100)}%`          },
+  mix:   { label:'Wet/Dry', min:0,   max:1,   default:0.5, fmt: v=>`${Math.round(v*100)}%`          },
+  tone:  { label:'Tone',    min:-12, max:12,  default:0,   fmt: v=>`${v>0?'+':''}${v.toFixed(1)}dB` },
+  type:  { label:'Type',    min:0,   max:3,   default:0,   fmt: v=>DIST_TYPE_LABELS[DIST_TYPES[Math.round(v)]]||'Soft Clip', isType:true },
 };
 
 const DIFFICULTY = {
-  easy:   { params:['drive'],                    label:'Easy'   },
-  medium: { params:['drive','mix'],              label:'Medium' },
-  hard:   { params:['drive','mix','type'],       label:'Hard'   },
-  pro:    { params:['drive','mix','type','tone'],label:'Pro'    },
-  legend: { params:['drive','mix','type','tone'],label:'Legend', tight:true },
+  easy:   { params:['drive'],                     label:'Easy'   },
+  medium: { params:['drive','mix'],               label:'Medium' },
+  hard:   { params:['drive','mix','type'],        label:'Hard'   },
+  pro:    { params:['drive','mix','type','tone'], label:'Pro'    },
+  custom: { params:null,                          label:'Custom' },
 };
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let difficulty   = 'easy';
 let activeParams = [...DIFFICULTY.easy.params];
+let customParams = ['drive','mix','type']; // persists across difficulty switches
 let targetSettings = {}, userSettings = {};
-let roundActive  = false, answered = false;
+let roundActive = false, answered = false;
 let totalScore=0, streak=0, round=0;
 let listeningTo  = 'target';
 let isDry        = false;
-let isPaused     = false;  // true = audio context suspended
+let isPaused     = false;
 let abActive=false, abInterval=null;
 
 // Audio
@@ -546,17 +539,50 @@ let analyserTarget = null, analyserUser  = null, analyserDry = null;
 let dryBypassGain  = null;
 let animFrameId    = null;
 let sourceType     = 'pink';
-let customBuffers  = [], currentBufferIndex = 0;
-let builtinBuffers = [], builtinLoaded = false, builtinIndex = 0, builtinLoopTimer = null;
+
+// Music tracking
+let musicOffset    = 0;
+let musicStartedAt = 0;
+
+// Custom upload
+let customBuffers = [], currentBufferIndex = 0;
+
+// One-shots
+let oneShotBuffers = [], oneShotLoaded = false, oneShotIndex = 0;
+let oneShotLoopTimer = null;
+
+// Loops
+let loopBuffers = [], loopLoaded = false, loopIndex = 0;
 
 let draggingKnob = null;
+
+// ── Sample file lists ─────────────────────────────────────────────────────────
+const ONE_SHOT_FILES = [
+  'CLAP_DEEP_001.wav','CLAP_DEEP_002.wav','CLAP_DEEP_003.wav','CLAP_DEEP_004.wav','CLAP_DEEP_005.wav',
+  'CLAP_LAYER_001.wav','CLAP_LAYER_002.wav','CLAP_LAYER_003.wav','CLAP_LAYER_004.wav',
+  'SNARE_DEEP_001.wav','SNARE_DEEP_002.wav','SNARE_DEEP_003.wav','SNARE_DEEP_004.wav','SNARE_DEEP_005.wav','SNARE_DEEP_006.wav',
+];
+const LOOP_FILES = [
+  'LOOP_001.wav','LOOP_002.wav','LOOP_003.wav','LOOP_004.wav','LOOP_005.wav',
+  'LOOP_006.wav','LOOP_007.wav','LOOP_008.wav','LOOP_009.wav','LOOP_010.wav',
+];
+
+// ── Load status helper ────────────────────────────────────────────────────────
+function setLoadStatus(msg, isLoading) {
+  const el = document.getElementById('sourceLoadStatus');
+  if (!msg) { el.textContent = ''; el.style.color = ''; return; }
+  el.textContent = msg;
+  el.style.color = isLoading ? 'var(--amber)' : 'var(--green)';
+  if (!isLoading) setTimeout(() => { el.textContent = ''; el.style.color = ''; }, 2000);
+}
 
 // ── Difficulty ────────────────────────────────────────────────────────────────
 function setDifficulty(d, el) {
   difficulty = d;
-  activeParams = [...DIFFICULTY[d].params];
-  document.querySelectorAll('.setting-item .pill').forEach(p=>p.classList.remove('active'));
+  activeParams = d === 'custom' ? [...customParams] : [...DIFFICULTY[d].params];
+  document.querySelectorAll('.setting-item .pill').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
+  document.getElementById('customHint').style.display = d === 'custom' ? '' : 'none';
   renderParamPills();
   if (roundActive) newRound();
 }
@@ -564,16 +590,38 @@ function setDifficulty(d, el) {
 function renderParamPills() {
   const c = document.getElementById('paramPills');
   c.innerHTML = '';
+  const isCustom = difficulty === 'custom';
   Object.keys(PARAMS).forEach(key => {
     const span = document.createElement('span');
-    span.style.cssText = 'font-size:11px;padding:3px 9px;border-radius:10px;border:1px solid;';
+    span.className = 'param-pill-toggle' + (isCustom ? ' togglable' : '');
     const active = activeParams.includes(key);
     span.style.borderColor = active ? 'var(--accent)' : 'var(--border2)';
     span.style.color       = active ? 'var(--accent2)' : 'var(--muted)';
     span.style.background  = active ? 'rgba(212,74,42,0.1)' : 'var(--surface2)';
     span.textContent = PARAMS[key].label;
+    if (isCustom) {
+      span.title = 'Click to ' + (active ? 'disable' : 'enable');
+      span.addEventListener('click', () => toggleCustomParam(key));
+    }
     c.appendChild(span);
   });
+}
+
+function toggleCustomParam(key) {
+  if (difficulty !== 'custom') return;
+  const idx = customParams.indexOf(key);
+  if (idx >= 0) {
+    if (customParams.length <= 1) { showToast('At least one parameter must be active'); return; }
+    customParams.splice(idx, 1);
+  } else {
+    customParams.push(key);
+  }
+  activeParams = [...customParams];
+  renderParamPills();
+  if (roundActive) {
+    renderKnobs('target', targetSettings, true);
+    renderKnobs('user', userSettings, false);
+  }
 }
 
 // ── Knob SVG ──────────────────────────────────────────────────────────────────
@@ -619,20 +667,17 @@ function renderKnobs(panel, settings, hideActive) {
 
     const cell = document.createElement('div');
     let cls = 'knob-cell';
-    if (userLocked)    cls += ' locked';
-    if (targetHidden)  cls += ' hidden-target';
-    if (targetGreyed)  cls += ' locked';
+    if (userLocked)   cls += ' locked';
+    if (targetHidden) cls += ' hidden-target';
+    if (targetGreyed) cls += ' locked';
     cell.className = cls;
 
     const val = settings[key] ?? p.default;
     const displayVal = targetHidden ? '?' : p.fmt(val);
 
     if (p.isType) {
-      // Render type selector pills instead of knob
       const typeIdx = Math.round(val);
-      const isHidden = targetHidden;
       const isUserPanel = panel === 'user';
-
       let typePillsHtml = '';
       DIST_TYPES.forEach((t, i) => {
         const isActive = i === typeIdx;
@@ -640,7 +685,6 @@ function renderKnobs(panel, settings, hideActive) {
         typePillsHtml += `<div class="type-pill${isActive?' active':''}${!clickable?' locked-type':''}"
           onclick="${clickable ? `setTypeParam(${i})` : ''}">${DIST_TYPE_LABELS[t]}</div>`;
       });
-
       cell.innerHTML = `
         <div class="knob-label">${p.label}</div>
         <div class="type-selector" id="type-selector-${panel}">${typePillsHtml}</div>
@@ -652,7 +696,6 @@ function renderKnobs(panel, settings, hideActive) {
           ${makeKnobSVG(key, val, color, targetGreyed)}
         </div>
         <div class="knob-val" id="kval-${panel}-${key}">${displayVal}</div>`;
-
       if (panel==='user' && !userLocked) {
         const wrap = cell.querySelector('.knob-wrap');
         wrap.addEventListener('mousedown', startDrag);
@@ -667,7 +710,6 @@ function renderKnobs(panel, settings, hideActive) {
 function setTypeParam(idx) {
   if (!roundActive) return;
   userSettings.type = idx;
-  // Update pill UI
   const sel = document.getElementById('type-selector-user');
   if (sel) sel.querySelectorAll('.type-pill').forEach((p,i) => p.classList.toggle('active', i===idx));
   const lbl = document.getElementById('kval-user-type');
@@ -688,18 +730,13 @@ function startDrag(e) {
 function applyDrag({ key, startY, startVal }, currentY) {
   const dy = startY - currentY;
   const p  = PARAMS[key];
-  const val = Math.max(p.min, Math.min(p.max, startVal + dy * (p.max - p.min) / 200));
-  userSettings[key] = val;
+  userSettings[key] = Math.max(p.min, Math.min(p.max, startVal + dy * (p.max - p.min) / 200));
   updateUserKnob(key);
   liveUpdateUserDist();
 }
 
 window.addEventListener('mousemove', e => { if (draggingKnob) applyDrag(draggingKnob, e.clientY); });
-window.addEventListener('touchmove', e => {
-  if (!draggingKnob) return;
-  applyDrag(draggingKnob, e.touches[0].clientY);
-  e.preventDefault();
-}, {passive:false});
+window.addEventListener('touchmove', e => { if (!draggingKnob) return; applyDrag(draggingKnob, e.touches[0].clientY); e.preventDefault(); }, {passive:false});
 window.addEventListener('mouseup',  () => { draggingKnob = null; });
 window.addEventListener('touchend', () => { draggingKnob = null; });
 
@@ -721,7 +758,6 @@ function updateUserKnob(key) {
   const lbl  = document.getElementById(`kval-user-${key}`);
   if (wrap) wrap.innerHTML = makeKnobSVG(key, val, 'var(--gold2)', false);
   if (lbl)  lbl.textContent = p.fmt(val);
-  // Update drive meter
   if (key === 'drive') {
     document.getElementById('uDriveFill').style.width = (val*100)+'%';
     document.getElementById('uDriveDb').textContent   = Math.round(val*100)+'%';
@@ -731,46 +767,25 @@ function updateUserKnob(key) {
 }
 
 // ── Harmonic spectrum visualizer ──────────────────────────────────────────────
-// Computes approximate harmonic amplitudes for a given distortion type + drive
 function computeHarmonics(settings) {
   const { drive, type: typeVal, mix } = settings;
   const typeIdx = Math.round(typeVal ?? 0);
   const typeName = DIST_TYPES[typeIdx] || 'softclip';
   const d = Math.max(0.001, drive);
   const wet = mix ?? 0.5;
-  const N = 12; // harmonics to show
+  const N = 12;
   const amps = new Array(N).fill(0);
-
-  // Fundamental
   amps[0] = 1.0;
-
   if (typeName === 'softclip') {
-    // Soft clip → mainly odd harmonics, smooth rolloff
-    for (let i = 1; i < N; i++) {
-      if (i % 2 === 0) amps[i] = d * Math.pow(0.55, i) * 0.3;
-      else              amps[i] = d * Math.pow(0.65, i);
-    }
+    for (let i=1;i<N;i++) amps[i] = i%2===0 ? d*Math.pow(0.55,i)*0.3 : d*Math.pow(0.65,i);
   } else if (typeName === 'hardclip') {
-    // Hard clip → strong odd harmonics, slower rolloff
-    for (let i = 1; i < N; i++) {
-      if (i % 2 === 0) amps[i] = d * Math.pow(0.7, i) * 0.4;
-      else              amps[i] = d * Math.pow(0.8, i) * 1.1;
-    }
+    for (let i=1;i<N;i++) amps[i] = i%2===0 ? d*Math.pow(0.7,i)*0.4 : d*Math.pow(0.8,i)*1.1;
   } else if (typeName === 'tape') {
-    // Tape → even harmonics prominent, warm
-    for (let i = 1; i < N; i++) {
-      if (i % 2 === 0) amps[i] = d * Math.pow(0.75, i) * 1.2;
-      else              amps[i] = d * Math.pow(0.5, i) * 0.5;
-    }
+    for (let i=1;i<N;i++) amps[i] = i%2===0 ? d*Math.pow(0.75,i)*1.2 : d*Math.pow(0.5,i)*0.5;
   } else if (typeName === 'foldback') {
-    // Foldback → complex spectrum, all harmonics
-    for (let i = 1; i < N; i++) {
-      amps[i] = d * (0.5 + 0.5 * Math.sin(i * 1.3)) * Math.pow(0.72, i);
-    }
+    for (let i=1;i<N;i++) amps[i] = d*(0.5+0.5*Math.sin(i*1.3))*Math.pow(0.72,i);
   }
-
-  // Scale by wet/mix
-  for (let i = 1; i < N; i++) amps[i] *= wet;
+  for (let i=1;i<N;i++) amps[i] *= wet;
   return amps;
 }
 
@@ -780,87 +795,53 @@ function drawSpectrum(mode, canvas) {
   canvas.width = W*dpr; canvas.height = H*dpr;
   const c = canvas.getContext('2d');
   c.scale(dpr, dpr);
-  c.fillStyle = '#110d0d';
-  c.fillRect(0, 0, W, H);
-
-  // Grid
+  c.fillStyle = '#110d0d'; c.fillRect(0, 0, W, H);
   c.strokeStyle = 'rgba(255,255,255,0.05)'; c.lineWidth = 1;
-  for (let i=1; i<4; i++) {
-    const x = (i/4)*W;
+  for (let i=1;i<4;i++) {
+    const x=(i/4)*W, y=(i/4)*H;
     c.beginPath(); c.moveTo(x,0); c.lineTo(x,H); c.stroke();
-    const y = (i/4)*H;
     c.beginPath(); c.moveTo(0,y); c.lineTo(W,y); c.stroke();
   }
-
   const drawBars = (settings, color, offsetX) => {
     const amps = computeHarmonics(settings);
     const N = amps.length;
     const barW = Math.max(2, W/N*0.45);
-    for (let i = 0; i < N; i++) {
-      const x   = (i/N)*W + offsetX;
-      const barH = Math.min(H-4, amps[i] * (H-8));
-      const y   = H - barH;
-      c.fillStyle = color;
-      c.fillRect(x - barW/2, y, barW, barH);
+    for (let i=0;i<N;i++) {
+      const x = (i/N)*W + offsetX;
+      const barH = Math.min(H-4, amps[i]*(H-8));
+      c.fillStyle = color; c.fillRect(x-barW/2, H-barH, barW, barH);
     }
-    // Label harmonics
-    c.fillStyle = 'rgba(255,255,255,0.18)';
-    c.font = '9px -apple-system,sans-serif';
-    for (let i = 0; i < N; i++) {
-      const x = (i/N)*W;
-      c.fillText(i===0?'F':`H${i}`, x+2, H-2);
-    }
+    c.fillStyle = 'rgba(255,255,255,0.18)'; c.font = '9px -apple-system,sans-serif';
+    for (let i=0;i<N;i++) c.fillText(i===0?'F':`H${i}`, (i/N)*W+2, H-2);
   };
-
-  if (mode === 'user') {
-    drawBars(userSettings,   'rgba(232,160,48,0.75)', 0);
-  } else if (mode === 'compare') {
-    drawBars(targetSettings, 'rgba(240,112,80,0.6)', -3);
-    drawBars(userSettings,   'rgba(232,160,48,0.75)', 3);
-  } else {
-    drawBars(targetSettings, 'rgba(240,112,80,0.85)', 0);
-  }
+  if (mode === 'user')         drawBars(userSettings,   'rgba(232,160,48,0.75)', 0);
+  else if (mode === 'compare') { drawBars(targetSettings,'rgba(240,112,80,0.6)',-3); drawBars(userSettings,'rgba(232,160,48,0.75)',3); }
+  else                         drawBars(targetSettings, 'rgba(240,112,80,0.85)', 0);
 }
 
-// ── Distortion DSP (WaveShaper) ───────────────────────────────────────────────
+// ── Distortion DSP ────────────────────────────────────────────────────────────
 function makeWaveShaperCurve(settings) {
   const { drive, type: typeVal } = settings;
   const typeIdx  = Math.round(typeVal ?? 0);
   const typeName = DIST_TYPES[typeIdx] || 'softclip';
   const n = 256;
   const curve = new Float32Array(n);
-  const gain  = 1 + drive * 40; // drive 0→1 maps to gain 1→41
-
+  const gain  = 1 + drive * 40;
   for (let i = 0; i < n; i++) {
     let x = (i * 2) / n - 1;
     x *= gain;
     switch (typeName) {
-      case 'softclip':
-        curve[i] = x / (1 + Math.abs(x));
-        break;
-      case 'hardclip':
-        curve[i] = Math.max(-0.95, Math.min(0.95, x));
-        break;
-      case 'tape':
-        curve[i] = Math.tanh(x * 0.85);
-        break;
+      case 'softclip':  curve[i] = x / (1 + Math.abs(x)); break;
+      case 'hardclip':  curve[i] = Math.max(-0.95, Math.min(0.95, x)); break;
+      case 'tape':      curve[i] = Math.tanh(x * 0.85); break;
       case 'foldback': {
-        // Foldback distortion: fold signal back when it exceeds threshold
-        let y = x;
-        const thresh = 0.9;
-        while (Math.abs(y) > thresh) {
-          if (y > thresh) y = 2 * thresh - y;
-          else if (y < -thresh) y = -2 * thresh - y;
-        }
-        curve[i] = y;
-        break;
+        let y = x; const thresh = 0.9;
+        while (Math.abs(y) > thresh) { if (y>thresh) y=2*thresh-y; else if (y<-thresh) y=-2*thresh-y; }
+        curve[i] = y; break;
       }
-      default:
-        curve[i] = x / (1 + Math.abs(x));
+      default: curve[i] = x / (1 + Math.abs(x));
     }
   }
-
-  // Normalize to prevent clipping
   const peak = Math.max(...curve.map(Math.abs)) || 1;
   return curve.map(v => v / peak);
 }
@@ -887,8 +868,7 @@ function makePinkNoise() {
     d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11;
     b6=w*0.115926;
   }
-  const src=audioCtx.createBufferSource();
-  src.buffer=buf; src.loop=true;
+  const src=audioCtx.createBufferSource(); src.buffer=buf; src.loop=true;
   return src;
 }
 
@@ -896,63 +876,58 @@ function buildDistChain(settings) {
   const shaper = audioCtx.createWaveShaper();
   shaper.curve = makeWaveShaperCurve(settings);
   shaper.oversample = '4x';
-
-  // Tone control: post-distortion high shelf
   const toneFilter = audioCtx.createBiquadFilter();
   toneFilter.type = 'highshelf';
   toneFilter.frequency.value = 3500;
   toneFilter.gain.value = settings.tone ?? 0;
-
-  // Wet/dry mix
   const wetGain = audioCtx.createGain(); wetGain.gain.value = settings.mix ?? 0.5;
   const dryGain = audioCtx.createGain(); dryGain.gain.value = 1 - (settings.mix ?? 0.5);
   const mixOut  = audioCtx.createGain(); mixOut.gain.value  = 1;
-
-  shaper.connect(toneFilter);
-  toneFilter.connect(wetGain);
-  wetGain.connect(mixOut);
-  dryGain.connect(mixOut);
-
+  shaper.connect(toneFilter); toneFilter.connect(wetGain);
+  wetGain.connect(mixOut); dryGain.connect(mixOut);
   return { shaper, toneFilter, wetGain, dryGain, mixOut };
 }
 
 function buildAudioGraph() {
-  stopBuiltinLoop();
+  stopOneShotLoop();
   isDry = false;
-  const dryBtn = document.getElementById('btnDry');
-  if (dryBtn) dryBtn.classList.remove('active');
-
+  document.getElementById('btnDry')?.classList.remove('active');
   stopAudio();
   initAudio();
 
-  if (sourceType === 'builtin') {
+  let startOffset = 0;
+
+  if (sourceType === 'oneShot') {
     currentSource = audioCtx.createGain(); // silent placeholder
+  } else if (sourceType === 'loop' && loopBuffers.length > 0) {
+    currentSource = audioCtx.createBufferSource();
+    currentSource.buffer = loopBuffers[loopIndex % loopBuffers.length].buffer;
+    currentSource.loop = true;
+    startOffset = musicOffset % currentSource.buffer.duration;
   } else if (sourceType === 'custom' && customBuffers.length > 0) {
     currentSource = audioCtx.createBufferSource();
-    currentSource.buffer = customBuffers[currentBufferIndex];
+    currentSource.buffer = customBuffers[currentBufferIndex % customBuffers.length];
     currentSource.loop = true;
+    startOffset = Math.max(0, Math.min(musicOffset, currentSource.buffer.duration - 0.5));
   } else {
     currentSource = makePinkNoise();
-    currentSource.loop = true;
   }
 
   analyserDry = audioCtx.createAnalyser(); analyserDry.fftSize = 256;
-  if (sourceType !== 'builtin') currentSource.connect(analyserDry);
+  if (sourceType !== 'oneShot') currentSource.connect(analyserDry);
 
   dryBypassGain = audioCtx.createGain(); dryBypassGain.gain.value = 0;
-  if (sourceType !== 'builtin') currentSource.connect(dryBypassGain);
+  if (sourceType !== 'oneShot') currentSource.connect(dryBypassGain);
   dryBypassGain.connect(outputGain);
 
   const tChain = buildDistChain(targetSettings);
   const uChain = buildDistChain(userSettings);
-
   targetDistNode = tChain.shaper; targetToneNode = tChain.toneFilter;
   targetMixWet   = tChain.wetGain; targetMixDry = tChain.dryGain; targetMixOut = tChain.mixOut;
-
   userDistNode   = uChain.shaper; userToneNode   = uChain.toneFilter;
   userMixWet     = uChain.wetGain; userMixDry   = uChain.dryGain; userMixOut   = uChain.mixOut;
 
-  if (sourceType !== 'builtin') {
+  if (sourceType !== 'oneShot') {
     currentSource.connect(targetDistNode);
     currentSource.connect(targetMixDry);
     currentSource.connect(userDistNode);
@@ -964,10 +939,14 @@ function buildAudioGraph() {
   targetMixOut.connect(analyserTarget);
   userMixOut.connect(analyserUser);
 
-  if (sourceType !== 'builtin') currentSource.start(0);
+  if (sourceType !== 'oneShot') {
+    currentSource.start(0, startOffset);
+    musicStartedAt = audioCtx.currentTime - startOffset;
+  }
+
   routeTo(listeningTo);
   startMeterLoop();
-  if (sourceType === 'builtin') startBuiltinLoop();
+  if (sourceType === 'oneShot') startOneShotLoop();
 }
 
 function routeTo(which) {
@@ -990,9 +969,9 @@ function stopAudio() {
 function liveUpdateUserDist() {
   if (!userDistNode) return;
   userDistNode.curve = makeWaveShaperCurve(userSettings);
-  if (userToneNode) userToneNode.gain.setTargetAtTime(userSettings.tone??0, audioCtx.currentTime, 0.02);
-  if (userMixWet)  userMixWet.gain.setTargetAtTime(userSettings.mix??0.5,  audioCtx.currentTime, 0.02);
-  if (userMixDry)  userMixDry.gain.setTargetAtTime(1-(userSettings.mix??0.5), audioCtx.currentTime, 0.02);
+  if (userToneNode) userToneNode.gain.setTargetAtTime(userSettings.tone??0,           audioCtx.currentTime, 0.02);
+  if (userMixWet)  userMixWet.gain.setTargetAtTime(userSettings.mix??0.5,             audioCtx.currentTime, 0.02);
+  if (userMixDry)  userMixDry.gain.setTargetAtTime(1-(userSettings.mix??0.5),         audioCtx.currentTime, 0.02);
 }
 
 // ── Meter loop ────────────────────────────────────────────────────────────────
@@ -1007,18 +986,14 @@ function startMeterLoop() {
     document.getElementById('uDriveFill').style.width = (ud*100)+'%';
     document.getElementById('tDriveDb').textContent   = Math.round(td*100)+'%';
     document.getElementById('uDriveDb').textContent   = Math.round(ud*100)+'%';
-
     const W = lvsCvs.clientWidth, H = lvsCvs.clientHeight || 44;
     if (lvsCvs.width !== W*dpr) { lvsCvs.width=W*dpr; lvsCvs.height=H*dpr; }
     const lc = lvsCvs.getContext('2d');
     lc.setTransform(dpr,0,0,dpr,0,0);
-    lc.clearRect(0,0,W,H);
-    lc.fillStyle='#110d0d'; lc.fillRect(0,0,W,H);
-
+    lc.clearRect(0,0,W,H); lc.fillStyle='#110d0d'; lc.fillRect(0,0,W,H);
     if (analyserDry) {
       analyserDry.getFloatTimeDomainData(buf);
-      lc.strokeStyle='rgba(255,255,255,0.1)'; lc.lineWidth=1;
-      lc.beginPath();
+      lc.strokeStyle='rgba(255,255,255,0.1)'; lc.lineWidth=1; lc.beginPath();
       for(let i=0;i<256;i++){const x=(i/256)*W,y=H/2-buf[i]*H*0.45;i===0?lc.moveTo(x,y):lc.lineTo(x,y);}
       lc.stroke();
     }
@@ -1051,13 +1026,12 @@ function ensureAudio() {
   if (!currentSource) buildAudioGraph();
 }
 function listenTarget() { if(!roundActive)return; ensureAudio(); if(abActive)stopAB(); routeTo('target'); }
-function listenUser()   { if(!roundActive)return; ensureAudio(); if(abActive)stopAB(); routeTo('user'); }
+function listenUser()   { if(!roundActive)return; ensureAudio(); if(abActive)stopAB(); routeTo('user');   }
 
 function toggleAB() {
   if (!roundActive) return; ensureAudio();
   if (abActive) { stopAB(); return; }
-  abActive=true;
-  let flip=true;
+  abActive=true; let flip=true;
   const tick=()=>{routeTo(flip?'target':'user');flip=!flip;};
   tick(); abInterval=setInterval(tick,2200);
 }
@@ -1072,14 +1046,10 @@ function toggleDry() {
   isDry = !isDry;
   document.getElementById('btnDry').classList.toggle('active', isDry);
   if (!audioCtx) return;
-
   if (isDry) {
-    // Disconnect wet/processed chains from output
     try { analyserTarget.disconnect(outputGain); } catch(e){}
     try { analyserUser.disconnect(outputGain);   } catch(e){}
-    // For continuous sources, open the bypass gain
     if (dryBypassGain) dryBypassGain.gain.setTargetAtTime(1, audioCtx.currentTime, 0.02);
-    // For builtin one-shots, triggerShot will now route direct (handled below)
   } else {
     if (dryBypassGain) dryBypassGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.02);
     try { (listeningTo==='target' ? analyserTarget : analyserUser).connect(outputGain); } catch(e){}
@@ -1091,20 +1061,14 @@ function togglePause() {
   if (!roundActive || !audioCtx) return;
   const btn = document.getElementById('btnPause');
   if (isPaused) {
-    // Resume
     audioCtx.resume().then(() => {
-      isPaused = false;
-      btn.innerHTML = '&#9646;&#9646; Pause';
-      btn.classList.remove('paused');
-      if (sourceType === 'builtin') startBuiltinLoop();
+      isPaused=false; btn.innerHTML='&#9646;&#9646; Pause'; btn.classList.remove('paused');
+      if (sourceType === 'oneShot') startOneShotLoop();
     });
   } else {
-    // Pause
-    stopBuiltinLoop();
+    stopOneShotLoop();
     audioCtx.suspend().then(() => {
-      isPaused = true;
-      btn.innerHTML = '&#9654; Resume';
-      btn.classList.add('paused');
+      isPaused=true; btn.innerHTML='&#9654; Resume'; btn.classList.add('paused');
     });
   }
 }
@@ -1113,105 +1077,186 @@ function togglePause() {
 function restartAudio() {
   if (!roundActive) return;
   ensureAudio();
-  if (sourceType === 'builtin') {
-    stopBuiltinLoop(); startBuiltinLoop(); showToast('Restarted'); return;
+  if (sourceType === 'oneShot') {
+    stopOneShotLoop(); startOneShotLoop(); showToast('Restarted'); return;
   }
-  const wasListening = listeningTo, wasDry = isDry;
-  buildAudioGraph();
-  listeningTo = wasListening; routeTo(listeningTo);
-  if (wasDry) { isDry=false; toggleDry(); }
+  musicOffset = 0;
+  const wasL = listeningTo, wasD = isDry;
+  buildAudioGraph(); routeTo(wasL);
+  if (wasD) { isDry=false; toggleDry(); }
   showToast('Restarted');
 }
 
-// ── Source ────────────────────────────────────────────────────────────────────
+// ── Seek and skip ─────────────────────────────────────────────────────────────
+function seekMusic(delta) {
+  if (!roundActive || !audioCtx) return;
+  if (sourceType !== 'loop' && sourceType !== 'custom') return;
+
+  if (sourceType === 'loop' && loopBuffers.length > 0) {
+    const buf = loopBuffers[loopIndex % loopBuffers.length].buffer;
+    const elapsed = audioCtx.currentTime - musicStartedAt;
+    musicOffset = ((musicOffset + elapsed + delta) % buf.duration + buf.duration) % buf.duration;
+    const wasL=listeningTo, wasD=isDry;
+    buildAudioGraph(); routeTo(wasL);
+    if (wasD) { isDry=false; toggleDry(); }
+    showToast(`${delta>0?'+':''}${delta}s`);
+    return;
+  }
+
+  if (sourceType === 'custom' && customBuffers.length > 0) {
+    const buf = customBuffers[currentBufferIndex % customBuffers.length];
+    const elapsed = audioCtx.currentTime - musicStartedAt;
+    musicOffset = Math.max(0, Math.min(buf.duration-0.5, musicOffset+elapsed+delta));
+    const wasL=listeningTo, wasD=isDry;
+    buildAudioGraph(); routeTo(wasL);
+    if (wasD) { isDry=false; toggleDry(); }
+    showToast(`${delta>0?'+':''}${delta}s`);
+  }
+}
+
+function skipTrack(delta) {
+  if (!roundActive || !audioCtx) return;
+
+  if (sourceType === 'oneShot' && oneShotBuffers.length > 0) {
+    oneShotIndex = ((oneShotIndex+delta)%oneShotBuffers.length+oneShotBuffers.length)%oneShotBuffers.length;
+    stopOneShotLoop(); startOneShotLoop();
+    showToast(`Shot ${oneShotIndex+1} / ${oneShotBuffers.length}`);
+    return;
+  }
+
+  if (sourceType === 'loop' && loopBuffers.length > 0) {
+    loopIndex = ((loopIndex+delta)%loopBuffers.length+loopBuffers.length)%loopBuffers.length;
+    musicOffset = 0;
+    const wasL=listeningTo, wasD=isDry;
+    buildAudioGraph(); routeTo(wasL);
+    if (wasD) { isDry=false; toggleDry(); }
+    showToast(`Loop ${loopIndex+1} / ${loopBuffers.length}`);
+    return;
+  }
+
+  if (sourceType === 'custom' && customBuffers.length > 0) {
+    currentBufferIndex = ((currentBufferIndex+delta)%customBuffers.length+customBuffers.length)%customBuffers.length;
+    musicOffset = 0;
+    const wasL=listeningTo, wasD=isDry;
+    buildAudioGraph(); routeTo(wasL);
+    if (wasD) { isDry=false; toggleDry(); }
+    showToast(`Track ${currentBufferIndex+1} / ${customBuffers.length}`);
+  }
+}
+
+// ── Source management ─────────────────────────────────────────────────────────
 function setSource(type) {
-  if (type==='builtin' && !builtinLoaded) {
-    showToast('Loading samples…');
-    loadBuiltinSamples().then(() => {
-      sourceType='builtin'; updateSourceUI();
-      if (roundActive) buildAudioGraph();
+  if (type === 'oneShot' && !oneShotLoaded) {
+    loadOneShotSamples().then(() => {
+      if (oneShotLoaded) { sourceType='oneShot'; updateSourceUI(); if (roundActive) buildAudioGraph(); }
+    });
+    return;
+  }
+  if (type === 'loop' && !loopLoaded) {
+    loadLoopSamples().then(() => {
+      if (loopLoaded) { sourceType='loop'; updateSourceUI(); if (roundActive) buildAudioGraph(); }
     });
     return;
   }
   sourceType=type; updateSourceUI();
   if (roundActive) buildAudioGraph();
 }
+
 function updateSourceUI() {
   document.getElementById('srcPink').classList.toggle('active',    sourceType==='pink');
+  document.getElementById('srcOneShot').classList.toggle('active', sourceType==='oneShot');
+  document.getElementById('srcLoop').classList.toggle('active',    sourceType==='loop');
   document.getElementById('srcCustom').classList.toggle('active',  sourceType==='custom');
-  document.getElementById('srcBuiltin').classList.toggle('active', sourceType==='builtin');
 }
+
 function triggerUpload() {
-  if(customBuffers.length>0){setSource('custom');return;}
+  if (customBuffers.length>0) { setSource('custom'); return; }
   document.getElementById('folderInput').click();
 }
+
 async function handleFolderUpload(e) {
   const files=Array.from(e.target.files).filter(f=>f.type.startsWith('audio/'));
-  if(!files.length)return;
-  initAudio(); customBuffers=[]; showToast(`Loading ${files.length} tracks…`);
-  for(const f of files){
-    try{const ab=await f.arrayBuffer();customBuffers.push(await audioCtx.decodeAudioData(ab));}
-    catch(err){console.warn('decode error',f.name);}
+  if (!files.length) return;
+  initAudio(); customBuffers=[];
+  setLoadStatus(`Loading ${files.length} tracks…`, true);
+  for (const f of files) {
+    try { customBuffers.push(await audioCtx.decodeAudioData(await f.arrayBuffer())); }
+    catch(err) { console.warn('decode error',f.name); }
   }
-  if(customBuffers.length>0){
+  if (customBuffers.length>0) {
     document.getElementById('uploadLabel').textContent=`📁 Folder (${customBuffers.length} tracks)`;
+    setLoadStatus(`${customBuffers.length} tracks loaded`, false);
     setSource('custom'); showToast('Music loaded!');
+  } else {
+    setLoadStatus('No audio found', false);
   }
 }
 
-// ── Built-in one-shot samples ─────────────────────────────────────────────────
-const SAMPLE_FILES = [
-  'CLAP_DEEP_001.wav','CLAP_DEEP_002.wav','CLAP_DEEP_003.wav',
-  'CLAP_DEEP_004.wav','CLAP_DEEP_005.wav',
-  'CLAP_LAYER_001.wav','CLAP_LAYER_002.wav','CLAP_LAYER_003.wav','CLAP_LAYER_004.wav',
-  'SNARE_DEEP_001.wav','SNARE_DEEP_002.wav','SNARE_DEEP_003.wav',
-  'SNARE_DEEP_004.wav','SNARE_DEEP_005.wav','SNARE_DEEP_006.wav',
-];
-
-async function loadBuiltinSamples() {
-  if (builtinLoaded) return;
-  initAudio(); builtinBuffers = [];
-  const fetches = SAMPLE_FILES.map(async fname => {
+// ── Sample loaders ────────────────────────────────────────────────────────────
+async function loadOneShotSamples() {
+  if (oneShotLoaded) return;
+  initAudio(); oneShotBuffers=[];
+  setLoadStatus('Loading one-shots…', true);
+  await Promise.all(ONE_SHOT_FILES.map(async fname => {
     try {
-      const resp = await fetch(`./samples/${fname}`);
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const ab = await resp.arrayBuffer();
-      builtinBuffers.push({ name: fname.replace(/\.\w+$/,''), buffer: await audioCtx.decodeAudioData(ab) });
-    } catch(e) { console.warn('Could not load', fname, e.message); }
-  });
-  await Promise.all(fetches);
-  builtinBuffers.sort((a,b)=>a.name.localeCompare(b.name));
-  builtinLoaded = builtinBuffers.length > 0;
-  if (!builtinLoaded) { showToast('No samples found — check the samples/ folder'); sourceType='pink'; updateSourceUI(); }
-}
-
-function startBuiltinLoop() {
-  stopBuiltinLoop();
-  if (!builtinBuffers.length) return;
-  const play = () => { if (sourceType==='builtin') triggerShot(); };
-  play(); builtinLoopTimer = setInterval(play, 5000);
-}
-function stopBuiltinLoop() {
-  if (builtinLoopTimer) { clearInterval(builtinLoopTimer); builtinLoopTimer=null; }
-}
-function triggerShot() {
-  if (!audioCtx || !builtinBuffers.length) return;
-  if (!targetDistNode || !userDistNode) return;
-  if (isPaused) return;
-  const sample = builtinBuffers[builtinIndex % builtinBuffers.length];
-  if (!sample) return;
-
-  if (isDry) {
-    // Dry mode: bypass all distortion, play sample direct to output
-    const srcDry = audioCtx.createBufferSource();
-    srcDry.buffer = sample.buffer;
-    const dryVol = audioCtx.createGain(); dryVol.gain.value = 0.7;
-    srcDry.connect(dryVol); dryVol.connect(outputGain);
-    srcDry.start(0);
-    return;
+      const r = await fetch(`../samples/one-shots/${fname}`);
+      if (!r.ok) throw new Error();
+      oneShotBuffers.push({ name: fname.replace(/\.\w+$/,''), buffer: await audioCtx.decodeAudioData(await r.arrayBuffer()) });
+    } catch(e) { console.warn('Could not load', fname); }
+  }));
+  oneShotBuffers.sort((a,b)=>a.name.localeCompare(b.name));
+  oneShotLoaded = oneShotBuffers.length > 0;
+  if (!oneShotLoaded) {
+    setLoadStatus('No one-shots found', false);
+    showToast('No one-shots found'); sourceType='pink'; updateSourceUI();
+  } else {
+    setLoadStatus(`${oneShotBuffers.length} one-shots ready`, false);
   }
+}
 
-  // Normal mode: fire through both target and user chains simultaneously
+async function loadLoopSamples() {
+  if (loopLoaded) return;
+  initAudio(); loopBuffers=[];
+  setLoadStatus('Loading loops…', true);
+  await Promise.all(LOOP_FILES.map(async fname => {
+    try {
+      const r = await fetch(`../samples/loops/${fname}`);
+      if (!r.ok) throw new Error();
+      loopBuffers.push({ name: fname.replace(/\.\w+$/,''), buffer: await audioCtx.decodeAudioData(await r.arrayBuffer()) });
+    } catch(e) { console.warn('Could not load', fname); }
+  }));
+  loopBuffers.sort((a,b)=>a.name.localeCompare(b.name));
+  loopLoaded = loopBuffers.length > 0;
+  if (!loopLoaded) {
+    setLoadStatus('No loops found', false);
+    showToast('No loops found'); sourceType='pink'; updateSourceUI();
+  } else {
+    setLoadStatus(`${loopBuffers.length} loops ready`, false);
+  }
+}
+
+// ── One-shot playback ─────────────────────────────────────────────────────────
+function startOneShotLoop() {
+  stopOneShotLoop();
+  if (!oneShotBuffers.length) return;
+  const play = () => { if (sourceType==='oneShot') triggerShot(); };
+  play(); oneShotLoopTimer = setInterval(play, 5000);
+}
+
+function stopOneShotLoop() {
+  if (oneShotLoopTimer) { clearInterval(oneShotLoopTimer); oneShotLoopTimer=null; }
+}
+
+function triggerShot() {
+  if (!audioCtx || !oneShotBuffers.length || isPaused) return;
+  if (!targetDistNode || !userDistNode) return;
+  const sample = oneShotBuffers[oneShotIndex % oneShotBuffers.length];
+  if (!sample) return;
+  if (isDry) {
+    const srcDry = audioCtx.createBufferSource(); srcDry.buffer = sample.buffer;
+    const dryVol = audioCtx.createGain(); dryVol.gain.value = 0.7;
+    srcDry.connect(dryVol); dryVol.connect(outputGain); srcDry.start(0); return;
+  }
   const srcT = audioCtx.createBufferSource(); srcT.buffer = sample.buffer;
   srcT.connect(targetDistNode); srcT.connect(targetMixDry); srcT.start(0);
   const srcU = audioCtx.createBufferSource(); srcU.buffer = sample.buffer;
@@ -1220,32 +1265,28 @@ function triggerShot() {
 
 // ── Round ─────────────────────────────────────────────────────────────────────
 function newRound() {
-  stopBuiltinLoop(); stopAB();
-  // Resume if paused
+  stopOneShotLoop(); stopAB();
   if (isPaused && audioCtx) { audioCtx.resume(); isPaused=false; }
   roundActive=false; answered=false;
   round++; document.getElementById('roundCount').textContent=round;
+  musicOffset = 0;
 
   targetSettings={}; userSettings={};
   Object.keys(PARAMS).forEach(key => {
     const p = PARAMS[key];
     if (key==='type') {
-      targetSettings[key] = activeParams.includes(key)
-        ? Math.floor(Math.random()*DIST_TYPES.length) : 0;
+      targetSettings[key] = activeParams.includes(key) ? Math.floor(Math.random()*DIST_TYPES.length) : 0;
       userSettings[key]   = 0;
     } else {
-      targetSettings[key] = activeParams.includes(key)
-        ? p.min + Math.random()*(p.max-p.min) : p.default;
+      targetSettings[key] = activeParams.includes(key) ? p.min + Math.random()*(p.max-p.min) : p.default;
       userSettings[key]   = p.default;
     }
   });
-  // Ensure drive is meaningful: at least 20% when active
-  if (activeParams.includes('drive')) {
-    targetSettings.drive = Math.max(0.2, targetSettings.drive);
-  }
+  if (activeParams.includes('drive')) targetSettings.drive = Math.max(0.2, targetSettings.drive);
 
-  if(customBuffers.length>0) currentBufferIndex=(currentBufferIndex+1)%customBuffers.length;
-  if(builtinBuffers.length>0) builtinIndex=(builtinIndex+1)%builtinBuffers.length;
+  if (customBuffers.length>0)  currentBufferIndex = (currentBufferIndex+1)%customBuffers.length;
+  if (oneShotBuffers.length>0) oneShotIndex       = (oneShotIndex+1)%oneShotBuffers.length;
+  if (loopBuffers.length>0)    loopIndex          = (loopIndex+1)%loopBuffers.length;
 
   roundActive=true;
   document.getElementById('resultBar').classList.remove('visible');
@@ -1280,7 +1321,6 @@ function checkAnswer() {
   document.getElementById('specLegend').style.display='flex';
   if (currentSource) routeTo('user');
 
-  // Score
   let totalErr=0, count=0;
   activeParams.forEach(key => {
     const p=PARAMS[key];
@@ -1290,8 +1330,6 @@ function checkAnswer() {
     } else {
       err = Math.abs(targetSettings[key]-userSettings[key])/(p.max-p.min);
     }
-    // Legend difficulty: tighter scoring (1.5x penalty)
-    if (difficulty==='legend') err *= 1.5;
     totalErr+=err; count++;
   });
   const avgErr = count>0 ? totalErr/count : 0;
@@ -1337,22 +1375,21 @@ function checkAnswer() {
 
 // ── Keyboard shortcuts ────────────────────────────────────────────────────────
 window.addEventListener('keydown', e => {
-  if(e.target.tagName==='INPUT') return;
-  if(audioCtx&&audioCtx.state==='suspended') audioCtx.resume();
-  if(e.code==='Space'){
-    e.preventDefault(); if(!roundActive)return;
-    routeTo(listeningTo==='target'?'user':'target');
-  }
-  if(e.code==='Enter'){
-    if(roundActive&&!answered) checkAnswer(); else newRound();
-  }
-  if(e.code==='KeyD'){ e.preventDefault(); toggleDry(); }
-  if(e.code==='KeyF'){ e.preventDefault(); restartAudio(); }
-  if(e.code==='KeyP'){ e.preventDefault(); togglePause(); }
-  if(e.code==='ShiftLeft'||e.code==='ShiftRight'){ e.preventDefault(); newRound(); }
+  if (e.target.tagName==='INPUT') return;
+  if (e.code !== 'KeyP' && audioCtx && audioCtx.state==='suspended') audioCtx.resume();
+  if (e.code==='Space')      { e.preventDefault(); if(!roundActive)return; routeTo(listeningTo==='target'?'user':'target'); }
+  if (e.code==='Enter')      { if(roundActive&&!answered) checkAnswer(); else newRound(); }
+  if (e.code==='KeyD')       { e.preventDefault(); toggleDry(); }
+  if (e.code==='KeyF')       { e.preventDefault(); restartAudio(); }
+  if (e.code==='KeyP')       { e.preventDefault(); togglePause(); }
+  if (e.code==='ShiftLeft'||e.code==='ShiftRight') { e.preventDefault(); newRound(); }
+  if (e.code==='ArrowLeft')  { e.preventDefault(); seekMusic(-10); }
+  if (e.code==='ArrowRight') { e.preventDefault(); seekMusic(+10); }
+  if (e.code==='ArrowUp')    { e.preventDefault(); skipTrack(+1); }
+  if (e.code==='ArrowDown')  { e.preventDefault(); skipTrack(-1); }
 });
 
-// ── Toast / init ──────────────────────────────────────────────────────────────
+// ── Helpers / init ────────────────────────────────────────────────────────────
 function showToast(msg) {
   const t=document.getElementById('toast');
   t.textContent=msg; t.classList.add('show');
@@ -1369,11 +1406,9 @@ window.addEventListener('resize', () => {
   else         drawSpectrum('user',    document.getElementById('userSpectrum'));
 });
 
-if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./sw.js')
-      .then(()=>console.log('SW registered'))
-      .catch(err=>console.warn('SW failed',err));
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').then(()=>{}).catch(()=>{});
   });
 }
 </script>
