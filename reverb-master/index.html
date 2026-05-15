@@ -589,10 +589,6 @@ const ONE_SHOT_FILES = [
   'CLAP_LAYER_001.wav','CLAP_LAYER_002.wav','CLAP_LAYER_003.wav','CLAP_LAYER_004.wav',
   'SNARE_DEEP_001.wav','SNARE_DEEP_002.wav','SNARE_DEEP_003.wav','SNARE_DEEP_004.wav','SNARE_DEEP_005.wav','SNARE_DEEP_006.wav',
 ];
-const LOOP_FILES = [
-  'LOOP_001.wav','LOOP_002.wav','LOOP_003.wav','LOOP_004.wav','LOOP_005.wav',
-  'LOOP_006.wav','LOOP_007.wav','LOOP_008.wav','LOOP_009.wav','LOOP_010.wav',
-];
 
 // ── Load status helper ────────────────────────────────────────────────────────
 function setLoadStatus(msg, isLoading) {
@@ -1118,13 +1114,19 @@ async function loadLoopSamples() {
   if (loopLoaded) return;
   initAudio(); loopBuffers = [];
   setLoadStatus('Loading loops…', true);
-  await Promise.all(LOOP_FILES.map(async fname => {
-    try {
-      const r = await fetch(`../samples/loops/${fname}`);
-      if (!r.ok) throw new Error();
-      loopBuffers.push({ name: fname.replace(/\.\w+$/, ''), buffer: await audioCtx.decodeAudioData(await r.arrayBuffer()) });
-    } catch(e) { console.warn('Could not load', fname); }
-  }));
+  try {
+    const resp = await fetch('../samples/loops/');
+    const html = await resp.text();
+    const matches = [...html.matchAll(/href="([^"?#]+\.(wav|mp3|ogg|flac|aif{1,2}))"[^>]*>/gi)];
+    const files = [...new Set(matches.map(m => m[1]).filter(f => !f.startsWith('/') && !f.includes('/')))];
+    await Promise.all(files.map(async fname => {
+      try {
+        const r = await fetch(`../samples/loops/${fname}`);
+        if (!r.ok) throw new Error();
+        loopBuffers.push({ name: fname.replace(/\.\w+$/, ''), buffer: await audioCtx.decodeAudioData(await r.arrayBuffer()) });
+      } catch(e) { console.warn('Could not load loop', fname); }
+    }));
+  } catch(e) { console.warn('loops folder error', e); }
   loopBuffers.sort((a, b) => a.name.localeCompare(b.name));
   loopLoaded = loopBuffers.length > 0;
   if (!loopLoaded) {
