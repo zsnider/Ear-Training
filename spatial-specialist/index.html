@@ -46,6 +46,21 @@
     display:flex; align-items:center; justify-content:space-between;
   }
 
+  .header-left { display:flex; align-items:center; gap:14px; }
+
+  .back-btn {
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px; color:var(--muted);
+    text-decoration:none;
+    padding:4px 10px;
+    border:1px solid var(--border2);
+    border-radius:8px;
+    background:var(--surface2);
+    transition:all 0.15s;
+    white-space:nowrap;
+  }
+  .back-btn:hover { color:var(--accent2); border-color:var(--accent); }
+
   .brand { display:flex; align-items:center; gap:10px; }
   .brand-icon {
     width:32px; height:32px;
@@ -148,7 +163,7 @@
   .speaker-label.label-l { color:var(--left); opacity:0.5; transition:opacity 0.2s; }
   .speaker-label.label-r { color:var(--right); opacity:0.5; transition:opacity 0.2s; }
 
-/* Center Mono label for Width mode */
+  /* Center Mono label for Width mode */
   .center-mono-label {
     position: absolute;
     top: 0;
@@ -157,13 +172,11 @@
     font-family: 'IBM Plex Mono', monospace;
     font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
     color: var(--muted);
-    opacity: 0; 
+    opacity: 0;
     transition: opacity 0.2s;
     pointer-events: none;
     z-index: 5;
   }
-
-  /* Pan field track (height now set in large click zone section above) */
 
   /* Track bar */
   .pan-track {
@@ -239,10 +252,9 @@
   .stereo-card.answered {
     cursor: default;
   }
-  /* The pan-field is tall and wide — it's the primary interaction area */
   .pan-field {
     flex:1; position:relative;
-    padding: 28px 0; /* tall hit area */
+    padding: 28px 0;
     display: flex; align-items: center;
     cursor: crosshair;
   }
@@ -352,6 +364,11 @@
   .source-pill:hover { border-color:var(--accent); color:var(--text); }
   .source-pill.active { border-color:var(--accent2); color:var(--accent2); background:rgba(124,92,252,0.07); }
 
+  #sourceLoadStatus {
+    font-size:11px; font-family:'IBM Plex Mono',monospace;
+    color:var(--muted); white-space:nowrap; min-width:0;
+  }
+
   .pulse-dot {
     width:7px; height:7px; border-radius:50%;
     background:var(--accent2); flex-shrink:0;
@@ -417,17 +434,19 @@
 <body>
 
 <header>
-  <div class="brand">
-    <div class="brand-icon">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-        <!-- Stereo arrows -->
-        <path d="M5 9 L2 6 L2 12 Z" fill="black" opacity="0.9"/>
-        <path d="M13 9 L16 6 L16 12 Z" fill="black" opacity="0.9"/>
-        <line x1="4" y1="9" x2="14" y2="9" stroke="black" stroke-width="1.8" stroke-linecap="round"/>
-        <circle cx="9" cy="9" r="2.2" fill="black"/>
-      </svg>
+  <div class="header-left">
+    <a class="back-btn" href="../index.html">← Back</a>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M5 9 L2 6 L2 12 Z" fill="black" opacity="0.9"/>
+          <path d="M13 9 L16 6 L16 12 Z" fill="black" opacity="0.9"/>
+          <line x1="4" y1="9" x2="14" y2="9" stroke="black" stroke-width="1.8" stroke-linecap="round"/>
+          <circle cx="9" cy="9" r="2.2" fill="black"/>
+        </svg>
+      </div>
+      <span class="brand-name">STEREO <span>SPECIALIST</span></span>
     </div>
-    <span class="brand-name">STEREO <span>SPECIALIST</span></span>
   </div>
   <div class="score-row">
     <div class="stat">
@@ -487,13 +506,10 @@
         <div class="cursor-line" id="cursorLine"></div>
         <div class="cursor-line-mirror" id="cursorMirror"></div>
         <div class="pan-track" id="panTrack">
-          <!-- Tick marks injected by JS -->
           <div class="pan-fill" id="panFill"></div>
-          <!-- User handle -->
           <div class="pan-handle user-handle" id="userHandle">
             <span class="handle-label" style="color:var(--accent2)">▼</span>
           </div>
-          <!-- Target handle (hidden until answered) -->
           <div class="pan-handle target-handle" id="targetHandle">
             <span class="handle-label" style="color:rgba(0,229,204,0.9)">◆</span>
           </div>
@@ -545,10 +561,12 @@
     <div class="source-wrap">
       <span class="label">Source</span>
       <div class="source-pill active" id="srcPink"    onclick="setSource('pink')">Pink Noise</div>
-      <div class="source-pill"        id="srcBuiltin" onclick="setSource('builtin')">Sample One-shots</div>
+      <div class="source-pill"        id="srcOneShot" onclick="setSource('oneShot')">One-shots</div>
+      <div class="source-pill"        id="srcLoop"    onclick="setSource('loop')">Loops</div>
       <div class="source-pill"        id="srcCustom"  onclick="triggerUpload()" style="border-style:dashed;">
         <span id="uploadLabel">📁 Upload Music</span>
       </div>
+      <span id="sourceLoadStatus"></span>
       <input type="file" id="folderInput" webkitdirectory directory multiple
              onchange="handleFolderUpload(event)" style="display:none;">
     </div>
@@ -560,8 +578,8 @@
 <script>
 // ── State ─────────────────────────────────────────────────────────────────────
 let gameMode    = 'panning';  // 'panning' | 'width'
-let targetPan   = 0;   // panning: -1 to +1; width: 0=mono (center), 1=full stereo (edge)
-let userClickedX = 0.5; // track the raw click fraction (0–1) for handle display in width mode
+let targetPan   = 0;
+let userClickedX = 0.5;
 let userPan     = 0;
 let roundActive = false;
 let answered    = false;
@@ -572,36 +590,59 @@ let isPaused    = false;
 // Audio
 let audioCtx      = null;
 let noiseSource   = null;
+let noiseSourceR  = null;
 let pannerNode    = null;
+let pannerNodeR   = null;
 let outGain       = null;
 let isPlaying     = false;
 let shotLoopTimer = null;
 let sourceType    = 'pink';
+
+// Custom upload
 let customBuffers = [], customIdx = 0, musicOffset = 0, musicStartedAt = 0;
-let _seekDebounce = null;
-let builtinBuffers= [], builtinLoaded=false, builtinIdx=0;
-let currentShotSrc= null;
+
+// One-shots
+let oneShotBuffers = [], oneShotLoaded = false, oneShotIdx = 0;
+let currentShotSrc = null;
+
+// Loops
+let loopBuffers = [], loopLoaded = false, loopIdx = 0;
 
 // Drag
 let isDragging = false;
-let dragStartX = 0, dragStartPan = 0;
+
+// ── Sample file lists ─────────────────────────────────────────────────────────
+const ONE_SHOT_FILES = [
+  'CLAP_DEEP_001.wav','CLAP_DEEP_002.wav','CLAP_DEEP_003.wav','CLAP_DEEP_004.wav','CLAP_DEEP_005.wav',
+  'CLAP_LAYER_001.wav','CLAP_LAYER_002.wav','CLAP_LAYER_003.wav','CLAP_LAYER_004.wav',
+  'SNARE_DEEP_001.wav','SNARE_DEEP_002.wav','SNARE_DEEP_003.wav','SNARE_DEEP_004.wav','SNARE_DEEP_005.wav','SNARE_DEEP_006.wav',
+];
+const LOOP_FILES = [
+  'LOOP_001.wav','LOOP_002.wav','LOOP_003.wav','LOOP_004.wav','LOOP_005.wav',
+  'LOOP_006.wav','LOOP_007.wav','LOOP_008.wav','LOOP_009.wav','LOOP_010.wav',
+];
+
+// ── Load status helper ────────────────────────────────────────────────────────
+function setLoadStatus(msg, isLoading) {
+  const el = document.getElementById('sourceLoadStatus');
+  if (!msg) { el.textContent = ''; el.style.color = ''; return; }
+  el.textContent = msg;
+  el.style.color = isLoading ? 'var(--amber)' : 'var(--green)';
+  if (!isLoading) setTimeout(() => { el.textContent = ''; el.style.color = ''; }, 2000);
+}
 
 // ── Build track ticks ─────────────────────────────────────────────────────────
 function buildTicks() {
   const track = document.getElementById('panTrack');
-  // Remove old ticks
   track.querySelectorAll('.pan-tick,.pan-tick-label').forEach(e=>e.remove());
-
   const ticks = [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1];
   const labels = {'-1':'L 100','-0.75':'L 75','-0.5':'L 50','-0.25':'L 25','0':'C','0.25':'R 25','0.5':'R 50','0.75':'R 75','1':'R 100'};
-
   ticks.forEach(v => {
     const pct = ((v + 1) / 2) * 100;
     const tick = document.createElement('div');
     tick.className = 'pan-tick';
     tick.style.cssText = `left:${pct}%; background:${v===0?'rgba(245,166,35,0.4)':'rgba(255,255,255,0.1)'};`;
     track.appendChild(tick);
-
     const lbl = document.createElement('div');
     lbl.className = 'pan-tick-label';
     lbl.style.left = pct + '%';
@@ -610,7 +651,13 @@ function buildTicks() {
   });
 }
 
-// ── Difficulty ────────────────────────────────────────────────────────────────
+// ── Game Mode ─────────────────────────────────────────────────────────────────
+function promptTextForMode(mode) {
+  return mode === 'width'
+    ? `How <span>wide</span> is the stereo image? Click anywhere on the field to place your guess`
+    : `Where is the sound <span>panned</span>? Click anywhere on the field to place your guess`;
+}
+
 function setGameMode(mode, el) {
   gameMode = mode;
   ['modePanning','modeWidth'].forEach(id=>document.getElementById(id).classList.remove('active'));
@@ -618,8 +665,7 @@ function setGameMode(mode, el) {
   document.getElementById('modeDesc').textContent = mode === 'panning'
     ? 'Identify where the sound is panned in the stereo field'
     : 'Identify how wide the stereo image is (0% = mono → 100% = full stereo)';
-  
-  // Update L/R labels for width mode
+
   if (mode === 'width') {
     document.getElementById('speakerL').textContent = 'Wide';
     document.getElementById('speakerR').textContent = 'Wide';
@@ -631,14 +677,19 @@ function setGameMode(mode, el) {
     document.getElementById('speakerL').style.color = '';
     document.getElementById('speakerR').style.color = '';
   }
-  // Force a UI update so the opacities snap correctly right away
-  updatePanUI(userPan); 
+
+  // Update prompt text if a round is active but not yet answered
+  if (roundActive && !answered) {
+    document.getElementById('promptText').innerHTML = promptTextForMode(mode);
+  }
+
+  updatePanUI(userPan);
 }
 
 // ── Pan value formatting ──────────────────────────────────────────────────────
 function fmtPan(v) {
   if (gameMode === 'width') {
-    const pct = Math.round(Math.abs(v) * 100); // |v| so both sides read correctly
+    const pct = Math.round(Math.abs(v) * 100);
     if (pct < 2) return '0% (Mono)';
     if (pct > 98) return '100% (Wide)';
     return pct + '% Wide';
@@ -651,21 +702,17 @@ function fmtPan(v) {
 // ── Update UI from userPan ────────────────────────────────────────────────────
 function updatePanUI(pan) {
   userPan = gameMode === 'width' ? Math.max(0, Math.min(1, pan)) : Math.max(-1, Math.min(1, pan));
-  // For width mode: handle sits at the clicked position (either side of center is valid).
-  // userClickedX tracks which side (0–1 fraction of track). We compute pct from that.
   const pct = gameMode === 'width'
-    ? userClickedX * 100   // show handle exactly where user clicked
+    ? userClickedX * 100
     : ((userPan + 1) / 2) * 100;
 
   const handle = document.getElementById('userHandle');
   handle.style.left = pct + '%';
 
-  // Fill from center to handle
   const fill = document.getElementById('panFill');
   const center = 50;
   if (gameMode === 'width') {
-    // Show fill symmetrically from center outward (width = how far from center)
-    const halfFill = userPan * 50; // 0% at mono, 50% at full stereo
+    const halfFill = userPan * 50;
     fill.style.left  = (50 - halfFill) + '%';
     fill.style.width = (halfFill * 2) + '%';
     fill.style.background = 'linear-gradient(to right, rgba(244,91,105,0.4), rgba(124,92,252,0.6), rgba(62,207,142,0.4))';
@@ -682,26 +729,19 @@ function updatePanUI(pan) {
   document.getElementById('userReadout').textContent = fmtPan(userPan);
 
   if (gameMode === 'width') {
-    const w = userPan; // 0=mono, 1=full stereo
-    // Both Left and Right "Wide" labels brighten as width increases
+    const w = userPan;
     document.getElementById('speakerL').style.opacity = 0.2 + w*0.8;
     document.getElementById('speakerR').style.opacity = 0.2 + w*0.8;
-    
-    // The center "Mono" label brightens as width approaches 0
     const monoLabel = document.getElementById('centerMonoLabel');
     if (monoLabel) monoLabel.style.opacity = 0.2 + (1 - w)*0.8;
-
     const wDesc = w < 0.02 ? 'Mono (0%)' : w > 0.98 ? 'Full Stereo (100%)' : `${Math.round(w*100)}% Wide`;
     document.getElementById('posLabel').innerHTML = `Your guess: <span>${wDesc}</span>`;
   } else {
     const absV = Math.abs(userPan);
     document.getElementById('speakerL').style.opacity = userPan <= 0 ? 0.5 + absV*0.5 : Math.max(0.15, 0.5 - absV*0.4);
     document.getElementById('speakerR').style.opacity = userPan >= 0 ? 0.5 + absV*0.5 : Math.max(0.15, 0.5 - absV*0.4);
-    
-    // Hide the Mono label entirely in Panning mode
     const monoLabel = document.getElementById('centerMonoLabel');
     if (monoLabel) monoLabel.style.opacity = '0';
-
     const desc = Math.abs(userPan) < 0.05 ? 'Center' :
                  Math.abs(userPan) > 0.95 ? (userPan<0?'Hard Left':'Hard Right') :
                  (userPan<0?'Left ':'Right ') + Math.round(Math.abs(userPan)*100) + '%';
@@ -712,17 +752,18 @@ function updatePanUI(pan) {
 // ── Handle drag ───────────────────────────────────────────────────────────────
 const userHandle = document.getElementById('userHandle');
 
-function getTrackX(e) {
-  const track = document.getElementById('panTrack');
-  const rect  = track.getBoundingClientRect();
-  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-  const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
-  return (x / rect.width) * 2 - 1; // -1 to +1
+function panFromTrackX(x, trackWidth) {
+  const v = (x / trackWidth) * 2 - 1;
+  if (gameMode === 'width') {
+    userClickedX = x / trackWidth;
+    return Math.abs(v);
+  }
+  return Math.max(-1, Math.min(1, v));
 }
 
 userHandle.addEventListener('mousedown', e => {
   if (!roundActive || answered) return;
-  isDragging = true; dragStartX = e.clientX; dragStartPan = userPan;
+  isDragging = true;
   e.preventDefault();
 });
 
@@ -738,7 +779,6 @@ window.addEventListener('mousemove', e => {
 
 window.addEventListener('mouseup', () => { if (isDragging) { isDragging = false; } });
 
-// Touch support
 userHandle.addEventListener('touchstart', e => {
   if (!roundActive || answered) return;
   isDragging = true; e.preventDefault();
@@ -763,15 +803,11 @@ document.getElementById('stereoCard').addEventListener('mousemove', e => {
   const panField = document.getElementById('panField');
   const rect = panField.getBoundingClientRect();
   const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
-
   const line   = document.getElementById('cursorLine');
   const mirror = document.getElementById('cursorMirror');
-
   line.style.display = 'block';
   line.style.left    = x + 'px';
-
   if (gameMode === 'width') {
-    // Show mirror at symmetric position — both sides represent the same width
     mirror.style.display = 'block';
     mirror.style.left    = (rect.width - x) + 'px';
   } else {
@@ -784,54 +820,30 @@ document.getElementById('stereoCard').addEventListener('mouseleave', () => {
   document.getElementById('cursorMirror').style.display = 'none';
 });
 
-// Allow clicking anywhere on the stereo card to set pan + immediately submit
 document.getElementById('stereoCard').addEventListener('click', e => {
   if (!roundActive || answered) return;
-  // Ignore clicks on controls
   if (e.target.closest('button')) return;
   if (e.target.closest('.pan-readout')) return;
   if (e.target.closest('.error-bar-wrap')) return;
-
-  if (isDragging) return; // don't submit if user just finished dragging
+  if (isDragging) return;
   const panField = document.getElementById('panField');
   const rect = panField.getBoundingClientRect();
-  // If click is outside the pan field's horizontal span, clamp to edges
   const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
   const pan = panFromTrackX(x, rect.width);
   updatePanUI(pan);
   if (!isCenter) applyUserPanToAudio(pan);
-  // Auto-submit on click (like PanGirl)
   submitAnswer();
 });
 
-// Also keep track drag working without submit-on-release
 document.getElementById('panTrack').addEventListener('click', e => {
-  // Handled by stereoCard click — stop propagation from handle
   if (e.target === userHandle || e.target.closest('.pan-handle')) e.stopPropagation();
 });
 
-// Width mode maps 0–1 to the same track range (left=0%, right=100%)
-// For panning: returns -1 to +1. For width: returns 0 (center=mono) to 1 (edge=full stereo).
-// Both sides of center mean the same width — |distance from center|.
-function panFromTrackX(x, trackWidth) {
-  const v = (x / trackWidth) * 2 - 1; // -1 to +1
-  if (gameMode === 'width') {
-    userClickedX = x / trackWidth; // remember which side the user clicked for handle display
-    return Math.abs(v); // 0 at center, 1 at either edge
-  }
-  return Math.max(-1, Math.min(1, v));
-}
-
-// ── Apply user pan value to panner node (handles both modes) ─────────────────
+// ── Apply user pan to audio ───────────────────────────────────────────────────
 function applyUserPanToAudio(pan) {
   if (!pannerNode || !audioCtx) return;
   if (gameMode === 'width') {
-    // In width mode userPan is 0–1; left panner and right panner are symmetric
-    // We use a single panner so can't truly do symmetric width.
-    // Map so that dragging right feels "wider" — pan goes 0 (L side) for left source.
-    // Audio feedback: map width 0=center, 1=hard pan → treat as pan value L or R
-    // The audio is already playing through startAudio which uses the target width.
-    // Don't change audio during drag for width mode — user hears target.
+    // Audio stays at target width — user just positions the handle visually
   } else {
     pannerNode.pan.setTargetAtTime(pan, audioCtx.currentTime, 0.02);
   }
@@ -847,20 +859,17 @@ function startRound() {
   totalRounds++;
   document.getElementById('roundVal').textContent = totalRounds;
 
-  // Pick random continuous target based on game mode
   if (gameMode === 'width') {
-    // Width: 0 (mono) to 1 (full stereo), avoid extremes
-    targetPan = Math.round((0.1 + Math.random() * 0.85) * 100) / 100; // 10%–95% wide
+    targetPan = Math.round((0.1 + Math.random() * 0.85) * 100) / 100;
   } else {
-    // Panning: -1 to +1, avoid dead center
     do { targetPan = Math.round((Math.random() * 2 - 1) * 100) / 100; }
     while (Math.abs(targetPan) < 0.05);
   }
 
   // Reset UI
   document.getElementById('stereoCard').classList.remove('answered');
-  userClickedX = 0.5; // reset handle to visual center
-  userPan = 0; // both modes start at center (panning=center, width=mono)
+  userClickedX = 0.5;
+  userPan = 0;
   updatePanUI(userPan);
   document.getElementById('promptBar').classList.remove('correct-flash','wrong-flash');
   const ri = document.getElementById('resultInline');
@@ -869,27 +878,26 @@ function startRound() {
   document.getElementById('errorWrap').classList.remove('visible');
   document.getElementById('targetReadout').style.opacity = '0';
   document.getElementById('targetReadout').textContent = '—';
-
-  const th = document.getElementById('targetHandle');
-  th.classList.remove('visible');
-
+  document.getElementById('targetHandle').classList.remove('visible');
   document.getElementById('btnCenter').disabled = false;
   document.getElementById('btnPause').disabled  = false;
   document.getElementById('btnRestart').disabled = false;
   document.getElementById('btnCenter').classList.remove('center-active');
   document.getElementById('btnCenter').textContent = 'Center';
 
-  document.getElementById('promptText').innerHTML = gameMode === 'width'
-    ? `How <span>wide</span> is the stereo image? Drag right for wider, left for narrower — click to submit`
-    : `Where is the sound <span>panned</span>? Click anywhere on the field to place your guess`;
+  document.getElementById('promptText').innerHTML = promptTextForMode(gameMode);
 
-  // Advance custom track each round
+  // Advance track indices each round
   if (sourceType === 'custom' && customBuffers.length > 0) {
     customIdx = (customIdx + 1) % customBuffers.length;
     musicOffset = 0;
   }
-  if (sourceType === 'builtin' && builtinBuffers.length > 0) {
-    builtinIdx = (builtinIdx + 1) % builtinBuffers.length;
+  if (sourceType === 'oneShot' && oneShotBuffers.length > 0) {
+    oneShotIdx = (oneShotIdx + 1) % oneShotBuffers.length;
+  }
+  if (sourceType === 'loop' && loopBuffers.length > 0) {
+    loopIdx = (loopIdx + 1) % loopBuffers.length;
+    musicOffset = 0;
   }
 
   startAudio();
@@ -903,8 +911,8 @@ function submitAnswer() {
   document.getElementById('cursorLine').style.display   = 'none';
   document.getElementById('cursorMirror').style.display = 'none';
 
-  const err  = Math.abs(userPan - targetPan); // 0–2 range
-  const errPct = (err / 2) * 100;             // 0–100%
+  const err  = Math.abs(userPan - targetPan);
+  const errPct = (err / 2) * 100;
   const pts  = Math.round(Math.max(0, 100 - errPct * 1.6));
 
   totalScore += pts;
@@ -917,14 +925,12 @@ function submitAnswer() {
 
   // Reveal target handle
   const th  = document.getElementById('targetHandle');
-  // For width mode: place target handle at the right-side mirror position (center + width/2)
   const tPct = gameMode === 'width'
-    ? 50 + targetPan * 50          // right side of center
+    ? 50 + targetPan * 50
     : ((targetPan + 1) / 2) * 100;
   th.style.left = tPct + '%';
   th.classList.add('visible');
 
-  // Show target readout
   const tr = document.getElementById('targetReadout');
   tr.textContent = fmtPan(targetPan);
   tr.style.opacity = '1';
@@ -934,7 +940,6 @@ function submitAnswer() {
     pannerNode.pan.setTargetAtTime(targetPan, audioCtx.currentTime, 0.03);
   }
 
-  // Result
   const tier = pts >= 85 ? 'perfect' : pts >= 65 ? 'good' : pts >= 40 ? 'ok' : 'bad';
   const msgs = { perfect:'🎯 Spot on!', good:'👍 Close!', ok:'🔶 Getting there', bad:'🔻 Keep training' };
 
@@ -943,7 +948,6 @@ function submitAnswer() {
   ri.textContent = `+${pts}`;
   ri.className   = `result-inline ${pts>=65?'show-good':pts>=40?'show-ok':'show-bad'}`;
 
-  // Compute difference display
   let diffStr;
   if (gameMode === 'width') {
     const diffPct = Math.round((userPan - targetPan) * 100);
@@ -955,7 +959,6 @@ function submitAnswer() {
   document.getElementById('promptText').innerHTML =
     `${msgs[tier]} &nbsp;·&nbsp; Target: <span>${fmtPan(targetPan)}</span> &nbsp;·&nbsp; Yours: <span>${fmtPan(userPan)}</span> &nbsp;·&nbsp; Diff: <span>${diffStr}</span>`;
 
-  // Error bar
   const ew = document.getElementById('errorWrap');
   const ef = document.getElementById('errorFill');
   const ep = document.getElementById('errorPct');
@@ -1009,10 +1012,6 @@ function makePinkNoise(secs) {
   src.buffer=buf; src.loop=true; return src;
 }
 
-// Extra nodes for width mode second channel
-let pannerNodeR = null; // right channel panner for width mode
-let noiseSourceR = null; // second source for width mode
-
 function startAudio() {
   stopAudio();
   initAudio();
@@ -1024,31 +1023,31 @@ function startAudio() {
   if (gameMode === 'width' && !isCenter) {
     // Width mode: two sources at ±targetPan
     pannerNode  = audioCtx.createStereoPanner();
-    pannerNode.pan.value  = -targetPan; // left source
+    pannerNode.pan.value  = -targetPan;
     pannerNodeR = audioCtx.createStereoPanner();
-    pannerNodeR.pan.value = targetPan;  // right source
+    pannerNodeR.pan.value = targetPan;
     pannerNode.connect(outGain);
     pannerNodeR.connect(outGain);
-    outGain.gain.value = 0.4; // slightly quieter to avoid clipping from two sources
+    outGain.gain.value = 0.4;
 
-    const makeSource = () => {
-      if (sourceType === 'builtin') return null;
-      if (sourceType === 'custom' && customBuffers.length > 0) {
-        const s = audioCtx.createBufferSource();
-        s.buffer = customBuffers[customIdx % customBuffers.length];
-        s.loop = true; return s;
-      }
-      const s = makePinkNoise(5); return s;
-    };
-
-    if (sourceType === 'builtin') {
-      startBuiltinLoopWidth();
-    } else {
-      const srcL = makeSource(); const srcR = makeSource();
+    if (sourceType === 'oneShot') {
+      startOneShotWidth();
+    } else if (sourceType === 'loop') {
+      startLoopWidth();
+    } else if (sourceType === 'custom' && customBuffers.length > 0) {
+      const buf = customBuffers[customIdx % customBuffers.length];
+      const srcL = audioCtx.createBufferSource(); srcL.buffer = buf; srcL.loop = true;
+      const srcR = audioCtx.createBufferSource(); srcR.buffer = buf; srcR.loop = true;
       srcL.connect(pannerNode);  srcL.start(0, musicOffset);
       srcR.connect(pannerNodeR); srcR.start(0, musicOffset);
       noiseSource = srcL; noiseSourceR = srcR;
       musicStartedAt = audioCtx.currentTime - musicOffset;
+    } else {
+      // Pink noise
+      const srcL = makePinkNoise(5); const srcR = makePinkNoise(5);
+      srcL.connect(pannerNode);  srcL.start(0);
+      srcR.connect(pannerNodeR); srcR.start(0);
+      noiseSource = srcL; noiseSourceR = srcR;
     }
   } else {
     // Panning mode (or center reference): single panner
@@ -1056,8 +1055,10 @@ function startAudio() {
     pannerNode.pan.value = isCenter ? 0 : targetPan;
     pannerNode.connect(outGain);
 
-    if (sourceType === 'builtin') {
-      startBuiltinLoop();
+    if (sourceType === 'oneShot') {
+      startOneShotPanning();
+    } else if (sourceType === 'loop') {
+      startLoopPanning();
     } else if (sourceType === 'custom' && customBuffers.length > 0) {
       const src = audioCtx.createBufferSource();
       src.buffer = customBuffers[customIdx % customBuffers.length];
@@ -1076,11 +1077,26 @@ function startAudio() {
   document.getElementById('btnPlay').classList.add('playing');
 }
 
-function startBuiltinLoopWidth() {
-  if (!builtinBuffers.length) return;
+// ── One-shot source builders ──────────────────────────────────────────────────
+function startOneShotPanning() {
+  if (!oneShotBuffers.length) return;
   const fire = () => {
-    if (!isPlaying || sourceType !== 'builtin') return;
-    const s = builtinBuffers[builtinIdx % builtinBuffers.length];
+    if (!isPlaying || sourceType !== 'oneShot') return;
+    const s = oneShotBuffers[oneShotIdx % oneShotBuffers.length];
+    const src = audioCtx.createBufferSource();
+    src.buffer = s.buffer;
+    src.connect(pannerNode);
+    src.start(0);
+    currentShotSrc = src;
+  };
+  fire(); shotLoopTimer = setInterval(fire, 5000);
+}
+
+function startOneShotWidth() {
+  if (!oneShotBuffers.length) return;
+  const fire = () => {
+    if (!isPlaying || sourceType !== 'oneShot') return;
+    const s = oneShotBuffers[oneShotIdx % oneShotBuffers.length];
     const sL = audioCtx.createBufferSource(); sL.buffer = s.buffer;
     const sR = audioCtx.createBufferSource(); sR.buffer = s.buffer;
     if (pannerNode)  sL.connect(pannerNode);
@@ -1091,6 +1107,45 @@ function startBuiltinLoopWidth() {
   fire(); shotLoopTimer = setInterval(fire, 5000);
 }
 
+// ── Loop source builders ──────────────────────────────────────────────────────
+function startLoopPanning() {
+  if (!loopBuffers.length) return;
+  const buf = loopBuffers[loopIdx % loopBuffers.length].buffer;
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf; src.loop = true;
+  src.connect(pannerNode);
+  const offset = musicOffset % buf.duration;
+  if (offset > 0) {
+    src.start(0, offset);
+    musicStartedAt = audioCtx.currentTime - offset;
+  } else {
+    src.start(0);
+    musicStartedAt = audioCtx.currentTime;
+  }
+  noiseSource = src;
+}
+
+function startLoopWidth() {
+  if (!loopBuffers.length) return;
+  const buf = loopBuffers[loopIdx % loopBuffers.length].buffer;
+  const offset = musicOffset % buf.duration;
+
+  const srcL = audioCtx.createBufferSource(); srcL.buffer = buf; srcL.loop = true;
+  const srcR = audioCtx.createBufferSource(); srcR.buffer = buf; srcR.loop = true;
+  if (pannerNode)  srcL.connect(pannerNode);
+  if (pannerNodeR) srcR.connect(pannerNodeR);
+
+  if (offset > 0) {
+    srcL.start(0, offset); srcR.start(0, offset);
+    musicStartedAt = audioCtx.currentTime - offset;
+  } else {
+    srcL.start(0); srcR.start(0);
+    musicStartedAt = audioCtx.currentTime;
+  }
+  noiseSource = srcL; noiseSourceR = srcR;
+}
+
+// ── Stop audio ────────────────────────────────────────────────────────────────
 function stopAudio() {
   if (shotLoopTimer){clearInterval(shotLoopTimer);shotLoopTimer=null;}
   if (noiseSource)   {try{noiseSource.stop();}   catch(e){}noiseSource=null;}
@@ -1104,18 +1159,6 @@ function stopAudio() {
   document.getElementById('btnPlay').classList.remove('playing');
 }
 
-function startBuiltinLoop() {
-  if (!builtinBuffers.length) return;
-  const fire=()=>{
-    if(!isPlaying||sourceType!=='builtin')return;
-    const s=builtinBuffers[builtinIdx%builtinBuffers.length];
-    const src=audioCtx.createBufferSource();
-    src.buffer=s.buffer; src.connect(pannerNode); src.start(0);
-    currentShotSrc=src;
-  };
-  fire(); shotLoopTimer=setInterval(fire,5000);
-}
-
 // ── Center / Pause / Restart ──────────────────────────────────────────────────
 function toggleCenter() {
   if (!roundActive) return;
@@ -1127,10 +1170,7 @@ function toggleCenter() {
   } else {
     btn.textContent = isCenter ? 'Panned' : 'Center';
   }
-  // For width mode, rebuild audio (center = mono, panned = two sources)
-  if (gameMode === 'width') {
-    startAudio(); return;
-  }
+  if (gameMode === 'width') { startAudio(); return; }
   if (pannerNode && audioCtx) {
     pannerNode.pan.setTargetAtTime(isCenter ? 0 : targetPan, audioCtx.currentTime, 0.02);
   }
@@ -1142,14 +1182,15 @@ function togglePause() {
   if (isPaused) {
     audioCtx.resume().then(()=>{
       isPaused=false; btn.innerHTML='&#9646;&#9646; Pause'; btn.classList.remove('paused');
-      if(sourceType==='builtin'&&isPlaying){
-        if(shotLoopTimer)clearInterval(shotLoopTimer);
-        const fire=()=>{if(!isPlaying)return;const s=builtinBuffers[builtinIdx%builtinBuffers.length];const src=audioCtx.createBufferSource();src.buffer=s.buffer;if(pannerNode)src.connect(pannerNode);src.start(0);currentShotSrc=src;};
-        fire();shotLoopTimer=setInterval(fire,5000);
+      // Restart interval-based sources after resume
+      if (sourceType === 'oneShot' && isPlaying) {
+        if (shotLoopTimer) clearInterval(shotLoopTimer);
+        const fireFn = gameMode === 'width' ? startOneShotWidth : startOneShotPanning;
+        fireFn();
       }
     });
   } else {
-    if(shotLoopTimer){clearInterval(shotLoopTimer);shotLoopTimer=null;}
+    if (shotLoopTimer) { clearInterval(shotLoopTimer); shotLoopTimer=null; }
     audioCtx.suspend().then(()=>{isPaused=true;btn.innerHTML='&#9654; Resume';btn.classList.add('paused');});
   }
 }
@@ -1160,116 +1201,202 @@ function restartAudio() {
   musicOffset=0; startAudio(); showToast('Restarted');
 }
 
-// ── Source ────────────────────────────────────────────────────────────────────
-function setSource(type) {
-  if (type==='builtin' && !builtinLoaded) {
-    showToast('Loading samples…');
-    loadBuiltinSamples().then(()=>{sourceType='builtin';updateSourceUI();if(roundActive&&isPlaying)startAudio();});
+// ── Seek (loop / custom, ±10s) ────────────────────────────────────────────────
+function seekMusic(deltaSecs) {
+  if (!isPlaying || !audioCtx) return;
+
+  if (sourceType === 'loop' && loopBuffers.length > 0) {
+    const buf = loopBuffers[loopIdx % loopBuffers.length].buffer;
+    const elapsed = audioCtx.currentTime - musicStartedAt;
+    const cur = musicOffset + elapsed;
+    musicOffset = ((cur + deltaSecs) % buf.duration + buf.duration) % buf.duration;
+    // Rebuild sources at new offset
+    if (noiseSource)  { try { noiseSource.stop(); }  catch(e){} noiseSource = null; }
+    if (noiseSourceR) { try { noiseSourceR.stop(); } catch(e){} noiseSourceR = null; }
+    if (gameMode === 'width' && !isCenter) startLoopWidth();
+    else startLoopPanning();
+    showToast(`${deltaSecs > 0 ? '+' : ''}${deltaSecs}s`);
     return;
   }
-  sourceType=type; updateSourceUI();
-  if (roundActive&&isPlaying) startAudio();
+
+  if (sourceType === 'custom' && customBuffers.length > 0) {
+    if (!pannerNode) return;
+    const buf = customBuffers[customIdx % customBuffers.length];
+    const elapsed = audioCtx.currentTime - musicStartedAt;
+    const currentPos = musicOffset + elapsed;
+    const newOffset  = Math.max(0, Math.min(buf.duration - 0.5, currentPos + deltaSecs));
+    if (noiseSource)  { noiseSource.onended = null; try { noiseSource.stop(); }  catch(e){} noiseSource = null; }
+    if (noiseSourceR) { noiseSourceR.onended = null; try { noiseSourceR.stop(); } catch(e){} noiseSourceR = null; }
+    musicOffset    = newOffset;
+    musicStartedAt = audioCtx.currentTime;
+    if (gameMode === 'width' && !isCenter) {
+      const srcL = audioCtx.createBufferSource(); srcL.buffer = buf; srcL.loop = false;
+      const srcR = audioCtx.createBufferSource(); srcR.buffer = buf; srcR.loop = false;
+      srcL.connect(pannerNode);  srcL.start(0, newOffset);
+      srcR.connect(pannerNodeR); srcR.start(0, newOffset);
+      noiseSource = srcL; noiseSourceR = srcR;
+    } else {
+      const src = audioCtx.createBufferSource();
+      src.buffer = buf; src.loop = false;
+      src.connect(pannerNode);
+      src.start(0, newOffset);
+      noiseSource = src;
+    }
+    showToast(`${deltaSecs > 0 ? '+' : ''}${deltaSecs}s`);
+  }
 }
+
+// ── Skip track ────────────────────────────────────────────────────────────────
+function skipTrack(delta) {
+  if (!isPlaying || !audioCtx) return;
+
+  if (sourceType === 'oneShot' && oneShotBuffers.length > 0) {
+    oneShotIdx = ((oneShotIdx + delta) % oneShotBuffers.length + oneShotBuffers.length) % oneShotBuffers.length;
+    if (shotLoopTimer) { clearInterval(shotLoopTimer); shotLoopTimer = null; }
+    if (currentShotSrc) { try { currentShotSrc.stop(); } catch(e){} currentShotSrc = null; }
+    if (gameMode === 'width' && !isCenter) startOneShotWidth();
+    else startOneShotPanning();
+    showToast(`Shot ${oneShotIdx + 1} / ${oneShotBuffers.length}`);
+    return;
+  }
+
+  if (sourceType === 'loop' && loopBuffers.length > 0) {
+    loopIdx = ((loopIdx + delta) % loopBuffers.length + loopBuffers.length) % loopBuffers.length;
+    musicOffset = 0;
+    if (noiseSource)  { try { noiseSource.stop(); }  catch(e){} noiseSource = null; }
+    if (noiseSourceR) { try { noiseSourceR.stop(); } catch(e){} noiseSourceR = null; }
+    if (gameMode === 'width' && !isCenter) startLoopWidth();
+    else startLoopPanning();
+    showToast(`Loop ${loopIdx + 1} / ${loopBuffers.length}`);
+    return;
+  }
+
+  if (sourceType === 'custom' && customBuffers.length > 0) {
+    if (noiseSource)  { noiseSource.onended = null; try { noiseSource.stop(); }  catch(e){} noiseSource = null; }
+    if (noiseSourceR) { noiseSourceR.onended = null; try { noiseSourceR.stop(); } catch(e){} noiseSourceR = null; }
+    customIdx   = ((customIdx + delta) % customBuffers.length + customBuffers.length) % customBuffers.length;
+    musicOffset = 0;
+    musicStartedAt = audioCtx.currentTime;
+    if (gameMode === 'width' && !isCenter) {
+      const buf = customBuffers[customIdx];
+      const srcL = audioCtx.createBufferSource(); srcL.buffer = buf; srcL.loop = false;
+      const srcR = audioCtx.createBufferSource(); srcR.buffer = buf; srcR.loop = false;
+      srcL.connect(pannerNode);  srcL.start(0);
+      srcR.connect(pannerNodeR); srcR.start(0);
+      noiseSource = srcL; noiseSourceR = srcR;
+    } else {
+      const src = audioCtx.createBufferSource();
+      src.buffer = customBuffers[customIdx]; src.loop = false;
+      src.connect(pannerNode); src.start(0); noiseSource = src;
+    }
+    showToast(`Track ${customIdx + 1} / ${customBuffers.length}`);
+  }
+}
+
+// ── Source management ─────────────────────────────────────────────────────────
+function setSource(type) {
+  if (type === 'oneShot' && !oneShotLoaded) {
+    loadOneShotSamples().then(() => {
+      if (oneShotLoaded) { sourceType = 'oneShot'; updateSourceUI(); if (roundActive && isPlaying) startAudio(); }
+    });
+    return;
+  }
+  if (type === 'loop' && !loopLoaded) {
+    loadLoopSamples().then(() => {
+      if (loopLoaded) { sourceType = 'loop'; updateSourceUI(); if (roundActive && isPlaying) startAudio(); }
+    });
+    return;
+  }
+  sourceType = type; updateSourceUI();
+  if (roundActive && isPlaying) startAudio();
+}
+
 function updateSourceUI() {
-  document.getElementById('srcPink').classList.toggle('active',    sourceType==='pink');
-  document.getElementById('srcCustom').classList.toggle('active',  sourceType==='custom');
-  document.getElementById('srcBuiltin').classList.toggle('active', sourceType==='builtin');
+  document.getElementById('srcPink').classList.toggle('active',    sourceType === 'pink');
+  document.getElementById('srcOneShot').classList.toggle('active', sourceType === 'oneShot');
+  document.getElementById('srcLoop').classList.toggle('active',    sourceType === 'loop');
+  document.getElementById('srcCustom').classList.toggle('active',  sourceType === 'custom');
 }
+
 function triggerUpload() {
-  if(customBuffers.length>0){setSource('custom');return;}
+  if (customBuffers.length > 0) { setSource('custom'); return; }
   document.getElementById('folderInput').click();
 }
+
 async function handleFolderUpload(e) {
-  const files=Array.from(e.target.files).filter(f=>f.type.startsWith('audio/'));
-  if(!files.length)return;
-  initAudio();customBuffers=[];showToast(`Loading ${files.length} tracks…`);
-  for(const f of files){try{const ab=await f.arrayBuffer();customBuffers.push(await audioCtx.decodeAudioData(ab));}catch(e){console.warn(e);}}
-  if(customBuffers.length>0){document.getElementById('uploadLabel').textContent=`📁 Folder (${customBuffers.length} tracks)`;setSource('custom');showToast('Music loaded!');}
-}
-
-const SAMPLE_FILES=[
-  'CLAP_DEEP_001.wav','CLAP_DEEP_002.wav','CLAP_DEEP_003.wav','CLAP_DEEP_004.wav','CLAP_DEEP_005.wav',
-  'CLAP_LAYER_001.wav','CLAP_LAYER_002.wav','CLAP_LAYER_003.wav','CLAP_LAYER_004.wav',
-  'SNARE_DEEP_001.wav','SNARE_DEEP_002.wav','SNARE_DEEP_003.wav','SNARE_DEEP_004.wav','SNARE_DEEP_005.wav','SNARE_DEEP_006.wav',
-];
-async function loadBuiltinSamples() {
-  if(builtinLoaded)return; initAudio(); builtinBuffers=[];
-  await Promise.all(SAMPLE_FILES.map(async fname=>{
-    try{const r=await fetch(`./samples/${fname}`);if(!r.ok)throw new Error();builtinBuffers.push({name:fname.replace(/\.\w+$/,''),buffer:await audioCtx.decodeAudioData(await r.arrayBuffer())});}
-    catch(e){console.warn('Could not load',fname);}
-  }));
-  builtinBuffers.sort((a,b)=>a.name.localeCompare(b.name));
-  builtinLoaded=builtinBuffers.length>0;
-  if(!builtinLoaded){showToast('No samples found');sourceType='pink';updateSourceUI();}
-}
-
-// ── Seek within current track (custom music, ±10s) ───────────────────────────
-function seekMusic(deltaSecs) {
-  if (sourceType !== 'custom' || customBuffers.length === 0) return;
-  if (!isPlaying || !audioCtx || !pannerNode) return;
-  const buf = customBuffers[customIdx % customBuffers.length];
-  const elapsed = audioCtx.currentTime - musicStartedAt;
-  const currentPos = musicOffset + elapsed;
-  const newOffset  = Math.max(0, Math.min(buf.duration - 0.5, currentPos + deltaSecs));
-  // Detach onended, stop old source, start new at offset
-  if (noiseSource) {
-    noiseSource.onended = null;
-    try { noiseSource.stop(); } catch(e){}
-    noiseSource = null;
+  const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
+  if (!files.length) return;
+  initAudio(); customBuffers = [];
+  setLoadStatus(`Loading ${files.length} files…`, true);
+  for (const f of files) {
+    try {
+      const ab = await f.arrayBuffer();
+      customBuffers.push(await audioCtx.decodeAudioData(ab));
+    } catch(err) { console.warn(err); }
   }
-  const src = audioCtx.createBufferSource();
-  src.buffer = buf; src.loop = false;
-  src.connect(pannerNode);
-  musicOffset    = newOffset;
-  musicStartedAt = audioCtx.currentTime;
-  src.onended = () => {
-    if (!isPlaying || noiseSource !== src) return;
-    customIdx = (customIdx + 1) % customBuffers.length; musicOffset = 0;
-    if (pannerNode && outGain) {
-      const next = audioCtx.createBufferSource();
-      next.buffer = customBuffers[customIdx]; next.loop = false;
-      next.connect(pannerNode); musicStartedAt = audioCtx.currentTime;
-      next.onended = src.onended; next.start(0); noiseSource = next;
-    }
-  };
-  src.start(0, newOffset);
-  noiseSource = src;
-  showToast(`${deltaSecs > 0 ? '+' : ''}${deltaSecs}s`);
+  if (customBuffers.length > 0) {
+    document.getElementById('uploadLabel').textContent = `📁 Folder (${customBuffers.length} tracks)`;
+    setLoadStatus(`${customBuffers.length} tracks loaded`, false);
+    setSource('custom');
+    showToast('Music loaded!');
+  } else {
+    setLoadStatus('No audio found', false);
+  }
 }
 
-// ── Skip track (custom music, ±1 track) ───────────────────────────────────────
-function skipTrack(delta) {
-  if (sourceType !== 'custom' || customBuffers.length === 0) return;
-  if (!isPlaying || !audioCtx || !pannerNode) return;
-  if (noiseSource) { noiseSource.onended = null; try { noiseSource.stop(); } catch(e){} noiseSource = null; }
-  customIdx   = ((customIdx + delta) % customBuffers.length + customBuffers.length) % customBuffers.length;
-  musicOffset = 0;
-  const src = audioCtx.createBufferSource();
-  src.buffer = customBuffers[customIdx]; src.loop = false;
-  src.connect(pannerNode); musicStartedAt = audioCtx.currentTime;
-  src.onended = () => {
-    if (!isPlaying || noiseSource !== src) return;
-    customIdx = (customIdx+1)%customBuffers.length; musicOffset = 0;
-    if (pannerNode && outGain) {
-      const next = audioCtx.createBufferSource();
-      next.buffer = customBuffers[customIdx]; next.loop = false;
-      next.connect(pannerNode); musicStartedAt = audioCtx.currentTime;
-      next.onended = src.onended; next.start(0); noiseSource = next;
-    }
-  };
-  src.start(0);
-  noiseSource = src;
-  showToast(`Track ${customIdx + 1} / ${customBuffers.length}`);
+// ── Sample loaders ────────────────────────────────────────────────────────────
+async function loadOneShotSamples() {
+  if (oneShotLoaded) return;
+  initAudio(); oneShotBuffers = [];
+  setLoadStatus('Loading one-shots…', true);
+  await Promise.all(ONE_SHOT_FILES.map(async fname => {
+    try {
+      const r = await fetch(`../samples/one-shots/${fname}`);
+      if (!r.ok) throw new Error();
+      oneShotBuffers.push({ name: fname.replace(/\.\w+$/, ''), buffer: await audioCtx.decodeAudioData(await r.arrayBuffer()) });
+    } catch(e) { console.warn('Could not load', fname); }
+  }));
+  oneShotBuffers.sort((a, b) => a.name.localeCompare(b.name));
+  oneShotLoaded = oneShotBuffers.length > 0;
+  if (!oneShotLoaded) {
+    setLoadStatus('No one-shots found', false);
+    showToast('No one-shots found');
+    sourceType = 'pink'; updateSourceUI();
+  } else {
+    setLoadStatus(`${oneShotBuffers.length} one-shots ready`, false);
+  }
+}
+
+async function loadLoopSamples() {
+  if (loopLoaded) return;
+  initAudio(); loopBuffers = [];
+  setLoadStatus('Loading loops…', true);
+  await Promise.all(LOOP_FILES.map(async fname => {
+    try {
+      const r = await fetch(`../samples/loops/${fname}`);
+      if (!r.ok) throw new Error();
+      loopBuffers.push({ name: fname.replace(/\.\w+$/, ''), buffer: await audioCtx.decodeAudioData(await r.arrayBuffer()) });
+    } catch(e) { console.warn('Could not load', fname); }
+  }));
+  loopBuffers.sort((a, b) => a.name.localeCompare(b.name));
+  loopLoaded = loopBuffers.length > 0;
+  if (!loopLoaded) {
+    setLoadStatus('No loops found', false);
+    showToast('No loops found');
+    sourceType = 'pink'; updateSourceUI();
+  } else {
+    setLoadStatus(`${loopBuffers.length} loops ready`, false);
+  }
 }
 
 // ── Keyboard ──────────────────────────────────────────────────────────────────
 window.addEventListener('keydown', e => {
   if (e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
   if (e.code!=='KeyP' && audioCtx && audioCtx.state==='suspended') audioCtx.resume();
-  if (e.code==='Space')   { e.preventDefault(); toggleCenter(); }
-  if (e.code==='KeyD')    { e.preventDefault(); toggleCenter(); }
-  if (e.code==='KeyP')    { e.preventDefault(); togglePause(); }
-  if (e.code==='KeyF')    { e.preventDefault(); restartAudio(); }
+  if (e.code==='Space')      { e.preventDefault(); toggleCenter(); }
+  if (e.code==='KeyD')       { e.preventDefault(); toggleCenter(); }
+  if (e.code==='KeyP')       { e.preventDefault(); togglePause(); }
+  if (e.code==='KeyF')       { e.preventDefault(); restartAudio(); }
   if (e.code==='Enter')      { startRound(); }
   if (e.code==='ArrowLeft')  { e.preventDefault(); seekMusic(-10); }
   if (e.code==='ArrowRight') { e.preventDefault(); seekMusic(+10); }
@@ -1279,17 +1406,17 @@ window.addEventListener('keydown', e => {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function showToast(msg) {
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),3000);
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 buildTicks();
 updatePanUI(0);
 
-if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').then(()=>{}).catch(()=>{});
   });
 }
