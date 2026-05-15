@@ -50,6 +50,8 @@
     display: flex; align-items: center; justify-content: space-between;
   }
 
+  .header-left { display: flex; align-items: center; gap: 14px; }
+
   .back-btn {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 12px; color: var(--muted);
@@ -62,8 +64,6 @@
     white-space: nowrap;
   }
   .back-btn:hover { color: var(--accent2); border-color: var(--accent); }
-
-  .header-left { display: flex; align-items: center; gap: 16px; }
 
   .brand { display:flex; align-items:center; gap:10px; }
   .brand-icon {
@@ -265,12 +265,12 @@
 
   /* ── Audio controls bar ── */
   .audio-bar {
-    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
   }
 
-  /* Thin vertical divider inside the audio bar */
-  .audio-bar .bar-divider {
+  .bar-divider {
     width: 1px; height: 22px; background: var(--border2); flex-shrink: 0;
+    margin: 0 2px;
   }
 
   button.ctrl-btn {
@@ -295,20 +295,17 @@
   .btn-skip:hover { border-color: var(--accent); color: var(--accent); }
   .btn-skip:disabled { opacity: 0.35; cursor: not-allowed; }
 
-  /* Source pills — no longer pushed to the right */
-  .source-select-wrap {
-    display: flex; align-items: center; gap: 8px;
-    flex-wrap: wrap;
-  }
-
+  /* Source pills — compact to share the audio bar row */
   .source-pill {
     background: var(--surface2); border: 1px solid var(--border2);
-    border-radius: 8px; padding: 6px 12px; font-size: 12px;
-    color: var(--muted); cursor: pointer; transition: all 0.15s;
-    white-space: nowrap;
+    border-radius: 7px; padding: 4px 9px;
+    font-size: 11px; color: var(--muted);
+    cursor: pointer; transition: all 0.15s;
+    white-space: nowrap; font-family: 'IBM Plex Sans', sans-serif;
   }
   .source-pill:hover { border-color: var(--accent); color: var(--text); }
   .source-pill.active { border-color: var(--accent2); color: var(--accent2); background: rgba(0,212,255,0.08); }
+  .source-pill.loading { opacity: 0.6; cursor: wait; }
 
   /* Pulse dot */
   .pulse-dot {
@@ -361,16 +358,16 @@
 
 <header>
   <div class="header-left">
-  <a class="back-btn" href="../index.html">← Back</a>
-  <div class="brand">
-    <div class="brand-icon">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-        <path d="M1 9 Q3 5 5 9 Q7 13 9 9 Q11 5 13 9 Q15 13 17 9"
-              stroke="black" stroke-width="2" stroke-linecap="round" fill="none"/>
-      </svg>
+    <a class="back-btn" href="../index.html">← Back</a>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M1 9 Q3 5 5 9 Q7 13 9 9 Q11 5 13 9 Q15 13 17 9"
+                stroke="black" stroke-width="2" stroke-linecap="round" fill="none"/>
+        </svg>
+      </div>
+      <span class="brand-name">FREQ <span>QUIZ</span></span>
     </div>
-    <span class="brand-name">FREQ <span>QUIZ</span></span>
-  </div>
   </div>
   <div class="score-row">
     <div class="stat">
@@ -415,7 +412,7 @@
     <div class="pill"        id="dirCut"   onclick="setDirection('cut',this)">Cut Only</div>
     <div class="vdiv" style="margin-left:auto;"></div>
     <span style="font-size:11px;color:var(--muted);white-space:nowrap;">
-      <kbd>Space</kbd>/<kbd>D</kbd> dry &nbsp;·&nbsp; <kbd>P</kbd> pause &nbsp;·&nbsp; <kbd>F</kbd> restart &nbsp;·&nbsp; <kbd>←→</kbd> seek 10s &nbsp;·&nbsp; <kbd>↑↓</kbd> track &nbsp;·&nbsp; <kbd>1–9</kbd> answer
+      <kbd>Space</kbd>/<kbd>D</kbd> dry &nbsp;·&nbsp; <kbd>P</kbd> pause &nbsp;·&nbsp; <kbd>F</kbd> restart &nbsp;·&nbsp; <kbd>←→</kbd> seek &nbsp;·&nbsp; <kbd>↑↓</kbd> track &nbsp;·&nbsp; <kbd>1–9</kbd> answer
     </span>
   </div>
 
@@ -442,7 +439,7 @@
   <!-- History -->
   <div class="history-strip" id="historyStrip"></div>
 
-  <!-- Audio controls -->
+  <!-- Audio controls + source pills on one line -->
   <div class="audio-bar">
     <button class="ctrl-btn btn-listen" id="btnPlay" onclick="playCurrentRound()">
       <span id="playDot"></span> Play
@@ -452,14 +449,12 @@
     <button class="btn-action" id="btnRestart" onclick="restartAudio()" disabled title="Restart (F)">&#9654; Restart</button>
     <button class="ctrl-btn btn-skip" id="btnSkip" onclick="skipRound()" disabled>Skip</button>
 
-    <div class="bar-divider"></div>
-
-    <div class="source-select-wrap">
-      <span class="label">Source</span>
-      <div class="source-pill active" id="srcPink"    onclick="setSource('pink')">Pink Noise</div>
-      <div class="source-pill"        id="srcBuiltin" onclick="setSource('builtin')">Sample One-shots</div>
+    <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+      <div class="source-pill active" id="srcPink"    onclick="setSource('pink')">Pink</div>
+      <div class="source-pill"        id="srcOneShot" onclick="setSource('oneShot')">One-Shots</div>
+      <div class="source-pill"        id="srcLoop"    onclick="setSource('loop')">Loops</div>
       <div class="source-pill"        id="srcCustom"  onclick="triggerUpload()" style="border-style:dashed;">
-        <span id="uploadLabel">📁 Upload Music</span>
+        <span id="uploadLabel">📁 Upload</span>
       </div>
       <input type="file" id="folderInput" webkitdirectory directory multiple
              onchange="handleFolderUpload(event)" style="display:none;">
@@ -485,31 +480,43 @@ const LOG_MIN = Math.log10(20), LOG_MAX = Math.log10(22000);
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let gainAmount  = 6;
-let direction   = 'both';   // 'both' | 'boost' | 'cut'
-let targetFreq  = null;     // Hz
-let targetGain  = null;     // +/- gainAmount
+let direction   = 'both';
+let targetFreq  = null;
+let targetGain  = null;
 let roundActive = false;
 let answered    = false;
 let score=0, streak=0, totalRounds=0, correctCount=0;
 
-// Frequency toggles — which freqs are included in the quiz pool
+// Frequency toggles
 let activeFreqs = new Set(FREQS);
 
 // Audio
-let audioCtx      = null;
-let noiseSource   = null;
-let eqFilter      = null;
-let outGain       = null;
-let isPlaying     = false;
-let isDry         = false;
-let isPaused      = false;
-let shotLoopTimer = null;
-let playTimeout   = null;
-let nextTimeout   = null;
-let sourceType    = 'pink';
-let customBuffers = [], customIdx = 0, musicOffset = 0, musicStartedAt = 0;
-let builtinBuffers= [], builtinLoaded=false, builtinIdx=0;
-let currentShotSrc = null; // track one-shot for stopping
+let audioCtx       = null;
+let noiseSource    = null;
+let eqFilter       = null;
+let outGain        = null;
+let isPlaying      = false;
+let isDry          = false;
+let isPaused       = false;
+let shotLoopTimer  = null;
+let playTimeout    = null;
+let nextTimeout    = null;
+let currentShotSrc = null;
+
+// Source
+let sourceType = 'pink';  // 'pink' | 'oneShot' | 'loop' | 'custom'
+
+// One-shot state
+let oneShotBuffers = [], oneShotLoaded = false, oneShotIdx = 0;
+
+// Loop state
+let loopBuffers = [], loopLoaded = false, loopIdx = 0;
+
+// Custom (uploaded) state
+let customBuffers = [], customIdx = 0;
+
+// Shared music position (loop + custom)
+let musicOffset = 0, musicStartedAt = 0;
 
 const canvas = document.getElementById('eqCanvas');
 const ctx2d  = canvas.getContext('2d');
@@ -525,6 +532,67 @@ function setDirection(d, el) {
   ['dirBoth','dirBoost','dirCut'].forEach(id => document.getElementById(id).classList.remove('active'));
   el.classList.add('active');
   if (roundActive && !answered) newRound();
+}
+
+// ── Load status helper ────────────────────────────────────────────────────────
+function setLoadStatus(pillId, msg, loading) {
+  const el = document.getElementById(pillId);
+  if (!el) return;
+  if (loading) { el.classList.add('loading'); el.textContent = msg; }
+  else { el.classList.remove('loading'); }
+}
+
+// ── Sample loading ────────────────────────────────────────────────────────────
+async function loadOneShotSamples() {
+  if (oneShotLoaded) return;
+  initAudio();
+  setLoadStatus('srcOneShot', 'Loading…', true);
+  try {
+    const resp = await fetch('../samples/one-shots/');
+    const html = await resp.text();
+    const matches = [...html.matchAll(/href="([^"?#]+\.(wav|mp3|ogg|flac|aif{1,2}))"[^>]*>/gi)];
+    const files = [...new Set(matches.map(m => m[1]).filter(f => !f.startsWith('/') && !f.includes('/')))];
+    oneShotBuffers = [];
+    await Promise.all(files.map(async fname => {
+      try {
+        const r = await fetch(`../samples/one-shots/${fname}`);
+        if (!r.ok) return;
+        const ab = await r.arrayBuffer();
+        oneShotBuffers.push({ name: fname.replace(/\.\w+$/, ''), buffer: await audioCtx.decodeAudioData(ab) });
+      } catch(e) { console.warn('one-shot load fail:', fname, e); }
+    }));
+    oneShotBuffers.sort((a,b) => a.name.localeCompare(b.name));
+    oneShotLoaded = oneShotBuffers.length > 0;
+  } catch(e) { console.warn('one-shots folder error', e); }
+  document.getElementById('srcOneShot').textContent = 'One-Shots';
+  setLoadStatus('srcOneShot', '', false);
+  if (!oneShotLoaded) { showToast('No one-shots found in samples/one-shots/'); sourceType='pink'; updateSourceUI(); }
+}
+
+async function loadLoopSamples() {
+  if (loopLoaded) return;
+  initAudio();
+  setLoadStatus('srcLoop', 'Loading…', true);
+  try {
+    const resp = await fetch('../samples/loops/');
+    const html = await resp.text();
+    const matches = [...html.matchAll(/href="([^"?#]+\.(wav|mp3|ogg|flac|aif{1,2}))"[^>]*>/gi)];
+    const files = [...new Set(matches.map(m => m[1]).filter(f => !f.startsWith('/') && !f.includes('/')))];
+    loopBuffers = [];
+    await Promise.all(files.map(async fname => {
+      try {
+        const r = await fetch(`../samples/loops/${fname}`);
+        if (!r.ok) return;
+        const ab = await r.arrayBuffer();
+        loopBuffers.push({ name: fname.replace(/\.\w+$/, ''), buffer: await audioCtx.decodeAudioData(ab) });
+      } catch(e) { console.warn('loop load fail:', fname, e); }
+    }));
+    loopBuffers.sort((a,b) => a.name.localeCompare(b.name));
+    loopLoaded = loopBuffers.length > 0;
+  } catch(e) { console.warn('loops folder error', e); }
+  document.getElementById('srcLoop').textContent = 'Loops';
+  setLoadStatus('srcLoop', '', false);
+  if (!loopLoaded) { showToast('No loops found in samples/loops/'); sourceType='pink'; updateSourceUI(); }
 }
 
 // ── Frequency toggles ─────────────────────────────────────────────────────────
@@ -543,11 +611,7 @@ function buildFreqToggles() {
 
 function toggleFreq(f, pill) {
   if (activeFreqs.has(f)) {
-    // Don't allow fewer than 2 active frequencies
-    if (activeFreqs.size <= 2) {
-      showToast('Need at least 2 frequencies active');
-      return;
-    }
+    if (activeFreqs.size <= 2) { showToast('Need at least 2 frequencies active'); return; }
     activeFreqs.delete(f);
     pill.classList.remove('active');
     pill.classList.add('inactive');
@@ -556,38 +620,24 @@ function toggleFreq(f, pill) {
     pill.classList.add('active');
     pill.classList.remove('inactive');
   }
-  // Update visibility of freq buttons — hidden ones stay in grid position
   applyFreqVisibility();
-  // If the current round's target freq was just disabled, start a new round
-  if (roundActive && !answered && targetFreq && !activeFreqs.has(targetFreq)) {
-    newRound();
-  }
+  if (roundActive && !answered && targetFreq && !activeFreqs.has(targetFreq)) newRound();
 }
 
 function applyFreqVisibility() {
   FREQS.forEach(f => {
     const btn = document.getElementById(`freq-${f}`);
     if (!btn) return;
-    if (activeFreqs.has(f)) {
-      btn.classList.remove('freq-off');
-    } else {
-      btn.classList.add('freq-off');
-    }
+    btn.classList.toggle('freq-off', !activeFreqs.has(f));
   });
 }
 
 // ── EQ curve draw ─────────────────────────────────────────────────────────────
-function freqToX(f, w) {
-  return ((Math.log10(f) - LOG_MIN) / (LOG_MAX - LOG_MIN)) * w;
-}
-function gainToY(g, h) {
-  return h/2 - (g / 18) * (h/2 - 6);
-}
+function freqToX(f, w) { return ((Math.log10(f) - LOG_MIN) / (LOG_MAX - LOG_MIN)) * w; }
+function gainToY(g, h)  { return h/2 - (g / 18) * (h/2 - 6); }
 function getBandGain(f, centerFreq, gain) {
   if (!centerFreq) return 0;
-  const Q      = 3.0;
-  const bw     = centerFreq / Q;
-  const dist   = (f - centerFreq) / bw;
+  const bw = centerFreq / 3.0, dist = (f - centerFreq) / bw;
   return gain * Math.exp(-0.5 * dist * dist);
 }
 
@@ -597,27 +647,19 @@ function drawEQ(centerFreq, gain) {
   canvas.width = W*dpr; canvas.height = H*dpr;
   canvas.style.width = W+'px'; canvas.style.height = H+'px';
   ctx2d.scale(dpr, dpr);
-
   ctx2d.fillStyle = '#0c0f14';
   ctx2d.fillRect(0, 0, W, H);
-
-  // Grid
-  for (const f of [63,125,250,500,1000,2000,4000,8000,16000]) {
+  for (const f of FREQS) {
     const x = freqToX(f, W);
     ctx2d.strokeStyle = 'rgba(255,255,255,0.05)'; ctx2d.lineWidth = 1;
     ctx2d.beginPath(); ctx2d.moveTo(x,0); ctx2d.lineTo(x,H); ctx2d.stroke();
   }
-  // 0dB line
   ctx2d.strokeStyle = 'rgba(255,255,255,0.1)'; ctx2d.lineWidth = 1;
   ctx2d.beginPath(); ctx2d.moveTo(0,H/2); ctx2d.lineTo(W,H/2); ctx2d.stroke();
-
   if (!centerFreq) return;
-
-  const N = 400;
-  const isBoost = gain > 0;
+  const N = 400, isBoost = gain > 0;
   const curveColor = isBoost ? 'rgba(240,180,41,0.9)' : 'rgba(244,91,105,0.9)';
   const fillColor  = isBoost ? 'rgba(240,180,41,0.08)' : 'rgba(244,91,105,0.08)';
-
   ctx2d.beginPath();
   for (let i=0; i<=N; i++) {
     const f = Math.pow(10, LOG_MIN + (i/N)*(LOG_MAX-LOG_MIN));
@@ -628,8 +670,6 @@ function drawEQ(centerFreq, gain) {
   ctx2d.strokeStyle = curveColor; ctx2d.lineWidth = 2.5; ctx2d.stroke();
   ctx2d.lineTo(W,H/2); ctx2d.lineTo(0,H/2); ctx2d.closePath();
   ctx2d.fillStyle = fillColor; ctx2d.fill();
-
-  // Peak dot
   const px = freqToX(centerFreq, W), py = gainToY(gain, H);
   ctx2d.beginPath(); ctx2d.arc(px, py, 5, 0, Math.PI*2);
   ctx2d.fillStyle = curveColor; ctx2d.fill();
@@ -657,23 +697,25 @@ function newRound() {
   clearTimeout(nextTimeout);
   stopPlayback();
   musicOffset = 0;
-  // Advance music track each new round
-  if (sourceType === 'custom' && customBuffers.length > 0) {
+
+  // Advance track indices each round
+  if (sourceType === 'oneShot' && oneShotBuffers.length > 0)
+    oneShotIdx = (oneShotIdx + 1) % oneShotBuffers.length;
+  if (sourceType === 'loop' && loopBuffers.length > 0)
+    loopIdx = (loopIdx + 1) % loopBuffers.length;
+  if (sourceType === 'custom' && customBuffers.length > 0)
     customIdx = (customIdx + 1) % customBuffers.length;
-  }
+
   answered = false;
   roundActive = true;
-  // Reset dry and pause states
+
   if (isDry) { isDry = false; const db=document.getElementById('btnDry'); if(db){db.classList.remove('dry-active');db.textContent='Dry';} }
   if (isPaused && audioCtx) { audioCtx.resume(); isPaused=false; const pb=document.getElementById('btnPause'); if(pb){pb.innerHTML='&#9646;&#9646; Pause';pb.classList.remove('paused');} }
 
-  // Pick random frequency from active set only
   const activeArr = FREQS.filter(f => activeFreqs.has(f));
   if (activeArr.length === 0) return;
-  const idx = Math.floor(Math.random() * activeArr.length);
-  targetFreq = activeArr[idx];
+  targetFreq = activeArr[Math.floor(Math.random() * activeArr.length)];
 
-  // Pick direction
   if (direction === 'boost') targetGain = gainAmount;
   else if (direction === 'cut') targetGain = -gainAmount;
   else targetGain = Math.random() > 0.5 ? gainAmount : -gainAmount;
@@ -681,47 +723,30 @@ function newRound() {
   totalRounds++;
   document.getElementById('roundVal').textContent = totalRounds;
 
-  // Update prompt
   const isBoost = targetGain > 0;
   const badge = document.getElementById('dirBadge');
   badge.textContent = isBoost ? `↑ Boost  ${gainAmount} dB` : `↓ Cut  ${gainAmount} dB`;
   badge.className = `direction-badge ${isBoost ? 'boost' : 'cut'}`;
-
   document.getElementById('promptText').innerHTML = `Which frequency is being <span>${isBoost ? 'boosted' : 'cut'}</span>?`;
 
-  const card = document.getElementById('promptCard');
-  card.classList.remove('correct-flash','wrong-flash');
-
-  const ri = document.getElementById('resultInline');
-  ri.className = 'result-msg-inline';
-
+  document.getElementById('promptCard').classList.remove('correct-flash','wrong-flash');
+  document.getElementById('resultInline').className = 'result-msg-inline';
   document.getElementById('nextBar').style.display = 'none';
 
-  // Reset freq buttons — active ones enabled, inactive ones stay hidden
   FREQS.forEach(f => {
     const btn = document.getElementById(`freq-${f}`);
     btn.className = 'freq-btn';
-    if (activeFreqs.has(f)) {
-      btn.disabled = false;
-      // visibility is controlled by freq-off class — don't override here
-    } else {
-      btn.disabled = true;
-      btn.classList.add('freq-off');
-    }
+    if (activeFreqs.has(f)) { btn.disabled = false; }
+    else { btn.disabled = true; btn.classList.add('freq-off'); }
   });
 
   document.getElementById('btnSkip').disabled = false;
-
-  // Draw EQ hidden until answer
   drawEQ(null, 0);
   document.getElementById('eqCanvas').classList.add('hidden-eq');
-
-  // Enable action buttons
   document.getElementById('btnDry').disabled = false;
   document.getElementById('btnPause').disabled = false;
   document.getElementById('btnRestart').disabled = false;
 
-  // Auto-play
   playCurrentRound();
 }
 
@@ -731,110 +756,99 @@ function playCurrentRound() {
   stopPlayback();
   initAudio();
   if (audioCtx.state === 'suspended') audioCtx.resume();
-
-  // Draw EQ curve (still hidden until answer)
   drawEQ(targetFreq, targetGain);
 
-  if (sourceType === 'builtin') {
-    playBuiltinShot();
+  if (sourceType === 'oneShot') {
+    startOneShotLoop();
   } else {
     playNoiseBurst();
   }
 
-  // Show playing state
   const dot = document.getElementById('playDot');
-  dot.className = 'pulse-dot';
-  dot.style.cssText = '';
+  dot.className = 'pulse-dot'; dot.style.cssText = '';
   document.getElementById('btnPlay').classList.add('playing');
 }
 
-function playNoiseBurst(offset) {
-  // Build EQ filter (or bypass if dry)
+function buildEQChain(outputGain) {
   eqFilter = audioCtx.createBiquadFilter();
   eqFilter.type = 'peaking';
   eqFilter.frequency.value = targetFreq;
   eqFilter.Q.value = 3.0;
   eqFilter.gain.value = isDry ? 0 : targetGain;
-
-  outGain = audioCtx.createGain(); outGain.gain.value = 0.6;
+  outGain = audioCtx.createGain(); outGain.gain.value = outputGain;
   eqFilter.connect(outGain); outGain.connect(audioCtx.destination);
-
-  let src;
-  if (sourceType === 'custom' && customBuffers.length > 0) {
-    const buf = customBuffers[customIdx % customBuffers.length];
-    src = audioCtx.createBufferSource();
-    src.buffer = buf;
-    src.loop = false;
-    const startOffset = Math.min(offset ?? musicOffset, buf.duration - 0.1);
-    musicStartedAt = audioCtx.currentTime - startOffset;
-    musicOffset = startOffset;
-
-    // When a song ends, advance to next track
-    src.onended = () => {
-      if (!isPlaying) return;
-      customIdx = (customIdx + 1) % customBuffers.length;
-      musicOffset = 0;
-      if (noiseSource === src) {
-        // Rebuild with next track
-        if (eqFilter && outGain) {
-          const nextSrc = audioCtx.createBufferSource();
-          nextSrc.buffer = customBuffers[customIdx];
-          nextSrc.loop = false;
-          nextSrc.connect(eqFilter);
-          nextSrc.start(0);
-          noiseSource = nextSrc;
-          musicStartedAt = audioCtx.currentTime;
-          nextSrc.onended = src.onended; // chain
-        }
-      }
-    };
-    src.start(0, startOffset);
-  } else {
-    // Pink noise: generate a long looping buffer
-    src = makePinkNoise(5);
-    src.loop = true;
-    src.start(0);
-    musicOffset = 0; musicStartedAt = audioCtx.currentTime;
-  }
-  src.connect(eqFilter);
-  noiseSource = src;
-  isPlaying = true;
-  // No timeout — plays until stopped
 }
 
-function playBuiltinShot() {
-  if (!builtinBuffers.length) return;
-
-  // Set up shared filter + gain (reused each shot)
-  eqFilter = audioCtx.createBiquadFilter();
-  eqFilter.type = 'peaking';
-  eqFilter.frequency.value = targetFreq;
-  eqFilter.Q.value = 3.0;
-  eqFilter.gain.value = isDry ? 0 : targetGain;
-
-  outGain = audioCtx.createGain(); outGain.gain.value = 0.8;
-  eqFilter.connect(outGain); outGain.connect(audioCtx.destination);
-
+function startOneShotLoop() {
+  if (!oneShotBuffers.length) return;
+  buildEQChain(0.8);
   isPlaying = true;
-
   const fireShot = () => {
-    if (!isPlaying || sourceType !== 'builtin') return;
-    const sample = builtinBuffers[builtinIdx % builtinBuffers.length];
+    if (!isPlaying || sourceType !== 'oneShot') return;
+    const sample = oneShotBuffers[oneShotIdx % oneShotBuffers.length];
     const src = audioCtx.createBufferSource();
     src.buffer = sample.buffer;
     src.connect(eqFilter);
     src.start(0);
     currentShotSrc = src;
   };
+  fireShot();
+  shotLoopTimer = setInterval(fireShot, 5000);
+}
 
-  fireShot(); // play immediately
-  shotLoopTimer = setInterval(fireShot, 5000); // repeat every 5s
+function playNoiseBurst() {
+  buildEQChain(0.6);
+  let src;
+
+  if (sourceType === 'loop' && loopBuffers.length > 0) {
+    const buf = loopBuffers[loopIdx % loopBuffers.length].buffer;
+    src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    const startOff = musicOffset % buf.duration;
+    musicStartedAt = audioCtx.currentTime - startOff;
+    musicOffset = startOff;
+    src.start(0, startOff);
+
+  } else if (sourceType === 'custom' && customBuffers.length > 0) {
+    const buf = customBuffers[customIdx % customBuffers.length];
+    src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    src.loop = false;
+    const startOff = Math.min(musicOffset, buf.duration - 0.1);
+    musicStartedAt = audioCtx.currentTime - startOff;
+    musicOffset = startOff;
+    src.onended = () => {
+      if (!isPlaying || noiseSource !== src) return;
+      customIdx = (customIdx + 1) % customBuffers.length;
+      musicOffset = 0;
+      if (eqFilter && outGain) {
+        const next = audioCtx.createBufferSource();
+        next.buffer = customBuffers[customIdx]; next.loop = false;
+        next.connect(eqFilter); next.start(0);
+        noiseSource = next; musicStartedAt = audioCtx.currentTime;
+        next.onended = src.onended;
+      }
+    };
+    src.start(0, startOff);
+
+  } else {
+    // Pink noise
+    src = makePinkNoise(5);
+    src.loop = true;
+    src.start(0);
+    musicOffset = 0; musicStartedAt = audioCtx.currentTime;
+  }
+
+  src.connect(eqFilter);
+  noiseSource = src;
+  isPlaying = true;
 }
 
 function stopPlayback() {
   clearTimeout(playTimeout);
-  if (shotLoopTimer) { clearInterval(shotLoopTimer); shotLoopTimer = null; }
-  if (noiseSource)     { try { noiseSource.stop(); }     catch(e){} noiseSource = null; }
+  if (shotLoopTimer)  { clearInterval(shotLoopTimer); shotLoopTimer = null; }
+  if (noiseSource)    { try { noiseSource.stop(); }    catch(e){} noiseSource = null; }
   if (currentShotSrc) { try { currentShotSrc.stop(); } catch(e){} currentShotSrc = null; }
   if (eqFilter)  { try { eqFilter.disconnect(); }  catch(e){} eqFilter = null; }
   if (outGain)   { try { outGain.disconnect(); }   catch(e){} outGain = null; }
@@ -844,76 +858,136 @@ function stopPlayback() {
   document.getElementById('btnPlay').classList.remove('playing');
 }
 
+// ── Seek (loop + custom, ±10s) ────────────────────────────────────────────────
+function seekMusic(deltaSecs) {
+  if (!roundActive || !isPlaying || !audioCtx) return;
+
+  if (sourceType === 'loop' && loopBuffers.length > 0) {
+    const buf = loopBuffers[loopIdx % loopBuffers.length].buffer;
+    const elapsed = audioCtx.currentTime - musicStartedAt;
+    const cur = musicOffset + elapsed;
+    const newOff = ((cur + deltaSecs) % buf.duration + buf.duration) % buf.duration;
+    if (noiseSource) { noiseSource.onended = null; try { noiseSource.stop(); } catch(e){} noiseSource = null; }
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf; src.loop = true; src.connect(eqFilter);
+    musicOffset = newOff; musicStartedAt = audioCtx.currentTime;
+    src.start(0, newOff); noiseSource = src;
+    showToast(`${deltaSecs > 0 ? '+' : ''}${deltaSecs}s`);
+
+  } else if (sourceType === 'custom' && customBuffers.length > 0) {
+    const buf = customBuffers[customIdx % customBuffers.length];
+    const elapsed = audioCtx.currentTime - musicStartedAt;
+    const cur = musicOffset + elapsed;
+    const newOff = Math.max(0, Math.min(buf.duration - 0.5, cur + deltaSecs));
+    if (noiseSource) { noiseSource.onended = null; try { noiseSource.stop(); } catch(e){} noiseSource = null; }
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf; src.loop = false; src.connect(eqFilter);
+    musicOffset = newOff; musicStartedAt = audioCtx.currentTime;
+    src.onended = () => {
+      if (!isPlaying || noiseSource !== src) return;
+      customIdx = (customIdx + 1) % customBuffers.length; musicOffset = 0;
+      if (eqFilter && outGain) {
+        const next = audioCtx.createBufferSource();
+        next.buffer = customBuffers[customIdx]; next.loop = false; next.connect(eqFilter);
+        musicStartedAt = audioCtx.currentTime; next.onended = src.onended; next.start(0);
+        noiseSource = next;
+      }
+    };
+    src.start(0, newOff); noiseSource = src;
+    showToast(`${deltaSecs > 0 ? '+' : ''}${deltaSecs}s`);
+  }
+}
+
+// ── Skip track (oneShot / loop / custom) ──────────────────────────────────────
+function skipTrack(delta) {
+  if (!roundActive || !isPlaying || !audioCtx) return;
+
+  if (sourceType === 'oneShot' && oneShotBuffers.length > 0) {
+    oneShotIdx = ((oneShotIdx + delta) % oneShotBuffers.length + oneShotBuffers.length) % oneShotBuffers.length;
+    if (shotLoopTimer) { clearInterval(shotLoopTimer); shotLoopTimer = null; }
+    if (currentShotSrc) { try { currentShotSrc.stop(); } catch(e){} currentShotSrc = null; }
+    const fireShot = () => {
+      if (!isPlaying || sourceType !== 'oneShot') return;
+      const s = audioCtx.createBufferSource();
+      s.buffer = oneShotBuffers[oneShotIdx % oneShotBuffers.length].buffer;
+      s.connect(eqFilter); s.start(0); currentShotSrc = s;
+    };
+    fireShot(); shotLoopTimer = setInterval(fireShot, 5000);
+    showToast(`Shot ${oneShotIdx + 1} / ${oneShotBuffers.length}`);
+
+  } else if (sourceType === 'loop' && loopBuffers.length > 0) {
+    loopIdx = ((loopIdx + delta) % loopBuffers.length + loopBuffers.length) % loopBuffers.length;
+    musicOffset = 0;
+    if (noiseSource) { noiseSource.onended = null; try { noiseSource.stop(); } catch(e){} noiseSource = null; }
+    const buf = loopBuffers[loopIdx % loopBuffers.length].buffer;
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf; src.loop = true; src.connect(eqFilter);
+    musicStartedAt = audioCtx.currentTime; src.start(0); noiseSource = src;
+    showToast(`Loop ${loopIdx + 1} / ${loopBuffers.length}`);
+
+  } else if (sourceType === 'custom' && customBuffers.length > 0) {
+    customIdx = ((customIdx + delta) % customBuffers.length + customBuffers.length) % customBuffers.length;
+    musicOffset = 0;
+    if (noiseSource) { noiseSource.onended = null; try { noiseSource.stop(); } catch(e){} noiseSource = null; }
+    const buf = customBuffers[customIdx];
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf; src.loop = false; src.connect(eqFilter);
+    musicStartedAt = audioCtx.currentTime;
+    src.onended = () => {
+      if (!isPlaying || noiseSource !== src) return;
+      customIdx = (customIdx + 1) % customBuffers.length; musicOffset = 0;
+      if (eqFilter && outGain) {
+        const next = audioCtx.createBufferSource();
+        next.buffer = customBuffers[customIdx]; next.loop = false; next.connect(eqFilter);
+        musicStartedAt = audioCtx.currentTime; next.onended = src.onended; next.start(0);
+        noiseSource = next;
+      }
+    };
+    src.start(0); noiseSource = src;
+    showToast(`Track ${customIdx + 1} / ${customBuffers.length}`);
+  }
+}
+
 // ── Answer ────────────────────────────────────────────────────────────────────
 function submitAnswer(clickedFreq) {
   if (!roundActive || answered) return;
-  if (!activeFreqs.has(clickedFreq)) return; // guard against clicking hidden btns
+  if (!activeFreqs.has(clickedFreq)) return;
   answered = true;
-  // Reveal EQ curve
   document.getElementById('eqCanvas').classList.remove('hidden-eq');
   stopPlayback();
 
   const isCorrect = (clickedFreq === targetFreq);
+  if (isCorrect) { score++; streak++; correctCount++; } else streak = 0;
 
-  // Update stats
-  if (isCorrect) { score++; streak++; correctCount++; }
-  else streak = 0;
-
-  document.getElementById('scoreVal').textContent   = score;
-  document.getElementById('streakVal').textContent  = streak;
+  document.getElementById('scoreVal').textContent  = score;
+  document.getElementById('streakVal').textContent = streak;
   document.getElementById('accuracyVal').textContent =
     totalRounds > 0 ? Math.round(correctCount/totalRounds*100)+'%' : '—';
 
-  // Visual feedback on buttons (only for active freqs)
   FREQS.forEach(f => {
     const btn = document.getElementById(`freq-${f}`);
     btn.disabled = true;
-    if (!activeFreqs.has(f)) {
-      // Keep hidden, don't add answer classes
-      btn.classList.add('freq-off');
-      return;
-    }
-    if (f === targetFreq && isCorrect) {
-      btn.classList.add('correct');
-    } else if (f === clickedFreq && !isCorrect) {
-      btn.classList.add('wrong');
-    } else if (f === targetFreq && !isCorrect) {
-      btn.classList.add('reveal'); // show correct answer
-    } else {
-      btn.classList.add('dimmed');
-    }
+    if (!activeFreqs.has(f)) { btn.classList.add('freq-off'); return; }
+    if (f === targetFreq && isCorrect)  btn.classList.add('correct');
+    else if (f === clickedFreq && !isCorrect) btn.classList.add('wrong');
+    else if (f === targetFreq && !isCorrect)  btn.classList.add('reveal');
+    else btn.classList.add('dimmed');
   });
 
-  // Prompt card flash
-  const card = document.getElementById('promptCard');
-  card.classList.add(isCorrect ? 'correct-flash' : 'wrong-flash');
-
-  // Inline result
+  document.getElementById('promptCard').classList.add(isCorrect ? 'correct-flash' : 'wrong-flash');
   const ri = document.getElementById('resultInline');
   ri.textContent = isCorrect ? '✓ Correct!' : `✗ ${fmtFreq(targetFreq)}`;
   ri.className = `result-msg-inline ${isCorrect ? 'show-correct' : 'show-wrong'}`;
 
-  // History dot
   addHistory(isCorrect);
 
-  // Auto-advance countdown bar
   const delay = isCorrect ? 1200 : 2000;
-  const bar = document.getElementById('nextBar');
-  const fill = document.getElementById('nextFill');
-  bar.style.display = 'block';
-  fill.style.transition = 'none';
-  fill.style.width = '100%';
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      fill.style.transition = `width ${delay}ms linear`;
-      fill.style.width = '0%';
-    });
-  });
-
-  nextTimeout = setTimeout(() => {
-    newRound();
-  }, delay);
-
+  const bar = document.getElementById('nextBar'), fill = document.getElementById('nextFill');
+  bar.style.display = 'block'; fill.style.transition = 'none'; fill.style.width = '100%';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    fill.style.transition = `width ${delay}ms linear`; fill.style.width = '0%';
+  }));
+  nextTimeout = setTimeout(newRound, delay);
   document.getElementById('btnSkip').disabled = true;
 }
 
@@ -922,29 +996,22 @@ function skipRound() {
   answered = true;
   document.getElementById('eqCanvas').classList.remove('hidden-eq');
   stopPlayback();
-  streak = 0;
-  document.getElementById('streakVal').textContent = streak;
+  streak = 0; document.getElementById('streakVal').textContent = streak;
 
   FREQS.forEach(f => {
     const btn = document.getElementById(`freq-${f}`);
     btn.disabled = true;
-    if (!activeFreqs.has(f)) {
-      btn.classList.add('freq-off');
-      return;
-    }
+    if (!activeFreqs.has(f)) { btn.classList.add('freq-off'); return; }
     btn.classList.add(f === targetFreq ? 'reveal' : 'dimmed');
   });
 
   const ri = document.getElementById('resultInline');
   ri.textContent = `→ ${fmtFreq(targetFreq)}`;
   ri.className = 'result-msg-inline show-wrong';
-
   addHistory(false);
 
-  const bar = document.getElementById('nextBar');
-  const fill = document.getElementById('nextFill');
-  bar.style.display = 'block';
-  fill.style.transition = 'none'; fill.style.width = '100%';
+  const bar = document.getElementById('nextBar'), fill = document.getElementById('nextFill');
+  bar.style.display = 'block'; fill.style.transition = 'none'; fill.style.width = '100%';
   requestAnimationFrame(() => requestAnimationFrame(() => {
     fill.style.transition = 'width 1800ms linear'; fill.style.width = '0%';
   }));
@@ -952,15 +1019,13 @@ function skipRound() {
   document.getElementById('btnSkip').disabled = true;
 }
 
-// ── History strip ─────────────────────────────────────────────────────────────
+// ── History ───────────────────────────────────────────────────────────────────
 function addHistory(correct) {
   const strip = document.getElementById('historyStrip');
   const dot = document.createElement('div');
   dot.className = `hist-dot ${correct ? 'c' : 'w'}`;
   strip.appendChild(dot);
-  // Keep last 40
   while (strip.children.length > 40) strip.removeChild(strip.firstChild);
-  strip.scrollLeft = strip.scrollWidth;
 }
 
 // ── Audio setup ───────────────────────────────────────────────────────────────
@@ -980,70 +1045,49 @@ function makePinkNoise(durationSecs) {
     b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
     b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
     b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
-    d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11;
-    b6=w*0.115926;
+    d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11; b6=w*0.115926;
   }
-  const src=audioCtx.createBufferSource();
-  src.buffer=buf; src.loop=false;
-  return src;
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf; return src;
 }
 
 // ── Source ────────────────────────────────────────────────────────────────────
 function setSource(type) {
-  if (type === 'builtin' && !builtinLoaded) {
-    showToast('Loading samples…');
-    loadBuiltinSamples().then(() => {
-      sourceType = 'builtin'; updateSourceUI();
-    });
+  if (type === 'oneShot' && !oneShotLoaded) {
+    loadOneShotSamples().then(() => { if (oneShotLoaded) { sourceType='oneShot'; updateSourceUI(); } });
+    return;
+  }
+  if (type === 'loop' && !loopLoaded) {
+    loadLoopSamples().then(() => { if (loopLoaded) { sourceType='loop'; updateSourceUI(); } });
     return;
   }
   sourceType = type; updateSourceUI();
 }
+
 function updateSourceUI() {
   document.getElementById('srcPink').classList.toggle('active',    sourceType==='pink');
+  document.getElementById('srcOneShot').classList.toggle('active', sourceType==='oneShot');
+  document.getElementById('srcLoop').classList.toggle('active',    sourceType==='loop');
   document.getElementById('srcCustom').classList.toggle('active',  sourceType==='custom');
-  document.getElementById('srcBuiltin').classList.toggle('active', sourceType==='builtin');
 }
+
 function triggerUpload() {
   if (customBuffers.length > 0) { setSource('custom'); return; }
   document.getElementById('folderInput').click();
 }
+
 async function handleFolderUpload(e) {
-  const files = Array.from(e.target.files).filter(f=>f.type.startsWith('audio/'));
+  const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
   if (!files.length) return;
-  initAudio(); customBuffers=[]; showToast(`Loading ${files.length} tracks…`);
+  initAudio(); customBuffers = []; showToast(`Loading ${files.length} tracks…`);
   for (const f of files) {
-    try { const ab=await f.arrayBuffer(); customBuffers.push(await audioCtx.decodeAudioData(ab)); }
+    try { const ab = await f.arrayBuffer(); customBuffers.push(await audioCtx.decodeAudioData(ab)); }
     catch(err) { console.warn('decode error', f.name); }
   }
   if (customBuffers.length > 0) {
-    document.getElementById('uploadLabel').textContent=`📁 Folder (${customBuffers.length} tracks)`;
+    document.getElementById('uploadLabel').textContent = `📁 ${customBuffers.length} tracks`;
     setSource('custom'); showToast('Music loaded!');
   }
-}
-
-const SAMPLE_FILES = [
-  'CLAP_DEEP_001.wav','CLAP_DEEP_002.wav','CLAP_DEEP_003.wav',
-  'CLAP_DEEP_004.wav','CLAP_DEEP_005.wav',
-  'CLAP_LAYER_001.wav','CLAP_LAYER_002.wav','CLAP_LAYER_003.wav','CLAP_LAYER_004.wav',
-  'SNARE_DEEP_001.wav','SNARE_DEEP_002.wav','SNARE_DEEP_003.wav',
-  'SNARE_DEEP_004.wav','SNARE_DEEP_005.wav','SNARE_DEEP_006.wav',
-];
-async function loadBuiltinSamples() {
-  if (builtinLoaded) return;
-  initAudio(); builtinBuffers=[];
-  const fetches = SAMPLE_FILES.map(async fname => {
-    try {
-      const resp=await fetch(`./samples/${fname}`);
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const ab=await resp.arrayBuffer();
-      builtinBuffers.push({ name:fname.replace(/\.\w+$/,''), buffer:await audioCtx.decodeAudioData(ab) });
-    } catch(e) { console.warn('Could not load',fname,e.message); }
-  });
-  await Promise.all(fetches);
-  builtinBuffers.sort((a,b)=>a.name.localeCompare(b.name));
-  builtinLoaded = builtinBuffers.length > 0;
-  if (!builtinLoaded) { showToast('No samples found — check samples/ folder'); sourceType='pink'; updateSourceUI(); }
 }
 
 // ── Dry toggle ────────────────────────────────────────────────────────────────
@@ -1053,10 +1097,8 @@ function toggleDry() {
   const btn = document.getElementById('btnDry');
   btn.classList.toggle('dry-active', isDry);
   btn.textContent = isDry ? 'Wet' : 'Dry';
-  // If currently playing, update EQ filter gain live
-  if (eqFilter && audioCtx) {
+  if (eqFilter && audioCtx)
     eqFilter.gain.setTargetAtTime(isDry ? 0 : targetGain, audioCtx.currentTime, 0.01);
-  }
 }
 
 // ── Pause / Resume ────────────────────────────────────────────────────────────
@@ -1066,18 +1108,14 @@ function togglePause() {
   if (isPaused) {
     audioCtx.resume().then(() => {
       isPaused = false;
-      btn.innerHTML = '&#9646;&#9646; Pause';
-      btn.classList.remove('paused');
-      // Restart one-shot loop if builtin
-      if (sourceType === 'builtin' && isPlaying) {
+      btn.innerHTML = '&#9646;&#9646; Pause'; btn.classList.remove('paused');
+      if (sourceType === 'oneShot' && isPlaying) {
         if (shotLoopTimer) clearInterval(shotLoopTimer);
         const fireShot = () => {
           if (!isPlaying) return;
-          const sample = builtinBuffers[builtinIdx % builtinBuffers.length];
-          const src = audioCtx.createBufferSource();
-          src.buffer = sample.buffer;
-          if (eqFilter) src.connect(eqFilter);
-          src.start(0); currentShotSrc = src;
+          const s = audioCtx.createBufferSource();
+          s.buffer = oneShotBuffers[oneShotIdx % oneShotBuffers.length].buffer;
+          if (eqFilter) s.connect(eqFilter); s.start(0); currentShotSrc = s;
         };
         fireShot(); shotLoopTimer = setInterval(fireShot, 5000);
       }
@@ -1086,8 +1124,7 @@ function togglePause() {
     if (shotLoopTimer) { clearInterval(shotLoopTimer); shotLoopTimer = null; }
     audioCtx.suspend().then(() => {
       isPaused = true;
-      btn.innerHTML = '&#9654; Resume';
-      btn.classList.add('paused');
+      btn.innerHTML = '&#9654; Resume'; btn.classList.add('paused');
     });
   }
 }
@@ -1096,110 +1133,15 @@ function togglePause() {
 function restartAudio() {
   if (!roundActive) return;
   initAudio();
-  if (isPaused) { audioCtx.resume(); isPaused = false;
+  if (isPaused) {
+    audioCtx.resume(); isPaused = false;
     const btn = document.getElementById('btnPause');
-    btn.innerHTML = '&#9646;&#9646; Pause'; btn.classList.remove('paused'); }
+    btn.innerHTML = '&#9646;&#9646; Pause'; btn.classList.remove('paused');
+  }
   if (audioCtx.state === 'suspended') audioCtx.resume();
-  musicOffset = 0; // restart from beginning
-  stopPlayback();
-  playCurrentRound();
-  showToast('Restarted');
-}
-
-// ── Seek within current track (custom music only, ±10s) ──────────────────────
-function seekMusic(deltaSecs) {
-  if (!roundActive || sourceType !== 'custom' || customBuffers.length === 0) return;
-  if (!isPlaying || !audioCtx) return;
-
-  const buf = customBuffers[customIdx % customBuffers.length];
-
-  // Current playback position = time elapsed since we started this source + the offset we started from
-  const elapsedSinceStart = audioCtx.currentTime - musicStartedAt;
-  const currentPos = musicOffset + elapsedSinceStart;
-  const newOffset  = Math.max(0, Math.min(buf.duration - 0.5, currentPos + deltaSecs));
-
-  // Stop old source node without triggering onended chain
-  if (noiseSource) {
-    noiseSource.onended = null; // detach so it doesn't chain to next track
-    try { noiseSource.stop(); } catch(e){}
-    noiseSource = null;
-  }
-
-  // Create a new source node on the EXISTING filter/gain graph
-  const src = audioCtx.createBufferSource();
-  src.buffer = buf;
-  src.loop = false;
-  src.connect(eqFilter);
-
-  musicOffset    = newOffset;
-  musicStartedAt = audioCtx.currentTime;
-
-  // Rewire onended to cycle to next track when this seek-to position reaches the end
-  src.onended = () => {
-    if (!isPlaying || noiseSource !== src) return;
-    customIdx  = (customIdx + 1) % customBuffers.length;
-    musicOffset = 0;
-    if (eqFilter && outGain) {
-      const nextSrc = audioCtx.createBufferSource();
-      nextSrc.buffer = customBuffers[customIdx];
-      nextSrc.loop   = false;
-      nextSrc.connect(eqFilter);
-      musicStartedAt = audioCtx.currentTime;
-      nextSrc.onended = src.onended;
-      nextSrc.start(0);
-      noiseSource = nextSrc;
-    }
-  };
-
-  src.start(0, newOffset);
-  noiseSource = src;
-  showToast(`${deltaSecs > 0 ? '+' : ''}${deltaSecs}s`);
-}
-
-// ── Skip track (custom music only, ±1 track) ──────────────────────────────────
-function skipTrack(delta) {
-  if (!roundActive || sourceType !== 'custom' || customBuffers.length === 0) return;
-  if (!isPlaying || !audioCtx) return;
-
-  // Detach current source's onended so it doesn't chain
-  if (noiseSource) {
-    noiseSource.onended = null;
-    try { noiseSource.stop(); } catch(e){}
-    noiseSource = null;
-  }
-
-  // Advance or reverse track index
-  customIdx   = ((customIdx + delta) % customBuffers.length + customBuffers.length) % customBuffers.length;
   musicOffset = 0;
-
-  // Start new track on existing filter/gain graph
-  const buf = customBuffers[customIdx];
-  const src = audioCtx.createBufferSource();
-  src.buffer = buf;
-  src.loop   = false;
-  src.connect(eqFilter);
-  musicStartedAt = audioCtx.currentTime;
-
-  src.onended = () => {
-    if (!isPlaying || noiseSource !== src) return;
-    customIdx   = (customIdx + 1) % customBuffers.length;
-    musicOffset = 0;
-    if (eqFilter && outGain) {
-      const nextSrc = audioCtx.createBufferSource();
-      nextSrc.buffer     = customBuffers[customIdx];
-      nextSrc.loop       = false;
-      nextSrc.connect(eqFilter);
-      musicStartedAt     = audioCtx.currentTime;
-      nextSrc.onended    = src.onended;
-      nextSrc.start(0);
-      noiseSource = nextSrc;
-    }
-  };
-
-  src.start(0);
-  noiseSource = src;
-
-  showToast(`Track ${customIdx + 1} / ${customBuffers.length}`);
+  stopPlayback(); playCurrentRound();
+  showToast('Restarted');
 }
 
 // ── Keyboard shortcuts ────────────────────────────────────────────────────────
@@ -1207,19 +1149,15 @@ window.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
   if (e.code !== 'KeyP' && audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 
-  if (e.code === 'Space') {
-    e.preventDefault();
-    toggleDry(); // Space = A/B (dry/wet toggle)
-  }
-  if (e.code === 'KeyD') { e.preventDefault(); toggleDry(); }
+  if (e.code === 'Space')      { e.preventDefault(); toggleDry(); }
+  if (e.code === 'KeyD')       { e.preventDefault(); toggleDry(); }
   if (e.code === 'ArrowLeft')  { e.preventDefault(); seekMusic(-10); }
   if (e.code === 'ArrowRight') { e.preventDefault(); seekMusic(+10); }
   if (e.code === 'ArrowUp')    { e.preventDefault(); skipTrack(+1); }
   if (e.code === 'ArrowDown')  { e.preventDefault(); skipTrack(-1); }
-  if (e.code === 'KeyP') { e.preventDefault(); togglePause(); }
-  if (e.code === 'KeyF') { e.preventDefault(); restartAudio(); }
+  if (e.code === 'KeyP')       { e.preventDefault(); togglePause(); }
+  if (e.code === 'KeyF')       { e.preventDefault(); restartAudio(); }
 
-  // 1–9 keys map to FREQS
   const numMatch = e.key.match(/^[1-9]$/);
   if (numMatch && roundActive && !answered) {
     const idx = parseInt(e.key) - 1;
@@ -1228,9 +1166,7 @@ window.addEventListener('keydown', e => {
 });
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-function fmtFreq(f) {
-  return f >= 1000 ? (f/1000)+'kHz' : f+'Hz';
-}
+function fmtFreq(f) { return f >= 1000 ? (f/1000)+'kHz' : f+'Hz'; }
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
@@ -1241,10 +1177,7 @@ function showToast(msg) {
 buildFreqToggles();
 buildFreqGrid();
 drawEQ(null, 0);
-window.addEventListener('resize', () => {
-  if (roundActive) drawEQ(answered ? targetFreq : targetFreq, targetGain);
-  else drawEQ(null, 0);
-});
+window.addEventListener('resize', () => drawEQ(roundActive ? targetFreq : null, targetGain ?? 0));
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
