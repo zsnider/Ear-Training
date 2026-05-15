@@ -95,28 +95,22 @@
     font-family: 'IBM Plex Mono', monospace;
     font-size: clamp(28px, 5vw, 52px);
     font-weight: 600; letter-spacing: -0.03em; line-height: 1.15;
-    color: var(--text); margin-bottom: 20px;
+    color: var(--text); margin-bottom: 10px;
   }
-  .site-title .highlight {
+
+  .site-subtitle {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(16px, 2.5vw, 24px);
+    font-weight: 400; letter-spacing: -0.01em;
     background: linear-gradient(90deg, var(--accent2), var(--fq-accent2));
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     background-clip: text;
+    margin-bottom: 20px;
   }
 
   .site-sub {
     font-size: 16px; color: var(--muted); font-weight: 300;
-    max-width: 520px; margin: 0 auto 20px; line-height: 1.7;
-  }
-
-  .hero-tags {
-    display: flex; flex-wrap: wrap; gap: 8px;
-    justify-content: center; margin-bottom: 56px;
-  }
-  .hero-tag {
-    font-size: 11px; font-weight: 500; letter-spacing: 0.06em;
-    padding: 4px 12px; border-radius: 20px;
-    background: var(--surface2); border: 1px solid var(--border2);
-    color: var(--muted);
+    max-width: 520px; margin: 0 auto 56px; line-height: 1.7;
   }
 
   /* ── Section label ───────────────────────────────────── */
@@ -295,24 +289,11 @@
 
 <!-- Hero -->
 <header>
-  <div class="site-eyebrow">Free · Browser-based · No signup needed</div>
-  <h1 class="site-title">
-    Train your ears.<br>
-    <span class="highlight">Hear the difference.</span>
-  </h1>
+  <h1 class="site-title">Train your ears.</h1>
+  <p class="site-subtitle">Hear the difference.</p>
   <p class="site-sub">
     Eight interactive games to sharpen your listening skills — EQ, compression, reverb, distortion, and spatial perception. Built for producers, engineers, and curious musicians.
   </p>
-  <div class="hero-tags">
-    <span class="hero-tag">EQ</span>
-    <span class="hero-tag">Compression</span>
-    <span class="hero-tag">Reverb</span>
-    <span class="hero-tag">Distortion</span>
-    <span class="hero-tag">Frequency</span>
-    <span class="hero-tag">Stereo &amp; Pan</span>
-    <span class="hero-tag">No signup required</span>
-    <span class="hero-tag">Real audio</span>
-  </div>
 </header>
 
 <!-- Games label -->
@@ -492,28 +473,6 @@
     </div>
   </a>
 
-</div>
-
-<!-- About strip -->
-<div class="section-label" style="padding-bottom:16px;">
-  <h2>Why SonicSandbox?</h2>
-</div>
-<div class="about-strip">
-  <div class="about-tile">
-    <div class="about-tile-icon">🎧</div>
-    <h3>Real audio, real decisions</h3>
-    <p>Every game uses actual music loops and drum one-shots — not sine tones. You practice on the kind of material you work with every day.</p>
-  </div>
-  <div class="about-tile">
-    <div class="about-tile-icon">🎯</div>
-    <h3>Focused on what matters</h3>
-    <p>Each game targets a specific production skill: EQ matching, compression feel, reverb space, distortion character, frequency recognition, and stereo perception.</p>
-  </div>
-  <div class="about-tile">
-    <div class="about-tile-icon">⚡</div>
-    <h3>No app, no account, no catch</h3>
-    <p>Runs entirely in your browser using the Web Audio API. Free to use. No signup required. Works in Chrome and Safari.</p>
-  </div>
 </div>
 
 <!-- Footer -->
