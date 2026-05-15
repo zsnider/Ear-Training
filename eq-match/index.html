@@ -501,29 +501,14 @@ const LOG_MIN = Math.log10(20), LOG_MAX = Math.log10(22000);
 const FREQ_LOG_MIN = Math.log10(20), FREQ_LOG_MAX = Math.log10(20000);
 
 // ── Sample file lists ─────────────────────────────────────────────────────────
-const ONE_SHOT_FILES = [
-  'CLAP_DEEP_001.wav','CLAP_DEEP_002.wav','CLAP_DEEP_003.wav','CLAP_DEEP_004.wav','CLAP_DEEP_005.wav',
-  'CLAP_LAYER_001.wav','CLAP_LAYER_002.wav','CLAP_LAYER_003.wav','CLAP_LAYER_004.wav',
-  'SNARE_DEEP_001.wav','SNARE_DEEP_002.wav','SNARE_DEEP_003.wav',
-  'SNARE_DEEP_004.wav','SNARE_DEEP_005.wav','SNARE_DEEP_006.wav',
-];
-const LOOP_FILES = [
-  'tunetank-soft-house-music-348241.mp3',
-  'cyberwave-orchestra-orchestral-music-loop-287416.mp3',
-  'mkgomez-minimal-techno-background-loop-475852.mp3',
-  'nastelbom-lounge-house-314576.mp3',
-  'ohpalmusic-passive-hip-hop-beat-90bpm-d-minor-177334.mp3',
-  'openmindaudio-deep-club-organic-house-music-ashen-palms-524258.mp3',
-  'openmindaudio-epic-organic-house-music-driftwood-ritual-524274.mp3',
-  'sonican-acoustic-senses-loop-313230.mp3',
-  'sonican-feelgood-acoustic-loop-320856.mp3',
-  'sonican-positive-corporate-music-optimistic-loop-464544.mp3',
-  'sonofevan-gravel-in-my-lungs-470048.mp3',
-  'the_mountain-deep-house-483808.mp3',
-  'the_mountain-hi-tech-loop-151203.mp3',
-  'the_mountain-loop-beat-130010.mp3',
-  'the_mountain-soft-loop-130012.mp3',
-];
+// ── Samples manifest (edit samples/manifest.json to add new files) ────────────
+let samplesManifest = null;
+async function getManifest() {
+  if (samplesManifest) return samplesManifest;
+  const r = await fetch('../samples/manifest.json');
+  samplesManifest = await r.json();
+  return samplesManifest;
+}
 
 // ── Game State ────────────────────────────────────────────────────────────────
 let difficulty     = 1;
@@ -1107,8 +1092,9 @@ async function handleFolderUpload(e) {
 async function loadOneShotSamples() {
   if (oneShotLoaded) return;
   initAudio(); oneShotBuffers = [];
-  setLoadStatus(`Loading ${ONE_SHOT_FILES.length} one-shots…`, true);
-  await Promise.all(ONE_SHOT_FILES.map(async fname => {
+  const manifest = await getManifest();
+  setLoadStatus(`Loading ${manifest.oneShots.length} one-shots…`, true);
+  await Promise.all(manifest.oneShots.map(async fname => {
     try {
       const r = await fetch(`../samples/one-shots/${fname}`);
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -1131,8 +1117,9 @@ async function loadOneShotSamples() {
 async function loadLoopSamples() {
   if (loopLoaded) return;
   initAudio(); loopBuffers = [];
-  setLoadStatus(`Loading ${LOOP_FILES.length} loops…`, true);
-  await Promise.all(LOOP_FILES.map(async fname => {
+  const manifest = await getManifest();
+  setLoadStatus(`Loading ${manifest.loops.length} loops…`, true);
+  await Promise.all(manifest.loops.map(async fname => {
     try {
       const r = await fetch(`../samples/loops/${fname}`);
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
