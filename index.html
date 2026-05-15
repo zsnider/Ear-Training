@@ -658,6 +658,8 @@
     if (user) {
       authArea.innerHTML = `
         <div class="user-pill">
+          <a href="./stats/" style="color:var(--accent2);text-decoration:none;font-size:13px;">My Stats</a>
+          <span style="color:var(--border2)">·</span>
           <span>${user.email}</span>
           <button class="signout-btn" id="signOutBtn">Sign out</button>
         </div>`;

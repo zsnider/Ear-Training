@@ -1340,6 +1340,7 @@ function checkAnswer() {
   totalScore+=score; streak=score>=70?streak+1:0;
   document.getElementById('totalScore').textContent=totalScore;
   document.getElementById('streakCount').textContent=streak;
+  if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'distortion-master', correct: score >= 70, roundScore: score });
 
   const msgs=[
     [90,'🎯 Excellent! You hear distortion like a wizard.'],
@@ -1414,5 +1415,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../supabase-client.js"></script>
 </body>
 </html>

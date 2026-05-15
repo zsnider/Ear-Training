@@ -957,6 +957,7 @@ function submitAnswer(clickedFreq) {
 
   const isCorrect = (clickedFreq === targetFreq);
   if (isCorrect) { score++; streak++; correctCount++; } else streak = 0;
+  if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'freq-quiz', correct: isCorrect, roundScore: isCorrect ? 100 : 0 });
 
   document.getElementById('scoreVal').textContent  = score;
   document.getElementById('streakVal').textContent = streak;
@@ -1186,5 +1187,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../supabase-client.js"></script>
 </body>
 </html>

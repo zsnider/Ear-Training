@@ -922,6 +922,7 @@ function submitAnswer() {
   document.getElementById('scoreVal').textContent  = totalScore;
   document.getElementById('streakVal').textContent = streak;
   document.getElementById('avgErrVal').textContent  = Math.round(totalErr) + '%';
+  if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'spatial-specialist', correct: pts >= 70, roundScore: pts });
 
   // Reveal target handle
   const th  = document.getElementById('targetHandle');
@@ -1423,5 +1424,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../supabase-client.js"></script>
 </body>
 </html>

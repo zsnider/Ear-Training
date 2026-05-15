@@ -538,6 +538,7 @@ function selectAnswer(side) {
   const correct = (side === compressedSide);
   if (correct) { totalScore += 10; streak++; correctCount++; }
   else streak = 0;
+  if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'quick-compress', correct, roundScore: correct ? 100 : 0 });
 
   document.getElementById('scoreVal').textContent    = totalScore;
   document.getElementById('streakVal').textContent   = streak;
@@ -1080,5 +1081,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../supabase-client.js"></script>
 </body>
 </html>

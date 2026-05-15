@@ -1477,6 +1477,7 @@ function checkAnswer() {
   streak = score >= 70 ? streak + 1 : 0;
   document.getElementById('totalScore').textContent  = totalScore;
   document.getElementById('streakCount').textContent = streak;
+  if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'compressor', correct: score >= 70, roundScore: score });
 
   const msgs = [
     [90, '🎯 Excellent! You have compression ears.'],
@@ -1558,5 +1559,7 @@ window.addEventListener('resize', () => {
   }
 });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../supabase-client.js"></script>
 </body>
 </html>

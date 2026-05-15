@@ -1412,6 +1412,7 @@ function checkAnswer() {
   if (score >= 75) streak++; else streak = 0;
   document.getElementById('totalScore').textContent = totalScore;
   document.getElementById('streakCount').textContent = streak;
+  if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'eq-match', correct: score >= 75, roundScore: score });
 
   const msgs = [
     [90, '🎯 Excellent! Professional level hearing.', 'var(--green)'],
@@ -1493,5 +1494,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../supabase-client.js"></script>
 </body>
 </html>
