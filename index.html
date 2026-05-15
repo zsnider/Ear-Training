@@ -266,6 +266,88 @@
     font-size: 12px; color: var(--muted);
     font-family: 'IBM Plex Mono', monospace;
   }
+
+  /* ── Auth modal ──────────────────────────────────────── */
+  .auth-btn {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px; font-weight: 500;
+    padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border2);
+    background: var(--surface2); color: var(--text);
+    cursor: pointer; transition: border-color 0.15s, background 0.15s;
+    white-space: nowrap;
+  }
+  .auth-btn:hover { border-color: var(--accent); background: var(--surface); }
+
+  .user-pill {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .user-pill span { color: var(--text); }
+  .signout-btn {
+    font-size: 12px; color: var(--muted); background: none;
+    border: none; cursor: pointer; font-family: inherit;
+    padding: 0; text-decoration: underline;
+  }
+  .signout-btn:hover { color: var(--text); }
+
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); z-index: 100;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 20px; padding: 36px 32px; width: 100%; max-width: 400px;
+    position: relative;
+  }
+  .modal-close {
+    position: absolute; top: 16px; right: 20px;
+    background: none; border: none; color: var(--muted);
+    font-size: 22px; cursor: pointer; line-height: 1;
+  }
+  .modal-close:hover { color: var(--text); }
+
+  .modal-tabs { display: flex; gap: 0; margin-bottom: 28px; border-bottom: 1px solid var(--border); }
+  .modal-tab {
+    flex: 1; padding: 10px; text-align: center;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    background: none; border: none; color: var(--muted);
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .modal-tab.active { color: var(--accent2); border-bottom-color: var(--accent2); }
+
+  .modal label {
+    display: block; font-size: 11px; font-weight: 500;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 6px;
+  }
+  .modal input {
+    width: 100%; padding: 10px 14px; border-radius: 8px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    color: var(--text); font-size: 14px; font-family: inherit;
+    margin-bottom: 16px; outline: none;
+    transition: border-color 0.15s;
+  }
+  .modal input:focus { border-color: var(--accent); }
+
+  .modal-submit {
+    width: 100%; padding: 11px; border-radius: 8px;
+    background: var(--accent); color: #fff; font-size: 14px;
+    font-weight: 600; border: none; cursor: pointer;
+    font-family: inherit; transition: opacity 0.15s;
+  }
+  .modal-submit:hover { opacity: 0.85; }
+
+  .modal-msg {
+    margin-top: 14px; font-size: 13px; text-align: center;
+    min-height: 20px; color: var(--muted);
+  }
+  .modal-msg.error { color: #f07070; }
+  .modal-msg.success { color: var(--qc-accent2); }
 </style>
 </head>
 <body>
@@ -274,6 +356,9 @@
 <nav>
   <a class="nav-logo" href="/">Sonic<span>Sandbox</span></a>
   <div class="nav-right">
+    <div id="authArea">
+      <button class="auth-btn" id="openAuthBtn">Sign in</button>
+    </div>
     <a class="bmac-btn" href="https://www.buymeacoffee.com/sonicsandbox" target="_blank" rel="noopener">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
         <path d="M18 8h1a4 4 0 0 1 0 8h-1" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -475,6 +560,35 @@
 
 </div>
 
+<!-- Auth modal -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" id="closeAuthBtn">&times;</button>
+    <div class="modal-tabs">
+      <button class="modal-tab active" data-tab="signin">Sign in</button>
+      <button class="modal-tab" data-tab="signup">Create account</button>
+    </div>
+
+    <div id="tabSignin">
+      <label>Email</label>
+      <input type="email" id="siEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label>
+      <input type="password" id="siPassword" placeholder="••••••••" autocomplete="current-password">
+      <button class="modal-submit" id="siSubmit">Sign in</button>
+      <div class="modal-msg" id="siMsg"></div>
+    </div>
+
+    <div id="tabSignup" style="display:none;">
+      <label>Email</label>
+      <input type="email" id="suEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label>
+      <input type="password" id="suPassword" placeholder="At least 6 characters" autocomplete="new-password">
+      <button class="modal-submit" id="suSubmit">Create account</button>
+      <div class="modal-msg" id="suMsg"></div>
+    </div>
+  </div>
+</div>
+
 <!-- Footer -->
 <footer>
   <div class="footer-left">
@@ -488,5 +602,71 @@
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="./supabase-client.js"></script>
+<script>
+  const authModal  = document.getElementById('authModal');
+  const authArea   = document.getElementById('authArea');
+  const openBtn    = document.getElementById('openAuthBtn');
+  const closeBtn   = document.getElementById('closeAuthBtn');
+  const tabs       = document.querySelectorAll('.modal-tab');
+  const tabSignin  = document.getElementById('tabSignin');
+  const tabSignup  = document.getElementById('tabSignup');
+
+  // Open / close modal
+  openBtn.addEventListener('click', () => authModal.classList.add('open'));
+  closeBtn.addEventListener('click', () => authModal.classList.remove('open'));
+  authModal.addEventListener('click', e => { if (e.target === authModal) authModal.classList.remove('open'); });
+
+  // Tab switching
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      tabSignin.style.display = tab.dataset.tab === 'signin' ? '' : 'none';
+      tabSignup.style.display = tab.dataset.tab === 'signup' ? '' : 'none';
+    });
+  });
+
+  // Sign in
+  document.getElementById('siSubmit').addEventListener('click', async () => {
+    const msg = document.getElementById('siMsg');
+    msg.textContent = 'Signing in…'; msg.className = 'modal-msg';
+    const { error } = await SonicSandbox.signIn(
+      document.getElementById('siEmail').value.trim(),
+      document.getElementById('siPassword').value
+    );
+    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+    else { authModal.classList.remove('open'); }
+  });
+
+  // Sign up
+  document.getElementById('suSubmit').addEventListener('click', async () => {
+    const msg = document.getElementById('suMsg');
+    msg.textContent = 'Creating account…'; msg.className = 'modal-msg';
+    const { error } = await SonicSandbox.signUp(
+      document.getElementById('suEmail').value.trim(),
+      document.getElementById('suPassword').value
+    );
+    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+    else { msg.textContent = 'Check your email to confirm your account.'; msg.className = 'modal-msg success'; }
+  });
+
+  // Update nav when auth state changes
+  document.addEventListener('ss:authchange', e => {
+    const user = e.detail;
+    if (user) {
+      authArea.innerHTML = `
+        <div class="user-pill">
+          <span>${user.email}</span>
+          <button class="signout-btn" id="signOutBtn">Sign out</button>
+        </div>`;
+      document.getElementById('signOutBtn').addEventListener('click', () => SonicSandbox.signOut());
+    } else {
+      authArea.innerHTML = `<button class="auth-btn" id="openAuthBtn">Sign in</button>`;
+      document.getElementById('openAuthBtn').addEventListener('click', () => authModal.classList.add('open'));
+    }
+  });
+</script>
 </body>
 </html>

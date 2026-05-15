@@ -1,0 +1,84 @@
+// supabase-client.js — shared SonicSandbox auth + score client
+// Games: import with <script src="../supabase-client.js"></script>
+// Landing page: import with <script src="./supabase-client.js"></script>
+
+const SUPABASE_URL = 'https://aolaxmmrmvovbzumlybe.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_C36QQ0xF6HUcnGVliS4dnw_eRc0VKfb';
+
+const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let _currentUser = null;
+
+// Restore session on load
+_sb.auth.getSession().then(({ data: { session } }) => {
+  _currentUser = session?.user ?? null;
+  document.dispatchEvent(new CustomEvent('ss:authchange', { detail: _currentUser }));
+});
+
+// Keep in sync as auth state changes
+_sb.auth.onAuthStateChange((_event, session) => {
+  _currentUser = session?.user ?? null;
+  document.dispatchEvent(new CustomEvent('ss:authchange', { detail: _currentUser }));
+});
+
+window.SonicSandbox = {
+
+  getUser() {
+    return _currentUser;
+  },
+
+  async signUp(email, password) {
+    const { data, error } = await _sb.auth.signUp({ email, password });
+    return { data, error };
+  },
+
+  async signIn(email, password) {
+    const { data, error } = await _sb.auth.signInWithPassword({ email, password });
+    return { data, error };
+  },
+
+  async signOut() {
+    return _sb.auth.signOut();
+  },
+
+  // Call this at the end of each round in a game
+  // game: string slug e.g. 'eq-match', 'compressor', 'freq-quiz'
+  // correct: boolean
+  // roundScore: optional numeric (0–100 or similar)
+  async saveScore({ game, correct, roundScore = null }) {
+    if (!_currentUser) return; // not logged in — skip silently
+    const { error } = await _sb.from('scores').insert({
+      user_id: _currentUser.id,
+      game,
+      correct,
+      round_score: roundScore,
+    });
+    if (error) console.warn('[SonicSandbox] score save failed:', error.message);
+  },
+
+  // Fetch score history for the current user, optionally filtered by game
+  async getScores(game = null) {
+    if (!_currentUser) return [];
+    let q = _sb
+      .from('scores')
+      .select('*')
+      .eq('user_id', _currentUser.id)
+      .order('created_at', { ascending: false });
+    if (game) q = q.eq('game', game);
+    const { data, error } = await q;
+    if (error) console.warn('[SonicSandbox] getScores failed:', error.message);
+    return data ?? [];
+  },
+
+  // Summary: total rounds + accuracy per game (or across all games)
+  async getStats(game = null) {
+    const scores = await this.getScores(game);
+    if (!scores.length) return { total: 0, correct: 0, accuracy: null };
+    const correct = scores.filter(s => s.correct).length;
+    return {
+      total: scores.length,
+      correct,
+      accuracy: Math.round((correct / scores.length) * 100),
+    };
+  },
+};
