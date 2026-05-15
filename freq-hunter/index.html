@@ -47,6 +47,21 @@
     display: flex; align-items: center; justify-content: space-between;
   }
 
+  .header-left { display: flex; align-items: center; gap: 12px; }
+
+  .back-btn {
+    font-size: 12px; font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 6px 12px;
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .back-btn:hover { color: var(--text); border-color: var(--accent); }
+
   .brand { display:flex; align-items:center; gap:10px; }
   .brand-icon {
     width: 32px; height: 32px;
@@ -123,7 +138,6 @@
     display: flex;
   }
 
-  /* Y-axis frequency labels */
   .y-axis {
     width: 44px;
     flex-shrink: 0;
@@ -148,7 +162,6 @@
     touch-action: none;
   }
 
-  /* X-axis pan labels */
   .x-axis {
     display: flex;
     justify-content: space-between;
@@ -175,9 +188,7 @@
   .prompt-bar.correct-flash { border-color: var(--green); box-shadow: 0 0 16px rgba(62,207,142,0.15); }
   .prompt-bar.wrong-flash   { border-color: var(--red);   box-shadow: 0 0 16px rgba(244,91,105,0.12); }
 
-  .prompt-text {
-    font-size: 14px; color: var(--text); flex: 1;
-  }
+  .prompt-text { font-size: 14px; color: var(--text); flex: 1; }
   .prompt-text span { color: var(--accent2); font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
 
   .score-delta {
@@ -195,9 +206,7 @@
   .next-fill { height: 100%; border-radius: 2px; background: var(--accent); width: 100%; transition: none; }
 
   /* ── Audio controls ── */
-  .audio-bar {
-    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
-  }
+  .audio-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
   button {
     border: none; border-radius: 10px;
@@ -265,17 +274,19 @@
 <body>
 
 <header>
-  <div class="brand">
-    <div class="brand-icon">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-        <!-- Sonar rings -->
-        <circle cx="9" cy="9" r="2" fill="black"/>
-        <circle cx="9" cy="9" r="5" stroke="black" stroke-width="1.5" fill="none" opacity="0.7"/>
-        <circle cx="9" cy="9" r="8" stroke="black" stroke-width="1" fill="none" opacity="0.4"/>
-        <line x1="9" y1="9" x2="15" y2="4" stroke="black" stroke-width="1.5" stroke-linecap="round" opacity="0.85"/>
-      </svg>
+  <div class="header-left">
+    <a href="../index.html" class="back-btn">← Back</a>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <circle cx="9" cy="9" r="2" fill="black"/>
+          <circle cx="9" cy="9" r="5" stroke="black" stroke-width="1.5" fill="none" opacity="0.7"/>
+          <circle cx="9" cy="9" r="8" stroke="black" stroke-width="1" fill="none" opacity="0.4"/>
+          <line x1="9" y1="9" x2="15" y2="4" stroke="black" stroke-width="1.5" stroke-linecap="round" opacity="0.85"/>
+        </svg>
+      </div>
+      <span class="brand-name">FREQ <span>HUNTER</span></span>
     </div>
-    <span class="brand-name">FREQ <span>HUNTER</span></span>
   </div>
   <div class="score-row">
     <div class="stat">
@@ -318,7 +329,8 @@
     </select>
     <div class="vdiv" style="margin-left:auto;"></div>
     <span style="font-size:11px;color:var(--muted);white-space:nowrap;">
-      <kbd>Space</kbd>/<kbd>D</kbd> dry &nbsp;·&nbsp; <kbd>P</kbd> pause &nbsp;·&nbsp; <kbd>F</kbd> restart &nbsp;·&nbsp; click to guess
+      <kbd>Space</kbd>/<kbd>D</kbd> dry &nbsp;·&nbsp; <kbd>P</kbd> pause &nbsp;·&nbsp;
+      <kbd>F</kbd> restart &nbsp;·&nbsp; <kbd>↑↓</kbd> skip &nbsp;·&nbsp; <kbd>←→</kbd> seek
     </span>
   </div>
 
@@ -361,12 +373,14 @@
     <div class="source-wrap">
       <span class="label">Source</span>
       <div class="source-pill active" id="srcPink"    onclick="setSource('pink')">Pink Noise</div>
-      <div class="source-pill"        id="srcBuiltin" onclick="setSource('builtin')">Sample One-shots</div>
+      <div class="source-pill"        id="srcOneShot" onclick="setSource('oneshot')">One-shots</div>
+      <div class="source-pill"        id="srcLoop"    onclick="setSource('loop')">Loops</div>
       <div class="source-pill"        id="srcCustom"  onclick="triggerUpload()" style="border-style:dashed;">
         <span id="uploadLabel">📁 Upload Music</span>
       </div>
       <input type="file" id="folderInput" webkitdirectory directory multiple
              onchange="handleFolderUpload(event)" style="display:none;">
+      <span id="sourceLoadStatus" style="font-size:11px; color:var(--amber); display:none;"></span>
     </div>
   </div>
 
@@ -376,59 +390,79 @@
 <script>
 // ── Constants ─────────────────────────────────────────────────────────────────
 const FREQ_MIN = 63, FREQ_MAX = 16000;
-const PAN_MIN = -1, PAN_MAX = 1;  // -1=full left, 0=center, +1=full right
+const PAN_MIN = -1, PAN_MAX = 1;
 const LOG_FMIN = Math.log10(FREQ_MIN), LOG_FMAX = Math.log10(FREQ_MAX);
 
-// Snap frequencies (same as FreqQuiz)
 const SNAP_FREQS = [63,125,250,500,1000,2000,4000,8000,16000];
 
+const ONE_SHOT_FILES = [
+  'CLAP_DEEP_001.wav','CLAP_DEEP_002.wav','CLAP_DEEP_003.wav','CLAP_DEEP_004.wav','CLAP_DEEP_005.wav',
+  'CLAP_LAYER_001.wav','CLAP_LAYER_002.wav','CLAP_LAYER_003.wav','CLAP_LAYER_004.wav',
+  'SNARE_DEEP_001.wav','SNARE_DEEP_002.wav','SNARE_DEEP_003.wav',
+  'SNARE_DEEP_004.wav','SNARE_DEEP_005.wav','SNARE_DEEP_006.wav',
+];
+const LOOP_FILES = [
+  'tunetank-soft-house-music-348241.mp3',
+  'cyberwave-orchestra-orchestral-music-loop-287416.mp3',
+  'mkgomez-minimal-techno-background-loop-475852.mp3',
+  'nastelbom-lounge-house-314576.mp3',
+  'ohpalmusic-passive-hip-hop-beat-90bpm-d-minor-177334.mp3',
+  'openmindaudio-deep-club-organic-house-music-ashen-palms-524258.mp3',
+  'openmindaudio-epic-organic-house-music-driftwood-ritual-524274.mp3',
+  'sonican-acoustic-senses-loop-313230.mp3',
+  'sonican-feelgood-acoustic-loop-320856.mp3',
+  'sonican-positive-corporate-music-optimistic-loop-464544.mp3',
+  'sonofevan-gravel-in-my-lungs-470048.mp3',
+  'the_mountain-deep-house-483808.mp3',
+  'the_mountain-hi-tech-loop-151203.mp3',
+  'the_mountain-loop-beat-130010.mp3',
+  'the_mountain-soft-loop-130012.mp3',
+];
+
 // ── State ─────────────────────────────────────────────────────────────────────
-let gameMode   = 'freqpan';  // 'freqpan' | 'freq' | 'pan'
+let gameMode   = 'freqpan';
 let bpQ        = 2;
 let targetFreq = null;
 let targetPan  = null;
 let roundActive= false;
 let answered   = false;
 let totalScore = 0, streak = 0, totalRounds = 0;
-let totalError = 0; // accumulate for avg error display
+let totalError = 0;
 
 // Audio
-let audioCtx      = null;
-let noiseSource   = null;
-let bpFilter      = null;
-let pannerNode    = null;
-let outGain       = null;
-let isDry         = false;
-let isPaused      = false;
-let isPlaying     = false;
-let shotLoopTimer = null;
-let sourceType    = 'pink';
-let customBuffers = [], customIdx = 0, musicOffset = 0, musicStartedAt = 0;
-let builtinBuffers= [], builtinLoaded=false, builtinIdx=0;
-let currentShotSrc= null;
+let audioCtx       = null;
+let noiseSource    = null;
+let bpFilter       = null;
+let pannerNode     = null;
+let outGain        = null;
+let isDry          = false;
+let isPaused       = false;
+let isPlaying      = false;
+let shotLoopTimer  = null;
+let sourceType     = 'pink';
+
+// Custom upload
+let customBuffers  = [], customIdx = 0, musicOffset = 0, musicStartedAt = 0;
+// One-shots
+let oneShotBuffers = [], oneShotLoaded = false, oneShotIdx = 0;
+let currentShotSrc = null;
+// Loops
+let loopBuffers    = [], loopLoaded = false, loopIdx = 0;
 
 // Canvas
 const canvas = document.getElementById('sonarGrid');
 const ctx     = canvas.getContext('2d');
-let guessX    = null; // pixel coords
+let guessX    = null;
 let guessY    = null;
 let targetX   = null;
 let targetY   = null;
-let pingAnim  = null; // sonar ping animation state
+let pingAnim  = null;
 
 // ── Coordinate helpers ────────────────────────────────────────────────────────
-function panToX(pan, w) {
-  return ((pan - PAN_MIN) / (PAN_MAX - PAN_MIN)) * w;
-}
-function freqToY(freq, h) {
-  return h - ((Math.log10(freq) - LOG_FMIN) / (LOG_FMAX - LOG_FMIN)) * h;
-}
-function xToPan(x, w) {
-  return PAN_MIN + (x / w) * (PAN_MAX - PAN_MIN);
-}
-function yToFreq(y, h) {
-  return Math.pow(10, LOG_FMIN + ((h - y) / h) * (LOG_FMAX - LOG_FMIN));
-}
+function panToX(pan, w)  { return ((pan - PAN_MIN) / (PAN_MAX - PAN_MIN)) * w; }
+function freqToY(freq, h){ return h - ((Math.log10(freq) - LOG_FMIN) / (LOG_FMAX - LOG_FMIN)) * h; }
+function xToPan(x, w)   { return PAN_MIN + (x / w) * (PAN_MAX - PAN_MIN); }
+function yToFreq(y, h)  { return Math.pow(10, LOG_FMIN + ((h - y) / h) * (LOG_FMAX - LOG_FMIN)); }
 
 // ── Build Y-axis labels ───────────────────────────────────────────────────────
 function buildYAxis() {
@@ -449,9 +483,9 @@ function buildYAxis() {
 // ── Draw grid ─────────────────────────────────────────────────────────────────
 function resizeCanvas() {
   const dpr  = window.devicePixelRatio || 1;
-  const card = canvas.parentElement.parentElement; // grid-card
-  const W    = card.clientWidth - 44; // subtract y-axis width
-  const H    = Math.round(W * 0.52);  // aspect ratio
+  const card = canvas.parentElement.parentElement;
+  const W    = card.clientWidth - 44;
+  const H    = Math.round(W * 0.52);
   canvas.style.width  = W + 'px';
   canvas.style.height = H + 'px';
   canvas.width  = W * dpr;
@@ -469,14 +503,12 @@ function drawGrid() {
   ctx.fillStyle = '#0a0e14';
   ctx.fillRect(0, 0, W, H);
 
-  // Frequency grid lines (horizontal)
   SNAP_FREQS.forEach(f => {
     const y = freqToY(f, H);
     ctx.strokeStyle = 'rgba(0,229,204,0.06)'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
   });
 
-  // Pan grid lines (vertical) — every 25%
   [-1, -0.5, 0, 0.5, 1].forEach(p => {
     const x = panToX(p, W);
     ctx.strokeStyle = p === 0 ? 'rgba(0,229,204,0.14)' : 'rgba(0,229,204,0.06)';
@@ -484,12 +516,11 @@ function drawGrid() {
     ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke();
   });
 
-  // Sonar ping animation
   if (pingAnim && pingAnim.progress < 1) {
     const { x, y, progress } = pingAnim;
     const maxR = Math.max(W, H) * 1.2;
     for (let i = 0; i < 3; i++) {
-      const r   = maxR * Math.max(0, progress - i * 0.15);
+      const r    = maxR * Math.max(0, progress - i * 0.15);
       const alpha = Math.max(0, (1 - progress) * 0.4 * (1 - i * 0.3));
       ctx.beginPath();
       ctx.arc(x, y, r, 0, Math.PI*2);
@@ -499,52 +530,41 @@ function drawGrid() {
     }
   }
 
-  // Target marker (revealed after answer)
   if (answered && targetX !== null) {
     const x = targetX, y = targetY;
-    // Crosshair lines
     ctx.strokeStyle = 'rgba(0,229,204,0.8)'; ctx.lineWidth = 1.5;
     ctx.setLineDash([4,4]);
     ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
     ctx.setLineDash([]);
-    // Target circle
     ctx.beginPath(); ctx.arc(x, y, 12, 0, Math.PI*2);
     ctx.fillStyle = 'rgba(0,229,204,0.15)'; ctx.fill();
     ctx.strokeStyle = 'rgba(0,229,204,0.9)'; ctx.lineWidth = 2; ctx.stroke();
-    // Inner dot
     ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI*2);
     ctx.fillStyle = 'var(--accent)'; ctx.fill();
   }
 
-  // Guess marker
   if (guessX !== null) {
     const x = guessX, y = guessY;
     const color = answered
       ? (getError() < 15 ? 'rgba(62,207,142,0.9)' : getError() < 35 ? 'rgba(245,166,35,0.9)' : 'rgba(244,91,105,0.9)')
       : 'rgba(168,85,247,0.9)';
-
     ctx.beginPath(); ctx.arc(x, y, 10, 0, Math.PI*2);
     ctx.fillStyle = color.replace('0.9','0.15'); ctx.fill();
     ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.stroke();
     ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI*2);
     ctx.fillStyle = color; ctx.fill();
-
-    // Error line from guess to target
     if (answered && targetX !== null) {
       ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(targetX, targetY);
       ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1.5;
       ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]);
     }
   }
-
-  // Hover cursor guide (drawn in mousemove)
 }
 
 function getError() {
   if (!answered || guessX === null || targetX === null) return 0;
   const W = canvas.clientWidth, H = canvas.clientHeight;
-  // Normalised pan error (0-100 scale)
   const gPan  = xToPan(guessX, W), tPan = targetPan;
   const gFreq = yToFreq(guessY, H), tFreq = targetFreq;
   const panErr  = gameMode === 'freq' ? 0 : Math.abs(gPan - tPan) / 2 * 100;
@@ -562,7 +582,7 @@ function setBPQ(v) { bpQ = v; }
 
 // ── Round ─────────────────────────────────────────────────────────────────────
 function startRound() {
-  if (roundActive && !answered) return; // don't restart mid-round
+  if (roundActive && !answered) return;
   clearTimeout(window._nextTimeout);
   answered   = false;
   guessX = guessY = targetX = targetY = null;
@@ -570,26 +590,31 @@ function startRound() {
   totalRounds++;
   document.getElementById('roundVal').textContent = totalRounds;
 
-  // Randomise target
   const snapIdx  = Math.floor(Math.random() * SNAP_FREQS.length);
   targetFreq = SNAP_FREQS[snapIdx];
-  targetPan  = (Math.random() * 2 - 1); // -1 to +1
+  targetPan  = (Math.random() * 2 - 1);
   if (gameMode === 'freq') targetPan  = 0;
-  if (gameMode === 'pan')  targetFreq = 1000; // fixed 1kHz bandpass
+  if (gameMode === 'pan')  targetFreq = 1000;
 
   document.getElementById('promptBar').classList.remove('correct-flash','wrong-flash');
   const sd = document.getElementById('scoreDelta');
   sd.className = 'score-delta'; sd.textContent = '';
   document.getElementById('nextBar').style.display = 'none';
 
-  const modeLabel = gameMode === 'freqpan' ? 'frequency <span>&</span> pan position' :
-                    gameMode === 'freq'    ? 'frequency' : 'pan position';
   document.getElementById('promptText').innerHTML =
-    `Listen and click the grid to identify the <span>${modeLabel === 'frequency <span>&</span> pan position' ? 'frequency & pan' : modeLabel}</span>`;
+    `Listen and click the grid to identify the <span>${
+      gameMode === 'freqpan' ? 'frequency & pan' : gameMode === 'freq' ? 'frequency' : 'pan position'
+    }</span>`;
 
-  document.getElementById('btnDry').disabled = false;
-  document.getElementById('btnPause').disabled = false;
+  document.getElementById('btnDry').disabled     = false;
+  document.getElementById('btnPause').disabled   = false;
   document.getElementById('btnRestart').disabled = false;
+
+  // Advance sample index each round
+  if (sourceType === 'custom'  && customBuffers.length > 0)  customIdx  = (customIdx + 1)  % customBuffers.length;
+  if (sourceType === 'oneshot' && oneShotBuffers.length > 0) oneShotIdx = (oneShotIdx + 1) % oneShotBuffers.length;
+  if (sourceType === 'loop'    && loopBuffers.length > 0)    loopIdx    = (loopIdx + 1)    % loopBuffers.length;
+  musicOffset = 0;
 
   drawGrid();
   startAudio();
@@ -599,8 +624,6 @@ function startRound() {
 // ── Sonar ping animation ──────────────────────────────────────────────────────
 function startSonarPing() {
   const W = canvas.clientWidth, H = canvas.clientHeight;
-  // Ping emanates from the target position (but we don't reveal it)
-  // Use center of grid for the ping origin to avoid revealing position
   const cx = W/2, cy = H/2;
   pingAnim = { x: cx, y: cy, progress: 0 };
   let start = null;
@@ -620,7 +643,6 @@ canvas.addEventListener('mousemove', e => {
   if (!roundActive || answered) return;
   const rect = canvas.getBoundingClientRect();
   const x = e.clientX - rect.left, y = e.clientY - rect.top;
-  // Draw hover guide
   const W = canvas.clientWidth, H = canvas.clientHeight;
   drawGrid();
   ctx.strokeStyle = 'rgba(168,85,247,0.25)'; ctx.lineWidth = 1;
@@ -628,13 +650,12 @@ canvas.addEventListener('mousemove', e => {
   ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
   ctx.setLineDash([]);
-  // Show freq/pan readout
   const freq = yToFreq(y, H), pan = xToPan(x, W);
   ctx.fillStyle = 'rgba(168,85,247,0.7)';
   ctx.font = '10px IBM Plex Mono, monospace';
   const freqLabel = freq>=1000 ? (freq/1000).toFixed(1)+'kHz' : Math.round(freq)+'Hz';
   const panLabel  = pan === 0 ? 'C' : (pan > 0 ? 'R':'L')+Math.round(Math.abs(pan)*100)+'%';
-  let label = gameMode==='freq' ? freqLabel : gameMode==='pan' ? panLabel : `${freqLabel}  ${panLabel}`;
+  const label = gameMode==='freq' ? freqLabel : gameMode==='pan' ? panLabel : `${freqLabel}  ${panLabel}`;
   ctx.fillText(label, x+8, y-6 < 12 ? y+16 : y-6);
 });
 
@@ -645,12 +666,9 @@ canvas.addEventListener('click', e => {
   const rect = canvas.getBoundingClientRect();
   guessX = e.clientX - rect.left;
   guessY = e.clientY - rect.top;
-
-  // In freq-only mode: snap X to center; in pan-only mode: snap Y to 1kHz
   const W = canvas.clientWidth, H = canvas.clientHeight;
   if (gameMode === 'freq') guessX = W/2;
   if (gameMode === 'pan')  guessY = freqToY(1000, H);
-
   submitGuess();
 });
 
@@ -676,7 +694,7 @@ function submitGuess() {
   targetX = panToX(targetPan, W);
   targetY = freqToY(targetFreq, H);
 
-  const err = getError(); // 0–100, lower=better
+  const err = getError();
   const pts  = Math.round(Math.max(0, 100 - err * 1.8));
 
   totalScore += pts;
@@ -684,15 +702,12 @@ function submitGuess() {
   if (pts >= 70) streak++;
   else streak = 0;
 
-  document.getElementById('scoreVal').textContent   = totalScore;
-  document.getElementById('streakVal').textContent  = streak;
+  document.getElementById('scoreVal').textContent    = totalScore;
+  document.getElementById('streakVal').textContent   = streak;
   document.getElementById('accuracyVal').textContent = Math.round(totalError) + '%';
 
-  // Classify result
   const tier = pts >= 85 ? 'perfect' : pts >= 60 ? 'good' : pts >= 35 ? 'ok' : 'bad';
   const tierLabel = pts >= 85 ? '🎯 Perfect!' : pts >= 60 ? '👍 Good' : pts >= 35 ? '🔶 Close' : '🔻 Keep going';
-  const gFreq = yToFreq(guessY, H);
-  const gPan  = xToPan(guessX, W);
 
   document.getElementById('promptBar').classList.add(pts >= 60 ? 'correct-flash' : 'wrong-flash');
   const sd = document.getElementById('scoreDelta');
@@ -705,7 +720,6 @@ function submitGuess() {
   addHistory(tier);
   drawGrid();
 
-  // Auto advance
   const delay = pts >= 60 ? 1500 : 2500;
   const bar = document.getElementById('nextBar');
   const fill = document.getElementById('nextFill');
@@ -753,29 +767,40 @@ function makePinkNoise(secs) {
 function startAudio() {
   stopAudio();
   initAudio();
-  if (audioCtx.state==='suspended') audioCtx.resume();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
 
   // Build graph: source → bandpass → panner → gain → destination
   bpFilter = audioCtx.createBiquadFilter();
-  bpFilter.type      = 'bandpass';
+  bpFilter.type = 'bandpass';
   bpFilter.frequency.value = isDry ? 1000 : targetFreq;
-  bpFilter.Q.value   = isDry ? 0.1 : bpQ; // near-flat when dry
+  bpFilter.Q.value = isDry ? 0.1 : bpQ;
 
   pannerNode = audioCtx.createStereoPanner();
   pannerNode.pan.value = isDry ? 0 : targetPan;
 
-  outGain = audioCtx.createGain(); outGain.gain.value = isDry ? 0.55 : 0.45;
+  outGain = audioCtx.createGain();
+  outGain.gain.value = isDry ? 0.55 : 0.45;
   bpFilter.connect(pannerNode); pannerNode.connect(outGain); outGain.connect(audioCtx.destination);
 
-  if (sourceType === 'builtin') {
-    startBuiltinLoop();
+  if (sourceType === 'oneshot' && oneShotBuffers.length > 0) {
+    buildOneShotSource();
+  } else if (sourceType === 'loop' && loopBuffers.length > 0) {
+    buildLoopSource();
   } else if (sourceType === 'custom' && customBuffers.length > 0) {
     const buf = customBuffers[customIdx % customBuffers.length];
     const src = audioCtx.createBufferSource();
     src.buffer = buf; src.loop = true;
-    src.connect(bpFilter); src.start(0, musicOffset);
-    noiseSource = src; musicStartedAt = audioCtx.currentTime - musicOffset;
+    src.connect(bpFilter);
+    if (musicOffset > 0) {
+      src.start(0, musicOffset);
+      musicStartedAt = audioCtx.currentTime - musicOffset;
+    } else {
+      src.start(0);
+      musicStartedAt = audioCtx.currentTime;
+    }
+    noiseSource = src;
   } else {
+    // Pink noise fallback
     const src = makePinkNoise(5);
     src.connect(bpFilter); src.start(0);
     noiseSource = src;
@@ -786,32 +811,51 @@ function startAudio() {
   document.getElementById('btnPlay').classList.add('playing');
 }
 
-function stopAudio() {
-  if (shotLoopTimer) { clearInterval(shotLoopTimer); shotLoopTimer = null; }
-  if (noiseSource)     { try { noiseSource.stop(); }     catch(e){} noiseSource = null; }
-  if (currentShotSrc) { try { currentShotSrc.stop(); } catch(e){} currentShotSrc = null; }
-  if (bpFilter)  { try { bpFilter.disconnect(); }    catch(e){} bpFilter = null; }
-  if (pannerNode){ try { pannerNode.disconnect(); }  catch(e){} pannerNode = null; }
-  if (outGain)   { try { outGain.disconnect(); }     catch(e){} outGain = null; }
-  isPlaying = false;
-  document.getElementById('playDot').className = '';
-  document.getElementById('btnPlay').classList.remove('playing');
-}
-
-function startBuiltinLoop() {
-  if (!builtinBuffers.length) return;
+function buildOneShotSource() {
   const fire = () => {
-    if (!isPlaying || sourceType !== 'builtin') return;
-    const sample = builtinBuffers[builtinIdx % builtinBuffers.length];
+    if (!isPlaying || sourceType !== 'oneshot' || !bpFilter) return;
+    if (currentShotSrc) { try { currentShotSrc.stop(); } catch(e){} }
+    const sample = oneShotBuffers[oneShotIdx % oneShotBuffers.length];
     const src = audioCtx.createBufferSource();
     src.buffer = sample.buffer;
     src.connect(bpFilter); src.start(0);
     currentShotSrc = src;
   };
-  fire(); shotLoopTimer = setInterval(fire, 5000);
+  fire();
+  shotLoopTimer = setInterval(fire, 5000);
 }
 
-// ── Dry / Pause / Restart ─────────────────────────────────────────────────────
+function buildLoopSource() {
+  if (!loopBuffers.length) return;
+  const buf = loopBuffers[loopIdx % loopBuffers.length].buffer;
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf; src.loop = true;
+  src.connect(bpFilter);
+  const dur = buf.duration;
+  const offset = musicOffset % dur;
+  if (offset > 0) {
+    src.start(0, offset);
+    musicStartedAt = audioCtx.currentTime - offset;
+  } else {
+    src.start(0);
+    musicStartedAt = audioCtx.currentTime;
+  }
+  noiseSource = src;
+}
+
+function stopAudio() {
+  if (shotLoopTimer) { clearInterval(shotLoopTimer); shotLoopTimer = null; }
+  if (noiseSource)   { try { noiseSource.stop(); }    catch(e){} noiseSource = null; }
+  if (currentShotSrc){ try { currentShotSrc.stop(); } catch(e){} currentShotSrc = null; }
+  if (bpFilter)  { try { bpFilter.disconnect(); }   catch(e){} bpFilter = null; }
+  if (pannerNode){ try { pannerNode.disconnect(); } catch(e){} pannerNode = null; }
+  if (outGain)   { try { outGain.disconnect(); }    catch(e){} outGain = null; }
+  isPlaying = false;
+  document.getElementById('playDot').className = '';
+  document.getElementById('btnPlay').classList.remove('playing');
+}
+
+// ── Dry / Pause / Restart / Seek / Skip ──────────────────────────────────────
 function toggleDry() {
   if (!roundActive) return;
   isDry = !isDry;
@@ -833,16 +877,9 @@ function togglePause() {
     audioCtx.resume().then(() => {
       isPaused = false;
       btn.innerHTML = '&#9646;&#9646; Pause'; btn.classList.remove('paused');
-      if (sourceType === 'builtin' && isPlaying) {
+      if (sourceType === 'oneshot' && isPlaying && oneShotBuffers.length) {
         if (shotLoopTimer) clearInterval(shotLoopTimer);
-        const fire = () => {
-          if (!isPlaying) return;
-          const s = builtinBuffers[builtinIdx % builtinBuffers.length];
-          const src = audioCtx.createBufferSource();
-          src.buffer = s.buffer;
-          if (bpFilter) src.connect(bpFilter); src.start(0); currentShotSrc = src;
-        };
-        fire(); shotLoopTimer = setInterval(fire, 5000);
+        buildOneShotSource();
       }
     });
   } else {
@@ -866,88 +903,185 @@ function restartAudio() {
   showToast('Restarted');
 }
 
-// ── Source ────────────────────────────────────────────────────────────────────
-function setSource(type) {
-  if (type==='builtin' && !builtinLoaded) {
-    showToast('Loading samples…');
-    loadBuiltinSamples().then(() => { sourceType='builtin'; updateSourceUI(); if(roundActive&&isPlaying)startAudio(); });
-    return;
-  }
-  sourceType=type; updateSourceUI();
-  if (roundActive && isPlaying) startAudio();
-}
-function updateSourceUI() {
-  document.getElementById('srcPink').classList.toggle('active',    sourceType==='pink');
-  document.getElementById('srcCustom').classList.toggle('active',  sourceType==='custom');
-  document.getElementById('srcBuiltin').classList.toggle('active', sourceType==='builtin');
-}
-function triggerUpload() {
-  if (customBuffers.length>0){setSource('custom');return;}
-  document.getElementById('folderInput').click();
-}
-async function handleFolderUpload(e) {
-  const files=Array.from(e.target.files).filter(f=>f.type.startsWith('audio/'));
-  if(!files.length)return;
-  initAudio(); customBuffers=[]; showToast(`Loading ${files.length} tracks…`);
-  for(const f of files){
-    try{const ab=await f.arrayBuffer();customBuffers.push(await audioCtx.decodeAudioData(ab));}
-    catch(err){console.warn('decode error',f.name);}
-  }
-  if(customBuffers.length>0){
-    document.getElementById('uploadLabel').textContent=`📁 Folder (${customBuffers.length} tracks)`;
-    setSource('custom'); showToast('Music loaded!');
+function seekMusic(delta) {
+  if (!audioCtx || !roundActive) return;
+  if (sourceType === 'custom' && customBuffers.length > 0) {
+    const buf = customBuffers[customIdx % customBuffers.length];
+    const elapsed = audioCtx.currentTime - musicStartedAt;
+    musicOffset = Math.max(0, Math.min(buf.duration - 0.5, musicOffset + elapsed + delta));
+    startAudio();
+    showToast(`${delta > 0 ? '+' : ''}${delta}s`);
+  } else if (sourceType === 'loop' && loopBuffers.length > 0) {
+    const buf = loopBuffers[loopIdx % loopBuffers.length].buffer;
+    const elapsed = audioCtx.currentTime - musicStartedAt;
+    musicOffset = ((musicOffset + elapsed + delta) % buf.duration + buf.duration) % buf.duration;
+    startAudio();
+    showToast(`${delta > 0 ? '+' : ''}${delta}s`);
   }
 }
 
-const SAMPLE_FILES = [
-  'CLAP_DEEP_001.wav','CLAP_DEEP_002.wav','CLAP_DEEP_003.wav',
-  'CLAP_DEEP_004.wav','CLAP_DEEP_005.wav',
-  'CLAP_LAYER_001.wav','CLAP_LAYER_002.wav','CLAP_LAYER_003.wav','CLAP_LAYER_004.wav',
-  'SNARE_DEEP_001.wav','SNARE_DEEP_002.wav','SNARE_DEEP_003.wav',
-  'SNARE_DEEP_004.wav','SNARE_DEEP_005.wav','SNARE_DEEP_006.wav',
-];
-async function loadBuiltinSamples() {
-  if(builtinLoaded)return;
-  initAudio(); builtinBuffers=[];
-  await Promise.all(SAMPLE_FILES.map(async fname=>{
-    try{
-      const r=await fetch(`./samples/${fname}`);
-      if(!r.ok)throw new Error(`${r.status}`);
-      builtinBuffers.push({name:fname.replace(/\.\w+$/,''),buffer:await audioCtx.decodeAudioData(await r.arrayBuffer())});
-    }catch(e){console.warn('Could not load',fname);}
+function skipTrack(delta) {
+  if (sourceType === 'custom' && customBuffers.length > 0) {
+    customIdx = ((customIdx + delta) % customBuffers.length + customBuffers.length) % customBuffers.length;
+    musicOffset = 0;
+    if (roundActive && isPlaying) startAudio();
+    showToast(`Track ${customIdx + 1} / ${customBuffers.length}`);
+  } else if (sourceType === 'oneshot' && oneShotBuffers.length > 0) {
+    oneShotIdx = ((oneShotIdx + delta) % oneShotBuffers.length + oneShotBuffers.length) % oneShotBuffers.length;
+    if (roundActive && isPlaying) startAudio();
+    showToast(`Sample ${oneShotIdx + 1} / ${oneShotBuffers.length}`);
+  } else if (sourceType === 'loop' && loopBuffers.length > 0) {
+    loopIdx = ((loopIdx + delta) % loopBuffers.length + loopBuffers.length) % loopBuffers.length;
+    musicOffset = 0;
+    if (roundActive && isPlaying) startAudio();
+    showToast(`Loop ${loopIdx + 1} / ${loopBuffers.length}`);
+  }
+}
+
+// ── Load status ───────────────────────────────────────────────────────────────
+function setLoadStatus(msg, isLoading) {
+  const el = document.getElementById('sourceLoadStatus');
+  if (!el) return;
+  if (!msg) { el.style.display = 'none'; return; }
+  el.style.display = '';
+  el.style.color = isLoading ? 'var(--amber)' : 'var(--green)';
+  el.textContent = msg;
+}
+
+// ── Source ────────────────────────────────────────────────────────────────────
+function setSource(type) {
+  if (type === 'oneshot' && !oneShotLoaded) {
+    loadOneShotSamples().then(() => {
+      sourceType = 'oneshot'; updateSourceUI();
+      if (roundActive && isPlaying) startAudio();
+    });
+    return;
+  }
+  if (type === 'loop' && !loopLoaded) {
+    loadLoopSamples().then(() => {
+      sourceType = 'loop'; updateSourceUI();
+      if (roundActive && isPlaying) startAudio();
+    });
+    return;
+  }
+  sourceType = type; updateSourceUI();
+  if (roundActive && isPlaying) startAudio();
+}
+
+function updateSourceUI() {
+  document.getElementById('srcPink').classList.toggle('active',    sourceType === 'pink');
+  document.getElementById('srcOneShot').classList.toggle('active', sourceType === 'oneshot');
+  document.getElementById('srcLoop').classList.toggle('active',    sourceType === 'loop');
+  document.getElementById('srcCustom').classList.toggle('active',  sourceType === 'custom');
+  if (customBuffers.length > 0) {
+    document.getElementById('uploadLabel').textContent = `📁 Folder (${customBuffers.length} tracks)`;
+  }
+}
+
+function triggerUpload() {
+  if (customBuffers.length > 0) { setSource('custom'); return; }
+  document.getElementById('folderInput').click();
+}
+
+async function handleFolderUpload(e) {
+  const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
+  if (!files.length) return;
+  initAudio(); customBuffers = [];
+  setLoadStatus(`Loading ${files.length} tracks…`, true);
+  for (const f of files) {
+    try {
+      customBuffers.push(await audioCtx.decodeAudioData(await f.arrayBuffer()));
+    } catch(err) { console.warn('decode error', f.name); }
+  }
+  if (customBuffers.length > 0) {
+    document.getElementById('uploadLabel').textContent = `📁 Folder (${customBuffers.length} tracks)`;
+    setSource('custom');
+    setLoadStatus(`${customBuffers.length} tracks ready`, false);
+    setTimeout(() => setLoadStatus(null), 2500);
+    showToast('Music loaded!');
+  } else {
+    setLoadStatus('No audio decoded', false);
+    setTimeout(() => setLoadStatus(null), 3000);
+  }
+}
+
+async function loadOneShotSamples() {
+  if (oneShotLoaded) return;
+  initAudio(); oneShotBuffers = [];
+  setLoadStatus(`Loading ${ONE_SHOT_FILES.length} one-shots…`, true);
+  await Promise.all(ONE_SHOT_FILES.map(async fname => {
+    try {
+      const r = await fetch(`../samples/one-shots/${fname}`);
+      if (!r.ok) throw new Error(`${r.status}`);
+      oneShotBuffers.push({ name: fname.replace(/\.\w+$/, ''), buffer: await audioCtx.decodeAudioData(await r.arrayBuffer()) });
+    } catch(e) { console.warn('Could not load one-shot:', fname); }
   }));
-  builtinBuffers.sort((a,b)=>a.name.localeCompare(b.name));
-  builtinLoaded=builtinBuffers.length>0;
-  if(!builtinLoaded){showToast('No samples found');sourceType='pink';updateSourceUI();}
+  oneShotBuffers.sort((a, b) => a.name.localeCompare(b.name));
+  oneShotLoaded = oneShotBuffers.length > 0;
+  if (!oneShotLoaded) {
+    showToast('No one-shots found'); sourceType = 'pink'; updateSourceUI();
+    setLoadStatus('One-shots not found', false);
+    setTimeout(() => setLoadStatus(null), 3000);
+  } else {
+    setLoadStatus(`${oneShotBuffers.length} one-shots ready`, false);
+    setTimeout(() => setLoadStatus(null), 2500);
+  }
+}
+
+async function loadLoopSamples() {
+  if (loopLoaded) return;
+  initAudio(); loopBuffers = [];
+  setLoadStatus(`Loading ${LOOP_FILES.length} loops…`, true);
+  await Promise.all(LOOP_FILES.map(async fname => {
+    try {
+      const r = await fetch(`../samples/loops/${fname}`);
+      if (!r.ok) throw new Error(`${r.status}`);
+      loopBuffers.push({ name: fname.replace(/\.\w+$/, ''), buffer: await audioCtx.decodeAudioData(await r.arrayBuffer()) });
+    } catch(e) { console.warn('Could not load loop:', fname); }
+  }));
+  loopBuffers.sort((a, b) => a.name.localeCompare(b.name));
+  loopLoaded = loopBuffers.length > 0;
+  if (!loopLoaded) {
+    showToast('No loops found'); sourceType = 'pink'; updateSourceUI();
+    setLoadStatus('Loops not found', false);
+    setTimeout(() => setLoadStatus(null), 3000);
+  } else {
+    setLoadStatus(`${loopBuffers.length} loops ready`, false);
+    setTimeout(() => setLoadStatus(null), 2500);
+  }
 }
 
 // ── Keyboard ──────────────────────────────────────────────────────────────────
 window.addEventListener('keydown', e => {
-  if (e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
-  if (e.code!=='KeyP' && audioCtx && audioCtx.state==='suspended') audioCtx.resume();
-  if (e.code==='Space')  { e.preventDefault(); toggleDry(); }
-  if (e.code==='KeyD')   { e.preventDefault(); toggleDry(); }
-  if (e.code==='KeyP')   { e.preventDefault(); togglePause(); }
-  if (e.code==='KeyF')   { e.preventDefault(); restartAudio(); }
-  if (e.code==='Enter')  { startRound(); }
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (e.code !== 'KeyP' && audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  if (e.code === 'Space')      { e.preventDefault(); toggleDry(); }
+  if (e.code === 'KeyD')       { e.preventDefault(); toggleDry(); }
+  if (e.code === 'KeyP')       { e.preventDefault(); togglePause(); }
+  if (e.code === 'KeyF')       { e.preventDefault(); restartAudio(); }
+  if (e.code === 'Enter')      { startRound(); }
+  if (e.code === 'ArrowLeft')  { e.preventDefault(); seekMusic(-10); }
+  if (e.code === 'ArrowRight') { e.preventDefault(); seekMusic(+10); }
+  if (e.code === 'ArrowUp')    { e.preventDefault(); skipTrack(+1); }
+  if (e.code === 'ArrowDown')  { e.preventDefault(); skipTrack(-1); }
 });
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function showToast(msg) {
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),3000);
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
-window.addEventListener('resize', () => { resizeCanvas(); if(roundActive)drawGrid(); });
+window.addEventListener('resize', () => { resizeCanvas(); if(roundActive) drawGrid(); });
 resizeCanvas();
 
-if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
-      .then(()=>console.log('SW registered'))
-      .catch(e=>console.warn('SW failed',e));
+      .then(() => console.log('SW registered'))
+      .catch(e => console.warn('SW failed', e));
   });
 }
 </script>
