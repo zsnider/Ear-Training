@@ -464,6 +464,7 @@
       <input type="file" id="folderInput" webkitdirectory directory multiple
         onchange="handleFolderUpload(event)" style="display:none;">
     </div>
+    <span id="sourceLoadStatus" style="font-size:12px; color:var(--amber); display:none;"></span>
   </div>
 
   <!-- Hz Frequency Range -->
@@ -472,12 +473,14 @@
     <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted);">
       <span>Min</span>
       <input class="num-input" type="number" id="freqMinInput" min="20" max="20000" step="1" value="20"
-        oninput="syncFreqFromInput('min')">
+        onblur="syncFreqFromInput('min')"
+        onkeydown="if(event.key==='Enter'){syncFreqFromInput('min');this.blur();}">
     </div>
     <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted);">
       <span>Max</span>
       <input class="num-input" type="number" id="freqMaxInput" min="20" max="20000" step="1" value="20000"
-        oninput="syncFreqFromInput('max')">
+        onblur="syncFreqFromInput('max')"
+        onkeydown="if(event.key==='Enter'){syncFreqFromInput('max');this.blur();}">
     </div>
     <button onclick="resetFreqRange()" class="btn-secondary" style="padding:5px 12px; font-size:12px;">Reset</button>
     <span style="font-size:11px; color:var(--muted);" id="freqRangeHint">20 Hz – 20 kHz</span>
@@ -1082,20 +1085,27 @@ async function handleFolderUpload(e) {
   const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
   if (!files.length) return;
   initAudio(); customBuffers = [];
-  showToast(`Loading ${files.length} tracks…`);
+  setLoadStatus(`Loading ${files.length} tracks…`, true);
   for (const file of files) {
     try { customBuffers.push(await audioCtx.decodeAudioData(await file.arrayBuffer())); }
     catch(err) { console.warn('Decode error', file.name); }
   }
-  if (customBuffers.length>0) {
+  if (customBuffers.length > 0) {
     document.getElementById('folderLabel').textContent = `📁 Folder (${customBuffers.length} tracks)`;
-    setSource('custom'); showToast('Music loaded!');
+    setSource('custom');
+    setLoadStatus(`${customBuffers.length} tracks ready`, false);
+    setTimeout(() => setLoadStatus(null), 2500);
+    showToast('Music loaded!');
+  } else {
+    setLoadStatus('No audio decoded', false);
+    setTimeout(() => setLoadStatus(null), 3000);
   }
 }
 
 async function loadOneShotSamples() {
   if (oneShotLoaded) return;
   initAudio(); oneShotBuffers = [];
+  setLoadStatus(`Loading ${ONE_SHOT_FILES.length} one-shots…`, true);
   await Promise.all(ONE_SHOT_FILES.map(async fname => {
     try {
       const r = await fetch(`../samples/one-shots/${fname}`);
@@ -1105,12 +1115,21 @@ async function loadOneShotSamples() {
   }));
   oneShotBuffers.sort((a,b) => a.name.localeCompare(b.name));
   oneShotLoaded = oneShotBuffers.length > 0;
-  if (!oneShotLoaded) { showToast('No one-shots found'); sourceType='pink'; updateSourceUI(); }
+  if (!oneShotLoaded) {
+    showToast('No one-shots found');
+    sourceType = 'pink'; updateSourceUI();
+    setLoadStatus('One-shots not found', false);
+    setTimeout(() => setLoadStatus(null), 3000);
+  } else {
+    setLoadStatus(`${oneShotBuffers.length} one-shots ready`, false);
+    setTimeout(() => setLoadStatus(null), 2500);
+  }
 }
 
 async function loadLoopSamples() {
   if (loopLoaded) return;
   initAudio(); loopBuffers = [];
+  setLoadStatus(`Loading ${LOOP_FILES.length} loops…`, true);
   await Promise.all(LOOP_FILES.map(async fname => {
     try {
       const r = await fetch(`../samples/loops/${fname}`);
@@ -1120,7 +1139,25 @@ async function loadLoopSamples() {
   }));
   loopBuffers.sort((a,b) => a.name.localeCompare(b.name));
   loopLoaded = loopBuffers.length > 0;
-  if (!loopLoaded) { showToast('No loops found'); sourceType='pink'; updateSourceUI(); }
+  if (!loopLoaded) {
+    showToast('No loops found');
+    sourceType = 'pink'; updateSourceUI();
+    setLoadStatus('Loops not found', false);
+    setTimeout(() => setLoadStatus(null), 3000);
+  } else {
+    setLoadStatus(`${loopBuffers.length} loops ready`, false);
+    setTimeout(() => setLoadStatus(null), 2500);
+  }
+}
+
+// ── Load status ───────────────────────────────────────────────────────────────
+function setLoadStatus(msg, isLoading) {
+  const el = document.getElementById('sourceLoadStatus');
+  if (!el) return;
+  if (!msg) { el.style.display = 'none'; return; }
+  el.style.display = '';
+  el.style.color = isLoading ? 'var(--amber)' : 'var(--green)';
+  el.textContent = msg;
 }
 
 // ── Filter type toggles ───────────────────────────────────────────────────────
@@ -1346,57 +1383,84 @@ const fmtGain = g => (g>0?'+':'')+((g||0).toFixed(1))+'dB';
 
 // ── Check answer ──────────────────────────────────────────────────────────────
 function checkAnswer() {
-  if (!roundActive||answered) return;
-  answered=true;
+  if (!roundActive || answered) return;
+  answered = true;
   drawEQ();
   if (sourceBus) routeTo('user');
 
-  const N=400, fpts=[];
-  for (let i=0;i<N;i++) fpts.push(Math.pow(10, LOG_MIN+(i/(N-1))*(LOG_MAX-LOG_MIN)));
+  // Per-band weighted scoring:
+  //   pass/notch filters  → frequency 100%
+  //   peaking/shelf       → frequency 70% + gain 30%
+  // Frequency score: linear falloff, 0 at 1.5 octaves off
+  // Gain score:      linear falloff, 0 at 8 dB off
+  const bandScores = [];
+  let totalBandScore = 0;
 
-  const tg=computeResponse(targetBands,fpts);
-  const ug=computeResponse(userBands,fpts);
-  let err=0;
-  for (let i=0;i<N;i++) err+=Math.abs(tg[i]-ug[i]);
-  const score=Math.round(Math.max(0, 100-(err/N)*6));
+  for (let i = 0; i < targetBands.length; i++) {
+    const tb = targetBands[i], ub = userBands[i];
+    const isNoGain = tb.type === 'lowpass' || tb.type === 'highpass' || tb.type === 'notch';
 
-  totalScore+=score;
-  if (score>=75) streak++; else streak=0;
-  document.getElementById('totalScore').textContent=totalScore;
-  document.getElementById('streakCount').textContent=streak;
+    const octaveDist = Math.abs(Math.log2(ub.frequency / tb.frequency));
+    const freqScore  = Math.max(0, 1 - octaveDist / 1.5);
 
-  const msgs=[
-    [90,'🎯 Excellent! Professional level hearing.','var(--green)'],
-    [70,'👍 Good match. Very close!','var(--green)'],
-    [40,'🔶 Decent. Compare the curves to see the gap.','var(--amber)'],
-    [0,'🔻 Keep practicing — focus on the peak frequency.','var(--red)']
+    let gainScore = 1, bandScore;
+    if (isNoGain) {
+      bandScore = freqScore;
+    } else {
+      const gainDiff = Math.abs((tb.gain || 0) - (ub.gain || 0));
+      gainScore = Math.max(0, 1 - gainDiff / 8.0);
+      bandScore = 0.7 * freqScore + 0.3 * gainScore;
+    }
+
+    bandScores.push({ bandScore, freqScore, gainScore, isNoGain, tb, ub });
+    totalBandScore += bandScore;
+  }
+
+  const score = Math.round((totalBandScore / targetBands.length) * 100);
+
+  totalScore += score;
+  if (score >= 75) streak++; else streak = 0;
+  document.getElementById('totalScore').textContent = totalScore;
+  document.getElementById('streakCount').textContent = streak;
+
+  const msgs = [
+    [90, '🎯 Excellent! Professional level hearing.', 'var(--green)'],
+    [70, '👍 Good match. Very close!',                'var(--green)'],
+    [40, '🔶 Decent. Compare the curves to see the gap.', 'var(--amber)'],
+    [0,  '🔻 Keep practicing — nail the frequency first.', 'var(--red)']
   ];
-  let finalMsg=msgs[3][1], finalCol=msgs[3][2];
-  for (const [t,m,c] of msgs) { if (score>=t) { finalMsg=m; finalCol=c; break; } }
+  let finalMsg = msgs[3][1], finalCol = msgs[3][2];
+  for (const [t, m, c] of msgs) { if (score >= t) { finalMsg = m; finalCol = c; break; } }
 
   document.getElementById('resultBar').classList.add('visible');
-  const rb=document.getElementById('resultBig');
-  rb.textContent=score; rb.style.color=finalCol;
-  document.getElementById('resultMsg').textContent=finalMsg;
-  const fill=document.getElementById('accFill');
-  fill.style.background=finalCol;
-  setTimeout(()=>{ fill.style.width=score+'%'; }, 60);
+  const rb = document.getElementById('resultBig');
+  rb.textContent = score; rb.style.color = finalCol;
+  document.getElementById('resultMsg').textContent = finalMsg;
+  const fill = document.getElementById('accFill');
+  fill.style.background = finalCol;
+  setTimeout(() => { fill.style.width = score + '%'; }, 60);
 
-  const br=document.getElementById('bandResults');
-  br.innerHTML='';
-  for (let i=0;i<targetBands.length;i++) {
-    const tb=targetBands[i], ub=userBands[i];
-    const fOk=Math.abs(tb.frequency-ub.frequency)/tb.frequency<0.15;
-    const gOk=Math.abs((tb.gain||0)-(ub.gain||0))<2.5;
-    const ok=fOk&&gOk;
-    const c=document.createElement('div');
-    c.className='br-chip';
-    c.innerHTML=`Band ${i+1}: Yours <span class="${ok?'good':'bad'}">${fmtFreq(ub.frequency)} ${fmtGain(ub.gain)}</span>
-                 → Target <span class="${ok?'good':'bad'}">${fmtFreq(tb.frequency)} ${fmtGain(tb.gain)}</span>`;
+  const br = document.getElementById('bandResults');
+  br.innerHTML = '';
+  for (let i = 0; i < targetBands.length; i++) {
+    const { bandScore, freqScore, gainScore, isNoGain, tb, ub } = bandScores[i];
+    const bandPct = Math.round(bandScore * 100);
+    const fOk = freqScore >= 0.67;  // within ~1 octave
+    const gOk = isNoGain || gainScore >= 0.69; // within ~2.5 dB of 8 dB scale
+
+    const c = document.createElement('div');
+    c.className = 'br-chip';
+    const gainPart = isNoGain ? '' :
+      ` <span class="${gOk ? 'good' : 'bad'}">${fmtGain(ub.gain)}</span>→<span class="${gOk ? 'good' : 'bad'}">${fmtGain(tb.gain)}</span>`;
+    c.innerHTML =
+      `Band ${i+1} <span style="color:${bandPct>=70?'var(--green)':bandPct>=40?'var(--amber)':'var(--red)'}">${bandPct}%</span>: ` +
+      `Hz <span class="${fOk ? 'good' : 'bad'}">${fmtFreq(ub.frequency)}</span>` +
+      ` → <span class="${fOk ? 'good' : 'bad'}">${fmtFreq(tb.frequency)}</span>` +
+      gainPart;
     br.appendChild(c);
   }
 
-  document.getElementById('canvasHint').textContent='Blue = Target | Green = Your Guess';
+  document.getElementById('canvasHint').textContent = 'Blue = Target | Green = Your Guess';
   showToast(`Round Finished: ${score}/100`);
 }
 
