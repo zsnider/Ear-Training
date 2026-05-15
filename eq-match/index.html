@@ -408,11 +408,13 @@
   <div class="setting-item">
     <span class="label">Training Tier</span>
     <select id="gainThresholdSelect" onchange="updateTier(this.value)">
-      <option value="0" selected>All (0–12 dB)</option>
-      <option value="10">Learning (10–12 dB)</option>
-      <option value="8">Beginner (8–10 dB)</option>
-      <option value="4">Advanced (4–6 dB)</option>
-      <option value="1">Master (1–2 dB)</option>
+      <option value="10" selected>Beginner (10–12 dB)</option>
+      <option value="8">Medium (8–10 dB)</option>
+      <option value="6">Advanced (6–8 dB)</option>
+      <option value="4">Pro (4–6 dB)</option>
+      <option value="2">Master (2–4 dB)</option>
+      <option value="0">Legend (0–2 dB)</option>
+      <option value="-1">All (0–12 dB)</option>
     </select>
     <div class="divider"></div>
     <span class="label">Filters</span>
@@ -525,7 +527,7 @@ const LOOP_FILES = [
 
 // ── Game State ────────────────────────────────────────────────────────────────
 let difficulty     = 1;
-let gainThreshold  = 0;
+let gainThreshold  = 10; // Default to Beginner
 let qMin = 0.5, qMax = 10.0;
 let fixedQ         = true;   // default ON
 let gainDirection  = 'both';
@@ -1280,13 +1282,14 @@ function randomBand(index, usedTypes=[]) {
 
   let min, max;
   switch(Number(gainThreshold)) {
-    case 10: min=10; max=12; break;
-    case 8:  min=8;  max=10; break;
-    case 6:  min=6;  max=8;  break;
-    case 4:  min=4;  max=6;  break;
-    case 2:  min=2;  max=4;  break;
-    case 1:  min=1;  max=2;  break;
-    default: min=0.5; max=12;
+    case 10: min=10;  max=12; break; // Beginner
+    case 8:  min=8;   max=10; break; // Medium
+    case 6:  min=6;   max=8;  break; // Advanced
+    case 4:  min=4;   max=6;  break; // Pro
+    case 2:  min=2;   max=4;  break; // Master
+    case 0:  min=0.1; max=2;  break; // Legend
+    case -1: min=0.1; max=12; break; // All
+    default: min=10;  max=12;        // Fallback to Beginner
   }
   const absGain = min + Math.random()*(max-min);
   const dir = gainDirection==='boost' ? 1 : gainDirection==='cut' ? -1 : (Math.random()>0.5?1:-1);
