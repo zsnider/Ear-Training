@@ -4,7 +4,7 @@
 <link rel="manifest" href="manifest.json">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stereo Specialist</title>
+<title>Spatial Specialist</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
 
@@ -354,12 +354,13 @@
   .btn-action:disabled { opacity:0.35; cursor:not-allowed; }
 
   .source-wrap {
-    display:flex; align-items:center; gap:8px; margin-left:auto; flex-wrap:wrap;
+    display:flex; align-items:center; gap:6px; margin-left:auto;
   }
   .source-pill {
     background:var(--surface2); border:1px solid var(--border2);
-    border-radius:8px; padding:5px 12px; font-size:12px;
+    border-radius:7px; padding:4px 9px; font-size:11px;
     color:var(--muted); cursor:pointer; transition:all 0.15s; white-space:nowrap;
+    font-family:'IBM Plex Sans',sans-serif;
   }
   .source-pill:hover { border-color:var(--accent); color:var(--text); }
   .source-pill.active { border-color:var(--accent2); color:var(--accent2); background:rgba(124,92,252,0.07); }
@@ -445,7 +446,7 @@
           <circle cx="9" cy="9" r="2.2" fill="black"/>
         </svg>
       </div>
-      <span class="brand-name">STEREO <span>SPECIALIST</span></span>
+      <span class="brand-name">SPATIAL <span>SPECIALIST</span></span>
     </div>
   </div>
   <div class="score-row">
@@ -559,12 +560,11 @@
     <button class="btn-action" id="btnRestart" onclick="restartAudio()"  disabled title="Restart (F)">&#9654; Restart</button>
 
     <div class="source-wrap">
-      <span class="label">Source</span>
-      <div class="source-pill active" id="srcPink"    onclick="setSource('pink')">Pink Noise</div>
-      <div class="source-pill"        id="srcOneShot" onclick="setSource('oneShot')">One-shots</div>
+      <div class="source-pill active" id="srcPink"    onclick="setSource('pink')">Pink</div>
+      <div class="source-pill"        id="srcOneShot" onclick="setSource('oneShot')">One-Shots</div>
       <div class="source-pill"        id="srcLoop"    onclick="setSource('loop')">Loops</div>
       <div class="source-pill"        id="srcCustom"  onclick="triggerUpload()" style="border-style:dashed;">
-        <span id="uploadLabel">📁 Upload Music</span>
+        <span id="uploadLabel">📁 Upload</span>
       </div>
       <span id="sourceLoadStatus"></span>
       <input type="file" id="folderInput" webkitdirectory directory multiple
