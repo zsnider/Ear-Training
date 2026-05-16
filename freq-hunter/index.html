@@ -434,6 +434,14 @@ let oneShotBuffers = [], oneShotLoaded = false, oneShotIdx = 0;
 let currentShotSrc = null;
 // Loops
 let loopFileNames    = [], loopManifestLoaded = false, loopIdx = 0;
+
+// Pick a random index different from current (falls back to 0 if only 1 item)
+function randNext(len, cur) {
+  if (len <= 1) return 0;
+  let next;
+  do { next = Math.floor(Math.random() * len); } while (next === cur);
+  return next;
+}
 let loopAudioEl = null, loopMediaSrc = null;
 
 // Canvas
@@ -599,8 +607,8 @@ function startRound() {
 
   // Advance sample index each round
   if (sourceType === 'custom'  && customFiles.length > 0)    customIdx  = (customIdx + 1)  % customFiles.length;
-  if (sourceType === 'oneshot' && oneShotBuffers.length > 0) oneShotIdx = (oneShotIdx + 1) % oneShotBuffers.length;
-  if (sourceType === 'loop'    && loopFileNames.length > 0)  loopIdx    = (loopIdx + 1)    % loopFileNames.length;
+  if (sourceType === 'oneshot' && oneShotBuffers.length > 0) oneShotIdx = randNext(oneShotBuffers.length, oneShotIdx);
+  if (sourceType === 'loop'    && loopFileNames.length > 0)  loopIdx    = randNext(loopFileNames.length, loopIdx);
   musicOffset = 0;
 
   drawGrid();
@@ -1002,6 +1010,7 @@ async function loadOneShotSamples() {
   }));
   oneShotBuffers.sort((a, b) => a.name.localeCompare(b.name));
   oneShotLoaded = oneShotBuffers.length > 0;
+  if (oneShotLoaded) oneShotIdx = Math.floor(Math.random() * oneShotBuffers.length);
   if (!oneShotLoaded) {
     showToast('No one-shots found'); sourceType = 'pink'; updateSourceUI();
     setLoadStatus('One-shots not found', false);
@@ -1018,6 +1027,7 @@ async function loadLoopSamples() {
   const manifest = await getManifest();
   loopFileNames = (manifest.loops || []).slice().sort();
   loopManifestLoaded = loopFileNames.length > 0;
+  if (loopManifestLoaded) loopIdx = Math.floor(Math.random() * loopFileNames.length);
   if (!loopManifestLoaded) {
     showToast('No loops found'); sourceType = 'pink'; updateSourceUI();
     setLoadStatus('Loops not found', false);

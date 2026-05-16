@@ -471,6 +471,14 @@ let customFiles    = [], customIdx=0;          // File objects — no pre-decode
 let customAudioEl  = null, customMediaSrc = null; // streaming elements for custom uploads
 let oneShotBuffers = [], oneShotLoaded=false, oneShotIdx=0;
 let loopFileNames  = [], loopManifestLoaded=false, loopIdx=0; // filenames only
+
+// Pick a random index different from current (falls back to 0 if only 1 item)
+function randNext(len, cur) {
+  if (len <= 1) return 0;
+  let next;
+  do { next = Math.floor(Math.random() * len); } while (next === cur);
+  return next;
+}
 let loopAudioEl    = null, loopMediaSrc = null;  // streaming elements for loops
 let currentShotSrcA= null, currentShotSrcB = null;
 let animFrameId    = null;
@@ -521,10 +529,10 @@ function newRound() {
   document.getElementById('promptText').innerHTML =
     `Which signal is <span>compressed</span>? Click <span>A</span> or <span>B</span>`;
 
-  // Advance sample index each round
-  if (sourceType==='custom'  && customFiles.length>0)    customIdx  = (customIdx+1)  % customFiles.length;
-  if (sourceType==='oneshot' && oneShotBuffers.length>0) oneShotIdx = (oneShotIdx+1) % oneShotBuffers.length;
-  if (sourceType==='loop'    && loopFileNames.length>0)  loopIdx    = (loopIdx+1)    % loopFileNames.length;
+  // Advance sample index each round (random for loops and one-shots)
+  if (sourceType==='custom'  && customFiles.length>0)    customIdx  = (customIdx+1) % customFiles.length;
+  if (sourceType==='oneshot' && oneShotBuffers.length>0) oneShotIdx = randNext(oneShotBuffers.length, oneShotIdx);
+  if (sourceType==='loop'    && loopFileNames.length>0)  loopIdx    = randNext(loopFileNames.length,  loopIdx);
   listeningTo = 'A';
   buildAudioGraph();
   updateListenBtns();
@@ -1059,7 +1067,8 @@ async function loadOneShotSamples() {
   }));
   oneShotBuffers.sort((a,b) => a.name.localeCompare(b.name));
   oneShotLoaded = oneShotBuffers.length > 0;
-  if (!oneShotLoaded) { showToast('No one-shots found'); sourceType = 'pink'; updateSourceUI(); }
+  if (oneShotLoaded) oneShotIdx = Math.floor(Math.random() * oneShotBuffers.length);
+  else { showToast('No one-shots found'); sourceType = 'pink'; updateSourceUI(); }
 }
 
 async function loadLoopSamples() {
@@ -1067,7 +1076,8 @@ async function loadLoopSamples() {
   const manifest = await getManifest();
   loopFileNames = manifest.loops || [];
   loopManifestLoaded = loopFileNames.length > 0;
-  if (!loopManifestLoaded) { showToast('No loops found'); sourceType = 'pink'; updateSourceUI(); }
+  if (loopManifestLoaded) loopIdx = Math.floor(Math.random() * loopFileNames.length);
+  else { showToast('No loops found'); sourceType = 'pink'; updateSourceUI(); }
 }
 
 // ── History ───────────────────────────────────────────────────────────────────

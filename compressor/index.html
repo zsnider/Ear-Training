@@ -681,6 +681,14 @@ let customFiles      = [], customIdx = 0;
 let customAudioEl    = null, customMediaSrc = null;
 let oneShotBuffers   = [], oneShotLoaded = false, oneShotIdx = 0;
 let loopFileNames    = [], loopManifestLoaded = false, loopIdx = 0;
+
+// Pick a random index different from current (falls back to 0 if only 1 item)
+function randNext(len, cur) {
+  if (len <= 1) return 0;
+  let next;
+  do { next = Math.floor(Math.random() * len); } while (next === cur);
+  return next;
+}
 let loopAudioEl      = null, loopMediaSrc = null;
 
 // Knob drag
@@ -1382,6 +1390,7 @@ async function loadOneShotSamples() {
   }));
   oneShotBuffers.sort((a,b) => a.name.localeCompare(b.name));
   oneShotLoaded = oneShotBuffers.length > 0;
+  if (oneShotLoaded) oneShotIdx = Math.floor(Math.random() * oneShotBuffers.length);
   if (!oneShotLoaded) { showToast('No one-shots found'); sourceType = 'pink'; updateSourceUI(); }
 }
 
@@ -1390,6 +1399,7 @@ async function loadLoopSamples() {
   const manifest = await getManifest();
   loopFileNames = manifest.loops || [];
   loopManifestLoaded = loopFileNames.length > 0;
+  if (loopManifestLoaded) loopIdx = Math.floor(Math.random() * loopFileNames.length);
   if (!loopManifestLoaded) { showToast('No loops found'); sourceType = 'pink'; updateSourceUI(); }
 }
 
@@ -1436,8 +1446,8 @@ function newRound() {
 
   // Advance sample index each round
   if (sourceType === 'custom'  && customFiles.length > 0)      customIdx  = (customIdx  + 1) % customFiles.length;
-  if (sourceType === 'oneshot' && oneShotBuffers.length > 0)   oneShotIdx = (oneShotIdx + 1) % oneShotBuffers.length;
-  if (sourceType === 'loop'    && loopFileNames.length > 0)    loopIdx    = (loopIdx    + 1) % loopFileNames.length;
+  if (sourceType === 'oneshot' && oneShotBuffers.length > 0)   oneShotIdx = randNext(oneShotBuffers.length, oneShotIdx);
+  if (sourceType === 'loop'    && loopFileNames.length > 0)    loopIdx    = randNext(loopFileNames.length, loopIdx);
 
   roundActive = true;
   document.getElementById('resultBar').classList.remove('visible');

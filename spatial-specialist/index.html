@@ -608,6 +608,14 @@ let currentShotSrc = null;
 
 // Loops (streaming)
 let loopFileNames = [], loopManifestLoaded = false, loopIdx = 0;
+
+// Pick a random index different from current (falls back to 0 if only 1 item)
+function randNext(len, cur) {
+  if (len <= 1) return 0;
+  let next;
+  do { next = Math.floor(Math.random() * len); } while (next === cur);
+  return next;
+}
 let loopAudioEl = null, loopMediaSrc = null;
 
 // Drag
@@ -895,10 +903,10 @@ function startRound() {
     if (customAudioEl) customAudioEl._currentFile = null; // force reload
   }
   if (sourceType === 'oneShot' && oneShotBuffers.length > 0) {
-    oneShotIdx = (oneShotIdx + 1) % oneShotBuffers.length;
+    oneShotIdx = randNext(oneShotBuffers.length, oneShotIdx);
   }
   if (sourceType === 'loop' && loopFileNames.length > 0) {
-    loopIdx = (loopIdx + 1) % loopFileNames.length;
+    loopIdx = randNext(loopFileNames.length, loopIdx);
     if (loopAudioEl) loopAudioEl._currentFname = null; // force reload
   }
 
@@ -1307,6 +1315,7 @@ async function loadOneShotSamples() {
   }));
   oneShotBuffers.sort((a, b) => a.name.localeCompare(b.name));
   oneShotLoaded = oneShotBuffers.length > 0;
+  if (oneShotLoaded) oneShotIdx = Math.floor(Math.random() * oneShotBuffers.length);
   if (!oneShotLoaded) {
     setLoadStatus('No one-shots found', false);
     showToast('No one-shots found');
@@ -1322,6 +1331,7 @@ async function loadLoopSamples() {
   const manifest = await getManifest();
   loopFileNames = (manifest.loops || []).slice().sort();
   loopManifestLoaded = loopFileNames.length > 0;
+  if (loopManifestLoaded) loopIdx = Math.floor(Math.random() * loopFileNames.length);
   if (!loopManifestLoaded) {
     setLoadStatus('No loops found', false);
     showToast('No loops found');
