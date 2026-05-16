@@ -1,0 +1,26 @@
+{
+  "name": "Signal Chain Architect — Ear Training",
+  "short_name": "Signal Chain",
+  "description": "Train your ears to hear signal chain order. Arrange effect blocks — EQ, Compressor, Reverb, Saturation — to match a hidden target chain.",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#080a0e",
+  "theme_color": "#39d353",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "music", "productivity"],
+  "lang": "en"
+}

@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signal Chain Architect — SonicSandbox</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg:       #080a0e;
+  --bg2:      #0c0f14;
+  --surface:  #111520;
+  --surface2: #181e2e;
+  --surface3: #1f2638;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.13);
+  --text:     #e8edf8;
+  --muted:    #5a6480;
+  --accent:   #39d353;
+  --accent2:  #7ce88f;
+  --correct:  #3ecf8e;
+  --wrong:    #f45b69;
+  /* Per-effect colors */
+  --eq-c:   #00d4ff;
+  --comp-c: #f0a862;
+  --rev-c:  #a78bfa;
+  --sat-c:  #f45b69;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center;
+  padding-bottom: 48px;
+  user-select: none;
+}
+
+/* ── Header ── */
+header {
+  width: 100%; max-width: 880px;
+  padding: 22px 24px 0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.header-left { display: flex; align-items: center; gap: 14px; }
+.back-btn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  color: var(--muted); text-decoration: none; padding: 4px 10px;
+  border: 1px solid var(--border2); border-radius: 8px;
+  background: var(--surface2); transition: all 0.15s; white-space: nowrap;
+}
+.back-btn:hover { color: var(--accent2); border-color: var(--accent); }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-icon {
+  width: 32px; height: 32px; background: var(--accent);
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+}
+.brand-name { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; line-height: 1.2; }
+.brand-sub  { font-size: 10px; color: var(--muted); }
+.score-row { display: flex; gap: 20px; align-items: center; }
+.stat { display: flex; flex-direction: column; align-items: flex-end; }
+.stat-val   { font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 600; color: var(--accent2); }
+.stat-label { font-size: 10px; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
+
+/* ── Main layout ── */
+main {
+  width: 100%; max-width: 880px;
+  padding: 22px 24px 0;
+  display: flex; flex-direction: column; gap: 14px;
+}
+
+/* ── Settings card ── */
+.settings-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.settings-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.settings-label {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;
+  min-width: 62px; flex-shrink: 0;
+}
+.btn-group { display: flex; gap: 6px; }
+.seg-btn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  padding: 5px 12px; background: var(--surface2);
+  border: 1px solid var(--border2); border-radius: 7px;
+  color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.seg-btn:hover { color: var(--text); }
+.seg-btn.active { background: var(--accent); border-color: var(--accent); color: #080a0e; font-weight: 600; }
+.src-btn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  padding: 5px 12px; background: var(--surface2);
+  border: 1px solid var(--border2); border-radius: 7px;
+  color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.src-btn:hover { color: var(--text); }
+.src-btn.active { background: rgba(57,211,83,0.12); border-color: var(--accent); color: var(--accent2); }
+.src-btn.loading { opacity: 0.6; cursor: wait; }
+.new-round-btn {
+  margin-left: auto;
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600;
+  padding: 6px 18px; background: var(--accent); color: #080a0e;
+  border: none; border-radius: 8px; cursor: pointer; transition: all 0.15s;
+}
+.new-round-btn:hover { background: var(--accent2); }
+
+/* ── Player card ── */
+.player-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 13px 20px;
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+}
+.monitor-group { display: flex; gap: 8px; }
+.monitor-btn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500;
+  padding: 6px 14px; background: var(--surface2);
+  border: 1px solid var(--border2); border-radius: 8px;
+  color: var(--muted); cursor: pointer; transition: all 0.15s;
+  display: flex; align-items: center; gap: 6px;
+}
+.monitor-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); transition: all 0.2s; }
+.monitor-btn:hover { color: var(--text); }
+.monitor-btn.active { border-color: var(--accent); color: var(--accent2); }
+.monitor-btn.active .monitor-dot { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+.player-controls { display: flex; gap: 7px; align-items: center; }
+.ctrl-btn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  padding: 5px 10px; background: var(--surface2);
+  border: 1px solid var(--border2); border-radius: 7px;
+  color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.ctrl-btn:hover:not(:disabled) { color: var(--text); }
+.ctrl-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.ctrl-btn.playing { border-color: var(--accent); color: var(--accent2); }
+.ctrl-btn.paused  { background: rgba(57,211,83,0.08); }
+.pulse-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 6px var(--accent);
+  animation: pulse 1s ease-in-out infinite; display: inline-block;
+}
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+.monitor-hint { font-size: 11px; color: var(--muted); font-style: italic; margin-left: auto; }
+
+/* ── Idle state ── */
+.idle-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 36px 28px;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 12px; text-align: center;
+}
+.idle-title { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; color: var(--accent2); }
+.idle-text  { font-size: 14px; color: var(--muted); max-width: 440px; line-height: 1.6; }
+
+/* ── Game card ── */
+.game-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 24px;
+  display: flex; flex-direction: column; gap: 22px;
+}
+.game-prompt {
+  font-size: 13px; color: var(--muted); text-align: center; line-height: 1.6;
+}
+.game-prompt strong { color: var(--text); font-weight: 600; }
+
+/* ── Chain slots ── */
+.chain-section { display: flex; flex-direction: column; gap: 10px; }
+.section-label {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;
+}
+.slots-row { display: flex; align-items: stretch; gap: 8px; flex-wrap: wrap; }
+.slot-arrow { color: var(--muted); font-size: 20px; flex-shrink: 0; align-self: center; padding: 0 2px; }
+
+.slot {
+  flex: 1; min-width: 110px;
+  min-height: 86px; border-radius: 12px;
+  background: var(--surface2); border: 2px dashed var(--border2);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: default; transition: all 0.15s; position: relative; gap: 5px;
+  padding: 10px;
+}
+.slot.droppable { cursor: copy; }
+.slot.droppable:hover { border-color: rgba(57,211,83,0.5); background: rgba(57,211,83,0.04); }
+.slot.drag-over { border-color: var(--accent) !important; background: rgba(57,211,83,0.09) !important; }
+.slot.filled { border-style: solid; cursor: grab; }
+.slot.filled:active { cursor: grabbing; }
+.slot.answered { cursor: default !important; }
+.slot.reveal-correct { border-color: var(--correct) !important; background: rgba(62,207,142,0.08) !important; }
+.slot.reveal-wrong   { border-color: var(--wrong)   !important; background: rgba(244,91,105,0.08) !important; }
+.slot-num {
+  position: absolute; top: 6px; left: 9px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted);
+}
+.slot-check {
+  position: absolute; top: 5px; right: 9px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 700;
+}
+.slot-plus { font-size: 20px; color: var(--border2); }
+.slot-drop-hint { font-size: 11px; color: var(--muted); }
+.slot-eff-name { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; }
+.slot-eff-sub { font-size: 11px; color: var(--muted); text-align: center; line-height: 1.4; }
+
+/* ── Palette ── */
+.palette-section { display: flex; flex-direction: column; gap: 10px; }
+.palette-row { display: flex; gap: 12px; flex-wrap: wrap; }
+
+.effect-block {
+  flex: 1; min-width: 130px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 12px; padding: 14px 16px;
+  cursor: grab; transition: all 0.15s; position: relative;
+  overflow: hidden; display: flex; flex-direction: column; gap: 5px;
+}
+.effect-block:active { cursor: grabbing; }
+.effect-block::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+  background: var(--eff-color, var(--accent));
+}
+.effect-block:hover:not(.in-slot) {
+  border-color: var(--eff-color, var(--accent));
+  background: var(--surface3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+.effect-block.selected {
+  border-color: var(--eff-color, var(--accent));
+  background: var(--surface3);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.06);
+}
+.effect-block.in-slot { opacity: 0.25; cursor: default; pointer-events: none; }
+.eff-name { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; }
+.eff-sub  { font-size: 11px; color: var(--muted); line-height: 1.4; }
+
+/* ── Actions ── */
+.action-row { display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; }
+.submit-btn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600;
+  padding: 10px 32px; background: var(--accent); color: #080a0e;
+  border: none; border-radius: 10px; cursor: pointer; transition: all 0.15s;
+}
+.submit-btn:hover:not(:disabled) { background: var(--accent2); transform: translateY(-1px); }
+.submit-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+.skip-round-btn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  padding: 10px 20px; background: transparent;
+  border: 1px solid var(--border2); border-radius: 10px;
+  color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.skip-round-btn:hover:not(:disabled) { color: var(--text); border-color: var(--border2); }
+.skip-round-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ── Result area ── */
+.result-area {
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 12px; padding: 18px 20px;
+  display: none; flex-direction: column; gap: 14px;
+}
+.result-area.visible { display: flex; }
+.result-hdr {
+  font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+}
+.result-hdr.perfect { color: var(--correct); }
+.result-hdr.partial  { color: var(--comp-c); }
+.result-hdr.miss     { color: var(--wrong); }
+.result-chains { display: flex; gap: 28px; flex-wrap: wrap; }
+.result-col { display: flex; flex-direction: column; gap: 7px; flex: 1; min-width: 160px; }
+.result-col-label {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+  color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;
+}
+.result-row { display: flex; align-items: center; gap: 9px; }
+.rpos {
+  width: 20px; height: 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 700;
+  flex-shrink: 0;
+}
+.rpos.c { background: var(--correct); color: #080a0e; }
+.rpos.w { background: var(--wrong);   color: #fff; }
+.rpos.n { background: var(--surface3); color: var(--muted); }
+.reff { font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+.reff.c { color: var(--correct); }
+.reff.w { color: var(--wrong); }
+.reff.n { color: var(--muted); }
+
+/* ── Next bar ── */
+.next-bar-wrap { display:none; height:3px; background:var(--surface3); border-radius:99px; overflow:hidden; margin-top:2px; }
+.next-bar-fill { height:100%; background:var(--accent); border-radius:99px; }
+
+/* ── History ── */
+.history-row { display:flex; gap:4px; flex-wrap:wrap; padding:4px 0; }
+.hist-dot { width:10px; height:10px; border-radius:50%; }
+.hist-dot.c { background:var(--correct); }
+.hist-dot.w { background:var(--wrong); }
+.history-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 20px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.history-label { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; }
+
+/* ── Toast ── */
+.toast {
+  position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(12px);
+  background:var(--surface3); border:1px solid var(--border2);
+  color:var(--text); font-family:'IBM Plex Mono',monospace;
+  font-size:13px; padding:10px 20px; border-radius:10px;
+  opacity:0; transition:all 0.25s; pointer-events:none; white-space:nowrap; z-index:100;
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ── Effect toggle buttons (per-effect color when active) ── */
+.eff-toggle-btn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  padding: 5px 12px; background: var(--surface2);
+  border: 1px solid var(--border2); border-radius: 7px;
+  color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.eff-toggle-btn:hover { color: var(--text); }
+.eff-toggle-btn[data-eff="eq"].active         { border-color: var(--eq-c);   color: var(--eq-c);   background: rgba(0,212,255,0.1); }
+.eff-toggle-btn[data-eff="compressor"].active { border-color: var(--comp-c); color: var(--comp-c); background: rgba(240,168,98,0.1); }
+.eff-toggle-btn[data-eff="reverb"].active     { border-color: var(--rev-c);  color: var(--rev-c);  background: rgba(167,139,250,0.1); }
+.eff-toggle-btn[data-eff="saturation"].active { border-color: var(--sat-c);  color: var(--sat-c);  background: rgba(244,91,105,0.1); }
+.eff-toggle-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ── Mobile ── */
+@media (max-width:600px) {
+  header { padding:14px 16px 0; }
+  main   { padding:14px 16px 0; }
+  .score-row .stat:nth-child(n+3) { display:none; }
+  .stat-val { font-size:15px; }
+  .slot { min-width:82px; min-height:76px; }
+  .effect-block { min-width:110px; }
+  .new-round-btn { margin-left:0; width:100%; }
+  .settings-row { gap:8px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <a href="../" class="back-btn">← Games</a>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1" y="7" width="3" height="4" rx="1" fill="#080a0e"/>
+          <rect x="5" y="4" width="3" height="10" rx="1" fill="#080a0e"/>
+          <rect x="9" y="6" width="3" height="6" rx="1" fill="#080a0e"/>
+          <rect x="13" y="3" width="3" height="12" rx="1" fill="#080a0e"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">Signal Chain</div>
+        <div class="brand-sub">SonicSandbox.app</div>
+      </div>
+    </div>
+  </div>
+  <div class="score-row">
+    <div class="stat"><div class="stat-val" id="roundVal">0</div><div class="stat-label">Rounds</div></div>
+    <div class="stat"><div class="stat-val" id="scoreVal">0</div><div class="stat-label">Score</div></div>
+    <div class="stat"><div class="stat-val" id="streakVal">0</div><div class="stat-label">Streak</div></div>
+    <div class="stat"><div class="stat-val" id="accuracyVal">—</div><div class="stat-label">Accuracy</div></div>
+  </div>
+</header>
+
+<main>
+  <!-- Settings -->
+  <div class="settings-card">
+    <div class="settings-row">
+      <span class="settings-label">Source</span>
+      <div class="btn-group">
+        <button class="src-btn active" id="srcPink"    onclick="setSource('pink')">Pink Noise</button>
+        <button class="src-btn"        id="srcOneShot" onclick="setSource('oneShot')">One-Shots</button>
+        <button class="src-btn"        id="srcLoop"    onclick="setSource('loop')">Loops</button>
+        <button class="src-btn"        id="srcCustom"  onclick="triggerUpload()">
+          <span id="uploadLabel">📁 Folder</span>
+        </button>
+      </div>
+      <input type="file" id="folderInput" accept="audio/*" multiple webkitdirectory
+             style="display:none" onchange="handleFolderUpload(event)">
+    </div>
+    <div class="settings-row">
+      <span class="settings-label">Effects</span>
+      <div class="btn-group">
+        <button class="eff-toggle-btn active" data-eff="eq"         id="toggleEq"         onclick="toggleEffect('eq')">EQ</button>
+        <button class="eff-toggle-btn active" data-eff="compressor" id="toggleCompressor" onclick="toggleEffect('compressor')">Compressor</button>
+        <button class="eff-toggle-btn active" data-eff="reverb"     id="toggleReverb"     onclick="toggleEffect('reverb')">Reverb</button>
+        <button class="eff-toggle-btn active" data-eff="saturation" id="toggleSaturation" onclick="toggleEffect('saturation')">Saturation</button>
+      </div>
+    </div>
+    <div class="settings-row">
+      <span class="settings-label">Chain</span>
+      <div class="btn-group">
+        <button class="seg-btn"        id="chain2" onclick="setChainLength(2)">2</button>
+        <button class="seg-btn active" id="chain3" onclick="setChainLength(3)">3</button>
+        <button class="seg-btn"        id="chain4" onclick="setChainLength(4)">4</button>
+      </div>
+      <span class="settings-label" style="margin-left:12px">Difficulty</span>
+      <div class="btn-group">
+        <button class="seg-btn"        id="diffEasy"   onclick="setDifficulty('easy')">Easy</button>
+        <button class="seg-btn active" id="diffMedium" onclick="setDifficulty('medium')">Medium</button>
+        <button class="seg-btn"        id="diffHard"   onclick="setDifficulty('hard')">Hard</button>
+      </div>
+      <button class="new-round-btn" onclick="newRound()">New Round</button>
+    </div>
+  </div>
+
+  <!-- Player controls -->
+  <div class="player-card">
+    <div class="monitor-group">
+      <button class="monitor-btn active" id="monitorTarget" onclick="setMonitor('target')">
+        <span class="monitor-dot"></span>TARGET
+      </button>
+      <button class="monitor-btn" id="monitorUser" onclick="setMonitor('user')">
+        <span class="monitor-dot"></span>YOUR CHAIN
+      </button>
+    </div>
+    <div class="player-controls">
+      <span id="playDot"></span>
+      <button class="ctrl-btn" id="btnPlay"    onclick="playCurrentRound()" disabled>▶ Play</button>
+      <button class="ctrl-btn" id="btnPause"   onclick="togglePause()"     disabled>⏸ Pause</button>
+      <button class="ctrl-btn" id="btnRestart" onclick="restartAudio()"    disabled>⟲</button>
+    </div>
+    <div class="monitor-hint" id="monitorHint"></div>
+  </div>
+
+  <!-- Idle state (shown before first round) -->
+  <div class="idle-card" id="idleCard">
+    <div class="idle-title">Arrange the signal chain</div>
+    <div class="idle-text">
+      You'll hear a processed audio signal. A set of effect blocks will appear —
+      drag them into the numbered slots in the order you think they were applied to the source.
+      Toggle between <strong>TARGET</strong> and <strong>YOUR CHAIN</strong> to compare.
+    </div>
+  </div>
+
+  <!-- Game area (hidden until first round) -->
+  <div class="game-card" id="gameCard" style="display:none">
+    <div class="game-prompt" id="gamePrompt"></div>
+
+    <!-- Chain slots -->
+    <div class="chain-section">
+      <div class="section-label">Your Signal Chain</div>
+      <div class="slots-row" id="slotsRow"></div>
+    </div>
+
+    <!-- Effect palette -->
+    <div class="palette-section">
+      <div class="section-label">Effect Blocks — drag to a slot, or click to select then click a slot</div>
+      <div class="palette-row" id="paletteRow"></div>
+    </div>
+
+    <!-- Submit / skip -->
+    <div class="action-row">
+      <button class="submit-btn"    id="submitBtn"   onclick="submitAnswer()" disabled>Submit Answer</button>
+      <button class="skip-round-btn" id="skipRoundBtn" onclick="skipRound()"  disabled>Reveal</button>
+    </div>
+
+    <!-- Result -->
+    <div class="result-area" id="resultArea"></div>
+
+    <!-- Auto-advance bar -->
+    <div class="next-bar-wrap" id="nextBarWrap">
+      <div class="next-bar-fill" id="nextBarFill" style="width:100%"></div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="history-card">
+    <div class="history-label">Round History</div>
+    <div class="history-row" id="historyStrip"></div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Constants ──────────────────────────────────────────────────────────────────
+const EFFECT_NAMES  = ['eq', 'compressor', 'reverb', 'saturation'];
+const EFFECT_LABELS = { eq: 'EQ', compressor: 'Compressor', reverb: 'Reverb', saturation: 'Saturation' };
+const EFFECT_COLORS = { eq: '#00d4ff', compressor: '#f0a862', reverb: '#a78bfa', saturation: '#f45b69' };
+
+const PARAMS = {
+  easy: {
+    eq:         () => ({ type: coin() ? 'lowpass' : 'highpass', freq: coin() ? 280 : 3500 }),
+    compressor: () => ({ threshold: -28, ratio: 16,  attack: 0.001, release: 0.08 }),
+    reverb:     () => ({ decay: 5.5,  mix: 0.80 }),
+    saturation: () => ({ drive: 80 })
+  },
+  medium: {
+    eq:         () => ({ type: coin() ? 'lowpass' : 'highpass', freq: coin() ? 650 : 1600 }),
+    compressor: () => ({ threshold: -18, ratio: 8,   attack: 0.003, release: 0.20 }),
+    reverb:     () => ({ decay: 3.0,  mix: 0.55 }),
+    saturation: () => ({ drive: 40 })
+  },
+  hard: {
+    eq:         () => ({ type: coin() ? 'lowpass' : 'highpass', freq: coin() ? 950 : 1100 }),
+    compressor: () => ({ threshold: -12, ratio: 4,   attack: 0.005, release: 0.30 }),
+    reverb:     () => ({ decay: 1.5,  mix: 0.35 }),
+    saturation: () => ({ drive: 18 })
+  }
+};
+
+function coin() { return Math.random() < 0.5; }
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function shuffle(a) { const b=[...a]; for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];} return b; }
+
+// ── State ──────────────────────────────────────────────────────────────────────
+let chainLength    = 3;
+let difficulty     = 'medium';
+let sourceType     = 'pink';
+let enabledEffects = ['eq', 'compressor', 'reverb', 'saturation']; // must keep ≥ 2
+let roundActive   = false;
+let answered      = false;
+let currentMonitor = 'target';
+
+let targetEffects = []; // [{name, params}, ...]  — the hidden correct chain
+let roundParams   = {}; // {effectName: params}
+let userSlots     = []; // [effectName|null, ...]
+let paletteOrder  = []; // shuffled effect names for palette display
+
+// Scoring
+let totalRounds  = 0;
+let correctCount = 0;
+let scoreTotal   = 0;
+let streak       = 0;
+
+// Drag / click-to-place
+let dragSrc = null; // { name, fromSlot: null|index }
+let selectedBlock = null; // effect name selected from palette
+
+// Audio
+let audioCtx       = null;
+let isPlaying      = false;
+let isPaused       = false;
+let noiseSource    = null;
+let loopAudioEl    = null;
+let loopMediaSrc   = null;
+let customAudioEl  = null;
+let customMediaSrc = null;
+let outGain        = null;
+let chainNodeRefs  = [];
+let currentShotSrc = null;
+let shotLoopTimer  = null;
+let nextTimeout    = null;
+
+// Sample data
+let oneShotBuffers     = [];
+let oneShotLoaded      = false;
+let oneShotIdx         = 0;
+let loopFileNames      = [];
+let loopManifestLoaded = false;
+let loopIdx            = 0;
+let customFiles        = [];
+let customIdx          = 0;
+let samplesManifest    = null;
+
+// ── Effect parameter labels ────────────────────────────────────────────────────
+function effSub(name, params) {
+  if (name === 'eq') {
+    const t = params.type === 'lowpass' ? 'Low Pass' : 'High Pass';
+    const f = params.freq >= 1000 ? `${(params.freq/1000).toFixed(1)}kHz` : `${params.freq}Hz`;
+    return `${t} · ${f}`;
+  }
+  if (name === 'compressor') return `${params.ratio}:1 · ${params.threshold}dBFS`;
+  if (name === 'reverb') {
+    const sz = params.decay >= 4 ? 'Large Hall' : params.decay >= 2.5 ? 'Medium Room' : 'Small Room';
+    return `${sz} · ${Math.round(params.mix * 100)}% wet`;
+  }
+  if (name === 'saturation') {
+    const d = params.drive >= 60 ? 'Heavy' : params.drive >= 35 ? 'Medium' : 'Light';
+    return `${d} Drive`;
+  }
+}
+
+// ── Settings handlers ──────────────────────────────────────────────────────────
+function setChainLength(n) {
+  if (n > enabledEffects.length) return; // can't request more than pool
+  chainLength = n;
+  updateChainLengthBtns();
+}
+
+function setDifficulty(d) {
+  difficulty = d;
+  ['diffEasy','diffMedium','diffHard'].forEach(id => {
+    document.getElementById(id).classList.toggle('active', id === `diff${d.charAt(0).toUpperCase()+d.slice(1)}`);
+  });
+}
+
+function toggleEffect(name) {
+  if (enabledEffects.includes(name)) {
+    if (enabledEffects.length <= 2) { showToast('Minimum 2 effects required'); return; }
+    enabledEffects = enabledEffects.filter(n => n !== name);
+    // Clamp chain length to the new pool size
+    if (chainLength > enabledEffects.length) {
+      chainLength = enabledEffects.length;
+    }
+  } else {
+    enabledEffects.push(name);
+  }
+  updateEffectToggleUI();
+  updateChainLengthBtns();
+}
+
+function updateEffectToggleUI() {
+  EFFECT_NAMES.forEach(name => {
+    const btn = document.getElementById(`toggle${name.charAt(0).toUpperCase()+name.slice(1)}`);
+    if (!btn) return;
+    const isOn = enabledEffects.includes(name);
+    btn.classList.toggle('active', isOn);
+    // Disable the button only if turning it off would drop below 2
+    btn.disabled = isOn && enabledEffects.length <= 2;
+  });
+}
+
+function updateChainLengthBtns() {
+  [2, 3, 4].forEach(n => {
+    const btn = document.getElementById(`chain${n}`);
+    const tooMany = n > enabledEffects.length;
+    btn.disabled = tooMany;
+    btn.classList.toggle('active', chainLength === n);
+    btn.style.opacity = tooMany ? '0.35' : '';
+    btn.style.cursor  = tooMany ? 'not-allowed' : '';
+  });
+}
+
+// ── Round generation ───────────────────────────────────────────────────────────
+function generateRound() {
+  const effectiveLength = Math.min(chainLength, enabledEffects.length);
+  const chosen = shuffle(enabledEffects).slice(0, effectiveLength);
+  roundParams   = {};
+  chosen.forEach(n => { roundParams[n] = PARAMS[difficulty][n](); });
+  targetEffects = chosen.map(n => ({ name: n, params: roundParams[n] }));
+  userSlots     = new Array(effectiveLength).fill(null);
+  // Palette: same effects, different order (re-shuffle until order differs)
+  let pal;
+  do { pal = shuffle(chosen); } while (pal.every((v,i) => v === chosen[i]) && chosen.length > 1);
+  paletteOrder  = pal;
+  answered      = false;
+  roundActive   = true;
+  currentMonitor = 'target';
+  selectedBlock = null;
+  dragSrc       = null;
+  totalRounds++;
+}
+
+// ── Render: full game UI ───────────────────────────────────────────────────────
+function renderGame(revealTarget = null, revealUser = null) {
+  // revealTarget / revealUser are arrays of effect names (null while playing)
+  const n = targetEffects.length;
+  document.getElementById('gamePrompt').innerHTML =
+    `The target chain has <strong>${n} effect${n>1?'s':''}</strong>. ` +
+    `Listen to the <strong>TARGET</strong>, then arrange the blocks below to match the order they were applied.`;
+
+  renderSlots(revealTarget, revealUser);
+  renderPalette();
+  updateActionBtns();
+  updateMonitorUI();
+  document.getElementById('gameCard').style.display = 'flex';
+  document.getElementById('idleCard').style.display = 'none';
+  document.getElementById('resultArea').classList.remove('visible');
+  document.getElementById('resultArea').innerHTML = '';
+  document.getElementById('nextBarWrap').style.display = 'none';
+}
+
+function renderSlots(revealTarget, revealUser) {
+  const row = document.getElementById('slotsRow');
+  row.innerHTML = '';
+
+  for (let i = 0; i < chainLength; i++) {
+    if (i > 0) {
+      const arr = document.createElement('div');
+      arr.className = 'slot-arrow';
+      arr.textContent = '→';
+      row.appendChild(arr);
+    }
+
+    const slot = document.createElement('div');
+    slot.className = 'slot';
+    slot.dataset.idx = i;
+
+    const numEl = document.createElement('span');
+    numEl.className = 'slot-num';
+    numEl.textContent = i + 1;
+    slot.appendChild(numEl);
+
+    const effectName = userSlots[i];
+
+    if (effectName) {
+      const color = EFFECT_COLORS[effectName];
+      slot.classList.add('filled');
+      slot.style.borderColor = color;
+      slot.style.setProperty('--eff-color', color);
+
+      const nameEl = document.createElement('div');
+      nameEl.className = 'slot-eff-name';
+      nameEl.style.color = color;
+      nameEl.textContent = EFFECT_LABELS[effectName];
+
+      const subEl = document.createElement('div');
+      subEl.className = 'slot-eff-sub';
+      subEl.textContent = effSub(effectName, roundParams[effectName]);
+
+      slot.appendChild(nameEl);
+      slot.appendChild(subEl);
+
+      // Reveal state
+      if (revealTarget) {
+        slot.classList.add('answered');
+        const isCorrect = revealUser[i] === revealTarget[i];
+        slot.classList.add(isCorrect ? 'reveal-correct' : 'reveal-wrong');
+        const checkEl = document.createElement('span');
+        checkEl.className = 'slot-check';
+        checkEl.textContent = isCorrect ? '✓' : '✗';
+        checkEl.style.color = isCorrect ? 'var(--correct)' : 'var(--wrong)';
+        slot.appendChild(checkEl);
+      } else {
+        // Draggable
+        slot.draggable = true;
+        slot.ondragstart = e => {
+          dragSrc = { name: effectName, fromSlot: i };
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', effectName);
+          requestAnimationFrame(() => slot.style.opacity = '0.4');
+        };
+        slot.ondragend = () => { slot.style.opacity = ''; dragSrc = null; };
+        // Click to remove
+        slot.onclick = () => {
+          if (answered) return;
+          userSlots[i] = null;
+          selectedBlock = null;
+          renderGame();
+          rebuildIfUserMonitor();
+        };
+      }
+    } else {
+      // Empty slot
+      const plusEl = document.createElement('div');
+      plusEl.className = 'slot-plus';
+      plusEl.textContent = '+';
+      const hintEl = document.createElement('div');
+      hintEl.className = 'slot-drop-hint';
+      hintEl.textContent = 'drop here';
+      slot.appendChild(plusEl);
+      slot.appendChild(hintEl);
+
+      if (!revealTarget) {
+        slot.classList.add('droppable');
+        slot.onclick = () => {
+          if (answered || !selectedBlock) return;
+          const exist = userSlots.indexOf(selectedBlock);
+          if (exist !== -1) userSlots[exist] = null;
+          userSlots[i] = selectedBlock;
+          selectedBlock = null;
+          renderGame();
+          rebuildIfUserMonitor();
+        };
+      }
+    }
+
+    if (!revealTarget) {
+      // Drop zone handlers
+      slot.ondragover = e => { if (answered) return; e.preventDefault(); slot.classList.add('drag-over'); };
+      slot.ondragleave = () => slot.classList.remove('drag-over');
+      slot.ondrop = e => {
+        e.preventDefault();
+        slot.classList.remove('drag-over');
+        if (answered || !dragSrc) return;
+        const { name, fromSlot } = dragSrc;
+        if (fromSlot !== null) {
+          // Swap between slots
+          const temp = userSlots[i];
+          userSlots[i] = name;
+          userSlots[fromSlot] = temp;
+        } else {
+          // From palette
+          const exist = userSlots.indexOf(name);
+          if (exist !== -1) userSlots[exist] = null;
+          userSlots[i] = name;
+        }
+        dragSrc = null;
+        selectedBlock = null;
+        renderGame();
+        rebuildIfUserMonitor();
+      };
+    }
+
+    row.appendChild(slot);
+  }
+}
+
+function renderPalette() {
+  const row = document.getElementById('paletteRow');
+  row.innerHTML = '';
+
+  paletteOrder.forEach(name => {
+    const inSlot  = userSlots.includes(name);
+    const isSelected = selectedBlock === name;
+    const color   = EFFECT_COLORS[name];
+
+    const block = document.createElement('div');
+    block.className = `effect-block${inSlot ? ' in-slot' : ''}${isSelected ? ' selected' : ''}`;
+    block.style.setProperty('--eff-color', color);
+    block.draggable = !inSlot && !answered;
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'eff-name';
+    nameEl.style.color = color;
+    nameEl.textContent = EFFECT_LABELS[name];
+
+    const subEl = document.createElement('div');
+    subEl.className = 'eff-sub';
+    subEl.textContent = effSub(name, roundParams[name]);
+
+    block.appendChild(nameEl);
+    block.appendChild(subEl);
+
+    block.ondragstart = e => {
+      if (inSlot || answered) { e.preventDefault(); return; }
+      dragSrc = { name, fromSlot: null };
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', name);
+    };
+
+    block.onclick = () => {
+      if (answered || inSlot) return;
+      selectedBlock = (selectedBlock === name) ? null : name;
+      renderPalette();
+    };
+
+    row.appendChild(block);
+  });
+}
+
+function updateActionBtns() {
+  const allFilled = userSlots.every(Boolean);
+  document.getElementById('submitBtn').disabled    = !allFilled || answered;
+  document.getElementById('skipRoundBtn').disabled = answered;
+}
+
+function updateMonitorUI() {
+  document.getElementById('monitorTarget').classList.toggle('active', currentMonitor === 'target');
+  document.getElementById('monitorUser').classList.toggle('active',   currentMonitor === 'user');
+  const hint = document.getElementById('monitorHint');
+  if (!roundActive) { hint.textContent = ''; return; }
+  if (currentMonitor === 'target') {
+    hint.textContent = 'Hearing: target chain';
+  } else {
+    const placed = userSlots.filter(Boolean).length;
+    const total  = userSlots.length;
+    hint.textContent = placed === 0 ? 'Hearing: dry (no effects placed)' :
+      placed < total ? `Hearing: ${placed} of ${total} effects placed` :
+      'Hearing: your full arrangement';
+  }
+}
+
+// ── Monitor ────────────────────────────────────────────────────────────────────
+function setMonitor(m) {
+  currentMonitor = m;
+  updateMonitorUI();
+  if (roundActive && isPlaying) {
+    stopPlayback();
+    playCurrentRound();
+  }
+}
+
+function rebuildIfUserMonitor() {
+  if (currentMonitor === 'user' && roundActive && isPlaying) {
+    stopPlayback();
+    playCurrentRound();
+  }
+}
+
+// ── New round ──────────────────────────────────────────────────────────────────
+function newRound() {
+  clearTimeout(nextTimeout);
+  stopPlayback();
+  generateRound();
+  renderGame();
+  document.getElementById('roundVal').textContent = totalRounds;
+  document.getElementById('btnPlay').disabled    = false;
+  document.getElementById('btnPause').disabled   = true;
+  document.getElementById('btnRestart').disabled = true;
+  if (isPaused) { isPaused = false; }
+  playCurrentRound();
+}
+
+// ── Audio infrastructure ───────────────────────────────────────────────────────
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function makePinkNoise(durationSecs) {
+  const rate = audioCtx.sampleRate;
+  const len  = Math.ceil(rate * durationSecs);
+  const buf  = audioCtx.createBuffer(1, len, rate);
+  const d    = buf.getChannelData(0);
+  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+  for (let i=0;i<len;i++) {
+    const w=Math.random()*2-1;
+    b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
+    b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
+    b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
+    d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11; b6=w*0.115926;
+  }
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf; src.loop = true;
+  return src;
+}
+
+// ── Effect factory ─────────────────────────────────────────────────────────────
+function makeEffect(def) {
+  const { name, params } = def;
+
+  if (name === 'eq') {
+    const f = audioCtx.createBiquadFilter();
+    f.type = params.type;
+    f.frequency.value = params.freq;
+    f.Q.value = 0.707;
+    return { input: f, output: f, nodes: [f] };
+  }
+
+  if (name === 'compressor') {
+    const c = audioCtx.createDynamicsCompressor();
+    c.threshold.value = params.threshold;
+    c.ratio.value     = params.ratio;
+    c.attack.value    = params.attack;
+    c.release.value   = params.release;
+    c.knee.value      = 4;
+    return { input: c, output: c, nodes: [c] };
+  }
+
+  if (name === 'reverb') {
+    const inputG  = audioCtx.createGain();
+    const conv    = audioCtx.createConvolver();
+    const wetG    = audioCtx.createGain();
+    const dryG    = audioCtx.createGain();
+    const outputG = audioCtx.createGain();
+    conv.buffer   = generateIR(params.decay);
+    wetG.gain.value = params.mix;
+    dryG.gain.value = 1 - params.mix;
+    inputG.connect(dryG);
+    inputG.connect(conv);
+    conv.connect(wetG);
+    dryG.connect(outputG);
+    wetG.connect(outputG);
+    return { input: inputG, output: outputG, nodes: [inputG, conv, wetG, dryG, outputG] };
+  }
+
+  if (name === 'saturation') {
+    const pre  = audioCtx.createGain();
+    const ws   = audioCtx.createWaveShaper();
+    const post = audioCtx.createGain();
+    ws.curve = makeSatCurve(params.drive);
+    ws.oversample = '4x';
+    post.gain.value = 0.55;
+    pre.connect(ws); ws.connect(post);
+    return { input: pre, output: post, nodes: [pre, ws, post] };
+  }
+}
+
+function generateIR(decaySec) {
+  const rate = audioCtx.sampleRate;
+  const len  = Math.ceil(rate * decaySec);
+  const buf  = audioCtx.createBuffer(2, len, rate);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = buf.getChannelData(ch);
+    for (let i = 0; i < len; i++) {
+      d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.5);
+    }
+  }
+  return buf;
+}
+
+function makeSatCurve(drive) {
+  const n = 512; const curve = new Float32Array(n);
+  const k = drive / 10;
+  for (let i = 0; i < n; i++) {
+    const x = (2 * i) / n - 1;
+    curve[i] = x * (Math.PI + k) / (Math.PI + k * Math.abs(x));
+  }
+  return curve;
+}
+
+// ── Chain building ─────────────────────────────────────────────────────────────
+function buildAndPlayChain(effectDefs) {
+  // Create output gain
+  outGain = audioCtx.createGain();
+  outGain.gain.value = 0.7;
+  outGain.connect(audioCtx.destination);
+
+  // Build effect objects
+  chainNodeRefs = effectDefs.map(def => makeEffect(def));
+
+  // Wire effects right-to-left, finding the chain's input node
+  let chainHead = outGain;
+  for (let i = chainNodeRefs.length - 1; i >= 0; i--) {
+    chainNodeRefs[i].output.connect(chainHead);
+    chainHead = chainNodeRefs[i].input;
+  }
+
+  // Connect source → chainHead
+  if (sourceType === 'oneShot' && oneShotBuffers.length > 0) {
+    startOneShotLoop(chainHead);
+  } else {
+    playContinuousSource(chainHead);
+  }
+  isPlaying = true;
+}
+
+function playCurrentRound() {
+  if (!roundActive) return;
+  stopPlayback();
+  initAudio();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  const defs = currentMonitor === 'target'
+    ? targetEffects
+    : userSlots.filter(Boolean).map(n => ({ name: n, params: roundParams[n] }));
+
+  buildAndPlayChain(defs);
+
+  document.getElementById('playDot').className   = 'pulse-dot';
+  document.getElementById('btnPlay').classList.add('playing');
+  document.getElementById('btnPause').disabled   = false;
+  document.getElementById('btnRestart').disabled = false;
+  updateMonitorUI();
+}
+
+function stopPlayback() {
+  if (shotLoopTimer)  { clearInterval(shotLoopTimer); shotLoopTimer = null; }
+  if (noiseSource && noiseSource !== loopMediaSrc && noiseSource !== customMediaSrc) {
+    try { noiseSource.stop(); } catch(e) {}
+  }
+  noiseSource = null;
+  if (loopAudioEl)    loopAudioEl.pause();
+  if (customAudioEl)  customAudioEl.pause();
+  if (loopMediaSrc)   { try { loopMediaSrc.disconnect();   } catch(e) {} }
+  if (customMediaSrc) { try { customMediaSrc.disconnect(); } catch(e) {} }
+  if (currentShotSrc) { try { currentShotSrc.stop(); } catch(e) {} currentShotSrc = null; }
+  for (const eff of chainNodeRefs) {
+    for (const n of eff.nodes) { try { n.disconnect(); } catch(e) {} }
+  }
+  chainNodeRefs = [];
+  if (outGain) { try { outGain.disconnect(); } catch(e) {} outGain = null; }
+  isPlaying = false;
+  const dot = document.getElementById('playDot');
+  if (dot) dot.className = '';
+  document.getElementById('btnPlay')?.classList.remove('playing');
+}
+
+// ── Source types ───────────────────────────────────────────────────────────────
+function startOneShotLoop(dest) {
+  const fireShot = () => {
+    if (!isPlaying || sourceType !== 'oneShot') return;
+    const sample = oneShotBuffers[oneShotIdx % oneShotBuffers.length];
+    const src = audioCtx.createBufferSource();
+    src.buffer = sample.buffer;
+    src.connect(dest);
+    src.start(0);
+    currentShotSrc = src;
+  };
+  fireShot();
+  shotLoopTimer = setInterval(fireShot, 5000);
+}
+
+function playContinuousSource(dest) {
+  if (sourceType === 'loop' && loopFileNames.length > 0) {
+    if (!loopAudioEl) { loopAudioEl = new Audio(); loopAudioEl.loop = true; }
+    if (!loopMediaSrc) loopMediaSrc = audioCtx.createMediaElementSource(loopAudioEl);
+    const fname = loopFileNames[loopIdx % loopFileNames.length];
+    if (loopAudioEl._cur !== fname) {
+      loopAudioEl.src = `../samples/loops/${fname}`;
+      loopAudioEl._cur = fname;
+    }
+    loopMediaSrc.connect(dest);
+    loopAudioEl.play().catch(() => {});
+    noiseSource = loopMediaSrc;
+
+  } else if (sourceType === 'custom' && customFiles.length > 0) {
+    if (!customAudioEl) { customAudioEl = new Audio(); customAudioEl.loop = true; }
+    if (!customMediaSrc) customMediaSrc = audioCtx.createMediaElementSource(customAudioEl);
+    const file = customFiles[customIdx % customFiles.length];
+    if (customAudioEl._curFile !== file) {
+      if (customAudioEl._objUrl) URL.revokeObjectURL(customAudioEl._objUrl);
+      const url = URL.createObjectURL(file);
+      customAudioEl._objUrl = url; customAudioEl._curFile = file;
+      customAudioEl.src = url;
+    }
+    customMediaSrc.connect(dest);
+    customAudioEl.play().catch(() => {});
+    noiseSource = customMediaSrc;
+
+  } else {
+    // Pink noise (default)
+    const src = makePinkNoise(8);
+    src.connect(dest);
+    src.start(0);
+    noiseSource = src;
+  }
+}
+
+// ── Pause / Resume ─────────────────────────────────────────────────────────────
+function togglePause() {
+  if (!roundActive || !audioCtx) return;
+  const btn = document.getElementById('btnPause');
+  if (isPaused) {
+    if (loopAudioEl   && sourceType === 'loop')   loopAudioEl.play().catch(() => {});
+    if (customAudioEl && sourceType === 'custom') customAudioEl.play().catch(() => {});
+    audioCtx.resume().then(() => {
+      isPaused = false;
+      btn.textContent = '⏸ Pause'; btn.classList.remove('paused');
+      if (sourceType === 'oneShot' && isPlaying) {
+        const fireShot = () => {
+          if (!isPlaying) return;
+          const eff = outGain ? outGain : audioCtx.destination;
+          const s = audioCtx.createBufferSource();
+          s.buffer = oneShotBuffers[oneShotIdx % oneShotBuffers.length].buffer;
+          // Re-connect to chain head (we lost it — just restart)
+        };
+        stopPlayback(); playCurrentRound();
+      }
+    });
+  } else {
+    if (loopAudioEl   && sourceType === 'loop')   loopAudioEl.pause();
+    if (customAudioEl && sourceType === 'custom') customAudioEl.pause();
+    if (shotLoopTimer) { clearInterval(shotLoopTimer); shotLoopTimer = null; }
+    audioCtx.suspend().then(() => {
+      isPaused = true;
+      btn.textContent = '▶ Resume'; btn.classList.add('paused');
+    });
+  }
+}
+
+function restartAudio() {
+  if (!roundActive) return;
+  initAudio();
+  if (isPaused) { audioCtx.resume(); isPaused = false; document.getElementById('btnPause').textContent = '⏸ Pause'; document.getElementById('btnPause').classList.remove('paused'); }
+  if (loopAudioEl   && sourceType === 'loop')   loopAudioEl.currentTime = 0;
+  if (customAudioEl && sourceType === 'custom') customAudioEl.currentTime = 0;
+  stopPlayback(); playCurrentRound();
+}
+
+// ── Sample loading ─────────────────────────────────────────────────────────────
+async function getManifest() {
+  if (samplesManifest) return samplesManifest;
+  const r = await fetch('../samples/manifest.json');
+  samplesManifest = await r.json();
+  return samplesManifest;
+}
+
+async function loadOneShotSamples() {
+  if (oneShotLoaded) return;
+  initAudio();
+  const btn = document.getElementById('srcOneShot');
+  btn.classList.add('loading'); btn.textContent = 'Loading…';
+  oneShotBuffers = [];
+  const manifest = await getManifest();
+  await Promise.all(manifest.oneShots.map(async fname => {
+    try {
+      const r  = await fetch(`../samples/one-shots/${fname}`);
+      if (!r.ok) return;
+      const ab = await r.arrayBuffer();
+      oneShotBuffers.push({ buffer: await audioCtx.decodeAudioData(ab) });
+    } catch(e) { console.warn('one-shot fail:', fname, e); }
+  }));
+  oneShotLoaded = oneShotBuffers.length > 0;
+  if (oneShotLoaded) oneShotIdx = Math.floor(Math.random() * oneShotBuffers.length);
+  btn.textContent = 'One-Shots'; btn.classList.remove('loading');
+  if (!oneShotLoaded) { showToast('No one-shots found'); sourceType = 'pink'; updateSourceUI(); }
+}
+
+async function loadLoopSamples() {
+  if (loopManifestLoaded) return;
+  const manifest = await getManifest();
+  loopFileNames = manifest.loops || [];
+  loopManifestLoaded = loopFileNames.length > 0;
+  if (loopManifestLoaded) loopIdx = Math.floor(Math.random() * loopFileNames.length);
+  if (!loopManifestLoaded) { showToast('No loops found'); sourceType = 'pink'; updateSourceUI(); }
+}
+
+function setSource(type) {
+  if (type === 'oneShot' && !oneShotLoaded) {
+    loadOneShotSamples().then(() => { if (oneShotLoaded) { sourceType='oneShot'; updateSourceUI(); } });
+    return;
+  }
+  if (type === 'loop' && !loopManifestLoaded) {
+    loadLoopSamples().then(() => { if (loopManifestLoaded) { sourceType='loop'; updateSourceUI(); } });
+    return;
+  }
+  sourceType = type; updateSourceUI();
+}
+
+function updateSourceUI() {
+  document.getElementById('srcPink').classList.toggle('active',    sourceType==='pink');
+  document.getElementById('srcOneShot').classList.toggle('active', sourceType==='oneShot');
+  document.getElementById('srcLoop').classList.toggle('active',    sourceType==='loop');
+  document.getElementById('srcCustom').classList.toggle('active',  sourceType==='custom');
+}
+
+function triggerUpload() {
+  if (customFiles.length > 0) { setSource('custom'); return; }
+  document.getElementById('folderInput').click();
+}
+
+function handleFolderUpload(e) {
+  const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
+  if (!files.length) return;
+  customFiles = files; customIdx = 0;
+  document.getElementById('uploadLabel').textContent = `${files.length} tracks`;
+  setSource('custom');
+  showToast(`${files.length} tracks ready`);
+}
+
+// ── Skip track / seek ──────────────────────────────────────────────────────────
+function skipTrack(delta) {
+  if (!roundActive || !isPlaying || !audioCtx) return;
+  if (sourceType === 'oneShot' && oneShotBuffers.length > 0) {
+    oneShotIdx = ((oneShotIdx + delta) % oneShotBuffers.length + oneShotBuffers.length) % oneShotBuffers.length;
+    if (shotLoopTimer) { clearInterval(shotLoopTimer); shotLoopTimer = null; }
+    if (currentShotSrc) { try { currentShotSrc.stop(); } catch(e) {} currentShotSrc = null; }
+    stopPlayback(); playCurrentRound();
+    showToast(`Shot ${oneShotIdx+1} / ${oneShotBuffers.length}`);
+  } else if (sourceType === 'loop' && loopFileNames.length > 0) {
+    loopIdx = ((loopIdx + delta) % loopFileNames.length + loopFileNames.length) % loopFileNames.length;
+    if (loopAudioEl) { loopAudioEl.src = `../samples/loops/${loopFileNames[loopIdx]}`; loopAudioEl._cur = loopFileNames[loopIdx]; loopAudioEl.play().catch(()=>{}); }
+    showToast(`Loop ${loopIdx+1} / ${loopFileNames.length}`);
+  } else if (sourceType === 'custom' && customFiles.length > 0) {
+    customIdx = ((customIdx + delta) % customFiles.length + customFiles.length) % customFiles.length;
+    if (customAudioEl && customMediaSrc) {
+      if (customAudioEl._objUrl) URL.revokeObjectURL(customAudioEl._objUrl);
+      const file = customFiles[customIdx];
+      const url  = URL.createObjectURL(file);
+      customAudioEl._objUrl = url; customAudioEl._curFile = file;
+      customAudioEl.src = url; customAudioEl.play().catch(()=>{});
+    }
+    showToast(`Track ${customIdx+1} / ${customFiles.length}`);
+  }
+}
+
+function seekMusic(delta) {
+  if (!roundActive || !isPlaying) return;
+  if (sourceType === 'loop' && loopAudioEl) {
+    loopAudioEl.currentTime = Math.max(0, loopAudioEl.currentTime + delta);
+    showToast(`${delta > 0 ? '+' : ''}${delta}s`);
+  } else if (sourceType === 'custom' && customAudioEl) {
+    customAudioEl.currentTime = Math.max(0, customAudioEl.currentTime + delta);
+    showToast(`${delta > 0 ? '+' : ''}${delta}s`);
+  }
+}
+
+// ── Submit / reveal ────────────────────────────────────────────────────────────
+function submitAnswer() {
+  if (!roundActive || answered || !userSlots.every(Boolean)) return;
+  finaliseRound(false);
+}
+
+function skipRound() {
+  if (!roundActive || answered) return;
+  finaliseRound(true);
+}
+
+function finaliseRound(skipped) {
+  answered = true;
+  stopPlayback();
+
+  const targetOrder = targetEffects.map(e => e.name);
+  const userOrder   = [...userSlots];
+
+  const roundLen = targetOrder.length;
+  let correctPos = 0;
+  if (!skipped) {
+    for (let i = 0; i < roundLen; i++) {
+      if (userOrder[i] === targetOrder[i]) correctPos++;
+    }
+  }
+
+  const isPerfect  = !skipped && correctPos === roundLen;
+  const roundScore = skipped ? 0 : Math.round((correctPos / roundLen) * 100);
+
+  if (isPerfect) { correctCount++; streak++; }
+  else if (!skipped) { streak = 0; }
+  else { streak = 0; }
+  scoreTotal += roundScore;
+
+  if (window.SonicSandbox) {
+    SonicSandbox.saveScore({ game: 'signal-chain-architect', correct: isPerfect, roundScore });
+  }
+
+  updateScoreDisplay();
+  addHistory(isPerfect);
+
+  // Re-render slots in revealed state
+  renderSlots(targetOrder, skipped ? new Array(roundLen).fill(null) : userOrder);
+  updateActionBtns();
+
+  // Show result panel
+  showResult(targetOrder, skipped ? new Array(roundLen).fill(null) : userOrder, correctPos, skipped, roundLen);
+
+  // Auto-advance
+  const delay = isPerfect ? 2200 : skipped ? 3000 : 3000;
+  const bar  = document.getElementById('nextBarWrap');
+  const fill = document.getElementById('nextBarFill');
+  bar.style.display = 'block';
+  fill.style.transition = 'none'; fill.style.width = '100%';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    fill.style.transition = `width ${delay}ms linear`;
+    fill.style.width = '0%';
+  }));
+  nextTimeout = setTimeout(newRound, delay);
+
+  // Let user compare by playing target after brief pause
+  setTimeout(() => {
+    if (answered && roundActive) { currentMonitor = 'target'; playCurrentRound(); }
+  }, 600);
+}
+
+function showResult(targetOrder, userOrder, correctPos, skipped, roundLen) {
+  const area = document.getElementById('resultArea');
+  area.innerHTML = '';
+  area.classList.add('visible');
+
+  const isPerfect = !skipped && correctPos === roundLen;
+
+  // Header
+  const hdr = document.createElement('div');
+  if (skipped) {
+    hdr.className = 'result-hdr miss';
+    hdr.textContent = `Revealed — here's the target chain`;
+  } else if (isPerfect) {
+    hdr.className = 'result-hdr perfect';
+    hdr.textContent = `✓ Perfect! All ${roundLen} positions correct`;
+  } else {
+    hdr.className = 'result-hdr partial';
+    hdr.textContent = `${correctPos} / ${roundLen} positions correct`;
+  }
+  area.appendChild(hdr);
+
+  // Side-by-side chains
+  const chains = document.createElement('div');
+  chains.className = 'result-chains';
+
+  // Target column
+  const tCol = makeResultCol('Target Chain', targetOrder, targetOrder, targetOrder, false);
+  chains.appendChild(tCol);
+
+  // User column (skip if skipped with no placements)
+  if (!skipped || userOrder.some(Boolean)) {
+    const uCol = makeResultCol('Your Chain', userOrder, targetOrder, userOrder, true);
+    chains.appendChild(uCol);
+  }
+
+  area.appendChild(chains);
+}
+
+function makeResultCol(label, names, targetOrder, userOrder, isUser) {
+  const col = document.createElement('div');
+  col.className = 'result-col';
+
+  const lbl = document.createElement('div');
+  lbl.className = 'result-col-label';
+  lbl.textContent = label;
+  col.appendChild(lbl);
+
+  names.forEach((name, i) => {
+    const row = document.createElement('div');
+    row.className = 'result-row';
+
+    const isCorrect = userOrder[i] === targetOrder[i];
+
+    const pos = document.createElement('div');
+    if (!isUser) {
+      pos.className = `rpos ${isCorrect ? 'c' : 'n'}`;
+    } else {
+      pos.className = `rpos ${name ? (isCorrect ? 'c' : 'w') : 'n'}`;
+    }
+    pos.textContent = i + 1;
+
+    const eff = document.createElement('div');
+    eff.className = `reff ${!isUser ? 'n' : (name ? (isCorrect ? 'c' : 'w') : 'n')}`;
+    eff.textContent = name ? EFFECT_LABELS[name] : '—';
+    if (name && !isUser) eff.style.color = EFFECT_COLORS[name];
+    else if (name && isUser && isCorrect) eff.style.color = 'var(--correct)';
+    else if (name && isUser && !isCorrect) eff.style.color = 'var(--wrong)';
+
+    row.appendChild(pos);
+    row.appendChild(eff);
+    col.appendChild(row);
+  });
+  return col;
+}
+
+// ── Score display ──────────────────────────────────────────────────────────────
+function updateScoreDisplay() {
+  document.getElementById('scoreVal').textContent    = scoreTotal;
+  document.getElementById('streakVal').textContent   = streak;
+  document.getElementById('accuracyVal').textContent =
+    totalRounds > 0 ? Math.round(correctCount / totalRounds * 100) + '%' : '—';
+}
+
+function addHistory(correct) {
+  const strip = document.getElementById('historyStrip');
+  const dot   = document.createElement('div');
+  dot.className = `hist-dot ${correct ? 'c' : 'w'}`;
+  strip.appendChild(dot);
+  while (strip.children.length > 48) strip.removeChild(strip.firstChild);
+}
+
+// ── Keyboard shortcuts ─────────────────────────────────────────────────────────
+window.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (audioCtx && audioCtx.state === 'suspended' && e.code !== 'KeyP') audioCtx.resume();
+
+  if (e.code === 'KeyT')       { e.preventDefault(); setMonitor('target'); }
+  if (e.code === 'KeyY')       { e.preventDefault(); setMonitor('user'); }
+  if (e.code === 'KeyP')       { e.preventDefault(); togglePause(); }
+  if (e.code === 'KeyF')       { e.preventDefault(); restartAudio(); }
+  if (e.code === 'ArrowLeft')  { e.preventDefault(); seekMusic(-10); }
+  if (e.code === 'ArrowRight') { e.preventDefault(); seekMusic(+10); }
+  if (e.code === 'ArrowUp')    { e.preventDefault(); skipTrack(+1); }
+  if (e.code === 'ArrowDown')  { e.preventDefault(); skipTrack(-1); }
+  if (e.code === 'Enter' && roundActive && !answered && userSlots.every(Boolean)) {
+    e.preventDefault(); submitAnswer();
+  }
+});
+
+// ── Toast ──────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── Service worker ─────────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW failed', err));
+  });
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../supabase-client.js"></script>
+</body>
+</html>
