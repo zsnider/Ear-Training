@@ -32,8 +32,10 @@
     --fh-accent2:   #50f0d8;
     --pan-accent:   #7c5cfc;
     --pan-accent2:  #a58aff;
-    --qc-accent:    #2dd4a0;
-    --qc-accent2:   #5eefc0;
+    --qc-accent:     #2dd4a0;
+    --qc-accent2:    #5eefc0;
+    --delay-accent:  #f97316;
+    --delay-accent2: #fb923c;
   }
 
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -181,7 +183,8 @@
   .card.eq::before   { background: radial-gradient(ellipse at top left, rgba(91,106,255,0.12), transparent 60%); }
   .card.comp::before { background: radial-gradient(ellipse at top left, rgba(232,134,90,0.12), transparent 60%); }
   .card.rev::before  { background: radial-gradient(ellipse at top left, rgba(91,63,212,0.14),  transparent 60%); }
-  .card.qc::before   { background: radial-gradient(ellipse at top left, rgba(45,212,160,0.12), transparent 60%); }
+  .card.qc::before    { background: radial-gradient(ellipse at top left, rgba(45,212,160,0.12),  transparent 60%); }
+  .card.delay::before { background: radial-gradient(ellipse at top left, rgba(249,115,22,0.12),  transparent 60%); }
 
   .card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
   .card.eq:hover   { border-color: rgba(91,106,255,0.5); }
@@ -190,8 +193,9 @@
   .card.dist:hover { border-color: rgba(212,74,42,0.55); }
   .card.fq:hover   { border-color: rgba(0,212,255,0.5); }
   .card.fh:hover   { border-color: rgba(0,229,204,0.5); }
-  .card.pan:hover  { border-color: rgba(124,92,252,0.5); }
-  .card.qc:hover   { border-color: rgba(45,212,160,0.5); }
+  .card.pan:hover   { border-color: rgba(124,92,252,0.5); }
+  .card.qc:hover    { border-color: rgba(45,212,160,0.5); }
+  .card.delay:hover { border-color: rgba(249,115,22,0.5); }
   .card:hover::before { opacity:1; }
 
   .card-icon {
@@ -204,8 +208,9 @@
   .card.dist .card-icon { background: var(--dist-accent); }
   .card.fq   .card-icon { background: var(--fq-accent); }
   .card.fh   .card-icon { background: var(--fh-accent); }
-  .card.pan  .card-icon { background: var(--pan-accent); }
-  .card.qc   .card-icon { background: var(--qc-accent); }
+  .card.pan   .card-icon { background: var(--pan-accent); }
+  .card.qc    .card-icon { background: var(--qc-accent); }
+  .card.delay .card-icon { background: var(--delay-accent); }
 
   .card-name {
     font-family: 'IBM Plex Mono', monospace;
@@ -217,8 +222,9 @@
   .card.dist .card-name { color: var(--dist-accent2); }
   .card.fq   .card-name { color: var(--fq-accent2); }
   .card.fh   .card-name { color: var(--fh-accent2); }
-  .card.pan  .card-name { color: var(--pan-accent2); }
-  .card.qc   .card-name { color: var(--qc-accent2); }
+  .card.pan   .card-name { color: var(--pan-accent2); }
+  .card.qc    .card-name { color: var(--qc-accent2); }
+  .card.delay .card-name { color: var(--delay-accent2); }
 
   .card-desc { font-size: 13px; color: var(--muted); line-height: 1.6; font-weight: 300; }
 
@@ -234,7 +240,8 @@
   .card.fq   .tag { background:rgba(0,212,255,0.08);    color:var(--fq-accent2);   border:1px solid rgba(0,212,255,0.2); }
   .card.fh   .tag { background:rgba(0,229,204,0.08);    color:var(--fh-accent2);   border:1px solid rgba(0,229,204,0.2); }
   .card.pan  .tag { background:rgba(124,92,252,0.08);  color:var(--pan-accent2);  border:1px solid rgba(124,92,252,0.25); }
-  .card.qc   .tag { background:rgba(45,212,160,0.08);  color:var(--qc-accent2);   border:1px solid rgba(45,212,160,0.25); }
+  .card.qc    .tag { background:rgba(45,212,160,0.08);  color:var(--qc-accent2);   border:1px solid rgba(45,212,160,0.25); }
+  .card.delay .tag { background:rgba(249,115,22,0.08);  color:var(--delay-accent2); border:1px solid rgba(249,115,22,0.25); }
 
   .card-arrow {
     position:absolute; top:24px; right:24px;
@@ -591,6 +598,28 @@
       <span class="tag">Width</span>
       <span class="tag">Mono</span>
       <span class="tag">Quick Rounds</span>
+    </div>
+  </a>
+
+  <!-- Delay Master -->
+  <a class="card delay" href="./delay-master/">
+    <div class="card-arrow">↗</div>
+    <div class="card-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <rect x="1"  y="6"  width="4" height="11" rx="2"    fill="white"/>
+        <rect x="7"  y="9"  width="3" height="8"  rx="1.5"  fill="rgba(255,255,255,0.72)"/>
+        <rect x="12" y="11" width="2.5" height="6" rx="1.25" fill="rgba(255,255,255,0.46)"/>
+        <rect x="16.5" y="12.5" width="2" height="4.5" rx="1" fill="rgba(255,255,255,0.26)"/>
+        <rect x="20" y="13.5" width="1.5" height="3.5" rx="0.75" fill="rgba(255,255,255,0.14)"/>
+      </svg>
+    </div>
+    <div class="card-name">Delay Master</div>
+    <div class="card-desc">Match a target delay by ear. Set delay time, feedback, and wet/dry to replicate the processed signal. Lock any parameters for hints.</div>
+    <div class="card-tags">
+      <span class="tag">Delay Time</span>
+      <span class="tag">Feedback</span>
+      <span class="tag">Wet / Dry</span>
+      <span class="tag">A/B Compare</span>
     </div>
   </a>
 

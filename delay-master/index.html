@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delay Master — SonicSandbox</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg:       #080a0e;
+  --bg2:      #0c0f14;
+  --surface:  #111520;
+  --surface2: #181e2e;
+  --surface3: #1f2638;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.13);
+  --text:     #e8edf8;
+  --muted:    #5a6480;
+  --accent:   #f97316;
+  --accent2:  #fb923c;
+  --correct:  #3ecf8e;
+  --wrong:    #f45b69;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center;
+  padding-bottom: 48px;
+  user-select: none;
+}
+
+/* ── Header ── */
+header {
+  width: 100%; max-width: 960px;
+  padding: 22px 24px 0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.header-left { display: flex; align-items: center; gap: 14px; }
+.back-btn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  color: var(--muted); text-decoration: none; padding: 4px 10px;
+  border: 1px solid var(--border2); border-radius: 8px;
+  background: var(--surface2); transition: all 0.15s; white-space: nowrap;
+}
+.back-btn:hover { color: var(--accent2); border-color: var(--accent); }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-icon {
+  width: 32px; height: 32px; background: var(--accent);
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+}
+.brand-name { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; line-height: 1.2; }
+.brand-sub  { font-size: 10px; color: var(--muted); }
+.score-row  { display: flex; gap: 20px; align-items: center; }
+.stat { display: flex; flex-direction: column; align-items: flex-end; }
+.stat-val   { font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 600; color: var(--accent2); }
+.stat-label { font-size: 10px; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
+
+/* ── Main ── */
+main {
+  width: 100%; max-width: 960px;
+  padding: 22px 24px 0;
+  display: flex; flex-direction: column; gap: 14px;
+}
+
+/* ── Settings card ── */
+.settings-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.settings-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.settings-label {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;
+  min-width: 52px; flex-shrink: 0;
+}
+.btn-group { display: flex; gap: 6px; }
+.seg-btn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  padding: 5px 12px; background: var(--surface2);
+  border: 1px solid var(--border2); border-radius: 7px;
+  color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.seg-btn:hover { color: var(--text); }
+.seg-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.src-btn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  padding: 5px 12px; background: var(--surface2);
+  border: 1px solid var(--border2); border-radius: 7px;
+  color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.src-btn:hover { color: var(--text); }
+.src-btn.active { background: rgba(249,115,22,0.15); border-color: var(--accent); color: var(--accent2); }
+.src-btn.loading { opacity: 0.6; cursor: wait; }
+
+/* Lock/reveal toggle buttons */
+.lock-btn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  padding: 5px 11px; background: var(--surface2);
+  border: 1px solid var(--border2); border-radius: 7px;
+  color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.lock-btn:hover { color: var(--text); }
+.lock-btn.active {
+  background: rgba(249,115,22,0.12);
+  border-color: var(--accent); color: var(--accent2);
+}
+.new-round-btn {
+  margin-left: auto;
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600;
+  padding: 6px 18px; background: var(--accent); color: #fff;
+  border: none; border-radius: 8px; cursor: pointer; transition: all 0.15s;
+}
+.new-round-btn:hover { background: var(--accent2); }
+
+/* ── Player card ── */
+.player-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 13px 20px;
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+}
+.monitor-group { display: flex; gap: 8px; }
+.monitor-btn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500;
+  padding: 6px 14px; background: var(--surface2);
+  border: 1px solid var(--border2); border-radius: 8px;
+  color: var(--muted); cursor: pointer; transition: all 0.15s;
+  display: flex; align-items: center; gap: 6px;
+}
+.monitor-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); transition: all 0.2s; }
+.monitor-btn:hover { color: var(--text); }
+.monitor-btn.active-target { border-color: var(--accent); color: var(--accent2); }
+.monitor-btn.active-target .monitor-dot { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+.monitor-btn.active-dry { border-color: var(--text); color: var(--text); }
+.monitor-btn.active-dry .monitor-dot { background: var(--text); box-shadow: 0 0 6px rgba(232,237,248,0.5); }
+.monitor-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.player-controls { display: flex; gap: 7px; align-items: center; }
+.ctrl-btn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  padding: 5px 10px; background: var(--surface2);
+  border: 1px solid var(--border2); border-radius: 7px;
+  color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.ctrl-btn:hover:not(:disabled) { color: var(--text); }
+.ctrl-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.ctrl-btn.playing { border-color: var(--accent); color: var(--accent2); }
+.ctrl-btn.paused { background: rgba(249,115,22,0.08); }
+.pulse-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 6px var(--accent);
+  animation: pulse 1s ease-in-out infinite; display: inline-block;
+}
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+.monitor-hint { font-size: 11px; color: var(--muted); font-style: italic; margin-left: auto; }
+
+/* ── Idle ── */
+.idle-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 36px 28px;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 12px; text-align: center;
+}
+.idle-title { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; color: var(--accent2); }
+.idle-text  { font-size: 14px; color: var(--muted); max-width: 500px; line-height: 1.6; }
+
+/* ── Game card ── */
+.game-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 24px;
+  display: flex; flex-direction: column; gap: 18px;
+}
+.game-prompt { font-size: 13px; color: var(--muted); text-align: center; line-height: 1.6; }
+.game-prompt strong { color: var(--text); }
+
+/* ── Delay panels ── */
+.delay-panels { display: flex; gap: 16px; align-items: flex-start; }
+
+.delay-panel {
+  flex: 1; min-width: 0;
+  background: var(--surface2); border: 2px solid var(--border2);
+  border-radius: 14px; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+
+/* Panel header */
+.panel-hdr {
+  padding: 10px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+.panel-label {
+  font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 700;
+}
+.panel-label.target-label { color: var(--accent2); }
+.panel-label.user-label   { color: rgba(255,255,255,0.55); }
+.panel-score {
+  font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 700;
+  opacity: 0; transition: opacity 0.3s;
+}
+.panel-score.show { opacity: 1; }
+
+/* Delay visualizer */
+.delay-viz-wrap { position: relative; background: var(--bg); border-bottom: 1px solid var(--border); }
+.delay-canvas   { display: block; width: 100%; height: 110px; }
+.viz-hidden-overlay {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 5px; background: var(--bg); pointer-events: none;
+}
+.viz-hidden-icon  { font-size: 20px; opacity: 0.5; }
+.viz-hidden-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); }
+
+/* Parameter display rows (target panel) */
+.param-display-area {
+  padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 11px;
+}
+.param-row {
+  display: flex; align-items: center; gap: 8px;
+}
+.param-name {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+  color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em;
+  width: 78px; flex-shrink: 0;
+}
+.param-value-box {
+  font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 700;
+  color: var(--accent2); flex: 1;
+}
+.param-value-box.hidden-val {
+  color: var(--surface3); font-size: 17px; letter-spacing: 0.06em;
+  background: var(--surface3); border-radius: 5px; padding: 0 6px;
+  display: inline-block;
+}
+.param-score-badge {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600;
+  padding: 2px 8px; border-radius: 5px;
+  opacity: 0; transition: opacity 0.3s; min-width: 46px; text-align: center;
+}
+.param-score-badge.show { opacity: 1; }
+.param-score-badge.great { background: rgba(62,207,142,0.15); color: var(--correct); }
+.param-score-badge.ok    { background: rgba(249,115,22,0.15);  color: var(--accent2); }
+.param-score-badge.miss  { background: rgba(244,91,105,0.15);  color: var(--wrong); }
+
+/* User control sliders */
+.slider-area {
+  padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.slider-group { display: flex; flex-direction: column; gap: 7px; }
+.slider-header { display: flex; align-items: center; gap: 8px; }
+.slider-name {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+  color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; flex: 1;
+}
+.slider-cur-val {
+  font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600;
+  color: var(--text); min-width: 52px; text-align: right;
+}
+.locked-badge {
+  font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+  padding: 1px 6px; border-radius: 3px;
+  background: rgba(249,115,22,0.15); color: var(--accent2);
+  border: 1px solid rgba(249,115,22,0.3); flex-shrink: 0;
+}
+
+/* Range slider */
+input[type=range] {
+  -webkit-appearance: none;
+  width: 100%; height: 5px;
+  border-radius: 3px; outline: none; cursor: pointer;
+  border: none; background: var(--surface3);
+  transition: background 0s;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 15px; height: 15px; border-radius: 50%;
+  background: var(--accent); cursor: pointer;
+  box-shadow: 0 0 0 2px rgba(249,115,22,0.25);
+  transition: box-shadow 0.15s;
+}
+input[type=range]:hover::-webkit-slider-thumb { box-shadow: 0 0 0 5px rgba(249,115,22,0.25); }
+input[type=range]:disabled { opacity: 0.4; cursor: not-allowed; }
+input[type=range]:disabled::-webkit-slider-thumb { background: var(--muted); box-shadow: none; cursor: not-allowed; }
+
+/* ── Submit / result ── */
+.submit-row { display: flex; justify-content: center; }
+.submit-btn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600;
+  padding: 10px 44px; background: var(--accent); color: #fff;
+  border: none; border-radius: 10px; cursor: pointer; transition: all 0.15s;
+}
+.submit-btn:hover:not(:disabled) { background: var(--accent2); transform: translateY(-1px); }
+.submit-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+.round-result {
+  text-align: center; opacity: 0; transition: opacity 0.4s;
+}
+.round-result.show { opacity: 1; }
+.round-score-big   { font-family: 'IBM Plex Mono', monospace; font-size: 42px; font-weight: 700; line-height: 1; }
+.round-score-label { font-size: 11px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+/* Next bar */
+.next-bar-wrap { display:none; height:3px; background:var(--surface3); border-radius:99px; overflow:hidden; }
+.next-bar-fill { height:100%; background:var(--accent); border-radius:99px; }
+
+/* ── History ── */
+.history-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 20px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.history-label { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; }
+.history-row { display:flex; gap:4px; flex-wrap:wrap; padding:4px 0; min-height: 14px; }
+.hist-dot { width:10px; height:10px; border-radius:50%; }
+
+/* ── Toast ── */
+.toast {
+  position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(12px);
+  background:var(--surface3); border:1px solid var(--border2);
+  color:var(--text); font-family:'IBM Plex Mono',monospace;
+  font-size:13px; padding:10px 20px; border-radius:10px;
+  opacity:0; transition:all 0.25s; pointer-events:none; white-space:nowrap; z-index:100;
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+  header { padding:14px 16px 0; }
+  main   { padding:14px 16px 0; }
+  .delay-panels { flex-direction: column; }
+  .score-row .stat:nth-child(n+3) { display:none; }
+  .stat-val { font-size:15px; }
+  .new-round-btn { margin-left:0; width:100%; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <a href="../" class="back-btn">← Back</a>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1"  y="5"  width="3" height="8" rx="1.5" fill="#fff"/>
+          <rect x="6"  y="7"  width="2.5" height="6" rx="1" fill="rgba(255,255,255,0.72)"/>
+          <rect x="10" y="8"  width="2"   height="5" rx="1" fill="rgba(255,255,255,0.46)"/>
+          <rect x="14" y="9"  width="1.5" height="3.5" rx="0.75" fill="rgba(255,255,255,0.24)"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">Delay Master</div>
+        <div class="brand-sub">SonicSandbox.app</div>
+      </div>
+    </div>
+  </div>
+  <div class="score-row">
+    <div class="stat"><div class="stat-val" id="roundVal">0</div><div class="stat-label">Rounds</div></div>
+    <div class="stat"><div class="stat-val" id="scoreVal">0</div><div class="stat-label">Score</div></div>
+    <div class="stat"><div class="stat-val" id="streakVal">0</div><div class="stat-label">Streak</div></div>
+    <div class="stat"><div class="stat-val" id="avgVal">—</div><div class="stat-label">Avg</div></div>
+  </div>
+</header>
+
+<main>
+  <!-- Settings -->
+  <div class="settings-card">
+    <div class="settings-row">
+      <span class="settings-label">Source</span>
+      <div class="btn-group">
+        <button class="src-btn active" id="srcPink"    onclick="setSource('pink')">Pink Noise</button>
+        <button class="src-btn"        id="srcOneShot" onclick="setSource('oneShot')">One-Shots</button>
+        <button class="src-btn"        id="srcLoop"    onclick="setSource('loop')">Loops</button>
+        <button class="src-btn"        id="srcCustom"  onclick="triggerUpload()">
+          <span id="uploadLabel">📁 Folder</span>
+        </button>
+      </div>
+      <input type="file" id="folderInput" accept="audio/*" multiple webkitdirectory
+             style="display:none" onchange="handleFolderUpload(event)">
+    </div>
+    <div class="settings-row">
+      <span class="settings-label">Params</span>
+      <div class="btn-group">
+        <button class="lock-btn active" id="lockDelayTime" onclick="toggleLock('delayTime')">Delay Time</button>
+        <button class="lock-btn active" id="lockFeedback"  onclick="toggleLock('feedback')">Feedback</button>
+        <button class="lock-btn active" id="lockWet"       onclick="toggleLock('wet')">Wet / Dry</button>
+      </div>
+      <span class="settings-label" style="margin-left:12px">Difficulty</span>
+      <div class="btn-group">
+        <button class="seg-btn"        id="diffEasy"   onclick="setDifficulty('easy')">Easy</button>
+        <button class="seg-btn active" id="diffMedium" onclick="setDifficulty('medium')">Medium</button>
+        <button class="seg-btn"        id="diffHard"   onclick="setDifficulty('hard')">Hard</button>
+      </div>
+      <button class="new-round-btn" onclick="newRound()">New Round</button>
+    </div>
+  </div>
+
+  <!-- Player -->
+  <div class="player-card">
+    <div class="monitor-group">
+      <button class="monitor-btn" id="monitorTarget" onclick="setMonitor('target')" disabled>
+        <span class="monitor-dot"></span>TARGET
+      </button>
+      <button class="monitor-btn" id="monitorDry" onclick="setMonitor('dry')" disabled>
+        <span class="monitor-dot"></span>DRY
+      </button>
+    </div>
+    <div class="player-controls">
+      <span id="playDot"></span>
+      <button class="ctrl-btn" id="btnPlay"    onclick="playCurrentRound()" disabled>▶ Play</button>
+      <button class="ctrl-btn" id="btnPause"   onclick="togglePause()"     disabled>⏸ Pause</button>
+      <button class="ctrl-btn" id="btnRestart" onclick="restartAudio()"    disabled>⟲</button>
+    </div>
+    <div class="monitor-hint" id="monitorHint"></div>
+  </div>
+
+  <!-- Idle state -->
+  <div class="idle-card" id="idleCard">
+    <div class="idle-title">Match the delay</div>
+    <div class="idle-text">
+      Listen to the <strong>TARGET</strong> delay signal. Adjust three parameters —
+      <strong>Delay Time</strong>, <strong>Feedback</strong>, and <strong>Wet / Dry</strong> — to match what you hear.
+      Toggle <strong>DRY</strong> with Space or D. Use <strong>Reveal</strong> above to lock any parameters you want shown.
+    </div>
+  </div>
+
+  <!-- Game area -->
+  <div class="game-card" id="gameCard" style="display:none">
+    <div class="game-prompt" id="gamePrompt"></div>
+
+    <div class="delay-panels">
+
+      <!-- TARGET panel -->
+      <div class="delay-panel">
+        <div class="panel-hdr">
+          <span class="panel-label target-label">TARGET</span>
+          <span class="panel-score" id="roundScoreDisplay"></span>
+        </div>
+        <div class="delay-viz-wrap">
+          <canvas class="delay-canvas" id="targetCanvas"></canvas>
+          <div class="viz-hidden-overlay" id="targetVizOverlay">
+            <span class="viz-hidden-icon">🔒</span>
+            <span class="viz-hidden-label">Submit to reveal</span>
+          </div>
+        </div>
+        <div class="param-display-area">
+          <div class="param-row">
+            <span class="param-name">Delay Time</span>
+            <span class="param-value-box" id="tDelayTime">???</span>
+            <span class="param-score-badge" id="scoreDelayTime"></span>
+          </div>
+          <div class="param-row">
+            <span class="param-name">Feedback</span>
+            <span class="param-value-box" id="tFeedback">???</span>
+            <span class="param-score-badge" id="scoreFeedback"></span>
+          </div>
+          <div class="param-row">
+            <span class="param-name">Wet / Dry</span>
+            <span class="param-value-box" id="tWet">???</span>
+            <span class="param-score-badge" id="scoreWet"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- USER panel -->
+      <div class="delay-panel">
+        <div class="panel-hdr">
+          <span class="panel-label user-label">YOUR DELAY</span>
+        </div>
+        <div class="delay-viz-wrap">
+          <canvas class="delay-canvas" id="userCanvas"></canvas>
+        </div>
+        <div class="slider-area">
+          <!-- Delay Time -->
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="slider-name">Delay Time</span>
+              <span class="slider-cur-val" id="valDelayTime">400ms</span>
+              <span class="locked-badge" id="badgeDelayTime" style="display:none">LOCKED</span>
+            </div>
+            <input type="range" id="sliderDelayTime"
+              min="50" max="750" step="5" value="400"
+              oninput="onSliderChange('delayTime', +this.value)">
+          </div>
+          <!-- Feedback -->
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="slider-name">Feedback</span>
+              <span class="slider-cur-val" id="valFeedback">45%</span>
+              <span class="locked-badge" id="badgeFeedback" style="display:none">LOCKED</span>
+            </div>
+            <input type="range" id="sliderFeedback"
+              min="0" max="90" step="1" value="45"
+              oninput="onSliderChange('feedback', +this.value)">
+          </div>
+          <!-- Wet/Dry -->
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="slider-name">Wet / Dry</span>
+              <span class="slider-cur-val" id="valWet">50%</span>
+              <span class="locked-badge" id="badgeWet" style="display:none">LOCKED</span>
+            </div>
+            <input type="range" id="sliderWet"
+              min="0" max="100" step="1" value="50"
+              oninput="onSliderChange('wet', +this.value)">
+          </div>
+        </div>
+      </div>
+
+    </div><!-- .delay-panels -->
+
+    <!-- Round result -->
+    <div class="round-result" id="roundResult">
+      <div class="round-score-big" id="roundScoreBig"></div>
+      <div class="round-score-label">round score</div>
+    </div>
+
+    <!-- Submit -->
+    <div class="submit-row">
+      <button class="submit-btn" id="submitBtn" onclick="submitAnswer()" disabled>Submit</button>
+    </div>
+
+    <!-- Next bar -->
+    <div class="next-bar-wrap" id="nextBarWrap">
+      <div class="next-bar-fill" id="nextBarFill" style="width:100%"></div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="history-card">
+    <div class="history-label">Round History</div>
+    <div class="history-row" id="historyStrip"></div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Constants ──────────────────────────────────────────────────────────────────
+const DIFFICULTY_CFG = {
+  easy:   { delayTime: [100, 600], feedback: [20, 70], wet: [20, 60] },
+  medium: { delayTime: [75,  700], feedback: [10, 80], wet: [15, 70] },
+  hard:   { delayTime: [50,  750], feedback: [5,  88], wet: [10, 80] },
+};
+const PARAM_RANGES = { delayTime: 700, feedback: 90, wet: 100 };
+
+// ── State ──────────────────────────────────────────────────────────────────────
+let difficulty     = 'medium';
+let sourceType     = 'pink';
+let lockedParams   = { delayTime: false, feedback: false, wet: false };
+
+let roundActive    = false;
+let answered       = false;
+let currentMonitor = 'target';
+
+let targetParams   = { delayTime: 300, feedback: 40, wet: 40 };
+let userParams     = { delayTime: 400, feedback: 45, wet: 50  };
+
+// Scoring
+let totalRounds = 0;
+let scoreTotal  = 0;
+let streak      = 0;
+let roundScores = [];
+
+// Audio
+let audioCtx       = null;
+let isPlaying      = false;
+let isPaused       = false;
+let noiseSource    = null;
+let loopAudioEl    = null;
+let loopMediaSrc   = null;
+let customAudioEl  = null;
+let customMediaSrc = null;
+let outGain        = null;
+let chainNodes     = [];
+let currentShotSrc = null;
+let shotLoopTimer  = null;
+let nextTimeout    = null;
+
+// Sample data
+let oneShotBuffers     = [];
+let oneShotLoaded      = false;
+let oneShotIdx         = 0;
+let loopFileNames      = [];
+let loopManifestLoaded = false;
+let loopIdx            = 0;
+let customFiles        = [];
+let customIdx          = 0;
+let samplesManifest    = null;
+
+// ── Settings ───────────────────────────────────────────────────────────────────
+function setDifficulty(d) {
+  difficulty = d;
+  ['diffEasy','diffMedium','diffHard'].forEach(id =>
+    document.getElementById(id).classList.toggle('active',
+      id === `diff${d[0].toUpperCase() + d.slice(1)}`));
+}
+
+function toggleLock(param) {
+  lockedParams[param] = !lockedParams[param];
+  const btnId = { delayTime: 'lockDelayTime', feedback: 'lockFeedback', wet: 'lockWet' }[param];
+  // active = being guessed (not locked); inactive = locked/shown
+  document.getElementById(btnId).classList.toggle('active', !lockedParams[param]);
+}
+
+// ── Round generation ───────────────────────────────────────────────────────────
+function snap(val, step) { return Math.round(val / step) * step; }
+
+function generateTarget() {
+  const cfg = DIFFICULTY_CFG[difficulty];
+  const rnd = (min, max) => min + Math.random() * (max - min);
+  return {
+    delayTime: snap(rnd(...cfg.delayTime), 5),
+    feedback:  snap(rnd(...cfg.feedback),  5),
+    wet:       snap(rnd(...cfg.wet),        5),
+  };
+}
+
+function randomStart(param) {
+  const mins = { delayTime: 50,  feedback: 0, wet: 0  };
+  const maxs = { delayTime: 750, feedback: 90, wet: 100 };
+  // bias away from the target
+  let val;
+  do { val = snap(mins[param] + Math.random() * (maxs[param] - mins[param]), 5); }
+  while (Math.abs(val - targetParams[param]) < PARAM_RANGES[param] * 0.15);
+  return val;
+}
+
+function newRound() {
+  clearTimeout(nextTimeout);
+  stopPlayback();
+
+  targetParams = generateTarget();
+
+  Object.keys(userParams).forEach(p => {
+    userParams[p] = lockedParams[p] ? targetParams[p] : randomStart(p);
+  });
+
+  answered       = false;
+  roundActive    = true;
+  currentMonitor = 'target';
+  totalRounds++;
+
+  renderGame();
+  document.getElementById('roundVal').textContent = totalRounds;
+  if (isPaused) isPaused = false;
+  playCurrentRound();
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────────
+function renderGame() {
+  document.getElementById('gameCard').style.display  = 'flex';
+  document.getElementById('idleCard').style.display  = 'none';
+  document.getElementById('nextBarWrap').style.display = 'none';
+  document.getElementById('roundResult').classList.remove('show');
+  document.getElementById('roundScoreDisplay').classList.remove('show');
+
+  // Prompt
+  const guessNames = Object.entries(lockedParams)
+    .filter(([, v]) => !v)
+    .map(([k]) => ({ delayTime: 'Delay Time', feedback: 'Feedback', wet: 'Wet/Dry' }[k]));
+  document.getElementById('gamePrompt').innerHTML = guessNames.length === 0
+    ? `All parameters revealed — listen to the <strong>TARGET</strong> delay to familiarise yourself.`
+    : `Match the <strong>TARGET</strong> delay. Adjust <strong>${guessNames.join(', ')}</strong> to match. Space or D to toggle DRY.`;
+
+  // Clear score badges
+  ['scoreDelayTime','scoreFeedback','scoreWet'].forEach(id => {
+    const el = document.getElementById(id);
+    el.textContent = ''; el.className = 'param-score-badge';
+  });
+
+  renderTargetPanel();
+  syncSlidersToUserParams();
+
+  // Buttons
+  ['monitorTarget','monitorDry'].forEach(id =>
+    document.getElementById(id).disabled = false);
+  document.getElementById('btnPlay').disabled    = false;
+  document.getElementById('btnPause').disabled   = false;
+  document.getElementById('btnRestart').disabled = false;
+  document.getElementById('submitBtn').disabled  = false;
+
+  updateMonitorUI();
+
+  // Show overlay on target canvas until answer submitted
+  document.getElementById('targetVizOverlay').style.display = 'flex';
+
+  // Draw visualizers after layout settles (target drawn under overlay)
+  requestAnimationFrame(() => {
+    drawDelayViz(document.getElementById('targetCanvas'), toAudioParams(targetParams), '#f97316');
+    redrawUserViz();
+  });
+}
+
+function renderTargetPanel() {
+  const show = (id, val, isLocked) => {
+    const el = document.getElementById(id);
+    if (isLocked) {
+      el.textContent = val;
+      el.className = 'param-value-box';
+    } else {
+      el.textContent = '???';
+      el.className = 'param-value-box hidden-val';
+    }
+  };
+  show('tDelayTime', `${targetParams.delayTime}ms`, lockedParams.delayTime);
+  show('tFeedback',  `${targetParams.feedback}%`,   lockedParams.feedback);
+  show('tWet',       `${targetParams.wet}%`,         lockedParams.wet);
+}
+
+function syncSlidersToUserParams() {
+  function setup(sliderId, valId, badgeId, param, unit) {
+    const s = document.getElementById(sliderId);
+    s.value    = userParams[param];
+    s.disabled = lockedParams[param];
+    document.getElementById(valId).textContent = `${userParams[param]}${unit}`;
+    document.getElementById(badgeId).style.display = lockedParams[param] ? '' : 'none';
+    updateSliderTrack(s);
+  }
+  setup('sliderDelayTime', 'valDelayTime', 'badgeDelayTime', 'delayTime', 'ms');
+  setup('sliderFeedback',  'valFeedback',  'badgeFeedback',  'feedback',  '%');
+  setup('sliderWet',       'valWet',       'badgeWet',        'wet',      '%');
+}
+
+function updateSliderTrack(slider) {
+  if (slider.disabled) return;
+  const pct = (slider.value - slider.min) / (slider.max - slider.min) * 100;
+  slider.style.background =
+    `linear-gradient(to right, var(--accent) ${pct}%, var(--surface3) ${pct}%)`;
+}
+
+function onSliderChange(param, value) {
+  userParams[param] = value;
+  const cfg = { delayTime: ['valDelayTime','ms'], feedback: ['valFeedback','%'], wet: ['valWet','%'] };
+  const [valId, unit] = cfg[param];
+  document.getElementById(valId).textContent = `${value}${unit}`;
+  updateSliderTrack(document.getElementById(
+    param === 'delayTime' ? 'sliderDelayTime' : param === 'feedback' ? 'sliderFeedback' : 'sliderWet'
+  ));
+  redrawUserViz();
+}
+
+// ── Delay echo visualizer ──────────────────────────────────────────────────────
+function toAudioParams(p) {
+  return { delayTime: p.delayTime / 1000, feedback: p.feedback / 100, wet: p.wet / 100 };
+}
+
+function drawDelayViz(canvas, params, hexColor) {
+  // params: { delayTime: s, feedback: 0-1, wet: 0-1 }
+  const W = canvas.offsetWidth || 400;
+  const H = canvas.offsetHeight || 110;
+  canvas.width  = W * devicePixelRatio;
+  canvas.height = H * devicePixelRatio;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+
+  ctx.fillStyle = '#080a0e';
+  ctx.fillRect(0, 0, W, H);
+
+  const dt = Math.max(params.delayTime, 0.001);
+  const timeWindow = Math.max(2.0, dt * 6);
+  const labelH  = 14;
+  const barArea = H - labelH;
+  const barMaxH = barArea - 6;
+  const pad = 14;
+
+  function timeToX(t) { return pad + (t / timeWindow) * (W - pad * 2); }
+
+  // Parse hex to rgb components
+  const r = parseInt(hexColor.slice(1,3),16);
+  const g = parseInt(hexColor.slice(3,5),16);
+  const b = parseInt(hexColor.slice(5,7),16);
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 1;
+  const gridStep = timeWindow <= 2 ? 0.25 : 0.5;
+  for (let t = gridStep; t < timeWindow; t += gridStep) {
+    const x = timeToX(t);
+    if (x < W - pad) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x, barArea); ctx.stroke(); }
+  }
+
+  // Baseline
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.beginPath(); ctx.moveTo(pad, barArea); ctx.lineTo(W - pad, barArea); ctx.stroke();
+
+  // Bar width: proportional but clamped
+  const spacing = (dt / timeWindow) * (W - pad * 2);
+  const barW = Math.max(4, Math.min(12, spacing * 0.38));
+
+  // Dry pulse at t=0
+  const dryLevel = 1 - params.wet;
+  if (dryLevel > 0.01) {
+    const bh = Math.round(dryLevel * barMaxH);
+    ctx.fillStyle = `rgba(232,237,248,${Math.min(0.9, dryLevel * 1.1).toFixed(2)})`;
+    roundBar(ctx, timeToX(0) - barW / 2, barArea - bh, barW, bh, 2);
+    ctx.fill();
+  }
+
+  // Echo pulses
+  let amplitude = params.wet;
+  let t = dt;
+  let pulse = 0;
+  while (t <= timeWindow + dt && pulse < 20 && amplitude > 0.01) {
+    const x = timeToX(t);
+    if (x < W - 4) {
+      const bh = Math.round(amplitude * barMaxH);
+      const alpha = Math.min(0.95, amplitude * 1.4);
+      ctx.fillStyle = `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
+      roundBar(ctx, x - barW / 2, barArea - bh, barW, bh, 2);
+      ctx.fill();
+    }
+    amplitude *= params.feedback;
+    t += dt;
+    pulse++;
+  }
+
+  // Time labels
+  ctx.fillStyle = 'rgba(255,255,255,0.22)';
+  ctx.font = `8px 'IBM Plex Mono', monospace`;
+  ctx.textAlign = 'center';
+  const labelStep = timeWindow <= 2 ? 0.5 : timeWindow <= 4 ? 1 : 2;
+  for (let tl = labelStep; tl <= timeWindow; tl += labelStep) {
+    const x = timeToX(tl);
+    if (x > pad + 20 && x < W - pad - 10) {
+      ctx.fillText(tl >= 1 ? `${tl.toFixed(1)}s` : `${Math.round(tl*1000)}ms`, x, H - 2);
+    }
+  }
+}
+
+function roundBar(ctx, x, y, w, h, r) {
+  if (h <= 0) return;
+  if (ctx.roundRect) {
+    ctx.beginPath(); ctx.roundRect(x, y, w, h, [r, r, 0, 0]);
+  } else {
+    ctx.beginPath(); ctx.rect(x, y, w, h);
+  }
+}
+
+function redrawUserViz() {
+  if (!roundActive) return;
+  drawDelayViz(document.getElementById('userCanvas'), toAudioParams(userParams), '#fb923c');
+}
+
+// ── Monitor ────────────────────────────────────────────────────────────────────
+function setMonitor(m) {
+  if (m !== 'target' && m !== 'dry') return;
+  currentMonitor = m;
+  updateMonitorUI();
+  if (roundActive && isPlaying) { stopPlayback(); playCurrentRound(); }
+}
+
+function toggleTargetDry() {
+  if (!roundActive) return;
+  setMonitor(currentMonitor === 'target' ? 'dry' : 'target');
+}
+
+function updateMonitorUI() {
+  const tBtn = document.getElementById('monitorTarget');
+  const dBtn = document.getElementById('monitorDry');
+  tBtn.classList.remove('active-target','active-dry');
+  dBtn.classList.remove('active-target','active-dry');
+  if (currentMonitor === 'target') tBtn.classList.add('active-target');
+  else                             dBtn.classList.add('active-dry');
+
+  const hint = document.getElementById('monitorHint');
+  if (!roundActive) { hint.textContent = ''; return; }
+  hint.textContent = currentMonitor === 'target'
+    ? 'Hearing: target delay  [Space/D → DRY]'
+    : 'Hearing: dry signal  [Space/D → TARGET]';
+}
+
+// ── Audio ──────────────────────────────────────────────────────────────────────
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function buildDelayChain(params, destNode) {
+  // params: { delayTime: s, feedback: 0-1, wet: 0-1 }
+  const inputGain    = audioCtx.createGain(); inputGain.gain.value = 1;
+  const dryGain      = audioCtx.createGain(); dryGain.gain.value = 1 - params.wet;
+  const wetGain      = audioCtx.createGain(); wetGain.gain.value = params.wet;
+  const delayNode    = audioCtx.createDelay(3.0); delayNode.delayTime.value = params.delayTime;
+  const feedbackGain = audioCtx.createGain(); feedbackGain.gain.value = Math.min(0.95, params.feedback);
+
+  // Dry path
+  inputGain.connect(dryGain);
+  dryGain.connect(destNode);
+
+  // Wet path with feedback loop
+  inputGain.connect(delayNode);
+  delayNode.connect(feedbackGain);
+  feedbackGain.connect(delayNode); // feedback loop
+  delayNode.connect(wetGain);
+  wetGain.connect(destNode);
+
+  chainNodes = [inputGain, dryGain, wetGain, delayNode, feedbackGain];
+  return inputGain;
+}
+
+function getChainParams() {
+  if (currentMonitor === 'dry') {
+    return { delayTime: 0.001, feedback: 0, wet: 0 };
+  }
+  return toAudioParams(targetParams);
+}
+
+function playCurrentRound() {
+  if (!roundActive) return;
+  stopPlayback();
+  initAudio();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  outGain = audioCtx.createGain();
+  outGain.gain.value = 0.75;
+  outGain.connect(audioCtx.destination);
+
+  const chainInput = buildDelayChain(getChainParams(), outGain);
+
+  if (sourceType === 'oneShot' && oneShotBuffers.length > 0) {
+    startOneShotLoop(chainInput);
+  } else {
+    playContinuousSource(chainInput);
+  }
+  isPlaying = true;
+
+  document.getElementById('playDot').className = 'pulse-dot';
+  document.getElementById('btnPlay').classList.add('playing');
+  document.getElementById('btnPause').disabled   = false;
+  document.getElementById('btnRestart').disabled = false;
+}
+
+function stopPlayback() {
+  if (shotLoopTimer)  { clearInterval(shotLoopTimer); shotLoopTimer = null; }
+  if (noiseSource && noiseSource !== loopMediaSrc && noiseSource !== customMediaSrc) {
+    try { noiseSource.stop(); } catch(e) {}
+  }
+  noiseSource = null;
+  if (loopAudioEl)    loopAudioEl.pause();
+  if (customAudioEl)  customAudioEl.pause();
+  if (loopMediaSrc)   { try { loopMediaSrc.disconnect();   } catch(e) {} }
+  if (customMediaSrc) { try { customMediaSrc.disconnect(); } catch(e) {} }
+  if (currentShotSrc) { try { currentShotSrc.stop(); } catch(e) {} currentShotSrc = null; }
+  chainNodes.forEach(n => { try { n.disconnect(); } catch(e) {} });
+  chainNodes = [];
+  if (outGain) { try { outGain.disconnect(); } catch(e) {} outGain = null; }
+  isPlaying = false;
+  const dot = document.getElementById('playDot');
+  if (dot) dot.className = '';
+  document.getElementById('btnPlay')?.classList.remove('playing');
+}
+
+function makePinkNoise(dur) {
+  const rate = audioCtx.sampleRate, len = Math.ceil(rate * dur);
+  const buf = audioCtx.createBuffer(1, len, rate);
+  const d = buf.getChannelData(0);
+  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+  for (let i=0;i<len;i++) {
+    const w=Math.random()*2-1;
+    b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
+    b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
+    b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
+    d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11; b6=w*0.115926;
+  }
+  const src = audioCtx.createBufferSource(); src.buffer=buf; src.loop=true;
+  return src;
+}
+
+function startOneShotLoop(dest) {
+  const fire = () => {
+    if (!isPlaying || sourceType !== 'oneShot') return;
+    const s = audioCtx.createBufferSource();
+    s.buffer = oneShotBuffers[oneShotIdx % oneShotBuffers.length].buffer;
+    s.connect(dest); s.start(0); currentShotSrc = s;
+  };
+  fire(); shotLoopTimer = setInterval(fire, 5000);
+}
+
+function playContinuousSource(dest) {
+  if (sourceType === 'loop' && loopFileNames.length > 0) {
+    if (!loopAudioEl)  { loopAudioEl  = new Audio(); loopAudioEl.loop  = true; }
+    if (!loopMediaSrc)   loopMediaSrc  = audioCtx.createMediaElementSource(loopAudioEl);
+    const fname = loopFileNames[loopIdx % loopFileNames.length];
+    if (loopAudioEl._cur !== fname) { loopAudioEl.src = `../samples/loops/${fname}`; loopAudioEl._cur = fname; }
+    loopMediaSrc.connect(dest);
+    loopAudioEl.play().catch(()=>{});
+    noiseSource = loopMediaSrc;
+  } else if (sourceType === 'custom' && customFiles.length > 0) {
+    if (!customAudioEl)  { customAudioEl  = new Audio(); customAudioEl.loop  = true; }
+    if (!customMediaSrc)   customMediaSrc  = audioCtx.createMediaElementSource(customAudioEl);
+    const file = customFiles[customIdx % customFiles.length];
+    if (customAudioEl._curFile !== file) {
+      if (customAudioEl._objUrl) URL.revokeObjectURL(customAudioEl._objUrl);
+      const url = URL.createObjectURL(file);
+      customAudioEl._objUrl = url; customAudioEl._curFile = file; customAudioEl.src = url;
+    }
+    customMediaSrc.connect(dest);
+    customAudioEl.play().catch(()=>{});
+    noiseSource = customMediaSrc;
+  } else {
+    const src = makePinkNoise(8);
+    src.connect(dest); src.start(0);
+    noiseSource = src;
+  }
+}
+
+// ── Pause / Restart ────────────────────────────────────────────────────────────
+function togglePause() {
+  if (!roundActive || !audioCtx) return;
+  const btn = document.getElementById('btnPause');
+  if (isPaused) {
+    if (loopAudioEl   && sourceType === 'loop')   loopAudioEl.play().catch(()=>{});
+    if (customAudioEl && sourceType === 'custom') customAudioEl.play().catch(()=>{});
+    audioCtx.resume().then(() => {
+      isPaused = false; btn.textContent = '⏸ Pause'; btn.classList.remove('paused');
+      if (sourceType === 'oneShot' && isPlaying) { stopPlayback(); playCurrentRound(); }
+    });
+  } else {
+    if (loopAudioEl   && sourceType === 'loop')   loopAudioEl.pause();
+    if (customAudioEl && sourceType === 'custom') customAudioEl.pause();
+    if (shotLoopTimer) { clearInterval(shotLoopTimer); shotLoopTimer = null; }
+    audioCtx.suspend().then(() => { isPaused = true; btn.textContent = '▶ Resume'; btn.classList.add('paused'); });
+  }
+}
+
+function restartAudio() {
+  if (!roundActive) return;
+  initAudio();
+  if (isPaused) {
+    audioCtx.resume(); isPaused = false;
+    document.getElementById('btnPause').textContent = '⏸ Pause';
+    document.getElementById('btnPause').classList.remove('paused');
+  }
+  if (loopAudioEl   && sourceType === 'loop')   loopAudioEl.currentTime = 0;
+  if (customAudioEl && sourceType === 'custom') customAudioEl.currentTime = 0;
+  stopPlayback(); playCurrentRound();
+}
+
+// ── Sample loading ─────────────────────────────────────────────────────────────
+async function getManifest() {
+  if (samplesManifest) return samplesManifest;
+  const r = await fetch('../samples/manifest.json');
+  samplesManifest = await r.json(); return samplesManifest;
+}
+async function loadOneShotSamples() {
+  if (oneShotLoaded) return;
+  initAudio();
+  const btn = document.getElementById('srcOneShot');
+  btn.classList.add('loading'); btn.textContent = 'Loading…';
+  oneShotBuffers = [];
+  const manifest = await getManifest();
+  await Promise.all(manifest.oneShots.map(async fname => {
+    try {
+      const r = await fetch(`../samples/one-shots/${fname}`); if (!r.ok) return;
+      oneShotBuffers.push({ buffer: await audioCtx.decodeAudioData(await r.arrayBuffer()) });
+    } catch(e) {}
+  }));
+  oneShotLoaded = oneShotBuffers.length > 0;
+  if (oneShotLoaded) oneShotIdx = Math.floor(Math.random() * oneShotBuffers.length);
+  btn.textContent = 'One-Shots'; btn.classList.remove('loading');
+  if (!oneShotLoaded) { showToast('No one-shots found'); sourceType = 'pink'; updateSourceUI(); }
+}
+async function loadLoopSamples() {
+  if (loopManifestLoaded) return;
+  const manifest = await getManifest();
+  loopFileNames = manifest.loops || [];
+  loopManifestLoaded = loopFileNames.length > 0;
+  if (loopManifestLoaded) loopIdx = Math.floor(Math.random() * loopFileNames.length);
+  if (!loopManifestLoaded) { showToast('No loops found'); sourceType = 'pink'; updateSourceUI(); }
+}
+function setSource(type) {
+  if (type === 'oneShot' && !oneShotLoaded) { loadOneShotSamples().then(() => { if (oneShotLoaded) { sourceType = 'oneShot'; updateSourceUI(); } }); return; }
+  if (type === 'loop' && !loopManifestLoaded) { loadLoopSamples().then(() => { if (loopManifestLoaded) { sourceType = 'loop'; updateSourceUI(); } }); return; }
+  sourceType = type; updateSourceUI();
+}
+function updateSourceUI() {
+  document.getElementById('srcPink').classList.toggle('active',    sourceType === 'pink');
+  document.getElementById('srcOneShot').classList.toggle('active', sourceType === 'oneShot');
+  document.getElementById('srcLoop').classList.toggle('active',    sourceType === 'loop');
+  document.getElementById('srcCustom').classList.toggle('active',  sourceType === 'custom');
+}
+function triggerUpload() {
+  if (customFiles.length > 0) { setSource('custom'); return; }
+  document.getElementById('folderInput').click();
+}
+function handleFolderUpload(e) {
+  const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
+  if (!files.length) return;
+  customFiles = files; customIdx = 0;
+  document.getElementById('uploadLabel').textContent = `${files.length} tracks`;
+  setSource('custom'); showToast(`${files.length} tracks ready`);
+}
+
+// ── Seek / Skip ────────────────────────────────────────────────────────────────
+function seekMusic(delta) {
+  if (!roundActive || !isPlaying) return;
+  if (sourceType === 'loop' && loopAudioEl)     { loopAudioEl.currentTime   = Math.max(0, loopAudioEl.currentTime   + delta); showToast(`${delta > 0 ? '+' : ''}${delta}s`); }
+  if (sourceType === 'custom' && customAudioEl) { customAudioEl.currentTime = Math.max(0, customAudioEl.currentTime + delta); showToast(`${delta > 0 ? '+' : ''}${delta}s`); }
+}
+function skipTrack(delta) {
+  if (!roundActive || !isPlaying || !audioCtx) return;
+  if (sourceType === 'oneShot' && oneShotBuffers.length > 0) {
+    oneShotIdx = ((oneShotIdx + delta) % oneShotBuffers.length + oneShotBuffers.length) % oneShotBuffers.length;
+    stopPlayback(); playCurrentRound(); showToast(`Shot ${oneShotIdx+1}/${oneShotBuffers.length}`);
+  } else if (sourceType === 'loop' && loopFileNames.length > 0) {
+    loopIdx = ((loopIdx + delta) % loopFileNames.length + loopFileNames.length) % loopFileNames.length;
+    if (loopAudioEl) { loopAudioEl.src = `../samples/loops/${loopFileNames[loopIdx]}`; loopAudioEl._cur = loopFileNames[loopIdx]; loopAudioEl.play().catch(()=>{}); }
+    showToast(`Loop ${loopIdx+1}/${loopFileNames.length}`);
+  } else if (sourceType === 'custom' && customFiles.length > 0) {
+    customIdx = ((customIdx + delta) % customFiles.length + customFiles.length) % customFiles.length;
+    if (customAudioEl && customMediaSrc) {
+      if (customAudioEl._objUrl) URL.revokeObjectURL(customAudioEl._objUrl);
+      const f = customFiles[customIdx], u = URL.createObjectURL(f);
+      customAudioEl._objUrl = u; customAudioEl._curFile = f; customAudioEl.src = u; customAudioEl.play().catch(()=>{});
+    }
+    showToast(`Track ${customIdx+1}/${customFiles.length}`);
+  }
+}
+
+// ── Submit ─────────────────────────────────────────────────────────────────────
+function submitAnswer() {
+  if (!roundActive || answered) return;
+  answered = true;
+  stopPlayback();
+
+  // Score each parameter
+  const scores = {};
+  let totalScore = 0, scoredCount = 0;
+
+  Object.keys(targetParams).forEach(param => {
+    if (lockedParams[param]) {
+      scores[param] = 100;
+    } else {
+      const diff  = Math.abs(userParams[param] - targetParams[param]);
+      scores[param] = Math.max(0, Math.round(100 * (1 - diff / PARAM_RANGES[param])));
+      totalScore += scores[param];
+      scoredCount++;
+    }
+  });
+
+  const roundScore = scoredCount === 0 ? 100 : Math.round(totalScore / scoredCount);
+  scoreTotal += roundScore;
+  roundScores.push(roundScore);
+  if (roundScore >= 70) streak++; else streak = 0;
+
+  if (window.SonicSandbox) {
+    SonicSandbox.saveScore({ game: 'delay-master', correct: roundScore >= 70, roundScore });
+  }
+
+  updateScoreDisplay();
+  addHistory(roundScore);
+
+  // Reveal target canvas
+  document.getElementById('targetVizOverlay').style.display = 'none';
+
+  // Reveal all target values
+  ['tDelayTime','tFeedback','tWet'].forEach(id =>
+    document.getElementById(id).className = 'param-value-box');
+  document.getElementById('tDelayTime').textContent = `${targetParams.delayTime}ms`;
+  document.getElementById('tFeedback').textContent  = `${targetParams.feedback}%`;
+  document.getElementById('tWet').textContent        = `${targetParams.wet}%`;
+
+  // Per-param score badges (only unlocked params)
+  const showBadge = (id, param) => {
+    if (lockedParams[param]) return;
+    const s = scores[param];
+    const el = document.getElementById(id);
+    el.textContent = `${s}`;
+    el.className = `param-score-badge show ${s >= 80 ? 'great' : s >= 50 ? 'ok' : 'miss'}`;
+  };
+  showBadge('scoreDelayTime', 'delayTime');
+  showBadge('scoreFeedback',  'feedback');
+  showBadge('scoreWet',       'wet');
+
+  // Panel header score
+  const rsEl = document.getElementById('roundScoreDisplay');
+  rsEl.textContent = `${roundScore} pts`;
+  rsEl.className = 'panel-score show';
+  rsEl.style.color = roundScore >= 80 ? '#3ecf8e' : roundScore >= 50 ? '#fb923c' : '#f45b69';
+
+  // Big round score
+  document.getElementById('roundScoreBig').textContent = `${roundScore}`;
+  document.getElementById('roundScoreBig').style.color =
+    roundScore >= 80 ? '#3ecf8e' : roundScore >= 50 ? '#fb923c' : '#f45b69';
+  document.getElementById('roundResult').classList.add('show');
+
+  document.getElementById('submitBtn').disabled = true;
+
+  // Replay target
+  setTimeout(() => {
+    if (answered && roundActive) {
+      currentMonitor = 'target';
+      updateMonitorUI();
+      playCurrentRound();
+    }
+  }, 600);
+
+  // Auto-advance
+  const delay = roundScore >= 80 ? 2500 : 3500;
+  const bar   = document.getElementById('nextBarWrap');
+  const fill  = document.getElementById('nextBarFill');
+  bar.style.display = 'block';
+  fill.style.transition = 'none'; fill.style.width = '100%';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    fill.style.transition = `width ${delay}ms linear`;
+    fill.style.width = '0%';
+  }));
+  nextTimeout = setTimeout(newRound, delay);
+}
+
+// ── Score display ──────────────────────────────────────────────────────────────
+function updateScoreDisplay() {
+  document.getElementById('scoreVal').textContent  = scoreTotal;
+  document.getElementById('streakVal').textContent = streak;
+  const avg = roundScores.length
+    ? Math.round(roundScores.reduce((a,b) => a+b, 0) / roundScores.length)
+    : 0;
+  document.getElementById('avgVal').textContent = roundScores.length ? `${avg}` : '—';
+}
+
+function addHistory(score) {
+  const strip = document.getElementById('historyStrip');
+  const dot   = document.createElement('div');
+  dot.className = 'hist-dot';
+  dot.title = `${score}`;
+  dot.style.background = score >= 80 ? '#3ecf8e' : score >= 50 ? '#fb923c' : '#f45b69';
+  strip.appendChild(dot);
+  while (strip.children.length > 48) strip.removeChild(strip.firstChild);
+}
+
+// ── Keyboard shortcuts ─────────────────────────────────────────────────────────
+window.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (audioCtx && audioCtx.state === 'suspended' && e.code !== 'KeyP') audioCtx.resume();
+  if (e.code === 'Space')      { e.preventDefault(); toggleTargetDry(); }
+  if (e.code === 'KeyD')       { e.preventDefault(); toggleTargetDry(); }
+  if (e.code === 'KeyP')       { e.preventDefault(); togglePause(); }
+  if (e.code === 'KeyF')       { e.preventDefault(); restartAudio(); }
+  if (e.code === 'Enter')      { e.preventDefault(); if (roundActive && !answered) submitAnswer(); }
+  if (e.code === 'ArrowLeft')  { e.preventDefault(); seekMusic(-10); }
+  if (e.code === 'ArrowRight') { e.preventDefault(); seekMusic(+10); }
+  if (e.code === 'ArrowUp')    { e.preventDefault(); skipTrack(+1); }
+  if (e.code === 'ArrowDown')  { e.preventDefault(); skipTrack(-1); }
+});
+
+// ── Toast / resize ─────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+window.addEventListener('resize', () => {
+  if (!roundActive) return;
+  requestAnimationFrame(() => {
+    drawDelayViz(document.getElementById('targetCanvas'), toAudioParams(targetParams), '#f97316');
+    redrawUserViz();
+  });
+});
+
+// ── Service worker ─────────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW failed', err));
+  });
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../supabase-client.js"></script>
+</body>
+</html>
