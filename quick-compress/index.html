@@ -1002,7 +1002,7 @@ function setSource(type) {
     });
     return;
   }
-  if (type === 'loop' && !loopLoaded) {
+  if (type === 'loop' && !loopManifestLoaded) {
     showToast('Loading loops…');
     loadLoopSamples().then(() => {
       sourceType = 'loop'; updateSourceUI();
