@@ -510,13 +510,12 @@ let sourceType = 'pink';  // 'pink' | 'oneShot' | 'loop' | 'custom'
 let oneShotBuffers = [], oneShotLoaded = false, oneShotIdx = 0;
 
 // Loop state
-let loopBuffers = [], loopLoaded = false, loopIdx = 0;
+let loopFileNames = [], loopManifestLoaded = false, loopIdx = 0;
+let loopAudioEl = null, loopMediaSrc = null;
 
 // Custom (uploaded) state
-let customBuffers = [], customIdx = 0;
-
-// Shared music position (loop + custom)
-let musicOffset = 0, musicStartedAt = 0;
+let customFiles = [], customIdx = 0;
+let customAudioEl = null, customMediaSrc = null;
 
 const canvas = document.getElementById('eqCanvas');
 const ctx2d  = canvas.getContext('2d');
@@ -574,24 +573,13 @@ async function loadOneShotSamples() {
 }
 
 async function loadLoopSamples() {
-  if (loopLoaded) return;
-  initAudio();
-  setLoadStatus('srcLoop', 'Loading…', true);
-  loopBuffers = [];
+  if (loopManifestLoaded) return;
   const manifest = await getManifest();
-  await Promise.all(manifest.loops.map(async fname => {
-    try {
-      const r = await fetch(`../samples/loops/${fname}`);
-      if (!r.ok) return;
-      const ab = await r.arrayBuffer();
-      loopBuffers.push({ name: fname.replace(/\.\w+$/, ''), buffer: await audioCtx.decodeAudioData(ab) });
-    } catch(e) { console.warn('loop load fail:', fname, e); }
-  }));
-  loopBuffers.sort((a,b) => a.name.localeCompare(b.name));
-  loopLoaded = loopBuffers.length > 0;
+  loopFileNames = manifest.loops || [];
+  loopManifestLoaded = loopFileNames.length > 0;
   document.getElementById('srcLoop').textContent = 'Loops';
   setLoadStatus('srcLoop', '', false);
-  if (!loopLoaded) { showToast('No loops found in samples/loops/'); sourceType='pink'; updateSourceUI(); }
+  if (!loopManifestLoaded) { showToast('No loops found in samples/loops/'); sourceType='pink'; updateSourceUI(); }
 }
 
 // ── Frequency toggles ─────────────────────────────────────────────────────────
@@ -700,10 +688,10 @@ function newRound() {
   // Advance track indices each round
   if (sourceType === 'oneShot' && oneShotBuffers.length > 0)
     oneShotIdx = (oneShotIdx + 1) % oneShotBuffers.length;
-  if (sourceType === 'loop' && loopBuffers.length > 0)
-    loopIdx = (loopIdx + 1) % loopBuffers.length;
-  if (sourceType === 'custom' && customBuffers.length > 0)
-    customIdx = (customIdx + 1) % customBuffers.length;
+  if (sourceType === 'loop' && loopFileNames.length > 0)
+    loopIdx = (loopIdx + 1) % loopFileNames.length;
+  if (sourceType === 'custom' && customFiles.length > 0)
+    customIdx = (customIdx + 1) % customFiles.length;
 
   answered = false;
   roundActive = true;
@@ -797,57 +785,57 @@ function startOneShotLoop() {
 
 function playNoiseBurst() {
   buildEQChain(0.6);
-  let src;
 
-  if (sourceType === 'loop' && loopBuffers.length > 0) {
-    const buf = loopBuffers[loopIdx % loopBuffers.length].buffer;
-    src = audioCtx.createBufferSource();
-    src.buffer = buf;
-    src.loop = true;
-    const startOff = musicOffset % buf.duration;
-    musicStartedAt = audioCtx.currentTime - startOff;
-    musicOffset = startOff;
-    src.start(0, startOff);
+  if (sourceType === 'loop' && loopFileNames.length > 0) {
+    if (!loopAudioEl) { loopAudioEl = new Audio(); loopAudioEl.loop = true; }
+    if (!loopMediaSrc) { loopMediaSrc = audioCtx.createMediaElementSource(loopAudioEl); }
+    const fname = loopFileNames[loopIdx % loopFileNames.length];
+    if (loopAudioEl._currentFname !== fname) {
+      loopAudioEl.src = `../samples/loops/${fname}`;
+      loopAudioEl._currentFname = fname;
+    }
+    loopMediaSrc.connect(eqFilter);
+    loopAudioEl.play().catch(e => console.warn('Loop autoplay blocked:', e));
+    noiseSource = loopMediaSrc;
 
-  } else if (sourceType === 'custom' && customBuffers.length > 0) {
-    const buf = customBuffers[customIdx % customBuffers.length];
-    src = audioCtx.createBufferSource();
-    src.buffer = buf;
-    src.loop = false;
-    const startOff = Math.min(musicOffset, buf.duration - 0.1);
-    musicStartedAt = audioCtx.currentTime - startOff;
-    musicOffset = startOff;
-    src.onended = () => {
-      if (!isPlaying || noiseSource !== src) return;
-      customIdx = (customIdx + 1) % customBuffers.length;
-      musicOffset = 0;
-      if (eqFilter && outGain) {
-        const next = audioCtx.createBufferSource();
-        next.buffer = customBuffers[customIdx]; next.loop = false;
-        next.connect(eqFilter); next.start(0);
-        noiseSource = next; musicStartedAt = audioCtx.currentTime;
-        next.onended = src.onended;
-      }
-    };
-    src.start(0, startOff);
+  } else if (sourceType === 'custom' && customFiles.length > 0) {
+    if (!customAudioEl) { customAudioEl = new Audio(); customAudioEl.loop = true; }
+    if (!customMediaSrc) { customMediaSrc = audioCtx.createMediaElementSource(customAudioEl); }
+    const file = customFiles[customIdx % customFiles.length];
+    if (customAudioEl._currentFile !== file) {
+      if (customAudioEl._objectUrl) URL.revokeObjectURL(customAudioEl._objectUrl);
+      const url = URL.createObjectURL(file);
+      customAudioEl._objectUrl = url;
+      customAudioEl._currentFile = file;
+      customAudioEl.src = url;
+    }
+    customMediaSrc.connect(eqFilter);
+    customAudioEl.play().catch(e => console.warn('Custom autoplay blocked:', e));
+    noiseSource = customMediaSrc;
 
   } else {
     // Pink noise
-    src = makePinkNoise(5);
+    const src = makePinkNoise(5);
     src.loop = true;
+    src.connect(eqFilter);
     src.start(0);
-    musicOffset = 0; musicStartedAt = audioCtx.currentTime;
+    noiseSource = src;
   }
 
-  src.connect(eqFilter);
-  noiseSource = src;
   isPlaying = true;
 }
 
 function stopPlayback() {
   clearTimeout(playTimeout);
   if (shotLoopTimer)  { clearInterval(shotLoopTimer); shotLoopTimer = null; }
-  if (noiseSource)    { try { noiseSource.stop(); }    catch(e){} noiseSource = null; }
+  if (noiseSource && noiseSource !== loopMediaSrc && noiseSource !== customMediaSrc) {
+    try { noiseSource.stop(); } catch(e){}
+  }
+  noiseSource = null;
+  if (loopAudioEl)   loopAudioEl.pause();
+  if (customAudioEl) customAudioEl.pause();
+  if (loopMediaSrc)   { try { loopMediaSrc.disconnect();   } catch(e) {} }
+  if (customMediaSrc) { try { customMediaSrc.disconnect(); } catch(e) {} }
   if (currentShotSrc) { try { currentShotSrc.stop(); } catch(e){} currentShotSrc = null; }
   if (eqFilter)  { try { eqFilter.disconnect(); }  catch(e){} eqFilter = null; }
   if (outGain)   { try { outGain.disconnect(); }   catch(e){} outGain = null; }
@@ -859,40 +847,12 @@ function stopPlayback() {
 
 // ── Seek (loop + custom, ±10s) ────────────────────────────────────────────────
 function seekMusic(deltaSecs) {
-  if (!roundActive || !isPlaying || !audioCtx) return;
-
-  if (sourceType === 'loop' && loopBuffers.length > 0) {
-    const buf = loopBuffers[loopIdx % loopBuffers.length].buffer;
-    const elapsed = audioCtx.currentTime - musicStartedAt;
-    const cur = musicOffset + elapsed;
-    const newOff = ((cur + deltaSecs) % buf.duration + buf.duration) % buf.duration;
-    if (noiseSource) { noiseSource.onended = null; try { noiseSource.stop(); } catch(e){} noiseSource = null; }
-    const src = audioCtx.createBufferSource();
-    src.buffer = buf; src.loop = true; src.connect(eqFilter);
-    musicOffset = newOff; musicStartedAt = audioCtx.currentTime;
-    src.start(0, newOff); noiseSource = src;
+  if (!roundActive || !isPlaying) return;
+  if (sourceType === 'loop' && loopFileNames.length > 0 && loopAudioEl) {
+    loopAudioEl.currentTime = Math.max(0, loopAudioEl.currentTime + deltaSecs);
     showToast(`${deltaSecs > 0 ? '+' : ''}${deltaSecs}s`);
-
-  } else if (sourceType === 'custom' && customBuffers.length > 0) {
-    const buf = customBuffers[customIdx % customBuffers.length];
-    const elapsed = audioCtx.currentTime - musicStartedAt;
-    const cur = musicOffset + elapsed;
-    const newOff = Math.max(0, Math.min(buf.duration - 0.5, cur + deltaSecs));
-    if (noiseSource) { noiseSource.onended = null; try { noiseSource.stop(); } catch(e){} noiseSource = null; }
-    const src = audioCtx.createBufferSource();
-    src.buffer = buf; src.loop = false; src.connect(eqFilter);
-    musicOffset = newOff; musicStartedAt = audioCtx.currentTime;
-    src.onended = () => {
-      if (!isPlaying || noiseSource !== src) return;
-      customIdx = (customIdx + 1) % customBuffers.length; musicOffset = 0;
-      if (eqFilter && outGain) {
-        const next = audioCtx.createBufferSource();
-        next.buffer = customBuffers[customIdx]; next.loop = false; next.connect(eqFilter);
-        musicStartedAt = audioCtx.currentTime; next.onended = src.onended; next.start(0);
-        noiseSource = next;
-      }
-    };
-    src.start(0, newOff); noiseSource = src;
+  } else if (sourceType === 'custom' && customFiles.length > 0 && customAudioEl) {
+    customAudioEl.currentTime = Math.max(0, customAudioEl.currentTime + deltaSecs);
     showToast(`${deltaSecs > 0 ? '+' : ''}${deltaSecs}s`);
   }
 }
@@ -914,36 +874,28 @@ function skipTrack(delta) {
     fireShot(); shotLoopTimer = setInterval(fireShot, 5000);
     showToast(`Shot ${oneShotIdx + 1} / ${oneShotBuffers.length}`);
 
-  } else if (sourceType === 'loop' && loopBuffers.length > 0) {
-    loopIdx = ((loopIdx + delta) % loopBuffers.length + loopBuffers.length) % loopBuffers.length;
-    musicOffset = 0;
-    if (noiseSource) { noiseSource.onended = null; try { noiseSource.stop(); } catch(e){} noiseSource = null; }
-    const buf = loopBuffers[loopIdx % loopBuffers.length].buffer;
-    const src = audioCtx.createBufferSource();
-    src.buffer = buf; src.loop = true; src.connect(eqFilter);
-    musicStartedAt = audioCtx.currentTime; src.start(0); noiseSource = src;
-    showToast(`Loop ${loopIdx + 1} / ${loopBuffers.length}`);
+  } else if (sourceType === 'loop' && loopFileNames.length > 0) {
+    loopIdx = ((loopIdx + delta) % loopFileNames.length + loopFileNames.length) % loopFileNames.length;
+    if (loopAudioEl) {
+      const fname = loopFileNames[loopIdx];
+      loopAudioEl.src = `../samples/loops/${fname}`;
+      loopAudioEl._currentFname = fname;
+      loopAudioEl.play().catch(()=>{});
+    }
+    showToast(`Loop ${loopIdx + 1} / ${loopFileNames.length}`);
 
-  } else if (sourceType === 'custom' && customBuffers.length > 0) {
-    customIdx = ((customIdx + delta) % customBuffers.length + customBuffers.length) % customBuffers.length;
-    musicOffset = 0;
-    if (noiseSource) { noiseSource.onended = null; try { noiseSource.stop(); } catch(e){} noiseSource = null; }
-    const buf = customBuffers[customIdx];
-    const src = audioCtx.createBufferSource();
-    src.buffer = buf; src.loop = false; src.connect(eqFilter);
-    musicStartedAt = audioCtx.currentTime;
-    src.onended = () => {
-      if (!isPlaying || noiseSource !== src) return;
-      customIdx = (customIdx + 1) % customBuffers.length; musicOffset = 0;
-      if (eqFilter && outGain) {
-        const next = audioCtx.createBufferSource();
-        next.buffer = customBuffers[customIdx]; next.loop = false; next.connect(eqFilter);
-        musicStartedAt = audioCtx.currentTime; next.onended = src.onended; next.start(0);
-        noiseSource = next;
-      }
-    };
-    src.start(0); noiseSource = src;
-    showToast(`Track ${customIdx + 1} / ${customBuffers.length}`);
+  } else if (sourceType === 'custom' && customFiles.length > 0) {
+    customIdx = ((customIdx + delta) % customFiles.length + customFiles.length) % customFiles.length;
+    if (customAudioEl && customMediaSrc) {
+      if (customAudioEl._objectUrl) URL.revokeObjectURL(customAudioEl._objectUrl);
+      const file = customFiles[customIdx];
+      const url = URL.createObjectURL(file);
+      customAudioEl._objectUrl = url;
+      customAudioEl._currentFile = file;
+      customAudioEl.src = url;
+      customAudioEl.play().catch(()=>{});
+    }
+    showToast(`Track ${customIdx + 1} / ${customFiles.length}`);
   }
 }
 
@@ -1057,8 +1009,8 @@ function setSource(type) {
     loadOneShotSamples().then(() => { if (oneShotLoaded) { sourceType='oneShot'; updateSourceUI(); } });
     return;
   }
-  if (type === 'loop' && !loopLoaded) {
-    loadLoopSamples().then(() => { if (loopLoaded) { sourceType='loop'; updateSourceUI(); } });
+  if (type === 'loop' && !loopManifestLoaded) {
+    loadLoopSamples().then(() => { if (loopManifestLoaded) { sourceType='loop'; updateSourceUI(); } });
     return;
   }
   sourceType = type; updateSourceUI();
@@ -1072,22 +1024,18 @@ function updateSourceUI() {
 }
 
 function triggerUpload() {
-  if (customBuffers.length > 0) { setSource('custom'); return; }
+  if (customFiles.length > 0) { setSource('custom'); return; }
   document.getElementById('folderInput').click();
 }
 
-async function handleFolderUpload(e) {
+function handleFolderUpload(e) {
   const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
   if (!files.length) return;
-  initAudio(); customBuffers = []; showToast(`Loading ${files.length} tracks…`);
-  for (const f of files) {
-    try { const ab = await f.arrayBuffer(); customBuffers.push(await audioCtx.decodeAudioData(ab)); }
-    catch(err) { console.warn('decode error', f.name); }
-  }
-  if (customBuffers.length > 0) {
-    document.getElementById('uploadLabel').textContent = `📁 ${customBuffers.length} tracks`;
-    setSource('custom'); showToast('Music loaded!');
-  }
+  customFiles = files;
+  customIdx   = 0;
+  document.getElementById('uploadLabel').textContent = `📁 ${files.length} tracks`;
+  setSource('custom');
+  showToast(`${files.length} tracks ready`);
 }
 
 // ── Dry toggle ────────────────────────────────────────────────────────────────
@@ -1106,6 +1054,8 @@ function togglePause() {
   if (!roundActive || !audioCtx) return;
   const btn = document.getElementById('btnPause');
   if (isPaused) {
+    if (loopAudioEl   && sourceType==='loop')   loopAudioEl.play().catch(()=>{});
+    if (customAudioEl && sourceType==='custom') customAudioEl.play().catch(()=>{});
     audioCtx.resume().then(() => {
       isPaused = false;
       btn.innerHTML = '&#9646;&#9646; Pause'; btn.classList.remove('paused');
@@ -1121,6 +1071,8 @@ function togglePause() {
       }
     });
   } else {
+    if (loopAudioEl   && sourceType==='loop')   loopAudioEl.pause();
+    if (customAudioEl && sourceType==='custom') customAudioEl.pause();
     if (shotLoopTimer) { clearInterval(shotLoopTimer); shotLoopTimer = null; }
     audioCtx.suspend().then(() => {
       isPaused = true;
@@ -1139,7 +1091,8 @@ function restartAudio() {
     btn.innerHTML = '&#9646;&#9646; Pause'; btn.classList.remove('paused');
   }
   if (audioCtx.state === 'suspended') audioCtx.resume();
-  musicOffset = 0;
+  if (loopAudioEl   && sourceType==='loop')   loopAudioEl.currentTime = 0;
+  if (customAudioEl && sourceType==='custom') customAudioEl.currentTime = 0;
   stopPlayback(); playCurrentRound();
   showToast('Restarted');
 }

@@ -598,15 +598,17 @@ let isPlaying     = false;
 let shotLoopTimer = null;
 let sourceType    = 'pink';
 
-// Custom upload
-let customBuffers = [], customIdx = 0, musicOffset = 0, musicStartedAt = 0;
+// Custom upload (streaming)
+let customFiles = [], customIdx = 0;
+let customAudioEl = null, customMediaSrc = null;
 
 // One-shots
 let oneShotBuffers = [], oneShotLoaded = false, oneShotIdx = 0;
 let currentShotSrc = null;
 
-// Loops
-let loopBuffers = [], loopLoaded = false, loopIdx = 0;
+// Loops (streaming)
+let loopFileNames = [], loopManifestLoaded = false, loopIdx = 0;
+let loopAudioEl = null, loopMediaSrc = null;
 
 // Drag
 let isDragging = false;
@@ -888,16 +890,16 @@ function startRound() {
   document.getElementById('promptText').innerHTML = promptTextForMode(gameMode);
 
   // Advance track indices each round
-  if (sourceType === 'custom' && customBuffers.length > 0) {
-    customIdx = (customIdx + 1) % customBuffers.length;
-    musicOffset = 0;
+  if (sourceType === 'custom' && customFiles.length > 0) {
+    customIdx = (customIdx + 1) % customFiles.length;
+    if (customAudioEl) customAudioEl._currentFile = null; // force reload
   }
   if (sourceType === 'oneShot' && oneShotBuffers.length > 0) {
     oneShotIdx = (oneShotIdx + 1) % oneShotBuffers.length;
   }
-  if (sourceType === 'loop' && loopBuffers.length > 0) {
-    loopIdx = (loopIdx + 1) % loopBuffers.length;
-    musicOffset = 0;
+  if (sourceType === 'loop' && loopFileNames.length > 0) {
+    loopIdx = (loopIdx + 1) % loopFileNames.length;
+    if (loopAudioEl) loopAudioEl._currentFname = null; // force reload
   }
 
   startAudio();
@@ -1033,16 +1035,10 @@ function startAudio() {
 
     if (sourceType === 'oneShot') {
       startOneShotWidth();
-    } else if (sourceType === 'loop') {
-      startLoopWidth();
-    } else if (sourceType === 'custom' && customBuffers.length > 0) {
-      const buf = customBuffers[customIdx % customBuffers.length];
-      const srcL = audioCtx.createBufferSource(); srcL.buffer = buf; srcL.loop = true;
-      const srcR = audioCtx.createBufferSource(); srcR.buffer = buf; srcR.loop = true;
-      srcL.connect(pannerNode);  srcL.start(0, musicOffset);
-      srcR.connect(pannerNodeR); srcR.start(0, musicOffset);
-      noiseSource = srcL; noiseSourceR = srcR;
-      musicStartedAt = audioCtx.currentTime - musicOffset;
+    } else if (sourceType === 'loop' && loopFileNames.length > 0) {
+      buildLoopStreamSource(pannerNode, pannerNodeR);
+    } else if (sourceType === 'custom' && customFiles.length > 0) {
+      buildCustomStreamSource(pannerNode, pannerNodeR);
     } else {
       // Pink noise
       const srcL = makePinkNoise(5); const srcR = makePinkNoise(5);
@@ -1058,14 +1054,10 @@ function startAudio() {
 
     if (sourceType === 'oneShot') {
       startOneShotPanning();
-    } else if (sourceType === 'loop') {
-      startLoopPanning();
-    } else if (sourceType === 'custom' && customBuffers.length > 0) {
-      const src = audioCtx.createBufferSource();
-      src.buffer = customBuffers[customIdx % customBuffers.length];
-      src.loop = true;
-      src.connect(pannerNode); src.start(0, musicOffset);
-      noiseSource = src; musicStartedAt = audioCtx.currentTime - musicOffset;
+    } else if (sourceType === 'loop' && loopFileNames.length > 0) {
+      buildLoopStreamSource(pannerNode, null);
+    } else if (sourceType === 'custom' && customFiles.length > 0) {
+      buildCustomStreamSource(pannerNode, null);
     } else {
       const src = makePinkNoise(5);
       src.connect(pannerNode); src.start(0);
@@ -1108,55 +1100,63 @@ function startOneShotWidth() {
   fire(); shotLoopTimer = setInterval(fire, 5000);
 }
 
-// ── Loop source builders ──────────────────────────────────────────────────────
-function startLoopPanning() {
-  if (!loopBuffers.length) return;
-  const buf = loopBuffers[loopIdx % loopBuffers.length].buffer;
-  const src = audioCtx.createBufferSource();
-  src.buffer = buf; src.loop = true;
-  src.connect(pannerNode);
-  const offset = musicOffset % buf.duration;
-  if (offset > 0) {
-    src.start(0, offset);
-    musicStartedAt = audioCtx.currentTime - offset;
-  } else {
-    src.start(0);
-    musicStartedAt = audioCtx.currentTime;
+// ── Streaming source builders ─────────────────────────────────────────────────
+// One <audio> element feeds one or two panners — no pre-decode wait.
+function buildLoopStreamSource(destA, destB) {
+  if (!loopFileNames.length) return;
+  if (!loopAudioEl) { loopAudioEl = new Audio(); loopAudioEl.loop = true; }
+  if (!loopMediaSrc) { loopMediaSrc = audioCtx.createMediaElementSource(loopAudioEl); }
+  const fname = loopFileNames[loopIdx % loopFileNames.length];
+  if (loopAudioEl._currentFname !== fname) {
+    loopAudioEl.src = `../samples/loops/${fname}`;
+    loopAudioEl._currentFname = fname;
   }
-  noiseSource = src;
+  loopMediaSrc.connect(destA);
+  if (destB) loopMediaSrc.connect(destB);
+  loopAudioEl.play().catch(e => console.warn('Loop autoplay blocked:', e));
+  noiseSource = loopMediaSrc;
 }
 
-function startLoopWidth() {
-  if (!loopBuffers.length) return;
-  const buf = loopBuffers[loopIdx % loopBuffers.length].buffer;
-  const offset = musicOffset % buf.duration;
-
-  const srcL = audioCtx.createBufferSource(); srcL.buffer = buf; srcL.loop = true;
-  const srcR = audioCtx.createBufferSource(); srcR.buffer = buf; srcR.loop = true;
-  if (pannerNode)  srcL.connect(pannerNode);
-  if (pannerNodeR) srcR.connect(pannerNodeR);
-
-  if (offset > 0) {
-    srcL.start(0, offset); srcR.start(0, offset);
-    musicStartedAt = audioCtx.currentTime - offset;
-  } else {
-    srcL.start(0); srcR.start(0);
-    musicStartedAt = audioCtx.currentTime;
+function buildCustomStreamSource(destA, destB) {
+  if (!customFiles.length) return;
+  if (!customAudioEl) { customAudioEl = new Audio(); customAudioEl.loop = true; }
+  if (!customMediaSrc) { customMediaSrc = audioCtx.createMediaElementSource(customAudioEl); }
+  const file = customFiles[customIdx % customFiles.length];
+  if (customAudioEl._currentFile !== file) {
+    if (customAudioEl._objectUrl) URL.revokeObjectURL(customAudioEl._objectUrl);
+    const url = URL.createObjectURL(file);
+    customAudioEl._objectUrl = url;
+    customAudioEl._currentFile = file;
+    customAudioEl.src = url;
   }
-  noiseSource = srcL; noiseSourceR = srcR;
+  customMediaSrc.connect(destA);
+  if (destB) customMediaSrc.connect(destB);
+  customAudioEl.play().catch(e => console.warn('Custom autoplay blocked:', e));
+  noiseSource = customMediaSrc;
 }
 
 // ── Stop audio ────────────────────────────────────────────────────────────────
 function stopAudio() {
-  if (shotLoopTimer){clearInterval(shotLoopTimer);shotLoopTimer=null;}
-  if (noiseSource)   {try{noiseSource.stop();}   catch(e){}noiseSource=null;}
-  if (noiseSourceR)  {try{noiseSourceR.stop();}  catch(e){}noiseSourceR=null;}
-  if (currentShotSrc){try{currentShotSrc.stop();}catch(e){}currentShotSrc=null;}
-  if (pannerNode)    {try{pannerNode.disconnect();}  catch(e){}pannerNode=null;}
-  if (pannerNodeR)   {try{pannerNodeR.disconnect();} catch(e){}pannerNodeR=null;}
-  if (outGain)       {try{outGain.disconnect();}    catch(e){}outGain=null;}
-  isPlaying=false;
-  document.getElementById('playDot').className='';
+  if (shotLoopTimer)  { clearInterval(shotLoopTimer); shotLoopTimer = null; }
+  // Stop buffer-based sources (pink noise, one-shots)
+  if (noiseSource && noiseSource !== loopMediaSrc && noiseSource !== customMediaSrc) {
+    try { noiseSource.stop(); } catch(e){}
+  }
+  if (noiseSourceR && noiseSourceR !== loopMediaSrc && noiseSourceR !== customMediaSrc) {
+    try { noiseSourceR.stop(); } catch(e){}
+  }
+  noiseSource = null; noiseSourceR = null;
+  // Pause streaming elements, disconnect from graph
+  if (loopAudioEl)    loopAudioEl.pause();
+  if (customAudioEl)  customAudioEl.pause();
+  if (loopMediaSrc)   { try { loopMediaSrc.disconnect();   } catch(e){} }
+  if (customMediaSrc) { try { customMediaSrc.disconnect(); } catch(e){} }
+  if (currentShotSrc) { try { currentShotSrc.stop(); } catch(e){} currentShotSrc = null; }
+  if (pannerNode)     { try { pannerNode.disconnect();  } catch(e){} pannerNode  = null; }
+  if (pannerNodeR)    { try { pannerNodeR.disconnect(); } catch(e){} pannerNodeR = null; }
+  if (outGain)        { try { outGain.disconnect();     } catch(e){} outGain     = null; }
+  isPlaying = false;
+  document.getElementById('playDot').className = '';
   document.getElementById('btnPlay').classList.remove('playing');
 }
 
@@ -1199,50 +1199,18 @@ function togglePause() {
 function restartAudio() {
   if (!roundActive) return;
   if (isPaused && audioCtx){audioCtx.resume();isPaused=false;const btn=document.getElementById('btnPause');btn.innerHTML='&#9646;&#9646; Pause';btn.classList.remove('paused');}
-  musicOffset=0; startAudio(); showToast('Restarted');
+  startAudio(); showToast('Restarted');
 }
 
 // ── Seek (loop / custom, ±10s) ────────────────────────────────────────────────
 function seekMusic(deltaSecs) {
   if (!isPlaying || !audioCtx) return;
-
-  if (sourceType === 'loop' && loopBuffers.length > 0) {
-    const buf = loopBuffers[loopIdx % loopBuffers.length].buffer;
-    const elapsed = audioCtx.currentTime - musicStartedAt;
-    const cur = musicOffset + elapsed;
-    musicOffset = ((cur + deltaSecs) % buf.duration + buf.duration) % buf.duration;
-    // Rebuild sources at new offset
-    if (noiseSource)  { try { noiseSource.stop(); }  catch(e){} noiseSource = null; }
-    if (noiseSourceR) { try { noiseSourceR.stop(); } catch(e){} noiseSourceR = null; }
-    if (gameMode === 'width' && !isCenter) startLoopWidth();
-    else startLoopPanning();
+  if (sourceType === 'loop' && loopAudioEl) {
+    const dur = loopAudioEl.duration || 0;
+    if (dur > 0) loopAudioEl.currentTime = ((loopAudioEl.currentTime + deltaSecs) % dur + dur) % dur;
     showToast(`${deltaSecs > 0 ? '+' : ''}${deltaSecs}s`);
-    return;
-  }
-
-  if (sourceType === 'custom' && customBuffers.length > 0) {
-    if (!pannerNode) return;
-    const buf = customBuffers[customIdx % customBuffers.length];
-    const elapsed = audioCtx.currentTime - musicStartedAt;
-    const currentPos = musicOffset + elapsed;
-    const newOffset  = Math.max(0, Math.min(buf.duration - 0.5, currentPos + deltaSecs));
-    if (noiseSource)  { noiseSource.onended = null; try { noiseSource.stop(); }  catch(e){} noiseSource = null; }
-    if (noiseSourceR) { noiseSourceR.onended = null; try { noiseSourceR.stop(); } catch(e){} noiseSourceR = null; }
-    musicOffset    = newOffset;
-    musicStartedAt = audioCtx.currentTime;
-    if (gameMode === 'width' && !isCenter) {
-      const srcL = audioCtx.createBufferSource(); srcL.buffer = buf; srcL.loop = false;
-      const srcR = audioCtx.createBufferSource(); srcR.buffer = buf; srcR.loop = false;
-      srcL.connect(pannerNode);  srcL.start(0, newOffset);
-      srcR.connect(pannerNodeR); srcR.start(0, newOffset);
-      noiseSource = srcL; noiseSourceR = srcR;
-    } else {
-      const src = audioCtx.createBufferSource();
-      src.buffer = buf; src.loop = false;
-      src.connect(pannerNode);
-      src.start(0, newOffset);
-      noiseSource = src;
-    }
+  } else if (sourceType === 'custom' && customAudioEl) {
+    customAudioEl.currentTime = Math.max(0, (customAudioEl.currentTime || 0) + deltaSecs);
     showToast(`${deltaSecs > 0 ? '+' : ''}${deltaSecs}s`);
   }
 }
@@ -1261,36 +1229,19 @@ function skipTrack(delta) {
     return;
   }
 
-  if (sourceType === 'loop' && loopBuffers.length > 0) {
-    loopIdx = ((loopIdx + delta) % loopBuffers.length + loopBuffers.length) % loopBuffers.length;
-    musicOffset = 0;
-    if (noiseSource)  { try { noiseSource.stop(); }  catch(e){} noiseSource = null; }
-    if (noiseSourceR) { try { noiseSourceR.stop(); } catch(e){} noiseSourceR = null; }
-    if (gameMode === 'width' && !isCenter) startLoopWidth();
-    else startLoopPanning();
-    showToast(`Loop ${loopIdx + 1} / ${loopBuffers.length}`);
+  if (sourceType === 'loop' && loopFileNames.length > 0) {
+    loopIdx = ((loopIdx + delta) % loopFileNames.length + loopFileNames.length) % loopFileNames.length;
+    if (loopAudioEl) { loopAudioEl._currentFname = null; } // force reload
+    startAudio();
+    showToast(`Loop ${loopIdx + 1} / ${loopFileNames.length}`);
     return;
   }
 
-  if (sourceType === 'custom' && customBuffers.length > 0) {
-    if (noiseSource)  { noiseSource.onended = null; try { noiseSource.stop(); }  catch(e){} noiseSource = null; }
-    if (noiseSourceR) { noiseSourceR.onended = null; try { noiseSourceR.stop(); } catch(e){} noiseSourceR = null; }
-    customIdx   = ((customIdx + delta) % customBuffers.length + customBuffers.length) % customBuffers.length;
-    musicOffset = 0;
-    musicStartedAt = audioCtx.currentTime;
-    if (gameMode === 'width' && !isCenter) {
-      const buf = customBuffers[customIdx];
-      const srcL = audioCtx.createBufferSource(); srcL.buffer = buf; srcL.loop = false;
-      const srcR = audioCtx.createBufferSource(); srcR.buffer = buf; srcR.loop = false;
-      srcL.connect(pannerNode);  srcL.start(0);
-      srcR.connect(pannerNodeR); srcR.start(0);
-      noiseSource = srcL; noiseSourceR = srcR;
-    } else {
-      const src = audioCtx.createBufferSource();
-      src.buffer = customBuffers[customIdx]; src.loop = false;
-      src.connect(pannerNode); src.start(0); noiseSource = src;
-    }
-    showToast(`Track ${customIdx + 1} / ${customBuffers.length}`);
+  if (sourceType === 'custom' && customFiles.length > 0) {
+    customIdx = ((customIdx + delta) % customFiles.length + customFiles.length) % customFiles.length;
+    if (customAudioEl) { customAudioEl._currentFile = null; } // force reload
+    startAudio();
+    showToast(`Track ${customIdx + 1} / ${customFiles.length}`);
   }
 }
 
@@ -1302,9 +1253,9 @@ function setSource(type) {
     });
     return;
   }
-  if (type === 'loop' && !loopLoaded) {
+  if (type === 'loop' && !loopManifestLoaded) {
     loadLoopSamples().then(() => {
-      if (loopLoaded) { sourceType = 'loop'; updateSourceUI(); if (roundActive && isPlaying) startAudio(); }
+      if (loopManifestLoaded) { sourceType = 'loop'; updateSourceUI(); if (roundActive && isPlaying) startAudio(); }
     });
     return;
   }
@@ -1320,29 +1271,25 @@ function updateSourceUI() {
 }
 
 function triggerUpload() {
-  if (customBuffers.length > 0) { setSource('custom'); return; }
+  if (customFiles.length > 0) { setSource('custom'); return; }
   document.getElementById('folderInput').click();
 }
 
 async function handleFolderUpload(e) {
   const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
   if (!files.length) return;
-  initAudio(); customBuffers = [];
-  setLoadStatus(`Loading ${files.length} files…`, true);
-  for (const f of files) {
-    try {
-      const ab = await f.arrayBuffer();
-      customBuffers.push(await audioCtx.decodeAudioData(ab));
-    } catch(err) { console.warn(err); }
+  initAudio();
+  customFiles = files;
+  customIdx = 0;
+  // Reset streaming element so next play loads the new file
+  if (customAudioEl) {
+    if (customAudioEl._objectUrl) { URL.revokeObjectURL(customAudioEl._objectUrl); customAudioEl._objectUrl = null; }
+    customAudioEl._currentFile = null;
   }
-  if (customBuffers.length > 0) {
-    document.getElementById('uploadLabel').textContent = `📁 Folder (${customBuffers.length} tracks)`;
-    setLoadStatus(`${customBuffers.length} tracks loaded`, false);
-    setSource('custom');
-    showToast('Music loaded!');
-  } else {
-    setLoadStatus('No audio found', false);
-  }
+  document.getElementById('uploadLabel').textContent = `📁 Folder (${customFiles.length} tracks)`;
+  setLoadStatus(`${customFiles.length} tracks ready`, false);
+  setSource('custom');
+  showToast('Music loaded!');
 }
 
 // ── Sample loaders ────────────────────────────────────────────────────────────
@@ -1370,25 +1317,17 @@ async function loadOneShotSamples() {
 }
 
 async function loadLoopSamples() {
-  if (loopLoaded) return;
-  initAudio(); loopBuffers = [];
-  setLoadStatus('Loading loops…', true);
+  if (loopManifestLoaded) return;
+  initAudio();
   const manifest = await getManifest();
-  await Promise.all(manifest.loops.map(async fname => {
-    try {
-      const r = await fetch(`../samples/loops/${fname}`);
-      if (!r.ok) throw new Error();
-      loopBuffers.push({ name: fname.replace(/\.\w+$/, ''), buffer: await audioCtx.decodeAudioData(await r.arrayBuffer()) });
-    } catch(e) { console.warn('Could not load loop', fname); }
-  }));
-  loopBuffers.sort((a, b) => a.name.localeCompare(b.name));
-  loopLoaded = loopBuffers.length > 0;
-  if (!loopLoaded) {
+  loopFileNames = (manifest.loops || []).slice().sort();
+  loopManifestLoaded = loopFileNames.length > 0;
+  if (!loopManifestLoaded) {
     setLoadStatus('No loops found', false);
     showToast('No loops found');
     sourceType = 'pink'; updateSourceUI();
   } else {
-    setLoadStatus(`${loopBuffers.length} loops ready`, false);
+    setLoadStatus(`${loopFileNames.length} loops ready`, false);
   }
 }
 
