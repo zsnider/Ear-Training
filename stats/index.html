@@ -151,19 +151,76 @@
   .acc-bar-wrap { background: var(--surface2); border-radius: 4px; height: 6px; overflow: hidden; }
   .acc-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
 
-  /* ── Recent activity ─────────────────────────────────── */
+  /* ── Training plan ───────────────────────────────────── */
+  .plan-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px; margin-bottom: 48px;
+  }
+  @media (max-width: 700px) { .plan-grid { grid-template-columns: 1fr; } }
+
+  .plan-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 20px 20px 18px;
+    display: flex; flex-direction: column; gap: 10px;
+    position: relative; overflow: hidden;
+    transition: border-color 0.18s;
+  }
+  .plan-card:hover { border-color: var(--border2); }
+  .plan-card.priority-1 { border-color: rgba(91,106,255,0.35); }
+  .plan-card.priority-1:hover { border-color: rgba(91,106,255,0.6); }
+
+  .plan-rank {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .plan-card.priority-1 .plan-rank { color: var(--accent2); }
+
+  .plan-game-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px; font-weight: 600; color: var(--text);
+    line-height: 1.2;
+  }
+
+  .plan-reasons {
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .plan-reason {
+    font-size: 12px; color: var(--muted); line-height: 1.5;
+  }
+  .plan-reason span {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    padding: 1px 7px; border-radius: 20px; margin-right: 5px;
+  }
+  .plan-reason span.tag-accuracy  { background: rgba(244,91,105,0.12); color: var(--red);   border: 1px solid rgba(244,91,105,0.25); }
+  .plan-reason span.tag-stale     { background: rgba(245,158,11,0.12); color: var(--amber); border: 1px solid rgba(245,158,11,0.25); }
+  .plan-reason span.tag-unplayed  { background: rgba(91,106,255,0.12); color: var(--accent2); border: 1px solid rgba(91,106,255,0.25); }
+  .plan-reason span.tag-good      { background: rgba(62,207,142,0.1);  color: var(--green); border: 1px solid rgba(62,207,142,0.25); }
+
+  .plan-link {
+    display: inline-flex; align-items: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600; color: var(--accent2);
+    text-decoration: none; letter-spacing: 0.04em;
+    margin-top: 4px; transition: opacity 0.15s;
+  }
+  .plan-link:hover { opacity: 0.7; }
+
+  /* ── Last played ─────────────────────────────────────── */
   .activity-list { display: flex; flex-direction: column; gap: 8px; }
   .activity-row {
     display: flex; align-items: center; gap: 12px;
     background: var(--surface); border: 1px solid var(--border);
     border-radius: 10px; padding: 12px 16px;
-    font-size: 13px;
+    font-size: 13px; text-decoration: none; color: inherit;
+    transition: border-color 0.15s;
   }
-  .activity-dot {
-    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-  }
-  .activity-dot.correct { background: var(--green); }
-  .activity-dot.wrong   { background: var(--red); }
+  .activity-row:hover { border-color: var(--border2); }
+  .activity-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
   .activity-game { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--accent2); flex: 1; }
   .activity-score { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; color: var(--text); }
   .activity-time { font-size: 11px; color: var(--muted); white-space: nowrap; }
@@ -231,12 +288,16 @@
       </div>
     </div>
 
+    <!-- Training plan -->
+    <div class="section-label">Recommended Today</div>
+    <div class="plan-grid" id="planGrid"></div>
+
     <!-- Per-game breakdown -->
     <div class="section-label">Per Game</div>
     <div class="game-grid" id="gameGrid"></div>
 
-    <!-- Recent activity -->
-    <div class="section-label">Recent Activity</div>
+    <!-- Last played -->
+    <div class="section-label">Last Played</div>
     <div class="activity-list" id="activityList"></div>
 
   </div>
@@ -263,10 +324,21 @@ const GAME_LABELS = {
   'spatial-specialist': 'Spatial Specialist',
 };
 
+const GAME_PATHS = {
+  'eq-match':           '../eq-match/',
+  'compressor':         '../compressor/',
+  'quick-compress':     '../quick-compress/',
+  'reverb-master':      '../reverb-master/',
+  'distortion-master':  '../distortion-master/',
+  'freq-quiz':          '../freq-quiz/',
+  'freq-hunter':        '../freq-hunter/',
+  'spatial-specialist': '../spatial-specialist/',
+};
+
 function timeAgo(dateStr) {
   const diff = (Date.now() - new Date(dateStr)) / 1000;
-  if (diff < 60)   return 'just now';
-  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+  if (diff < 60)    return 'just now';
+  if (diff < 3600)  return Math.floor(diff / 60) + 'm ago';
   if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
   return Math.floor(diff / 86400) + 'd ago';
 }
@@ -277,15 +349,165 @@ function accColor(pct) {
   return 'var(--red)';
 }
 
-function buildGameCard(game, rows) {
-  const total   = rows.length;
+// ── Recommendation algorithm ──────────────────────────────
+// Priority score per game:
+//   Never played  → 200 (always top)
+//   Otherwise     → accuracy component (0–100) × 0.6
+//                 + recency component  (0–100) × 0.4
+// Accuracy component: (100 − accPct) — lower accuracy = higher priority
+// Recency component:  days since last played, capped at 14d, scaled 0–100
+function getRecommendations(byGame) {
+  const ALL_GAMES = Object.keys(GAME_LABELS);
+
+  const scored = ALL_GAMES.map(game => {
+    const rows = byGame[game];
+
+    if (!rows || rows.length === 0) {
+      return { game, priority: 200, tags: ['unplayed'], accPct: null, lastPlayed: null };
+    }
+
+    const correct = rows.filter(r => r.correct).length;
+    const accPct  = Math.round(correct / rows.length * 100);
+    const lastPlayed = new Date(rows[0].created_at);
+    const daysSince  = (Date.now() - lastPlayed) / 86400000;
+
+    const accComponent   = 100 - accPct;
+    const staleComponent = Math.min(daysSince, 14) / 14 * 100;
+    const priority       = accComponent * 0.6 + staleComponent * 0.4;
+
+    const tags = [];
+    if (accPct < 50)    tags.push('accuracy');
+    if (daysSince > 5)  tags.push('stale');
+    if (tags.length === 0) tags.push('good');
+
+    return { game, priority, tags, accPct, lastPlayed, daysSince };
+  });
+
+  return scored.sort((a, b) => b.priority - a.priority).slice(0, 3);
+}
+
+function buildPlanCard(rec, rank) {
+  const label = GAME_LABELS[rec.game];
+  const path  = GAME_PATHS[rec.game];
+  const rankLabels = ['Focus First', 'Also Practice', 'Worth Revisiting'];
+  const rankLabel  = rankLabels[rank] || 'Practice';
+
+  let reasonHTML = '';
+
+  if (rec.tags.includes('unplayed')) {
+    reasonHTML += `<div class="plan-reason"><span class="tag-unplayed">New</span> You haven't tried this one yet.</div>`;
+  } else {
+    if (rec.tags.includes('accuracy')) {
+      reasonHTML += `<div class="plan-reason"><span class="tag-accuracy">Accuracy ${rec.accPct}%</span> Room to improve here.</div>`;
+    } else {
+      reasonHTML += `<div class="plan-reason"><span class="tag-good">Accuracy ${rec.accPct}%</span> Solid — keep it sharp.</div>`;
+    }
+    if (rec.tags.includes('stale')) {
+      const daysStr = rec.daysSince < 1 ? 'today' : Math.round(rec.daysSince) + 'd ago';
+      reasonHTML += `<div class="plan-reason"><span class="tag-stale">Last played ${daysStr}</span> Due for a session.</div>`;
+    }
+  }
+
+  return `
+    <div class="plan-card ${rank === 0 ? 'priority-1' : ''}">
+      <div class="plan-rank">${rankLabel}</div>
+      <div class="plan-game-name">${label}</div>
+      <div class="plan-reasons">${reasonHTML}</div>
+      <a class="plan-link" href="${path}">Play now →</a>
+    </div>`;
+}
+
+// ── Last played (one row per game) ────────────────────────
+function buildLastPlayedRow(game, byGame) {
+  const rows  = byGame[game];
+  const label = GAME_LABELS[game] || game;
+  const path  = GAME_PATHS[game] || '../';
+
+  if (!rows || rows.length === 0) {
+    return `
+      <a class="activity-row" href="${path}">
+        <div class="activity-dot" style="background:var(--border2)"></div>
+        <div class="activity-game">${label}</div>
+        <div class="activity-score" style="color:var(--muted);font-size:12px;">—</div>
+        <div class="activity-time">Never played</div>
+      </a>`;
+  }
+
   const correct = rows.filter(r => r.correct).length;
-  const accPct  = total ? Math.round(correct / total * 100) : 0;
-  const scored  = rows.filter(r => r.round_score !== null);
+  const accPct  = Math.round(correct / rows.length * 100);
+  const col     = accColor(accPct);
+
+  return `
+    <a class="activity-row" href="${path}">
+      <div class="activity-dot" style="background:${col}"></div>
+      <div class="activity-game">${label}</div>
+      <div class="activity-score" style="color:${col}">${accPct}%</div>
+      <div class="activity-time">${timeAgo(rows[0].created_at)}</div>
+    </a>`;
+}
+
+async function loadStats(user) {
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('mainContent').style.display  = 'block';
+  document.getElementById('subheader').textContent = user.email;
+
+  const scores = await SonicSandbox.getScores();
+
+  if (!scores.length) {
+    document.getElementById('summaryRow').innerHTML =
+      '<div class="empty-state" style="grid-column:1/-1">No rounds played yet — jump into a game!</div>';
+    document.getElementById('planGrid').innerHTML     = '';
+    document.getElementById('gameGrid').innerHTML     = '';
+    document.getElementById('activityList').innerHTML = '';
+    return;
+  }
+
+  // Overall stats
+  const total    = scores.length;
+  const correct  = scores.filter(s => s.correct).length;
+  const accPct   = Math.round(correct / total * 100);
+  const scored   = scores.filter(s => s.round_score !== null);
+  const avgScore = scored.length
+    ? Math.round(scored.reduce((s, r) => s + r.round_score, 0) / scored.length)
+    : '—';
+  const gamesPlayed = new Set(scores.map(s => s.game)).size;
+
+  document.getElementById('statTotal').textContent    = total;
+  document.getElementById('statAccuracy').textContent = accPct + '%';
+  document.getElementById('statAvgScore').textContent = avgScore;
+  document.getElementById('statGames').textContent    = gamesPlayed;
+
+  // Group by game (scores already sorted newest-first from Supabase)
+  const byGame = {};
+  scores.forEach(s => { (byGame[s.game] = byGame[s.game] || []).push(s); });
+
+  // Training plan
+  const recs = getRecommendations(byGame);
+  document.getElementById('planGrid').innerHTML = recs.map((r, i) => buildPlanCard(r, i)).join('');
+
+  // Per-game cards, sorted by most rounds played
+  const sortedGames = Object.keys(byGame).sort((a, b) => byGame[b].length - byGame[a].length);
+  document.getElementById('gameGrid').innerHTML = sortedGames.map(g => buildGameCard(g, byGame[g])).join('');
+
+  // Last played — all 8 games, played ones sorted by recency, unplayed at bottom
+  const allGames   = Object.keys(GAME_LABELS);
+  const playedGames   = allGames.filter(g =>  byGame[g]).sort((a, b) =>
+    new Date(byGame[b][0].created_at) - new Date(byGame[a][0].created_at));
+  const unplayedGames = allGames.filter(g => !byGame[g]);
+  const orderedGames  = [...playedGames, ...unplayedGames];
+
+  document.getElementById('activityList').innerHTML =
+    orderedGames.map(g => buildLastPlayedRow(g, byGame)).join('');
+}
+
+function buildGameCard(game, rows) {
+  const total    = rows.length;
+  const correct  = rows.filter(r => r.correct).length;
+  const accPct   = total ? Math.round(correct / total * 100) : 0;
+  const scored   = rows.filter(r => r.round_score !== null);
   const avgScore = scored.length
     ? Math.round(scored.reduce((s, r) => s + r.round_score, 0) / scored.length)
     : null;
-
   const col = accColor(accPct);
 
   return `
@@ -318,61 +540,6 @@ function buildGameCard(game, rows) {
     </div>`;
 }
 
-function buildActivityRow(row) {
-  const label = GAME_LABELS[row.game] || row.game;
-  const scoreStr = row.round_score !== null ? row.round_score : (row.correct ? '✓' : '✗');
-  return `
-    <div class="activity-row">
-      <div class="activity-dot ${row.correct ? 'correct' : 'wrong'}"></div>
-      <div class="activity-game">${label}</div>
-      <div class="activity-score">${scoreStr}</div>
-      <div class="activity-time">${timeAgo(row.created_at)}</div>
-    </div>`;
-}
-
-async function loadStats(user) {
-  document.getElementById('loadingState').style.display = 'none';
-  document.getElementById('mainContent').style.display  = 'block';
-  document.getElementById('subheader').textContent = user.email;
-
-  const scores = await SonicSandbox.getScores();
-
-  if (!scores.length) {
-    document.getElementById('summaryRow').innerHTML =
-      '<div class="empty-state" style="grid-column:1/-1">No rounds played yet — jump into a game!</div>';
-    document.getElementById('gameGrid').innerHTML = '';
-    document.getElementById('activityList').innerHTML = '';
-    return;
-  }
-
-  // Overall stats
-  const total    = scores.length;
-  const correct  = scores.filter(s => s.correct).length;
-  const accPct   = Math.round(correct / total * 100);
-  const scored   = scores.filter(s => s.round_score !== null);
-  const avgScore = scored.length
-    ? Math.round(scored.reduce((s, r) => s + r.round_score, 0) / scored.length)
-    : '—';
-  const gamesPlayed = new Set(scores.map(s => s.game)).size;
-
-  document.getElementById('statTotal').textContent    = total;
-  document.getElementById('statAccuracy').textContent = accPct + '%';
-  document.getElementById('statAvgScore').textContent = avgScore;
-  document.getElementById('statGames').textContent    = gamesPlayed;
-
-  // Group by game
-  const byGame = {};
-  scores.forEach(s => { (byGame[s.game] = byGame[s.game] || []).push(s); });
-
-  // Sort games by most rounds played
-  const sortedGames = Object.keys(byGame).sort((a, b) => byGame[b].length - byGame[a].length);
-  document.getElementById('gameGrid').innerHTML = sortedGames.map(g => buildGameCard(g, byGame[g])).join('');
-
-  // Recent 20 rounds
-  const recent = scores.slice(0, 20);
-  document.getElementById('activityList').innerHTML = recent.map(buildActivityRow).join('');
-}
-
 async function resetGame(game, btn) {
   const label = GAME_LABELS[game] || game;
   if (!confirm(`Reset all scores for ${label}? This cannot be undone.`)) return;
@@ -394,7 +561,6 @@ async function resetGame(game, btn) {
     return;
   }
 
-  // Reload the full stats view
   await loadStats(user);
 }
 
