@@ -60,6 +60,16 @@
   }
   .nav-logo span { color: var(--accent2); }
 
+  .nav-center {
+    display: flex; align-items: center; gap: 28px;
+  }
+
+  .nav-link {
+    font-size: 13px; font-weight: 500; color: var(--muted);
+    text-decoration: none; transition: color 0.15s;
+  }
+  .nav-link:hover, .nav-link.active { color: var(--text); }
+
   .nav-right {
     display: flex; align-items: center; gap: 12px;
   }
@@ -355,6 +365,11 @@
 <!-- Nav -->
 <nav>
   <a class="nav-logo" href="/">Sonic<span>Sandbox</span></a>
+  <div class="nav-center">
+    <a class="nav-link active" href="/">Games</a>
+    <a class="nav-link" href="/about/">About</a>
+    <a class="nav-link" href="/stats/">Stats</a>
+  </div>
   <div class="nav-right">
     <div id="authArea">
       <button class="auth-btn" id="openAuthBtn">Sign in</button>
@@ -593,7 +608,7 @@
 <footer>
   <div class="footer-left">
     <a href="/">SonicSandbox</a>
-    &nbsp;·&nbsp; Ear training for sound engingeers, producers, & musicians  &nbsp;·&nbsp; Open in Chrome or Safari for best audio support
+    &nbsp;·&nbsp; Ear training for sound engineers, producers, & musicians  &nbsp;·&nbsp; Open in Chrome or Safari for best audio support
   </div>
   <div class="footer-right">
     <a class="bmac-btn" href="https://www.buymeacoffee.com/sonicsandbox" target="_blank" rel="noopener" style="font-size:12px; padding:6px 13px;">

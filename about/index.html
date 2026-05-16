@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About — SonicSandbox</title>
+<meta name="description" content="Learn how ear training works, what each SonicSandbox game trains, and best practices for developing your listening skills as a producer or engineer.">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg:       #0a0b0d;
+    --surface:  #13151a;
+    --surface2: #1a1d24;
+    --border:   rgba(255,255,255,0.08);
+    --border2:  rgba(255,255,255,0.14);
+    --text:     #dde2ee;
+    --muted:    #6b7280;
+    --accent:   #5b6aff;
+    --accent2:  #8892ff;
+    --eq-accent:    #5b6aff;
+    --eq-accent2:   #8892ff;
+    --comp-accent:  #e8865a;
+    --comp-accent2: #f0a882;
+    --rev-accent:   #5b3fd4;
+    --rev-accent2:  #8b6fff;
+    --dist-accent:  #d44a2a;
+    --dist-accent2: #f07050;
+    --fq-accent:    #00d4ff;
+    --fq-accent2:   #60e8ff;
+    --fh-accent:    #00e5cc;
+    --fh-accent2:   #50f0d8;
+    --pan-accent:   #7c5cfc;
+    --pan-accent2:  #a58aff;
+    --qc-accent:    #2dd4a0;
+    --qc-accent2:   #5eefc0;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+  }
+
+  /* ── Nav ──────────────────────────────────────────────── */
+  nav {
+    width: 100%; max-width: 1600px;
+    padding: 20px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .nav-logo {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 17px; font-weight: 600;
+    color: var(--text); text-decoration: none;
+    letter-spacing: -0.01em;
+  }
+  .nav-logo span { color: var(--accent2); }
+
+  .nav-center {
+    display: flex; align-items: center; gap: 28px;
+  }
+
+  .nav-link {
+    font-size: 13px; font-weight: 500; color: var(--muted);
+    text-decoration: none; transition: color 0.15s;
+  }
+  .nav-link:hover, .nav-link.active { color: var(--text); }
+
+  .nav-right {
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .bmac-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: #FFDD00; color: #000;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px; font-weight: 600;
+    padding: 8px 16px; border-radius: 8px;
+    text-decoration: none;
+    transition: opacity 0.15s, transform 0.15s;
+    white-space: nowrap;
+  }
+  .bmac-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+  .bmac-btn svg { flex-shrink: 0; }
+
+  /* ── Hero ─────────────────────────────────────────────── */
+  header {
+    width: 100%; max-width: 860px;
+    padding: 60px 24px 20px;
+    text-align: center;
+  }
+
+  .site-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 20px;
+  }
+
+  .site-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(26px, 4vw, 44px);
+    font-weight: 600; letter-spacing: -0.03em; line-height: 1.15;
+    color: var(--text); margin-bottom: 10px;
+  }
+
+  .site-subtitle {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(14px, 2vw, 20px);
+    font-weight: 400; letter-spacing: -0.01em;
+    background: linear-gradient(90deg, var(--accent2), var(--fq-accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 20px;
+  }
+
+  .site-sub {
+    font-size: 16px; color: var(--muted); font-weight: 300;
+    max-width: 560px; margin: 0 auto 56px; line-height: 1.7;
+  }
+
+  /* ── Content wrapper ─────────────────────────────────── */
+  .content {
+    width: 100%; max-width: 860px;
+    padding: 0 24px 100px;
+    display: flex; flex-direction: column; gap: 72px;
+  }
+
+  /* ── Section heading ─────────────────────────────────── */
+  .section-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(20px, 3vw, 28px);
+    font-weight: 600; letter-spacing: -0.02em;
+    color: var(--text); margin-bottom: 20px; line-height: 1.2;
+  }
+
+  .section-body {
+    font-size: 15px; color: var(--muted);
+    line-height: 1.8; font-weight: 300;
+  }
+
+  .section-body p + p { margin-top: 16px; }
+
+  .section-body strong {
+    color: var(--text); font-weight: 500;
+  }
+
+  /* ── Divider ─────────────────────────────────────────── */
+  .divider {
+    border: none; border-top: 1px solid var(--border);
+    margin: 0;
+  }
+
+  /* ── Source tiles ────────────────────────────────────── */
+  .source-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin-top: 28px;
+  }
+  @media (max-width: 600px) { .source-grid { grid-template-columns: 1fr; } }
+
+  .source-tile {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 22px 20px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+
+  .source-tile-header {
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .source-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+
+  .source-icon.pink  { background: rgba(91,106,255,0.18); }
+  .source-icon.shots { background: rgba(232,134,90,0.18); }
+  .source-icon.loops { background: rgba(45,212,160,0.18); }
+  .source-icon.files { background: rgba(124,92,252,0.18); }
+
+  .source-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px; font-weight: 600; color: var(--text);
+  }
+
+  .source-badge {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.06em;
+    text-transform: uppercase; padding: 2px 8px; border-radius: 20px;
+    margin-left: auto;
+  }
+  .source-badge.default {
+    background: rgba(91,106,255,0.14); color: var(--accent2);
+    border: 1px solid rgba(91,106,255,0.25);
+  }
+  .source-badge.new {
+    background: rgba(45,212,160,0.12); color: var(--qc-accent2);
+    border: 1px solid rgba(45,212,160,0.25);
+  }
+
+  .source-desc {
+    font-size: 13px; color: var(--muted); line-height: 1.65; font-weight: 300;
+  }
+
+  /* ── Game breakdown ──────────────────────────────────── */
+  .game-list {
+    display: flex; flex-direction: column; gap: 16px;
+    margin-top: 28px;
+  }
+
+  .game-row {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 22px 22px;
+    display: grid; grid-template-columns: 48px 1fr; gap: 18px;
+    align-items: start;
+    transition: border-color 0.18s;
+  }
+
+  .game-row.eq:hover   { border-color: rgba(91,106,255,0.4); }
+  .game-row.comp:hover { border-color: rgba(232,134,90,0.4); }
+  .game-row.qc:hover   { border-color: rgba(45,212,160,0.4); }
+  .game-row.rev:hover  { border-color: rgba(91,63,212,0.4); }
+  .game-row.dist:hover { border-color: rgba(212,74,42,0.4); }
+  .game-row.fq:hover   { border-color: rgba(0,212,255,0.4); }
+  .game-row.fh:hover   { border-color: rgba(0,229,204,0.4); }
+  .game-row.pan:hover  { border-color: rgba(124,92,252,0.4); }
+
+  .game-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .game-row.eq   .game-icon { background: var(--eq-accent); }
+  .game-row.comp .game-icon { background: var(--comp-accent); }
+  .game-row.qc   .game-icon { background: var(--qc-accent); }
+  .game-row.rev  .game-icon { background: var(--rev-accent); }
+  .game-row.dist .game-icon { background: var(--dist-accent); }
+  .game-row.fq   .game-icon { background: var(--fq-accent); }
+  .game-row.fh   .game-icon { background: var(--fh-accent); }
+  .game-row.pan  .game-icon { background: var(--pan-accent); }
+
+  .game-body {}
+
+  .game-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 6px; flex-wrap: wrap;
+  }
+
+  .game-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px; font-weight: 600;
+  }
+  .game-row.eq   .game-name { color: var(--eq-accent2); }
+  .game-row.comp .game-name { color: var(--comp-accent2); }
+  .game-row.qc   .game-name { color: var(--qc-accent2); }
+  .game-row.rev  .game-name { color: var(--rev-accent2); }
+  .game-row.dist .game-name { color: var(--dist-accent2); }
+  .game-row.fq   .game-name { color: var(--fq-accent2); }
+  .game-row.fh   .game-name { color: var(--fh-accent2); }
+  .game-row.pan  .game-name { color: var(--pan-accent2); }
+
+  .game-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+  .game-tag {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.04em;
+    border-radius: 20px; padding: 2px 8px;
+  }
+  .game-row.eq   .game-tag { background:rgba(91,106,255,0.12);  color:var(--eq-accent2);   border:1px solid rgba(91,106,255,0.25); }
+  .game-row.comp .game-tag { background:rgba(232,134,90,0.12);  color:var(--comp-accent2); border:1px solid rgba(232,134,90,0.25); }
+  .game-row.qc   .game-tag { background:rgba(45,212,160,0.08);  color:var(--qc-accent2);   border:1px solid rgba(45,212,160,0.25); }
+  .game-row.rev  .game-tag { background:rgba(91,63,212,0.12);   color:var(--rev-accent2);  border:1px solid rgba(91,63,212,0.3); }
+  .game-row.dist .game-tag { background:rgba(212,74,42,0.12);   color:var(--dist-accent2); border:1px solid rgba(212,74,42,0.3); }
+  .game-row.fq   .game-tag { background:rgba(0,212,255,0.08);   color:var(--fq-accent2);   border:1px solid rgba(0,212,255,0.2); }
+  .game-row.fh   .game-tag { background:rgba(0,229,204,0.08);   color:var(--fh-accent2);   border:1px solid rgba(0,229,204,0.2); }
+  .game-row.pan  .game-tag { background:rgba(124,92,252,0.08);  color:var(--pan-accent2);  border:1px solid rgba(124,92,252,0.25); }
+
+  .game-desc {
+    font-size: 13px; color: var(--muted); line-height: 1.65; font-weight: 300;
+    margin-bottom: 10px;
+  }
+
+  .game-trains {
+    font-size: 12px; color: var(--muted); line-height: 1.6;
+  }
+  .game-trains strong { color: var(--text); font-weight: 500; }
+
+  /* ── Best practices ──────────────────────────────────── */
+  .practice-list {
+    display: flex; flex-direction: column; gap: 12px;
+    margin-top: 28px;
+  }
+
+  .practice-item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px 20px;
+    display: grid; grid-template-columns: 28px 1fr; gap: 14px;
+    align-items: start;
+  }
+
+  .practice-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; font-weight: 600;
+    color: var(--accent2); padding-top: 2px;
+  }
+
+  .practice-text {
+    font-size: 14px; color: var(--muted); line-height: 1.65; font-weight: 300;
+  }
+  .practice-text strong { color: var(--text); font-weight: 500; }
+
+  /* ── CTA strip ───────────────────────────────────────── */
+  .cta-strip {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 40px 36px;
+    text-align: center; display: flex; flex-direction: column;
+    align-items: center; gap: 16px;
+  }
+
+  .cta-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(18px, 3vw, 24px); font-weight: 600;
+    color: var(--text); letter-spacing: -0.02em;
+  }
+
+  .cta-sub {
+    font-size: 14px; color: var(--muted); font-weight: 300; max-width: 420px; line-height: 1.65;
+  }
+
+  .cta-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent); color: #fff;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px; font-weight: 600;
+    padding: 12px 24px; border-radius: 10px;
+    text-decoration: none;
+    transition: opacity 0.15s, transform 0.15s;
+  }
+  .cta-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+
+  /* ── Glossary ────────────────────────────────────────── */
+  .glossary-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 12px; margin-top: 28px;
+  }
+  @media (max-width: 600px) { .glossary-grid { grid-template-columns: 1fr; } }
+
+  .glossary-item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 18px;
+  }
+
+  .glossary-term {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; font-weight: 600; color: var(--accent2);
+    letter-spacing: 0.04em; margin-bottom: 6px;
+  }
+
+  .glossary-def {
+    font-size: 13px; color: var(--muted); line-height: 1.6; font-weight: 300;
+  }
+
+  /* ── Footer ──────────────────────────────────────────── */
+  footer {
+    margin-top: auto;
+    width: 100%; border-top: 1px solid var(--border);
+    padding: 28px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .footer-left {
+    font-size: 13px; color: var(--muted);
+  }
+  .footer-left a {
+    color: var(--muted); text-decoration: none;
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  }
+  .footer-left a:hover { color: var(--text); }
+  .footer-right {
+    font-size: 12px; color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <a class="nav-logo" href="/">Sonic<span>Sandbox</span></a>
+  <div class="nav-center">
+    <a class="nav-link" href="/">Games</a>
+    <a class="nav-link active" href="/about/">About</a>
+    <a class="nav-link" href="/stats/">Stats</a>
+  </div>
+  <div class="nav-right">
+    <a class="bmac-btn" href="https://www.buymeacoffee.com/sonicsandbox" target="_blank" rel="noopener">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M18 8h1a4 4 0 0 1 0 8h-1" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <line x1="6" y1="1" x2="6" y2="4" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+        <line x1="10" y1="1" x2="10" y2="4" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+        <line x1="14" y1="1" x2="14" y2="4" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      Buy me a coffee
+    </a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header>
+  <p class="site-eyebrow">SonicSandbox · About</p>
+  <h1 class="site-title">Your ears are your most important instrument.</h1>
+  <p class="site-subtitle">Here's how to train them.</p>
+  <p class="site-sub">
+    A guide to ear training, how each SonicSandbox game works, and the best practices that separate good listeners from great ones.
+  </p>
+</header>
+
+<!-- Main content -->
+<div class="content">
+
+  <!-- What is ear training -->
+  <section>
+    <p class="section-eyebrow">The Basics</p>
+    <h2 class="section-title">What is ear training?</h2>
+    <div class="section-body">
+      <p>
+        Ear training is the practice of developing your ability to identify and understand what you're hearing — frequencies, dynamics, space, and texture. Just like sight-reading music or learning an instrument, it's a skill that improves with deliberate, consistent practice.
+      </p>
+      <p>
+        Experienced mixing engineers don't reach for an analyzer every time they hear a problem — they hear it first. They can tell a 2kHz harshness from a 4kHz one, or notice that a compressor is pumping without looking at a meter. That intuition is built through thousands of hours of critical listening. <strong>SonicSandbox exists to accelerate that process.</strong>
+      </p>
+      <p>
+        The core idea is simple: expose yourself to processed audio, make a judgment call, and immediately get feedback on whether you were right. Over time, your brain builds a reference library of sonic signatures. Frequencies start to have colors. Compression starts to have a feel. Space starts to have a shape.
+      </p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- Why it matters -->
+  <section>
+    <p class="section-eyebrow">Why It Matters</p>
+    <h2 class="section-title">What better ears actually get you</h2>
+    <div class="section-body">
+      <p>
+        <strong>Faster decisions.</strong> When your ears know what to listen for, you spend less time second-guessing and more time making music. You stop asking "is this too bright?" and just know.
+      </p>
+      <p>
+        <strong>Better mixes.</strong> Most mixing problems aren't visible on a spectrum analyzer — they're felt. Muddiness, harshness, a kick that doesn't punch, a vocal that doesn't sit. Trained ears catch these faster and solve them with fewer moves.
+      </p>
+      <p>
+        <strong>Stronger communication.</strong> When you can describe what you're hearing precisely — "there's a low-mid buildup around 300Hz" or "the attack is too fast, the transients are being buried" — you communicate more effectively with collaborators, clients, and yourself.
+      </p>
+      <p>
+        <strong>Translation across systems.</strong> If you can hear how a mix sounds, not just how it measures, you'll catch problems before they appear on other speakers. Great ears are the ultimate reference monitor.
+      </p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- Audio sources -->
+  <section>
+    <p class="section-eyebrow">Audio Sources</p>
+    <h2 class="section-title">Train with any audio — including your own music</h2>
+    <div class="section-body">
+      <p>
+        Every SonicSandbox game supports four audio source modes. Different sources serve different learning goals — and training on music you already know is one of the most powerful things you can do.
+      </p>
+    </div>
+
+    <div class="source-grid">
+
+      <div class="source-tile">
+        <div class="source-tile-header">
+          <span style="width:8px;height:8px;border-radius:50%;background:#f472b6;flex-shrink:0;display:inline-block;margin-top:1px;"></span>
+          <div class="source-name">Pink Noise</div>
+          <span class="source-badge default">Default</span>
+        </div>
+        <p class="source-desc">
+          A broadband signal with equal energy per octave. Pink noise is the cleanest training signal — nothing to distract you, just the processing itself. Great for learning a concept from scratch before bringing in music.
+        </p>
+      </div>
+
+      <div class="source-tile">
+        <div class="source-tile-header">
+          <span style="width:8px;height:8px;border-radius:50%;background:#f0a882;flex-shrink:0;display:inline-block;margin-top:1px;"></span>
+          <div class="source-name">One Shots</div>
+        </div>
+        <p class="source-desc">
+          Short transient sounds like claps and snares. One shots train your ears to catch fast dynamic events — compression artifacts, transient shaping, and frequency coloring all become more obvious on tight percussive material. More sounds coming soon.
+        </p>
+      </div>
+
+      <div class="source-tile">
+        <div class="source-tile-header">
+          <span style="width:8px;height:8px;border-radius:50%;background:#5eefc0;flex-shrink:0;display:inline-block;margin-top:1px;"></span>
+          <div class="source-name">Loops</div>
+        </div>
+        <p class="source-desc">
+          Real music loops across genres and arrangements. Training on loops puts your skills in a real-world musical context — you're no longer identifying EQ on a test signal, you're hearing it on a drum groove or a chord progression. This is where fundamentals become instincts.
+        </p>
+      </div>
+
+      <div class="source-tile">
+        <div class="source-tile-header">
+          <span style="width:8px;height:8px;border-radius:50%;background:#a58aff;flex-shrink:0;display:inline-block;margin-top:1px;"></span>
+          <div class="source-name">Your Files</div>
+          <span class="source-badge new">Powerful</span>
+        </div>
+        <p class="source-desc">
+          Upload an entire folder of your own music and the games cycle through your tracks automatically. Training on music you've produced or mixed is uniquely effective — because you already know what it sounds like clean, any processing immediately stands out.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- The 8 games -->
+  <section>
+    <p class="section-eyebrow">The Games</p>
+    <h2 class="section-title">Precision tools. Rapid-fire games.</h2>
+    <div class="section-body">
+      <p>
+        SonicSandbox games fall into two categories. <strong>EQ Match, Compressor, Reverb Master, and Distortion Master</strong> are deep, technical tools — fully customizable, with the ability to isolate any individual parameter so you can focus on learning one thing at a time. <strong>Freq Quiz, Freq Hunter, Quick Compress, and Spatial Specialist</strong> are built for speed — one click to answer, instant next round, designed for rapid reps and quick self-quizzing.
+      </p>
+    </div>
+
+    <div class="game-list">
+
+      <!-- EQ Match -->
+      <div class="game-row eq">
+        <div class="game-icon">
+          <svg width="24" height="24" viewBox="0 0 26 26" fill="none">
+            <path d="M2 13 Q5 13 7 8 Q9 3 11 13 Q13 23 15 13 Q17 3 19 8 Q21 13 24 13"
+                  stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+        </div>
+        <div class="game-body">
+          <div class="game-header">
+            <div class="game-name">EQ Match</div>
+            <div class="game-tags">
+              <span class="game-tag">Frequency</span>
+              <span class="game-tag">Gain</span>
+              <span class="game-tag">Q / Resonance</span>
+              <span class="game-tag">6 Filter Types</span>
+            </div>
+          </div>
+          <p class="game-desc">
+            The most customizable game on SonicSandbox. A hidden EQ curve is applied to the audio and you drag your own bands to match it by ear. Every aspect of the challenge is configurable: enable one band or several, choose from 6 filter types (peaking, high shelf, low shelf, high pass, low pass, notch), set the dB range, toggle boost-only or cut-only mode, restrict the Hz range, and dial in Q width constraints. For focused study, you can isolate a single parameter — match only the frequency while gain is revealed, or match only the gain while frequency is locked — so you can drill exactly where your ears need work.
+          </p>
+          <p class="game-trains">
+            <strong>What it trains:</strong> Frequency identification across the full spectrum, understanding how gain and Q shape a sound, and recognizing how each filter type colors audio differently. The most technically demanding game for anyone serious about EQ literacy.
+          </p>
+        </div>
+      </div>
+
+      <!-- Compressor -->
+      <div class="game-row comp">
+        <div class="game-icon">
+          <svg width="24" height="24" viewBox="0 0 26 26" fill="none">
+            <path d="M5.5 19.5 A10 10 0 1 1 20.5 19.5" stroke="rgba(255,255,255,0.3)" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M5.5 19.5 A10 10 0 1 1 18 7.3" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+            <circle cx="13" cy="13" r="3.5" fill="white"/>
+            <line x1="13" y1="13" x2="18" y2="7.3" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="game-body">
+          <div class="game-header">
+            <div class="game-name">Compressor</div>
+            <div class="game-tags">
+              <span class="game-tag">Threshold</span>
+              <span class="game-tag">Ratio</span>
+              <span class="game-tag">Attack / Release</span>
+              <span class="game-tag">Knee</span>
+            </div>
+          </div>
+          <p class="game-desc">
+            A target compressor with hidden settings is applied to the audio. You dial in your own compressor — threshold, ratio, attack, release, and knee — to match what you hear, then toggle between your attempt and the target to compare. The game is highly customizable: you can isolate any single parameter, so if you want to drill just attack recognition while the other knobs are revealed, you can. This makes it equally useful for beginners learning what compression does and experienced engineers sharpening their precision.
+          </p>
+          <p class="game-trains">
+            <strong>What it trains:</strong> A deep understanding of how each compressor parameter shapes sound — how threshold affects how much gets compressed, how ratio controls the squash, how attack and release time the dynamic response, and how knee smooths the transition into gain reduction.
+          </p>
+        </div>
+      </div>
+
+      <!-- Quick Compress -->
+      <div class="game-row qc">
+        <div class="game-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="6" width="9" height="12" rx="3" stroke="white" stroke-width="1.8" fill="none" opacity="0.5"/>
+            <rect x="13" y="9" width="9" height="6" rx="2.5" stroke="white" stroke-width="1.8" fill="none"/>
+            <line x1="11" y1="12" x2="13" y2="12" stroke="white" stroke-width="1.8" stroke-linecap="round" opacity="0.6"/>
+          </svg>
+        </div>
+        <div class="game-body">
+          <div class="game-header">
+            <div class="game-name">Quick Compress</div>
+            <div class="game-tags">
+              <span class="game-tag">A/B Listen</span>
+              <span class="game-tag">Compressed vs Dry</span>
+              <span class="game-tag">Timed Rounds</span>
+            </div>
+          </div>
+          <p class="game-desc">
+            Two audio clips play in quick succession — one compressed, one dry. Click the one you think is compressed and the next round begins immediately. No setup, no dialing — just listen and decide. It's the fastest way to build instinctive compression recognition through pure repetition.
+          </p>
+          <p class="game-trains">
+            <strong>What it trains:</strong> Rapid, instinctive recognition of compression's sonic signature — the reduced dynamic range, softened transients, and slight density that compression adds. Designed for high-rep speed training rather than deep technical analysis.
+          </p>
+        </div>
+      </div>
+
+      <!-- Reverb Master -->
+      <div class="game-row rev">
+        <div class="game-icon">
+          <svg width="24" height="24" viewBox="0 0 20 20" fill="none">
+            <path d="M2 10 Q4 6.5 6 10 Q8 13.5 10 10 Q12 7 14 10 Q16 12.5 18 10"
+                  stroke="white" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+            <path d="M2 10 Q4 7 6 10 Q8 13 10 10 Q12 7.5 14 10 Q15.5 11.5 17 10"
+                  stroke="white" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.5"/>
+            <path d="M2 10 Q4 7.5 6 10 Q8 12.5 10 10 Q11.5 8 13 10"
+                  stroke="white" stroke-width="0.7" stroke-linecap="round" fill="none" opacity="0.25"/>
+          </svg>
+        </div>
+        <div class="game-body">
+          <div class="game-header">
+            <div class="game-name">Reverb Master</div>
+            <div class="game-tags">
+              <span class="game-tag">Room Size</span>
+              <span class="game-tag">Decay</span>
+              <span class="game-tag">Pre-Delay</span>
+              <span class="game-tag">Damping</span>
+              <span class="game-tag">Wet / Dry</span>
+            </div>
+          </div>
+          <p class="game-desc">
+            A reverb with hidden parameters is applied to the audio. You adjust room size, decay time, pre-delay, high-frequency damping, and wet/dry mix to match what you hear, then toggle between your attempt and the target to compare. Like the Compressor, you can isolate any single parameter — practice just room size while the rest are shown, or just pre-delay while everything else is locked. Matching reverb by ear is one of the harder skills in mixing — Reverb Master lets you build it one parameter at a time.
+          </p>
+          <p class="game-trains">
+            <strong>What it trains:</strong> Spatial perception and reverb literacy — hearing the difference between a small room and a large hall, recognizing how pre-delay creates separation between a source and its tail, and understanding how damping shapes the character of a space.
+          </p>
+        </div>
+      </div>
+
+      <!-- Distortion Master -->
+      <div class="game-row dist">
+        <div class="game-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <polyline points="1,12 5,12 6,5 7,19 8,5 9,19 10,12 14,12 15,7 16,17 17,7 18,17 19,12 23,12"
+                      stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+        </div>
+        <div class="game-body">
+          <div class="game-header">
+            <div class="game-name">Distortion Master</div>
+            <div class="game-tags">
+              <span class="game-tag">Drive</span>
+              <span class="game-tag">Soft Clip</span>
+              <span class="game-tag">Hard Clip</span>
+              <span class="game-tag">Tape</span>
+              <span class="game-tag">Tone</span>
+            </div>
+          </div>
+          <p class="game-desc">
+            A hidden distortion is applied to the audio. Match the drive amount, type (soft clip, hard clip, or tape saturation), mix level, and tone. As with the other deep tools, you can isolate any single parameter — focus purely on identifying distortion type while drive and tone are revealed, or match only the drive amount while the rest are shown. Each distortion type has a distinct harmonic character, and being able to identify them by ear changes how you reach for saturation in a session.
+          </p>
+          <p class="game-trains">
+            <strong>What it trains:</strong> Harmonic awareness — distinguishing the smooth warmth of tape saturation from the aggressive edge of hard clipping, judging how much drive is being applied, and hearing how tone shapes the high-frequency character of a distorted signal.
+          </p>
+        </div>
+      </div>
+
+      <!-- Freq Quiz -->
+      <div class="game-row fq">
+        <div class="game-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <rect x="2"  y="16" width="2.5" height="6" rx="1" fill="white" opacity="0.4"/>
+            <rect x="6"  y="14" width="2.5" height="8" rx="1" fill="white" opacity="0.5"/>
+            <rect x="10" y="10" width="2.5" height="12" rx="1" fill="white" opacity="0.65"/>
+            <rect x="14" y="4"  width="2.5" height="18" rx="1" fill="white"/>
+            <rect x="18" y="12" width="2.5" height="10" rx="1" fill="white" opacity="0.5"/>
+          </svg>
+        </div>
+        <div class="game-body">
+          <div class="game-header">
+            <div class="game-name">Freq Quiz</div>
+            <div class="game-tags">
+              <span class="game-tag">63Hz – 16kHz</span>
+              <span class="game-tag">Boost / Cut</span>
+              <span class="game-tag">Multiple Choice</span>
+            </div>
+          </div>
+          <p class="game-desc">
+            A frequency band is boosted or cut in the audio. Pick the correct frequency from 9 labeled options and the next round begins immediately — no setup, just listen and click. Rounds fire fast, making this the best game for building raw frequency memory through volume. Customizable options let you narrow the frequency range, adjust the boost/cut amount, or toggle between boost-only and cut-only modes.
+          </p>
+          <p class="game-trains">
+            <strong>What it trains:</strong> A mental map of the frequency spectrum — learning which frequencies sound muddy, harsh, warm, or airy. This is the fastest path to the core vocabulary of EQ, and the foundation everything else is built on.
+          </p>
+        </div>
+      </div>
+
+      <!-- Freq Hunter -->
+      <div class="game-row fh">
+        <div class="game-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="2.5" fill="white"/>
+            <circle cx="12" cy="12" r="6" stroke="white" stroke-width="1.5" fill="none" opacity="0.6"/>
+            <circle cx="12" cy="12" r="10" stroke="white" stroke-width="1" fill="none" opacity="0.3"/>
+            <line x1="12" y1="12" x2="19" y2="6" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+            <circle cx="17.2" cy="7.8" r="2" fill="white" opacity="0.8"/>
+          </svg>
+        </div>
+        <div class="game-body">
+          <div class="game-header">
+            <div class="game-name">Freq Hunter</div>
+            <div class="game-tags">
+              <span class="game-tag">Frequency</span>
+              <span class="game-tag">Stereo Pan</span>
+              <span class="game-tag">2D Grid</span>
+            </div>
+          </div>
+          <p class="game-desc">
+            A bandpass-filtered sound plays at a hidden position in the stereo field. Click the 2D grid to mark both the frequency (Y axis) and the stereo pan position (X axis) — one click, and the next round fires immediately. The dual-axis format makes this the most challenging of the quick games, but the rapid-fire pacing keeps the reps coming fast.
+          </p>
+          <p class="game-trains">
+            <strong>What it trains:</strong> Simultaneously processing two independent sonic dimensions — frequency content and stereo placement. In a real mix these decisions happen together, and Freq Hunter trains you to hear them that way, quickly.
+          </p>
+        </div>
+      </div>
+
+      <!-- Spatial Specialist -->
+      <div class="game-row pan">
+        <div class="game-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <line x1="2" y1="12" x2="22" y2="12" stroke="white" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
+            <rect x="6" y="12" width="10" height="2" rx="1" fill="white" opacity="0.3"/>
+            <circle cx="16" cy="12" r="4" fill="none" stroke="white" stroke-width="2.2"/>
+            <circle cx="16" cy="12" r="2" fill="white"/>
+            <line x1="2" y1="8" x2="2" y2="16" stroke="white" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/>
+            <line x1="22" y1="8" x2="22" y2="16" stroke="white" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/>
+          </svg>
+        </div>
+        <div class="game-body">
+          <div class="game-header">
+            <div class="game-name">Spatial Specialist</div>
+            <div class="game-tags">
+              <span class="game-tag">Stereo Pan</span>
+              <span class="game-tag">Stereo Width</span>
+              <span class="game-tag">Mono Detection</span>
+            </div>
+          </div>
+          <p class="game-desc">
+            Two games in one, both built for speed. In <strong>panning mode</strong>, a sound plays at a hidden stereo position — click to place it and the next round begins. In <strong>width mode</strong>, a sound plays with a hidden stereo width from mono to wide — click your estimate on the slider and move on. One click per round, fast feedback, high volume.
+          </p>
+          <p class="game-trains">
+            <strong>What it trains:</strong> Stereo perception — hearing where a sound sits in a mix and how wide or narrow its image is. Critical for panning decisions, mid/side processing, and catching phase issues that collapse the stereo field.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- Glossary -->
+  <section>
+    <p class="section-eyebrow">Reference</p>
+    <h2 class="section-title">Key terms, explained</h2>
+    <div class="section-body">
+      <p>New to audio processing? Here are the core concepts that underpin every SonicSandbox game.</p>
+    </div>
+
+    <div class="glossary-grid">
+
+      <div class="glossary-item">
+        <div class="glossary-term">EQ (Equalizer)</div>
+        <div class="glossary-def">A tool that adjusts the volume of specific frequency ranges. Boosting 10kHz adds "air" and brightness; cutting 300Hz reduces muddiness. EQ is the most fundamental mixing tool.</div>
+      </div>
+
+      <div class="glossary-item">
+        <div class="glossary-term">Frequency</div>
+        <div class="glossary-def">The pitch of a sound, measured in Hz or kHz. Bass lives below 300Hz, mids from 300Hz–4kHz, highs above 4kHz. Every sound has a frequency signature, and learning to identify it by ear is the foundation of mixing.</div>
+      </div>
+
+      <div class="glossary-item">
+        <div class="glossary-term">Compression</div>
+        <div class="glossary-def">Reduces the dynamic range of audio — quieter sounds stay quiet, loud peaks get turned down. The result feels more "controlled" or "glued." Compression shapes transients, sustain, and the overall feel of a mix.</div>
+      </div>
+
+      <div class="glossary-item">
+        <div class="glossary-term">Threshold</div>
+        <div class="glossary-def">The level at which a compressor begins to act. Signals below the threshold pass through unchanged; signals above it get compressed. A lower threshold means more of the signal gets processed.</div>
+      </div>
+
+      <div class="glossary-item">
+        <div class="glossary-term">Attack & Release</div>
+        <div class="glossary-def">Attack is how quickly a compressor responds when a signal exceeds the threshold. Release is how quickly it lets go. Fast attack kills transients; slow attack lets them through. Release controls the rhythm and "breathe" of compression.</div>
+      </div>
+
+      <div class="glossary-item">
+        <div class="glossary-term">Ratio</div>
+        <div class="glossary-def">How aggressively a compressor reduces gain once the signal exceeds the threshold. A 4:1 ratio means for every 4dB over the threshold, only 1dB comes through. Higher ratios = more squashed. Infinity:1 is a limiter.</div>
+      </div>
+
+      <div class="glossary-item">
+        <div class="glossary-term">Reverb</div>
+        <div class="glossary-def">The acoustic echo of a space — the sound of sound bouncing off walls, floors, and ceilings. Reverb places sounds in a physical environment, from a tight room to a vast hall. Decay time determines how long the tail lasts.</div>
+      </div>
+
+      <div class="glossary-item">
+        <div class="glossary-term">Pre-Delay</div>
+        <div class="glossary-def">A short gap between a dry sound and the start of its reverb tail. Pre-delay preserves the clarity of the original sound while still placing it in a space. Without it, heavy reverb can blur the attack of a sound.</div>
+      </div>
+
+      <div class="glossary-item">
+        <div class="glossary-term">Saturation / Distortion</div>
+        <div class="glossary-def">Adding harmonic content to a signal by gently (saturation) or aggressively (distortion) clipping its waveform. Tape saturation adds warmth; hard clipping adds edge and grit. Used creatively on everything from drums to synths.</div>
+      </div>
+
+      <div class="glossary-item">
+        <div class="glossary-term">Stereo Width</div>
+        <div class="glossary-def">How spread a sound is across the left-right stereo field. Mono audio sits centered; wide stereo audio extends to both edges. Width is controlled by panning, stereo imaging plugins, and mid/side processing.</div>
+      </div>
+
+      <div class="glossary-item">
+        <div class="glossary-term">Q (Resonance / Bandwidth)</div>
+        <div class="glossary-def">In EQ, Q describes how narrow or wide the affected frequency range is. A high Q targets a very tight band — useful for surgical cuts. A low Q affects a broader, more musical-sounding range.</div>
+      </div>
+
+      <div class="glossary-item">
+        <div class="glossary-term">Dynamic Range</div>
+        <div class="glossary-def">The difference between the quietest and loudest parts of an audio signal. High dynamic range sounds expressive and natural. Low dynamic range sounds dense and loud. Compression reduces dynamic range; good mixing balances it.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- Best practices -->
+  <section>
+    <p class="section-eyebrow">Best Practices</p>
+    <h2 class="section-title">How to get the most out of ear training</h2>
+    <div class="section-body">
+      <p>The difference between people who develop great ears and people who plateau is almost always about how they practice, not how much.</p>
+    </div>
+
+    <div class="practice-list">
+
+      <div class="practice-item">
+        <div class="practice-num">01</div>
+        <div class="practice-text">
+          <strong>Short daily sessions beat long occasional ones.</strong> Fifteen focused minutes every day will improve your ears faster than a two-hour session on weekends. Frequency memory and pattern recognition are built through repetition over time, not marathon sessions.
+        </div>
+      </div>
+
+      <div class="practice-item">
+        <div class="practice-num">02</div>
+        <div class="practice-text">
+          <strong>Start with pink noise, then move to music.</strong> Pink noise isolates the processing cleanly. Once you understand what you're listening for, switch to loops or your own tracks — that's where the real skill transfer happens.
+        </div>
+      </div>
+
+      <div class="practice-item">
+        <div class="practice-num">03</div>
+        <div class="practice-text">
+          <strong>Upload music you've mixed or produced.</strong> You already have a mental reference for how your own tracks sound dry. Any processing becomes immediately obvious. This is the most effective audio source for advanced training.
+        </div>
+      </div>
+
+      <div class="practice-item">
+        <div class="practice-num">04</div>
+        <div class="practice-text">
+          <strong>Always A/B the target before moving on.</strong> After each round, compare your answer to the correct one carefully. Don't rush past the feedback — that moment of comparison is where the learning actually happens.
+        </div>
+      </div>
+
+      <div class="practice-item">
+        <div class="practice-num">05</div>
+        <div class="practice-text">
+          <strong>Use good headphones or studio monitors.</strong> Laptop speakers and earbuds compress the dynamic range and distort the stereo image. You need accurate playback to build accurate perception. Any reasonable studio headphones will work.
+        </div>
+      </div>
+
+      <div class="practice-item">
+        <div class="practice-num">06</div>
+        <div class="practice-text">
+          <strong>Rest your ears.</strong> Ear fatigue is real. After 30–45 minutes of critical listening your accuracy will drop, and you'll start making poor reference decisions. Take a break, step outside, and come back fresh.
+        </div>
+      </div>
+
+      <div class="practice-item">
+        <div class="practice-num">07</div>
+        <div class="practice-text">
+          <strong>Focus on one game per session when learning something new.</strong> If you're trying to build compression awareness, stay on Compressor or Quick Compress for the whole session. Deep reps on one concept beat shallow reps across five.
+        </div>
+      </div>
+
+      <div class="practice-item">
+        <div class="practice-num">08</div>
+        <div class="practice-text">
+          <strong>Carry the training into your actual work.</strong> When you're mixing, try to identify frequencies by ear before reaching for an analyzer. Try to predict how much compression you need before playing with the knobs. The games are a gym — your sessions are the real match.
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <div class="cta-strip">
+    <div class="cta-title">Ready to start training?</div>
+    <p class="cta-sub">Pick a game and run a few rounds. Your ears will tell you exactly where to focus next.</p>
+    <a class="cta-btn" href="/">Open the games →</a>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-left">
+    <a href="/">SonicSandbox</a>
+    &nbsp;·&nbsp; Ear training for sound engineers, producers, &amp; musicians &nbsp;·&nbsp; Open in Chrome or Safari for best audio support
+  </div>
+  <div class="footer-right">
+    <a class="bmac-btn" href="https://www.buymeacoffee.com/sonicsandbox" target="_blank" rel="noopener" style="font-size:12px; padding:6px 13px;">
+      ☕ Support the project
+    </a>
+  </div>
+</footer>
+
+</body>
+</html>
