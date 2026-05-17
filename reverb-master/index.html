@@ -354,6 +354,36 @@
     opacity:0; transition:all 0.2s; pointer-events:none; z-index:999; white-space:nowrap;
   }
   .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ── Help Section ── */
+.help-toggle {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: 1px solid var(--border);
+  border-radius: 10px; color: var(--muted);
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 13px;
+  padding: 9px 16px; cursor: pointer; transition: all 0.15s;
+  margin-top: 4px; margin-left: 24px; width: fit-content;
+}
+.help-toggle:hover { border-color: var(--border2); color: var(--text); }
+.help-toggle .toggle-arrow { font-size: 10px; transition: transform 0.2s; display: inline-block; }
+.help-toggle.open .toggle-arrow { transform: rotate(90deg); }
+
+.help-section {
+  display: none; width: calc(100% - 48px);
+  background: var(--surface);
+  border: 1px solid var(--border); border-radius: 14px;
+  padding: 28px 32px; gap: 28px; flex-direction: column;
+}
+.help-section.visible { display: flex; }
+
+.help-section h2 {
+  font-size: 15px; font-weight: 600; color: var(--text);
+  letter-spacing: 0.02em; margin-bottom: 2px;
+}
+.help-section p { font-size: 13.5px; color: var(--muted); line-height: 1.65; }
+.help-section p strong { color: var(--text); font-weight: 500; }
+.help-block { display: flex; flex-direction: column; gap: 8px; }
+.help-divider { border: none; border-top: 1px solid var(--border); }
 </style>
 </head>
 <body>
@@ -522,9 +552,72 @@
   </div>
 
 </div>
+
+<!-- Help Toggle -->
+<button class="help-toggle" id="helpToggle" onclick="toggleHelp()">
+  <span class="toggle-arrow">▶</span> How to play
+</button>
+
+<!-- Help Section -->
+<div class="help-section" id="helpSection">
+
+  <div class="help-block">
+    <h2>Where to start</h2>
+    <p>
+      Set the difficulty to <strong>Easy</strong> — only <strong>Room Size</strong> will be active.
+      Press <strong>New Round</strong>, toggle between <strong>Target</strong> and <strong>Yours</strong>
+      to hear the difference, then adjust the Room Size knob until your reverb matches the target.
+      Press <strong>Check Answer</strong> when you're ready.
+    </p>
+    <p>
+      Use custom settings to test one parameter at a time or any combinatation of parameters.
+    </p>
+  </div>
+
+  <hr class="help-divider">
+
+  <div class="help-block">
+    <h2>What to listen for</h2>
+    <p>
+      <strong>Room Size</strong> — controls the simulated size of the space. A large room size produces
+      a long, diffuse reverb tail that sounds like a concert hall. A small room size sounds tight and
+      close, like a bathroom or small studio booth.
+    </p>
+    <p>
+      <strong>Decay</strong> — how long the reverb tail lasts before fading to silence. A long decay
+      (several seconds) sounds ethereal and spacious; a short decay (under a second) sounds natural
+      and contained.
+    </p>
+    <p>
+      <strong>Wet/Dry</strong> — the balance between the reverberant signal and the original dry signal.
+      High wet values make the sound feel distant and drenched in space. Low wet values keep the original
+      sound upfront with reverb subtly in the background.
+    </p>
+    <p>
+      <strong>Pre-Delay</strong> — a short gap before the reverb tail begins. This separates the dry
+      signal from the reverb, helping the original sound stay clear and upfront. A longer pre-delay
+      makes the reverb feel like it's "following" the sound rather than wrapping around it.
+    </p>
+    <p>
+      <strong>Damping</strong> — controls how quickly high frequencies fade in the reverb tail. High
+      damping makes the tail sound warm and dark (like a room with soft furnishings); low damping
+      keeps it bright and airy (like stone or concrete surfaces).
+    </p>
+  </div>
+
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
+// ── Help Section ───────────────────────────────────────────────────────────────
+function toggleHelp() {
+  const btn = document.getElementById('helpToggle');
+  const sec = document.getElementById('helpSection');
+  const open = sec.classList.toggle('visible');
+  btn.classList.toggle('open', open);
+}
+
 // ── Reverb parameter definitions ──────────────────────────────────────────────
 const PARAMS = {
   roomSize: { label:'Room Size', unit:'',   min:0.01, max:0.99, default:0.5,  fmt: v=>`${Math.round(v*100)}%` },

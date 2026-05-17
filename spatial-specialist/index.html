@@ -430,6 +430,36 @@
     opacity:0; transition:all 0.2s; pointer-events:none; z-index:999; white-space:nowrap;
   }
   .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ── Help Section ── */
+.help-toggle {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: 1px solid var(--border);
+  border-radius: 10px; color: var(--muted);
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 13px;
+  padding: 9px 16px; cursor: pointer; transition: all 0.15s;
+  margin-top: 4px; margin-left: 24px; width: fit-content;
+}
+.help-toggle:hover { border-color: var(--border2); color: var(--text); }
+.help-toggle .toggle-arrow { font-size: 10px; transition: transform 0.2s; display: inline-block; }
+.help-toggle.open .toggle-arrow { transform: rotate(90deg); }
+
+.help-section {
+  display: none; width: calc(100% - 48px);
+  background: var(--surface);
+  border: 1px solid var(--border); border-radius: 14px;
+  padding: 28px 32px; gap: 28px; flex-direction: column;
+}
+.help-section.visible { display: flex; }
+
+.help-section h2 {
+  font-size: 15px; font-weight: 600; color: var(--text);
+  letter-spacing: 0.02em; margin-bottom: 2px;
+}
+.help-section p { font-size: 13.5px; color: var(--muted); line-height: 1.65; }
+.help-section p strong { color: var(--text); font-weight: 500; }
+.help-block { display: flex; flex-direction: column; gap: 8px; }
+.help-divider { border: none; border-top: 1px solid var(--border); }
 </style>
 </head>
 <body>
@@ -573,9 +603,60 @@
   </div>
 
 </div>
+
+<!-- Help Toggle -->
+<button class="help-toggle" id="helpToggle" onclick="toggleHelp()">
+  <span class="toggle-arrow">▶</span> How to play
+</button>
+
+<!-- Help Section -->
+<div class="help-section" id="helpSection">
+  <div class="help-block">
+    <h2>Where to start</h2>
+    <p>
+      Start in <strong>Panning</strong> mode. Press <strong>Play</strong> and listen to where the
+      sound sits in the stereo field. Drag the handle on the stereo ruler to your best guess of the
+      panning position, then press <strong>Submit</strong>.
+    </p>
+    <p>
+      Use <strong>headphones</strong> if possible — stereo imaging is far more precise and reliable
+      through headphones than speakers, especially for subtle positions near center.
+    </p>
+  </div>
+
+  <hr class="help-divider">
+
+  <div class="help-block">
+    <h2>What to listen for</h2>
+    <p>
+      <strong>Panning</strong> — listen for the balance between your left and right ear.
+      A fully panned signal arrives entirely from one side. Center sounds equally loud on both.
+      Intermediate positions feel weighted toward one side but not exclusively.
+    </p>
+    <p>
+      <strong>Width</strong> — rather than a single point in space, a wide signal fills the stereo
+      field with a sense of "spread." Listen for how much of the left-right space the sound occupies.
+      A mono signal collapses to a single point at center; a wide signal feels expansive and enveloping.
+    </p>
+    <p>
+      Trust your <strong>first instinct</strong>. Listening too long causes your brain to adapt and
+      the position becomes harder to judge. Toggle the dry signal with <kbd>Space</kbd>/<kbd>D</kbd>
+      as a reference point to re-anchor your perception.
+    </p>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
+// ── Help Section ───────────────────────────────────────────────────────────────
+function toggleHelp() {
+  const btn = document.getElementById('helpToggle');
+  const sec = document.getElementById('helpSection');
+  const open = sec.classList.toggle('visible');
+  btn.classList.toggle('open', open);
+}
+
 // ── State ─────────────────────────────────────────────────────────────────────
 let gameMode    = 'panning';  // 'panning' | 'width'
 let targetPan   = 0;

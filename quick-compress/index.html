@@ -309,6 +309,36 @@
     opacity:0; transition:all 0.2s; pointer-events:none; z-index:999; white-space:nowrap;
   }
   .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ── Help Section ── */
+.help-toggle {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: 1px solid var(--border);
+  border-radius: 10px; color: var(--muted);
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 13px;
+  padding: 9px 16px; cursor: pointer; transition: all 0.15s;
+  margin-top: 4px; margin-left: 24px; width: fit-content;
+}
+.help-toggle:hover { border-color: var(--border2); color: var(--text); }
+.help-toggle .toggle-arrow { font-size: 10px; transition: transform 0.2s; display: inline-block; }
+.help-toggle.open .toggle-arrow { transform: rotate(90deg); }
+
+.help-section {
+  display: none; width: calc(100% - 48px);
+  background: var(--surface);
+  border: 1px solid var(--border); border-radius: 14px;
+  padding: 28px 32px; gap: 28px; flex-direction: column;
+}
+.help-section.visible { display: flex; }
+
+.help-section h2 {
+  font-size: 15px; font-weight: 600; color: var(--text);
+  letter-spacing: 0.02em; margin-bottom: 2px;
+}
+.help-section p { font-size: 13.5px; color: var(--muted); line-height: 1.65; }
+.help-section p strong { color: var(--text); font-weight: 500; }
+.help-block { display: flex; flex-direction: column; gap: 8px; }
+.help-divider { border: none; border-top: 1px solid var(--border); }
 </style>
 </head>
 <body>
@@ -435,9 +465,64 @@
   </div>
 
 </div>
+
+<!-- Help Toggle -->
+<button class="help-toggle" id="helpToggle" onclick="toggleHelp()">
+  <span class="toggle-arrow">▶</span> How to play
+</button>
+
+<!-- Help Section -->
+<div class="help-section" id="helpSection">
+  <div class="help-block">
+    <h2>Where to start</h2>
+    <p>
+      Set the tier to <strong>Easy</strong> — the compression is heavy and obvious (20:1 ratio, −30dB threshold).
+      Press <strong>Play</strong>, then use <kbd>Space</kbd>/<kbd>D</kbd> to toggle between sides A and B.
+      Decide which one sounds compressed and click <strong>A</strong> or <strong>B</strong>.
+    </p>
+    <p>
+      As you get more accurate, move to harder tiers where the compression becomes subtler and harder to detect.
+    </p>
+  </div>
+
+  <hr class="help-divider">
+
+  <div class="help-block">
+    <h2>What to listen for</h2>
+    <p>
+      Compression reduces the dynamic range of a signal — loud parts get quieter, making the overall
+      sound more "even" or "controlled." The compressed side will typically sound:
+    </p>
+    <p>
+      <strong>More sustained</strong> — transients (the initial punch of a drum hit) are reduced,
+      so the tail of the sound is relatively louder. The sound feels "pushed forward."
+    </p>
+    <p>
+      <strong>Less dynamic</strong> — quiet moments are closer in level to loud moments. The track
+      feels "flatter" or more consistent.
+    </p>
+    <p>
+      <strong>Pumping or breathing</strong> — on heavier settings, you may hear the compressor
+      "letting go" between loud hits, causing the level to rise and fall rhythmically.
+    </p>
+    <p>
+      The uncompressed side will sound more open and punchy in comparison — transients hit harder
+      and there's a greater sense of dynamics and space.
+    </p>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
+// ── Help Section ───────────────────────────────────────────────────────────────
+function toggleHelp() {
+  const btn = document.getElementById('helpToggle');
+  const sec = document.getElementById('helpSection');
+  const open = sec.classList.toggle('visible');
+  btn.classList.toggle('open', open);
+}
+
 // ── Compression tiers ─────────────────────────────────────────────────────────
 const TIERS = {
   easy:   { threshold:-30, ratio:20,  attack:0.003, release:0.05,  knee:2,  label:'Ratio 20:1 · Thresh −30dB · Attack 3ms · Release 50ms'   },

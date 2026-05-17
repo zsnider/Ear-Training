@@ -269,6 +269,36 @@
     opacity:0; transition:all 0.2s; pointer-events:none; z-index:999; white-space:nowrap;
   }
   .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ── Help Section ── */
+.help-toggle {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: 1px solid var(--border);
+  border-radius: 10px; color: var(--muted);
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 13px;
+  padding: 9px 16px; cursor: pointer; transition: all 0.15s;
+  margin-top: 4px; margin-left: 24px; width: fit-content;
+}
+.help-toggle:hover { border-color: var(--border2); color: var(--text); }
+.help-toggle .toggle-arrow { font-size: 10px; transition: transform 0.2s; display: inline-block; }
+.help-toggle.open .toggle-arrow { transform: rotate(90deg); }
+
+.help-section {
+  display: none; width: calc(100% - 48px);
+  background: var(--surface);
+  border: 1px solid var(--border); border-radius: 14px;
+  padding: 28px 32px; gap: 28px; flex-direction: column;
+}
+.help-section.visible { display: flex; }
+
+.help-section h2 {
+  font-size: 15px; font-weight: 600; color: var(--text);
+  letter-spacing: 0.02em; margin-bottom: 2px;
+}
+.help-section p { font-size: 13.5px; color: var(--muted); line-height: 1.65; }
+.help-section p strong { color: var(--text); font-weight: 500; }
+.help-block { display: flex; flex-direction: column; gap: 8px; }
+.help-divider { border: none; border-top: 1px solid var(--border); }
 </style>
 </head>
 <body>
@@ -385,9 +415,112 @@
   </div>
 
 </div>
+
+<!-- Help Toggle -->
+<button class="help-toggle" id="helpToggle" onclick="toggleHelp()">
+  <span class="toggle-arrow">▶</span> How to play
+</button>
+
+<!-- Help Section -->
+<div class="help-section" id="helpSection">
+  <div class="help-block">
+    <h2>Where to start</h2>
+    <p>
+      Start with <strong>Freq Only</strong> mode. Press <strong>Play</strong> — you'll hear audio
+      filtered through a narrow bandpass, isolating a single frequency region. Click on the
+      <strong>vertical axis</strong> of the grid to mark where you think that frequency sits.
+      Higher on the grid = higher frequency; lower = lower frequency.
+    </p>
+    <p>
+      Once you're comfortable with frequency placement, switch to <strong>Freq + Pan</strong> mode.
+      Now you also need to place your guess left or right on the horizontal axis to identify
+      which side of the stereo field the sound is panned to.
+    </p>
+  </div>
+
+  <hr class="help-divider">
+
+  <div class="help-block">
+    <h2>What to listen for</h2>
+    <p>
+      The bandpass filter narrows the audio to a small frequency region, so you're listening for
+      the <strong>character</strong> of what's left — is it a rumble (low), a honk (mids),
+      a hiss (high)? Use the frequency reference below as a guide.
+    </p>
+    <p>
+      For panning, listen to the <strong>left/right balance</strong> in your headphones or speakers.
+      A fully panned signal arrives clearly from one side; center sounds equal on both.
+      Small panning values are subtle — trust your first instinct.
+    </p>
+    <p>
+      Toggle the <strong>dry</strong> signal with <kbd>Space</kbd>/<kbd>D</kbd> to compare
+      the filtered version against the unfiltered audio and better orient yourself.
+    </p>
+  </div>
+
+  <hr class="help-divider">
+
+  <div class="help-block">
+    <h2>Frequency reference</h2>
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:10px; margin-top:4px;">
+
+      <div style="background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:13px 16px; display:flex; flex-direction:column; gap:4px;">
+        <span style="font-size:12px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:#c97bff;">Sub-Bass</span>
+        <span style="font-size:11px; color:var(--muted); font-family:'IBM Plex Mono',monospace;">20 – 60 Hz</span>
+        <span style="font-size:12.5px; color:var(--muted); line-height:1.55; margin-top:2px;">The deepest rumble — felt in the body more than heard. Controls the "oomph" of kick drums and sub-bass. Too much causes a mix to sound muddy or undefined.</span>
+      </div>
+
+      <div style="background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:13px 16px; display:flex; flex-direction:column; gap:4px;">
+        <span style="font-size:12px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:#5b6aff;">Bass</span>
+        <span style="font-size:11px; color:var(--muted); font-family:'IBM Plex Mono',monospace;">60 – 250 Hz</span>
+        <span style="font-size:12.5px; color:var(--muted); line-height:1.55; margin-top:2px;">Provides the fundamental rhythm and power of a song. Houses the primary body of bass guitars and drum shells. Build-up here often makes a track sound bloated.</span>
+      </div>
+
+      <div style="background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:13px 16px; display:flex; flex-direction:column; gap:4px;">
+        <span style="font-size:12px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:#3ecf8e;">Low-Midrange</span>
+        <span style="font-size:11px; color:var(--muted); font-family:'IBM Plex Mono',monospace;">250 – 500 Hz</span>
+        <span style="font-size:12.5px; color:var(--muted); line-height:1.55; margin-top:2px;">Adds warmth and foundation to instruments and vocals. Boosts add "thickness" to a sound; cuts are often used to reduce boxiness.</span>
+      </div>
+
+      <div style="background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:13px 16px; display:flex; flex-direction:column; gap:4px;">
+        <span style="font-size:12px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:#f5a623;">Midrange</span>
+        <span style="font-size:11px; color:var(--muted); font-family:'IBM Plex Mono',monospace;">500 Hz – 2 kHz</span>
+        <span style="font-size:12.5px; color:var(--muted); line-height:1.55; margin-top:2px;">The most sensitive range for human hearing. Contains the fundamental notes of most melodic instruments and vocals. Too much here sounds "honky" or causes masking.</span>
+      </div>
+
+      <div style="background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:13px 16px; display:flex; flex-direction:column; gap:4px;">
+        <span style="font-size:12px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:#f0b429;">Upper-Midrange</span>
+        <span style="font-size:11px; color:var(--muted); font-family:'IBM Plex Mono',monospace;">2 – 4 kHz</span>
+        <span style="font-size:12.5px; color:var(--muted); line-height:1.55; margin-top:2px;">Defines the attack and punch of instruments. Adjusting here helps vocals, guitars, and snares cut through a busy mix.</span>
+      </div>
+
+      <div style="background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:13px 16px; display:flex; flex-direction:column; gap:4px;">
+        <span style="font-size:12px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:#f45b69;">Presence</span>
+        <span style="font-size:11px; color:var(--muted); font-family:'IBM Plex Mono',monospace;">4 – 6 kHz</span>
+        <span style="font-size:12.5px; color:var(--muted); line-height:1.55; margin-top:2px;">Dictates the clarity and definition of a sound. Boosting here makes elements feel closer and more upfront to the listener.</span>
+      </div>
+
+      <div style="background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:13px 16px; display:flex; flex-direction:column; gap:4px;">
+        <span style="font-size:12px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:#60e8ff;">Brilliance / Air</span>
+        <span style="font-size:11px; color:var(--muted); font-family:'IBM Plex Mono',monospace;">6 – 20 kHz</span>
+        <span style="font-size:12.5px; color:var(--muted); line-height:1.55; margin-top:2px;">Provides "sparkle," "sheen," and "air." Controls the crispness of cymbals, acoustic guitar strings, and vocal breath. Over-boosting quickly leads to harshness or listener fatigue.</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
+// ── Help Section ───────────────────────────────────────────────────────────────
+function toggleHelp() {
+  const btn = document.getElementById('helpToggle');
+  const sec = document.getElementById('helpSection');
+  const open = sec.classList.toggle('visible');
+  btn.classList.toggle('open', open);
+}
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 const FREQ_MIN = 63, FREQ_MAX = 16000;
 const PAN_MIN = -1, PAN_MAX = 1;

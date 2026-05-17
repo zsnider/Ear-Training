@@ -451,6 +451,36 @@
     font-size:10px; color:var(--muted); font-style:italic;
     padding: 0 2px;
   }
+
+/* ── Help Section ── */
+.help-toggle {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: 1px solid var(--border);
+  border-radius: 10px; color: var(--muted);
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 13px;
+  padding: 9px 16px; cursor: pointer; transition: all 0.15s;
+  margin-top: 4px; margin-left: 24px; width: fit-content;
+}
+.help-toggle:hover { border-color: var(--border2); color: var(--text); }
+.help-toggle .toggle-arrow { font-size: 10px; transition: transform 0.2s; display: inline-block; }
+.help-toggle.open .toggle-arrow { transform: rotate(90deg); }
+
+.help-section {
+  display: none; width: calc(100% - 48px);
+  background: var(--surface);
+  border: 1px solid var(--border); border-radius: 14px;
+  padding: 28px 32px; gap: 28px; flex-direction: column;
+}
+.help-section.visible { display: flex; }
+
+.help-section h2 {
+  font-size: 15px; font-weight: 600; color: var(--text);
+  letter-spacing: 0.02em; margin-bottom: 2px;
+}
+.help-section p { font-size: 13.5px; color: var(--muted); line-height: 1.65; }
+.help-section p strong { color: var(--text); font-weight: 500; }
+.help-block { display: flex; flex-direction: column; gap: 8px; }
+.help-divider { border: none; border-top: 1px solid var(--border); }
 </style>
 </head>
 <body>
@@ -627,9 +657,69 @@
 
 </div>
 
+<!-- Help Toggle -->
+<button class="help-toggle" id="helpToggle" onclick="toggleHelp()">
+  <span class="toggle-arrow">▶</span> How to play
+</button>
+
+<!-- Help Section -->
+<div class="help-section" id="helpSection">
+  <div class="help-block">
+    <h2>Where to start</h2>
+    <p>
+      Set the difficulty to <strong>Easy</strong> — only <strong>Threshold</strong> will be active.
+      Press <strong>New Round</strong>, then toggle between <strong>Target</strong> and <strong>My Comp</strong>
+      to hear the difference. Drag the Threshold knob until your compressed signal matches the target,
+      then press <strong>Check Answer</strong>.
+    </p>
+    <p>
+      Once you're comfortable with Threshold, move up to Medium (adds Ratio), then Hard and Pro to
+      introduce Attack and Release. Each new parameter adds a layer of complexity.
+    </p>
+  </div>
+
+  <hr class="help-divider">
+
+  <div class="help-block">
+    <h2>What to listen for</h2>
+    <p>
+      <strong>Threshold</strong> — determines how loud a signal must be before the compressor acts.
+      A lower threshold means more of the signal gets compressed, making it sound more "squashed" or controlled overall.
+    </p>
+    <p>
+      <strong>Ratio</strong> — how aggressively the compressor reduces gain above the threshold.
+      A high ratio (10:1, 20:1) sounds heavily clamped; a low ratio (2:1) is subtle and gentle.
+    </p>
+    <p>
+      <strong>Attack</strong> — how quickly the compressor clamps down after the signal exceeds the threshold.
+      A slow attack lets transients (the initial punch of a kick or snare) pass through; a fast attack kills them.
+    </p>
+    <p>
+      <strong>Release</strong> — how quickly the compressor lets go after the signal drops below the threshold.
+      Too fast causes a "pumping" or "breathing" effect; too slow keeps the signal permanently squashed.
+    </p>
+    <p>
+      <strong>Knee</strong> — how gradually compression kicks in around the threshold.
+      A hard knee (0 dB) is abrupt; a soft knee (wide) eases in smoothly.
+    </p>
+    <p>
+      <strong>Makeup Gain</strong> — because compression reduces overall level, makeup gain adds volume back.
+      Match it so the Target and your comp sound equally loud before comparing tone.
+    </p>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
+// ── Help Section ───────────────────────────────────────────────────────────────
+function toggleHelp() {
+  const btn = document.getElementById('helpToggle');
+  const sec = document.getElementById('helpSection');
+  const open = sec.classList.toggle('visible');
+  btn.classList.toggle('open', open);
+}
+
 // ── Compressor parameter definitions ─────────────────────────────────────────
 const PARAMS = {
   threshold: { label:'Threshold', unit:'dB',  min:-60, max:0,   default:-20, step:0.5, fmt: v=>`${v.toFixed(1)} dB` },

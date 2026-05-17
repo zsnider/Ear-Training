@@ -334,6 +334,36 @@
     opacity:0; transition:all 0.2s; pointer-events:none; z-index:999; white-space:nowrap;
   }
   .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ── Help Section ── */
+.help-toggle {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: 1px solid var(--border);
+  border-radius: 10px; color: var(--muted);
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 13px;
+  padding: 9px 16px; cursor: pointer; transition: all 0.15s;
+  margin-top: 4px; margin-left: 24px; width: fit-content;
+}
+.help-toggle:hover { border-color: var(--border2); color: var(--text); }
+.help-toggle .toggle-arrow { font-size: 10px; transition: transform 0.2s; display: inline-block; }
+.help-toggle.open .toggle-arrow { transform: rotate(90deg); }
+
+.help-section {
+  display: none; width: calc(100% - 48px);
+  background: var(--surface);
+  border: 1px solid var(--border); border-radius: 14px;
+  padding: 28px 32px; gap: 28px; flex-direction: column;
+}
+.help-section.visible { display: flex; }
+
+.help-section h2 {
+  font-size: 15px; font-weight: 600; color: var(--text);
+  letter-spacing: 0.02em; margin-bottom: 2px;
+}
+.help-section p { font-size: 13.5px; color: var(--muted); line-height: 1.65; }
+.help-section p strong { color: var(--text); font-weight: 500; }
+.help-block { display: flex; flex-direction: column; gap: 8px; }
+.help-divider { border: none; border-top: 1px solid var(--border); }
 </style>
 </head>
 <body>
@@ -494,9 +524,80 @@
     </div>
   </div>
 </div>
+
+<!-- Help Toggle -->
+<button class="help-toggle" id="helpToggle" onclick="toggleHelp()">
+  <span class="toggle-arrow">▶</span> How to play
+</button>
+
+<!-- Help Section -->
+<div class="help-section" id="helpSection">
+
+  <div class="help-block">
+    <h2>Where to start</h2>
+    <p>
+      Set the difficulty to <strong>Easy</strong> — only <strong>Drive</strong> will be active.
+      Press <strong>New Round</strong>, toggle between <strong>Target</strong> and <strong>Yours</strong>,
+      then adjust the Drive knob until the amount of grit and saturation matches. Press
+      <strong>Check Answer</strong> when you're ready.
+    </p>
+    <p>
+      Use custom settings to test one parameter at a time or any combinatation of parameters.
+    </p>
+  </div>
+
+  <hr class="help-divider">
+
+  <div class="help-block">
+    <h2>What to listen for</h2>
+    <p>
+      <strong>Drive</strong> — how hard the signal is pushed into distortion. Low drive adds a subtle
+      warmth or "edge"; high drive produces aggressive, heavily clipped grit. Think of it as how much
+      the input signal is amplified before being shaped.
+    </p>
+    <p>
+      <strong>Wet/Dry</strong> — blends the distorted signal with the original clean signal. 100% wet
+      is fully distorted; 0% is dry. Blending the two is common in parallel distortion processing to
+      preserve the body of the original while adding edge.
+    </p>
+    <p>
+      <strong>Tone</strong> — a post-distortion EQ tilt. Positive values brighten the distorted signal;
+      negative values darken it. Useful for controlling whether the distortion sounds harsh or warm.
+    </p>
+    <p>
+      <strong>Type</strong> — the clipping algorithm, each with a distinct character:
+    </p>
+    <p>
+      <strong>Soft Clip</strong> — gentle, rounded saturation. Warm and musical, similar to tube amplifiers.
+      The transition into clipping is gradual.
+    </p>
+    <p>
+      <strong>Hard Clip</strong> — abrupt, aggressive clipping. The waveform is cut flat at a threshold,
+      producing a harsh, buzzy sound with strong odd harmonics.
+    </p>
+    <p>
+      <strong>Tape</strong> — simulates magnetic tape saturation. Warm and slightly compressed-sounding,
+      with a natural smoothness at high levels. A classic studio texture.
+    </p>
+    <p>
+      <strong>Foldback</strong> — when the signal exceeds a threshold, it "folds" back on itself rather
+      than clipping. Produces unusual, complex harmonic content that can sound metallic or chaotic.
+    </p>
+  </div>
+
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
+// ── Help Section ───────────────────────────────────────────────────────────────
+function toggleHelp() {
+  const btn = document.getElementById('helpToggle');
+  const sec = document.getElementById('helpSection');
+  const open = sec.classList.toggle('visible');
+  btn.classList.toggle('open', open);
+}
+
 // ── Distortion parameter definitions ──────────────────────────────────────────
 const DIST_TYPES = ['softclip','hardclip','tape','foldback'];
 const DIST_TYPE_LABELS = { softclip:'Soft Clip', hardclip:'Hard Clip', tape:'Tape', foldback:'Foldback' };

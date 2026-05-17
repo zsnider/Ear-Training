@@ -308,6 +308,36 @@
     header { padding: 16px 16px 0; }
     .main { padding: 12px 16px 0; }
   }
+
+/* ── Help Section ── */
+.help-toggle {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: 1px solid var(--border);
+  border-radius: 10px; color: var(--muted);
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 13px;
+  padding: 9px 16px; cursor: pointer; transition: all 0.15s;
+  margin-top: 4px; margin-left: 24px; width: fit-content;
+}
+.help-toggle:hover { border-color: var(--border2); color: var(--text); }
+.help-toggle .toggle-arrow { font-size: 10px; transition: transform 0.2s; display: inline-block; }
+.help-toggle.open .toggle-arrow { transform: rotate(90deg); }
+
+.help-section {
+  display: none; width: calc(100% - 48px);
+  background: var(--surface);
+  border: 1px solid var(--border); border-radius: 14px;
+  padding: 28px 32px; gap: 28px; flex-direction: column;
+}
+.help-section.visible { display: flex; }
+
+.help-section h2 {
+  font-size: 15px; font-weight: 600; color: var(--text);
+  letter-spacing: 0.02em; margin-bottom: 2px;
+}
+.help-section p { font-size: 13.5px; color: var(--muted); line-height: 1.65; }
+.help-section p strong { color: var(--text); font-weight: 500; }
+.help-block { display: flex; flex-direction: column; gap: 8px; }
+.help-divider { border: none; border-top: 1px solid var(--border); }
 </style>
 </head>
 <body>
@@ -420,9 +450,61 @@
 
 </div>
 
+<!-- Help Toggle -->
+<button class="help-toggle" id="helpToggle" onclick="toggleHelp()">
+  <span class="toggle-arrow">▶</span> How to play
+</button>
+
+<!-- Help Section -->
+<div class="help-section" id="helpSection">
+  <div class="help-block">
+    <h2>Where to start</h2>
+    <p>
+      Set the difficulty to <strong>Easy</strong> and direction to <strong>Boost</strong>.
+      Press <strong>Play</strong>, then use <kbd>Space</kbd>/<kbd>D</kbd> to toggle between
+      <strong>A</strong> (original) and <strong>B</strong> (level-shifted). Your job is to identify
+      <strong>how many dB louder</strong> B is compared to A.
+    </p>
+    <p>
+      Click the answer that matches what you hear. As you improve, reduce the difficulty to train
+      your ear on subtler level differences. Enable <strong>Both</strong> directions once you're
+      comfortable identifying boosts — cuts require the same skill but in reverse.
+    </p>
+  </div>
+
+  <hr class="help-divider">
+
+  <div class="help-block">
+    <h2>What to listen for</h2>
+    <p>
+      Level differences are purely about <strong>loudness</strong> — not tone, not timbre. The signal
+      is identical on both sides; only the volume changes. This makes it a pure test of your
+      gain perception.
+    </p>
+    <p>
+      A useful rule of thumb: <strong>3 dB</strong> is just noticeable as a level change to most listeners.
+      <strong>6 dB</strong> feels meaningfully louder. <strong>10 dB</strong> is roughly perceived as
+      "twice as loud." Use these anchors to calibrate your guesses.
+    </p>
+    <p>
+      Avoid adjusting your listening volume between A and B — let the difference come to you naturally.
+      Switching quickly back and forth with <kbd>Space</kbd>/<kbd>D</kbd> makes the difference easier
+      to detect than listening to each side for a long time.
+    </p>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
+// ── Help Section ───────────────────────────────────────────────────────────────
+function toggleHelp() {
+  const btn = document.getElementById('helpToggle');
+  const sec = document.getElementById('helpSection');
+  const open = sec.classList.toggle('visible');
+  btn.classList.toggle('open', open);
+}
+
 // ── dB difficulty sets (absolute values) ─────────────────────────────────────
 const DB_SETS = {
   easy:   [3, 6, 9, 12],

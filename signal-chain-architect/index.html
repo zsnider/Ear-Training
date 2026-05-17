@@ -338,6 +338,36 @@ kbd {
 .eff-toggle-btn[data-eff="saturation"].active { border-color: var(--sat-c);  color: var(--sat-c);  background: rgba(244,91,105,0.1); }
 .eff-toggle-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
+/* ── Help Section ── */
+.help-toggle {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: 1px solid var(--border);
+  border-radius: 10px; color: var(--muted);
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 13px;
+  padding: 9px 16px; cursor: pointer; transition: all 0.15s;
+  margin-top: 4px; margin-left: 24px; width: fit-content;
+}
+.help-toggle:hover { border-color: var(--border2); color: var(--text); }
+.help-toggle .toggle-arrow { font-size: 10px; transition: transform 0.2s; display: inline-block; }
+.help-toggle.open .toggle-arrow { transform: rotate(90deg); }
+
+.help-section {
+  display: none; width: calc(100% - 48px);
+  background: var(--surface);
+  border: 1px solid var(--border); border-radius: 14px;
+  padding: 28px 32px; gap: 28px; flex-direction: column;
+}
+.help-section.visible { display: flex; }
+
+.help-section h2 {
+  font-size: 15px; font-weight: 600; color: var(--text);
+  letter-spacing: 0.02em; margin-bottom: 2px;
+}
+.help-section p { font-size: 13.5px; color: var(--muted); line-height: 1.65; }
+.help-section p strong { color: var(--text); font-weight: 500; }
+.help-block { display: flex; flex-direction: column; gap: 8px; }
+.help-divider { border: none; border-top: 1px solid var(--border); }
+
 /* ── Mobile ── */
 @media (max-width:600px) {
   header { padding:14px 16px 0; }
@@ -496,9 +526,84 @@ kbd {
   </div>
 </main>
 
+<!-- Help Toggle -->
+<button class="help-toggle" id="helpToggle" onclick="toggleHelp()">
+  <span class="toggle-arrow">▶</span> How to play
+</button>
+
+<!-- Help Section -->
+<div class="help-section" id="helpSection">
+
+  <div class="help-block">
+    <h2>Where to start</h2>
+    <p>
+      Set the difficulty to <strong>Easy</strong> and the chain length to <strong>2</strong>.
+      Press <strong>New Round</strong> — audio will play with a hidden chain of effects applied.
+      Listen carefully, then drag the effect blocks from the palette into the chain slots in the order
+      you think they appear. Press <strong>Submit</strong> to check.
+    </p>
+    <p>
+      Increase the chain length to add more effects to identify at once. Harder difficulty settings
+      make each individual effect more subtle, requiring finer listening.
+    </p>
+  </div>
+
+  <hr class="help-divider">
+
+  <div class="help-block">
+    <h2>Effect order matters</h2>
+    <p>
+      The order of effects in a signal chain changes the sound — the output of each stage feeds into
+      the next. For example, compressing before distortion produces a different result than
+      distorting before compressing. Listen to how the overall texture builds and what the "entry point"
+      of the processing feels like.
+    </p>
+    <p>
+      Use <kbd>Space</kbd>/<kbd>D</kbd> to A/B between the target (processed) signal and the dry
+      (unprocessed) signal to orient yourself. Toggle between your chain and the target using the
+      player controls once you've placed some blocks.
+    </p>
+  </div>
+
+  <hr class="help-divider">
+
+  <div class="help-block">
+    <h2>What each effect sounds like</h2>
+    <p>
+      <strong>EQ</strong> — changes the tonal balance. A lowpass filter removes high-frequency content,
+      making the sound darker and more muffled. A highpass filter removes low-frequency content, making
+      it thinner and brighter. On Easy, the cutoff is dramatic; on Hard it's more subtle.
+    </p>
+    <p>
+      <strong>Compressor</strong> — reduces dynamic range. The signal sounds more "controlled" or
+      "squashed," with less difference between loud and quiet moments. Transients (the initial punch
+      of a sound) are softened.
+    </p>
+    <p>
+      <strong>Reverb</strong> — adds a sense of space. The sound gains a "tail" — a decay that
+      simulates the reflections of a room. On Easy, the reverb is long and obvious; on Hard it's
+      shorter and drier.
+    </p>
+    <p>
+      <strong>Saturation</strong> — adds harmonic distortion. The sound becomes warmer, thicker,
+      and slightly "gritty." On Easy, the drive is heavy and immediately noticeable; on Hard it's
+      a subtle warmth.
+    </p>
+  </div>
+
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
+// ── Help Section ───────────────────────────────────────────────────────────────
+function toggleHelp() {
+  const btn = document.getElementById('helpToggle');
+  const sec = document.getElementById('helpSection');
+  const open = sec.classList.toggle('visible');
+  btn.classList.toggle('open', open);
+}
+
 // ── Constants ──────────────────────────────────────────────────────────────────
 const EFFECT_NAMES  = ['eq', 'compressor', 'reverb', 'saturation'];
 const EFFECT_LABELS = { eq: 'EQ', compressor: 'Compressor', reverb: 'Reverb', saturation: 'Saturation' };

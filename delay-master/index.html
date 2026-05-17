@@ -335,6 +335,36 @@ input[type=range]:disabled::-webkit-slider-thumb { background: var(--muted); box
 }
 .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
+/* ── Help Section ── */
+.help-toggle {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: 1px solid var(--border);
+  border-radius: 10px; color: var(--muted);
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 13px;
+  padding: 9px 16px; cursor: pointer; transition: all 0.15s;
+  margin-top: 4px; margin-left: 24px; width: fit-content;
+}
+.help-toggle:hover { border-color: var(--border2); color: var(--text); }
+.help-toggle .toggle-arrow { font-size: 10px; transition: transform 0.2s; display: inline-block; }
+.help-toggle.open .toggle-arrow { transform: rotate(90deg); }
+
+.help-section {
+  display: none; width: calc(100% - 48px);
+  background: var(--surface);
+  border: 1px solid var(--border); border-radius: 14px;
+  padding: 28px 32px; gap: 28px; flex-direction: column;
+}
+.help-section.visible { display: flex; }
+
+.help-section h2 {
+  font-size: 15px; font-weight: 600; color: var(--text);
+  letter-spacing: 0.02em; margin-bottom: 2px;
+}
+.help-section p { font-size: 13.5px; color: var(--muted); line-height: 1.65; }
+.help-section p strong { color: var(--text); font-weight: 500; }
+.help-block { display: flex; flex-direction: column; gap: 8px; }
+.help-divider { border: none; border-top: 1px solid var(--border); }
+
 /* ── Mobile ── */
 @media (max-width: 640px) {
   header { padding:14px 16px 0; }
@@ -552,9 +582,67 @@ input[type=range]:disabled::-webkit-slider-thumb { background: var(--muted); box
   </div>
 </main>
 
+<!-- Help Toggle -->
+<button class="help-toggle" id="helpToggle" onclick="toggleHelp()">
+  <span class="toggle-arrow">▶</span> How to play
+</button>
+
+<!-- Help Section -->
+<div class="help-section" id="helpSection">
+
+  <div class="help-block">
+    <h2>Where to start</h2>
+    <p>
+      By default, only <strong>Delay Time</strong> is active to guess — Feedback and Wet/Dry are
+      fixed and shown. Press <strong>New Round</strong>, toggle between <strong>Target</strong> and
+      <strong>Your Delay</strong>, then adjust the Delay Time slider until the repeat interval matches.
+      Press <strong>Submit</strong> when you're ready.
+    </p>
+    <p>
+      Unlock Feedback and Wet/Dry using the lock buttons to add more parameters. Increase difficulty
+      to push the parameter ranges further apart, making each round more challenging.
+    </p>
+  </div>
+
+  <hr class="help-divider">
+
+  <div class="help-block">
+    <h2>What to listen for</h2>
+    <p>
+      <strong>Delay Time</strong> — the gap between the original sound and its first echo. Short delay
+      times (under 100ms) produce a slapback or doubling effect; longer times (300ms+) produce distinct,
+      clearly separated repeats. Try tapping along to the rhythm of the repeats to estimate the tempo.
+    </p>
+    <p>
+      <strong>Feedback</strong> — how much of the delayed signal is fed back into the delay line,
+      creating multiple repeats. Low feedback (20–30%) gives one or two echoes that fade quickly.
+      High feedback (80%+) creates many repeats that build and sustain, almost like a wash of sound.
+    </p>
+    <p>
+      <strong>Wet/Dry</strong> — the balance between the delayed signal and the dry original.
+      High wet values make the echoes prominent and forward in the mix. Low wet values keep the
+      original sound upfront with echoes subtly trailing behind.
+    </p>
+    <p>
+      A useful trick for Delay Time: listen for the moment the first repeat arrives after the original
+      sound, and count how long that gap feels. Short = fast tempo or slapback; long = spacious echo.
+      Toggle <kbd>Space</kbd>/<kbd>D</kbd> between Target and dry to re-anchor your sense of the original.
+    </p>
+  </div>
+
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
+// ── Help Section ───────────────────────────────────────────────────────────────
+function toggleHelp() {
+  const btn = document.getElementById('helpToggle');
+  const sec = document.getElementById('helpSection');
+  const open = sec.classList.toggle('visible');
+  btn.classList.toggle('open', open);
+}
+
 // ── Constants ──────────────────────────────────────────────────────────────────
 const DIFFICULTY_CFG = {
   easy:   { delayTime: [100, 600], feedback: [20, 70], wet: [20, 60] },
