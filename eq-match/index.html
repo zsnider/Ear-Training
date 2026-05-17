@@ -86,6 +86,95 @@
       gap: 12px;
     }
 
+    /* ── Help Section ── */
+    .help-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 13px;
+      padding: 9px 16px;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-top: 4px;
+      width: fit-content;
+    }
+    .help-toggle:hover { border-color: var(--border2); color: var(--text); }
+    .help-toggle .toggle-arrow {
+      font-size: 10px;
+      transition: transform 0.2s;
+      display: inline-block;
+    }
+    .help-toggle.open .toggle-arrow { transform: rotate(90deg); }
+
+    .help-section {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px 32px;
+      gap: 28px;
+      flex-direction: column;
+    }
+    .help-section.visible { display: flex; }
+
+    .help-section h2 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: 0.02em;
+      margin-bottom: 2px;
+    }
+    .help-section p {
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+    .help-section p strong { color: var(--text); font-weight: 500; }
+
+    .help-block { display: flex; flex-direction: column; gap: 8px; }
+
+    .help-freq-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .help-freq-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 13px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .help-freq-card .freq-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .help-freq-card .freq-range {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: 'IBM Plex Mono', monospace;
+    }
+    .help-freq-card .freq-desc {
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.55;
+      margin-top: 2px;
+    }
+    .help-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+    }
+
     .top-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
     .pill {
@@ -490,6 +579,99 @@
 
 </div>
 
+<!-- Help Toggle -->
+<button class="help-toggle" id="helpToggle" onclick="toggleHelp()">
+  <span class="toggle-arrow">▶</span> How to play
+</button>
+
+<!-- Help Section -->
+<div class="help-section" id="helpSection">
+
+  <div class="help-block">
+    <h2>Where to start</h2>
+    <p>
+      Set <strong>Training Tier</strong> to <strong>Beginner</strong> and keep <strong>Filters</strong> set to <strong>Peaking only</strong>.
+      Hit <strong>New Round</strong> — you'll hear a short audio clip with one or more EQ boosts applied.
+      Your job is to drag the EQ handles on the chart to match what you hear, then press <strong>Check Answer</strong>.
+    </p>
+    <p>
+      Start with <strong>pink noise</strong> as your audio source — it covers the full frequency spectrum evenly,
+      so there's nothing musical to distract you. Once you're scoring consistently, switch to loops or your own music.
+    </p>
+    <p>
+      Work through the Training Tiers from top to bottom. Each tier narrows the gain window, making boosts
+      progressively harder to hear.
+    </p>
+  </div>
+
+  <hr class="help-divider">
+
+  <div class="help-block">
+    <h2>What to listen for</h2>
+    <p>
+      When a frequency band is boosted, ask yourself: <strong>where does the sound feel heavier, brighter, honkier, or harsher?</strong>
+      Boosts create a sense of weight or presence in a specific part of the sound — find that part on the chart and drag the handle there.
+      Don't overthink the exact number at first; get the region right, then fine-tune.
+    </p>
+    <p>
+      Use the <strong>Target</strong> and <strong>My EQ</strong> buttons to A/B between the processed signal
+      and your attempt in real time while you adjust.
+    </p>
+  </div>
+
+  <hr class="help-divider">
+
+  <div class="help-block">
+    <h2>Frequency reference</h2>
+    <div class="help-freq-grid">
+
+      <div class="help-freq-card">
+        <span class="freq-label" style="color:#c97bff;">Sub-Bass</span>
+        <span class="freq-range">20 – 60 Hz</span>
+        <span class="freq-desc">The deepest rumble — felt in the body more than heard. Controls the "oomph" of kick drums and sub-bass. Too much causes a mix to sound muddy or undefined.</span>
+      </div>
+
+      <div class="help-freq-card">
+        <span class="freq-label" style="color:#5b6aff;">Bass</span>
+        <span class="freq-range">60 – 250 Hz</span>
+        <span class="freq-desc">Provides the fundamental rhythm and power of a song. Houses the primary body of bass guitars and drum shells. Build-up here often makes a track sound bloated.</span>
+      </div>
+
+      <div class="help-freq-card">
+        <span class="freq-label" style="color:#3ecf8e;">Low-Midrange</span>
+        <span class="freq-range">250 – 500 Hz</span>
+        <span class="freq-desc">Adds warmth and foundation to instruments and vocals. Boosts add "thickness" to a sound; cuts are often used to reduce boxiness.</span>
+      </div>
+
+      <div class="help-freq-card">
+        <span class="freq-label" style="color:#f5a623;">Midrange</span>
+        <span class="freq-range">500 Hz – 2 kHz</span>
+        <span class="freq-desc">The most sensitive range for human hearing. Contains the fundamental notes of most melodic instruments and vocals. Too much here sounds "honky" or causes masking.</span>
+      </div>
+
+      <div class="help-freq-card">
+        <span class="freq-label" style="color:#f0b429;">Upper-Midrange</span>
+        <span class="freq-range">2 – 4 kHz</span>
+        <span class="freq-desc">Defines the attack and punch of instruments. Adjusting here helps vocals, guitars, and snares cut through a busy mix.</span>
+      </div>
+
+      <div class="help-freq-card">
+        <span class="freq-label" style="color:#f45b69;">Presence</span>
+        <span class="freq-range">4 – 6 kHz</span>
+        <span class="freq-desc">Dictates the clarity and definition of a sound. Boosting here makes elements feel closer and more upfront to the listener.</span>
+      </div>
+
+      <div class="help-freq-card">
+        <span class="freq-label" style="color:#60e8ff;">Brilliance / Air</span>
+        <span class="freq-range">6 – 20 kHz</span>
+        <span class="freq-desc">Provides "sparkle," "sheen," and "air." Controls the crispness of cymbals, acoustic guitar strings, and vocal breath. Over-boosting quickly leads to harshness or listener fatigue.</span>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -508,6 +690,14 @@ async function getManifest() {
   const r = await fetch('../samples/manifest.json');
   samplesManifest = await r.json();
   return samplesManifest;
+}
+
+// ── Help Section ──────────────────────────────────────────────────────────────
+function toggleHelp() {
+  const btn = document.getElementById('helpToggle');
+  const sec = document.getElementById('helpSection');
+  const open = sec.classList.toggle('visible');
+  btn.classList.toggle('open', open);
 }
 
 // ── Game State ────────────────────────────────────────────────────────────────
