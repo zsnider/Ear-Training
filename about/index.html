@@ -34,6 +34,14 @@
     --pan-accent2:  #a58aff;
     --qc-accent:    #2dd4a0;
     --qc-accent2:   #5eefc0;
+    --delay-accent:  #f97316;
+    --delay-accent2: #fb923c;
+    --ll-accent:    #f0b429;
+    --ll-accent2:   #ffd166;
+    --qeq-accent:   #818cf8;
+    --qeq-accent2:  #a5b4fc;
+    --sca-accent:   #39d353;
+    --sca-accent2:  #7ce88f;
   }
 
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -250,7 +258,11 @@
   .game-row.dist .game-icon { background: var(--dist-accent); }
   .game-row.fq   .game-icon { background: var(--fq-accent); }
   .game-row.fh   .game-icon { background: var(--fh-accent); }
-  .game-row.pan  .game-icon { background: var(--pan-accent); }
+  .game-row.pan   .game-icon { background: var(--pan-accent); }
+  .game-row.delay .game-icon { background: var(--delay-accent); }
+  .game-row.ll    .game-icon { background: var(--ll-accent); }
+  .game-row.qeq   .game-icon { background: var(--qeq-accent); }
+  .game-row.sca   .game-icon { background: var(--sca-accent); }
 
   .game-body {}
 
@@ -270,7 +282,11 @@
   .game-row.dist .game-name { color: var(--dist-accent2); }
   .game-row.fq   .game-name { color: var(--fq-accent2); }
   .game-row.fh   .game-name { color: var(--fh-accent2); }
-  .game-row.pan  .game-name { color: var(--pan-accent2); }
+  .game-row.pan   .game-name { color: var(--pan-accent2); }
+  .game-row.delay .game-name { color: var(--delay-accent2); }
+  .game-row.ll    .game-name { color: var(--ll-accent2); }
+  .game-row.qeq   .game-name { color: var(--qeq-accent2); }
+  .game-row.sca   .game-name { color: var(--sca-accent2); }
 
   .game-tags { display: flex; gap: 5px; flex-wrap: wrap; }
   .game-tag {
@@ -284,7 +300,11 @@
   .game-row.dist .game-tag { background:rgba(212,74,42,0.12);   color:var(--dist-accent2); border:1px solid rgba(212,74,42,0.3); }
   .game-row.fq   .game-tag { background:rgba(0,212,255,0.08);   color:var(--fq-accent2);   border:1px solid rgba(0,212,255,0.2); }
   .game-row.fh   .game-tag { background:rgba(0,229,204,0.08);   color:var(--fh-accent2);   border:1px solid rgba(0,229,204,0.2); }
-  .game-row.pan  .game-tag { background:rgba(124,92,252,0.08);  color:var(--pan-accent2);  border:1px solid rgba(124,92,252,0.25); }
+  .game-row.pan   .game-tag { background:rgba(124,92,252,0.08);  color:var(--pan-accent2);   border:1px solid rgba(124,92,252,0.25); }
+  .game-row.delay .game-tag { background:rgba(249,115,22,0.08);  color:var(--delay-accent2); border:1px solid rgba(249,115,22,0.25); }
+  .game-row.ll    .game-tag { background:rgba(240,180,41,0.08);  color:var(--ll-accent2);    border:1px solid rgba(240,180,41,0.25); }
+  .game-row.qeq   .game-tag { background:rgba(129,140,248,0.08); color:var(--qeq-accent2);   border:1px solid rgba(129,140,248,0.25); }
+  .game-row.sca   .game-tag { background:rgba(57,211,83,0.08);   color:var(--sca-accent2);   border:1px solid rgba(57,211,83,0.25); }
 
   .game-desc {
     font-size: 13px; color: var(--muted); line-height: 1.65; font-weight: 300;
@@ -536,7 +556,7 @@
     <h2 class="section-title">Precision tools. Rapid-fire games.</h2>
     <div class="section-body">
       <p>
-        SonicSandbox games fall into two categories. <strong>EQ Match, Compressor, Reverb Master, and Distortion Master</strong> are deep, technical tools — fully customizable, with the ability to isolate any individual parameter so you can focus on learning one thing at a time. <strong>Freq Quiz, Freq Hunter, Quick Compress, and Spatial Specialist</strong> are built for speed — one click to answer, instant next round, designed for rapid reps and quick self-quizzing.
+        SonicSandbox games fall into two categories. <strong>EQ Match, Compressor, Reverb Master, Distortion Master, and Delay Master</strong> are deep, technical tools — fully customizable, with the ability to isolate any individual parameter so you can focus on learning one thing at a time. <strong>Freq Quiz, Freq Hunter, Quick Compress, Spatial Specialist, Level Logic, QuickEQ, and Signal Chain Architect</strong> are built for speed — one click to answer, instant next round, designed for rapid reps and quick self-quizzing.
       </p>
     </div>
 
@@ -685,6 +705,36 @@
         </div>
       </div>
 
+      <!-- Delay Master -->
+      <div class="game-row delay">
+        <div class="game-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <rect x="1"  y="6"  width="4" height="11" rx="2"     fill="white"/>
+            <rect x="7"  y="9"  width="3" height="8"  rx="1.5"   fill="rgba(255,255,255,0.72)"/>
+            <rect x="12" y="11" width="2.5" height="6" rx="1.25" fill="rgba(255,255,255,0.46)"/>
+            <rect x="16.5" y="12.5" width="2" height="4.5" rx="1" fill="rgba(255,255,255,0.26)"/>
+            <rect x="20" y="13.5" width="1.5" height="3.5" rx="0.75" fill="rgba(255,255,255,0.14)"/>
+          </svg>
+        </div>
+        <div class="game-body">
+          <div class="game-header">
+            <div class="game-name">Delay Master</div>
+            <div class="game-tags">
+              <span class="game-tag">Delay Time</span>
+              <span class="game-tag">Feedback</span>
+              <span class="game-tag">Wet / Dry</span>
+              <span class="game-tag">A/B Compare</span>
+            </div>
+          </div>
+          <p class="game-desc">
+            A target delay with hidden settings is applied to the audio. Adjust delay time, feedback amount, and wet/dry mix to match what you hear, then toggle between your attempt and the target to compare. Like the other deep tools, you can lock any parameter to focus on one at a time — isolate delay time while feedback and wet/dry are shown, or guess all three simultaneously for the full challenge. A visual echo diagram reveals the delay structure once you submit.
+          </p>
+          <p class="game-trains">
+            <strong>What it trains:</strong> Timing perception and delay literacy — hearing the rhythmic relationship between a delay echo and the source signal, recognizing how feedback multiplies into long trails or tight slaps, and understanding how wet/dry balance places delay in the foreground or background of a mix.
+          </p>
+        </div>
+      </div>
+
       <!-- Freq Quiz -->
       <div class="game-row fq">
         <div class="game-icon">
@@ -769,6 +819,95 @@
           </p>
           <p class="game-trains">
             <strong>What it trains:</strong> Stereo perception — hearing where a sound sits in a mix and how wide or narrow its image is. Critical for panning decisions, mid/side processing, and catching phase issues that collapse the stereo field.
+          </p>
+        </div>
+      </div>
+
+      <!-- Level Logic -->
+      <div class="game-row ll">
+        <div class="game-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <rect x="2"  y="8"  width="3.5" height="13" rx="1.5" fill="white"/>
+            <rect x="7"  y="11" width="3.5" height="10" rx="1.5" fill="white" opacity="0.7"/>
+            <rect x="12" y="6"  width="3.5" height="15" rx="1.5" fill="white" opacity="0.5"/>
+            <rect x="17" y="13" width="3.5" height="8"  rx="1.5" fill="white" opacity="0.35"/>
+            <line x1="2" y1="5" x2="22" y2="5" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.3" stroke-dasharray="2 3"/>
+          </svg>
+        </div>
+        <div class="game-body">
+          <div class="game-header">
+            <div class="game-name">Level Logic</div>
+            <div class="game-tags">
+              <span class="game-tag">Gain</span>
+              <span class="game-tag">Boost / Cut</span>
+              <span class="game-tag">dB Recognition</span>
+              <span class="game-tag">A/B Compare</span>
+            </div>
+          </div>
+          <p class="game-desc">
+            A reference signal plays, then a level-adjusted version follows. Identify whether the gain was boosted or cut, and by how much — select from a set of labeled dB increments. One answer per round, immediate feedback, next round begins instantly. Simple format, high reps, fast results.
+          </p>
+          <p class="game-trains">
+            <strong>What it trains:</strong> Volume sensitivity and gain perception — developing an ear for how specific dB amounts actually feel. This skill translates directly to level-matching, gain staging, and trust your instincts when A/B referencing in a session.
+          </p>
+        </div>
+      </div>
+
+      <!-- QuickEQ -->
+      <div class="game-row qeq">
+        <div class="game-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M2 14 Q5 6 9 12 Q13 18 17 10 Q19 6 22 8"
+                  stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="9"  cy="12" r="2" fill="white" opacity="0.9"/>
+            <circle cx="17" cy="10" r="2" fill="white" opacity="0.9"/>
+          </svg>
+        </div>
+        <div class="game-body">
+          <div class="game-header">
+            <div class="game-name">QuickEQ</div>
+            <div class="game-tags">
+              <span class="game-tag">A/B Identification</span>
+              <span class="game-tag">5 Filter Types</span>
+              <span class="game-tag">1–3 Bands</span>
+              <span class="game-tag">Easy to Hard</span>
+            </div>
+          </div>
+          <p class="game-desc">
+            Two EQ curves are shown — one applied to the audio, one not. A/B listen between the processed signal and the dry, then click the panel that matches what you hear. No dialing in, no sliders — just listening and deciding. Adjust difficulty, number of bands, and whether the curves are shown or hidden to control the challenge.
+          </p>
+          <p class="game-trains">
+            <strong>What it trains:</strong> Recognizing the tonal character of different EQ shapes by ear — learning to hear which frequencies are boosted or cut and whether the effect is subtle or dramatic, without having to reproduce the settings yourself.
+          </p>
+        </div>
+      </div>
+
+      <!-- Signal Chain Architect -->
+      <div class="game-row sca">
+        <div class="game-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <rect x="1" y="9" width="5" height="6" rx="1.5" stroke="white" stroke-width="1.6" fill="none"/>
+            <rect x="9" y="9" width="5" height="6" rx="1.5" stroke="white" stroke-width="1.6" fill="none" opacity="0.7"/>
+            <rect x="17" y="9" width="5" height="6" rx="1.5" stroke="white" stroke-width="1.6" fill="none" opacity="0.45"/>
+            <line x1="6" y1="12" x2="9" y2="12" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="14" y1="12" x2="17" y2="12" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+          </svg>
+        </div>
+        <div class="game-body">
+          <div class="game-header">
+            <div class="game-name">Signal Chain Architect</div>
+            <div class="game-tags">
+              <span class="game-tag">Signal Flow</span>
+              <span class="game-tag">Order Recognition</span>
+              <span class="game-tag">Drag & Drop</span>
+              <span class="game-tag">4 Effect Types</span>
+            </div>
+          </div>
+          <p class="game-desc">
+            A signal chain of two to four effects — EQ, compression, reverb, and saturation — is applied to the audio in a specific order. Listen to the result and drag the effect blocks into slots to reconstruct the order. This isn't about matching parameters; it's about recognizing how the sequence of effects changes the sound.
+          </p>
+          <p class="game-trains">
+            <strong>What it trains:</strong> Signal flow intuition — hearing how the order of processing shapes the character of a sound. Compressing before reverb sounds different from compressing after it. EQ before saturation behaves differently than EQ after. This is a fundamental mixing concept that most ear training ignores entirely.
           </p>
         </div>
       </div>
