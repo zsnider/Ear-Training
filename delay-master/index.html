@@ -157,7 +157,13 @@ main {
   animation: pulse 1s ease-in-out infinite; display: inline-block;
 }
 @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
-.monitor-hint { font-size: 11px; color: var(--muted); font-style: italic; margin-left: auto; }
+.monitor-hint { font-size: 11px; color: var(--muted); font-style: italic; }
+.kbd-legend { flex-basis: 100%; font-size: 11px; color: var(--muted); display: flex; align-items: center; flex-wrap: wrap; gap: 2px; }
+kbd {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+  background: var(--surface3); border: 1px solid var(--border2);
+  border-radius: 4px; padding: 1px 5px; color: var(--muted);
+}
 
 /* ── Idle ── */
 .idle-card {
@@ -213,8 +219,7 @@ main {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 5px; background: var(--bg); pointer-events: none;
 }
-.viz-hidden-icon  { font-size: 20px; opacity: 0.5; }
-.viz-hidden-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); }
+.viz-hidden-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.04em; }
 
 /* Parameter display rows (target panel) */
 .param-display-area {
@@ -418,7 +423,15 @@ input[type=range]:disabled::-webkit-slider-thumb { background: var(--muted); box
       <button class="ctrl-btn" id="btnPause"   onclick="togglePause()"     disabled>⏸ Pause</button>
       <button class="ctrl-btn" id="btnRestart" onclick="restartAudio()"    disabled>⟲</button>
     </div>
-    <div class="monitor-hint" id="monitorHint"></div>
+    <div class="kbd-legend">
+      <kbd>Space</kbd>&thinsp;/&thinsp;<kbd>D</kbd>&nbsp;A/B
+      &nbsp;·&nbsp;<kbd>P</kbd>&nbsp;Pause
+      &nbsp;·&nbsp;<kbd>F</kbd>&nbsp;Restart
+      &nbsp;·&nbsp;<kbd>←&nbsp;→</kbd>&nbsp;Seek
+      &nbsp;·&nbsp;<kbd>↑&nbsp;↓</kbd>&nbsp;Skip
+      &nbsp;·&nbsp;<kbd>↵</kbd>&nbsp;Submit
+    </div>
+    <div class="monitor-hint" id="monitorHint" style="display:none"></div>
   </div>
 
   <!-- Idle state -->
@@ -446,7 +459,6 @@ input[type=range]:disabled::-webkit-slider-thumb { background: var(--muted); box
         <div class="delay-viz-wrap">
           <canvas class="delay-canvas" id="targetCanvas"></canvas>
           <div class="viz-hidden-overlay" id="targetVizOverlay">
-            <span class="viz-hidden-icon">🔒</span>
             <span class="viz-hidden-label">Submit to reveal</span>
           </div>
         </div>
