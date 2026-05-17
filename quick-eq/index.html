@@ -147,7 +147,13 @@ main {
   animation: pulse 1s ease-in-out infinite; display: inline-block;
 }
 @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
-.monitor-hint { font-size: 11px; color: var(--muted); font-style: italic; margin-left: auto; }
+.monitor-hint { font-size: 11px; color: var(--muted); font-style: italic; }
+.kbd-legend { flex-basis: 100%; font-size: 11px; color: var(--muted); display: flex; align-items: center; flex-wrap: wrap; gap: 2px; }
+kbd {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+  background: var(--surface3); border: 1px solid var(--border2);
+  border-radius: 4px; padding: 1px 5px; color: var(--muted);
+}
 
 /* ── Idle ── */
 .idle-card {
@@ -219,30 +225,29 @@ main {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 6px; background: var(--bg);
 }
-.hidden-icon { font-size: 24px; }
-.hidden-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); }
+.hidden-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.04em; }
 
 /* Band knob display */
 .band-params {
-  padding: 10px 12px; flex: 1;
-  display: flex; flex-direction: column; gap: 6px;
-  min-height: 80px;
+  padding: 12px 14px; flex: 1;
+  display: flex; flex-direction: column; gap: 10px;
+  min-height: 100px;
 }
-.knob-band { display: flex; flex-direction: column; gap: 3px; }
-.knob-band + .knob-band { border-top: 1px solid var(--border); padding-top: 6px; }
-.knob-band-label { display: flex; align-items: center; gap: 6px; }
+.knob-band { display: flex; flex-direction: column; gap: 6px; }
+.knob-band + .knob-band { border-top: 1px solid var(--border); padding-top: 10px; }
+.knob-band-label { display: flex; align-items: center; gap: 8px; }
 .knob-band-num {
-  font-family: 'IBM Plex Mono', monospace; font-size: 9px;
-  font-weight: 600; color: rgba(255,255,255,0.3);
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  font-weight: 600; color: rgba(255,255,255,0.35);
 }
 .knob-type-badge {
-  font-family: 'IBM Plex Mono', monospace; font-size: 8.5px;
-  color: rgba(255,255,255,0.45);
-  background: rgba(255,255,255,0.06);
-  padding: 1px 5px; border-radius: 3px;
-  letter-spacing: 0.04em;
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600;
+  color: rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.08);
+  padding: 2px 8px; border-radius: 4px;
+  letter-spacing: 0.05em;
 }
-.knob-row { display: flex; gap: 4px; align-items: flex-start; }
+.knob-row { display: flex; justify-content: space-evenly; align-items: flex-start; width: 100%; }
 .params-hidden { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); font-style: italic; padding: 6px 0; }
 
 /* Pick button */
@@ -355,14 +360,14 @@ main {
       </div>
       <span class="settings-label" style="margin-left:12px">Bands</span>
       <div class="btn-group">
-        <button class="seg-btn"        id="bands1" onclick="setNumBands(1)">1</button>
-        <button class="seg-btn active" id="bands2" onclick="setNumBands(2)">2</button>
+        <button class="seg-btn active"  id="bands1" onclick="setNumBands(1)">1</button>
+        <button class="seg-btn"        id="bands2" onclick="setNumBands(2)">2</button>
         <button class="seg-btn"        id="bands3" onclick="setNumBands(3)">3</button>
       </div>
       <span class="settings-label" style="margin-left:12px">Difficulty</span>
       <div class="btn-group">
-        <button class="seg-btn"        id="diffEasy"   onclick="setDifficulty('easy')">Easy</button>
-        <button class="seg-btn active" id="diffMedium" onclick="setDifficulty('medium')">Medium</button>
+        <button class="seg-btn active" id="diffEasy"   onclick="setDifficulty('easy')">Easy</button>
+        <button class="seg-btn"        id="diffMedium" onclick="setDifficulty('medium')">Medium</button>
         <button class="seg-btn"        id="diffHard"   onclick="setDifficulty('hard')">Hard</button>
       </div>
       <button class="new-round-btn" onclick="newRound()">New Round</button>
@@ -385,7 +390,15 @@ main {
       <button class="ctrl-btn" id="btnPause"   onclick="togglePause()"     disabled>⏸ Pause</button>
       <button class="ctrl-btn" id="btnRestart" onclick="restartAudio()"    disabled>⟲</button>
     </div>
-    <div class="monitor-hint" id="monitorHint"></div>
+    <div class="kbd-legend">
+      <kbd>Space</kbd>&thinsp;/&thinsp;<kbd>D</kbd>&nbsp;A/B
+      &nbsp;·&nbsp;<kbd>P</kbd>&nbsp;Pause
+      &nbsp;·&nbsp;<kbd>F</kbd>&nbsp;Restart
+      &nbsp;·&nbsp;<kbd>←&nbsp;→</kbd>&nbsp;Seek
+      &nbsp;·&nbsp;<kbd>↑&nbsp;↓</kbd>&nbsp;Skip
+      &nbsp;·&nbsp;<kbd>1</kbd>&thinsp;/&thinsp;<kbd>2</kbd>&nbsp;Pick A/B
+    </div>
+    <div class="monitor-hint" id="monitorHint" style="display:none"></div>
   </div>
 
   <!-- Idle state -->
@@ -411,7 +424,6 @@ main {
         <div class="canvas-wrap" id="canvasWrapA">
           <canvas class="eq-canvas" id="canvasA"></canvas>
           <div class="canvas-hidden-overlay" id="overlayA" style="display:none">
-            <span class="hidden-icon">🔒</span>
             <span class="hidden-label">EQ curve hidden</span>
           </div>
         </div>
@@ -430,7 +442,6 @@ main {
         <div class="canvas-wrap" id="canvasWrapB">
           <canvas class="eq-canvas" id="canvasB"></canvas>
           <div class="canvas-hidden-overlay" id="overlayB" style="display:none">
-            <span class="hidden-icon">🔒</span>
             <span class="hidden-label">EQ curve hidden</span>
           </div>
         </div>
@@ -498,7 +509,7 @@ function bandResponseDB(freq, band) {
     a0 = (A + 1) + (A - 1) * cosW0 + 2 * Math.sqrt(A) * alpha;
     a1 = -2 * ((A - 1) + (A + 1) * cosW0);
     a2 = (A + 1) + (A - 1) * cosW0 - 2 * Math.sqrt(A) * alpha;
-  } else { // highshelf
+  } else if (type === 'highshelf') {
     const alpha = (sinW0 / 2) * Math.sqrt((A + 1 / A) * (1 / Q - 1) + 2);
     b0 = A * ((A + 1) + (A - 1) * cosW0 + 2 * Math.sqrt(A) * alpha);
     b1 = -2 * A * ((A - 1) + (A + 1) * cosW0);
@@ -506,6 +517,14 @@ function bandResponseDB(freq, band) {
     a0 = (A + 1) - (A - 1) * cosW0 + 2 * Math.sqrt(A) * alpha;
     a1 = 2 * ((A - 1) - (A + 1) * cosW0);
     a2 = (A + 1) - (A - 1) * cosW0 - 2 * Math.sqrt(A) * alpha;
+  } else if (type === 'lowpass') {
+    const alpha = sinW0 / (2 * Q);
+    b0 = (1 - cosW0) / 2; b1 = 1 - cosW0; b2 = (1 - cosW0) / 2;
+    a0 = 1 + alpha; a1 = -2 * cosW0; a2 = 1 - alpha;
+  } else { // highpass
+    const alpha = sinW0 / (2 * Q);
+    b0 = (1 + cosW0) / 2; b1 = -(1 + cosW0); b2 = (1 + cosW0) / 2;
+    a0 = 1 + alpha; a1 = -2 * cosW0; a2 = 1 - alpha;
   }
 
   // Normalize
@@ -604,7 +623,11 @@ function drawEQCanvas(canvasEl, bands, color, hidden) {
   // Band center markers
   bands.forEach(band => {
     const x = freqToX(band.freq, W);
-    const y = gainToY(band.gain, H);
+    // For LP/HP the gain field is 0, so place marker on the actual curve
+    const markerDB = (band.type === 'lowpass' || band.type === 'highpass')
+      ? totalResponseDB(band.freq, [band])
+      : band.gain;
+    const y = gainToY(markerDB, H);
     ctx.beginPath();
     ctx.arc(x, y, 4, 0, Math.PI * 2);
     ctx.fillStyle = color;
@@ -626,12 +649,14 @@ function redrawCanvases() {
 // ── Band generation ────────────────────────────────────────────────────────────
 // Frequency zones (type hint + freq range)
 const ZONES = [
-  { type: 'lowshelf',  minF: 60,   maxF: 120  },
-  { type: 'peaking',   minF: 120,  maxF: 400  },
-  { type: 'peaking',   minF: 400,  maxF: 1200 },
-  { type: 'peaking',   minF: 1200, maxF: 4000 },
-  { type: 'peaking',   minF: 4000, maxF: 9000 },
+  { type: 'highpass',  minF: 40,   maxF: 600   },
+  { type: 'lowshelf',  minF: 60,   maxF: 120   },
+  { type: 'peaking',   minF: 120,  maxF: 400   },
+  { type: 'peaking',   minF: 400,  maxF: 1200  },
+  { type: 'peaking',   minF: 1200, maxF: 4000  },
+  { type: 'peaking',   minF: 4000, maxF: 9000  },
   { type: 'highshelf', minF: 8000, maxF: 14000 },
+  { type: 'lowpass',   minF: 500,  maxF: 10000 },
 ];
 const ROUND_FREQS = [63, 125, 250, 500, 1000, 2000, 4000, 8000, 12000, 16000];
 
@@ -662,24 +687,43 @@ function makeTargetBands(nBands, diff) {
   }[diff];
 
   // Pick nBands well-spaced zones
-  const zoneIndices = shuffleArr([0,1,2,3,4,5]).slice(0, nBands).sort((a,b)=>a-b);
+  const zoneIndices = shuffleArr([0,1,2,3,4,5,6,7]).slice(0, nBands).sort((a,b)=>a-b);
   const usedFreqs = [];
   return zoneIndices.map(zi => {
     const zone = ZONES[zi];
     const freq = pickRoundFreq(usedFreqs, zi);
     usedFreqs.push(freq);
+    const isShapeOnly = zone.type === 'lowpass' || zone.type === 'highpass';
+    const isShelf = zone.type === 'lowshelf' || zone.type === 'highshelf';
     const gainMag = gainCfg.min + Math.random() * (gainCfg.max - gainCfg.min);
-    const gain = coin() ? gainMag : -gainMag;
-    const Q = zone.type === 'peaking'
-      ? qCfg.min + Math.random() * (qCfg.max - qCfg.min)
-      : 0.707;
-    return { type: zone.type, freq, gain: Math.round(gain * 2) / 2, Q };
+    const gain = isShapeOnly ? 0 : (coin() ? gainMag : -gainMag);
+    // Q is variable for peaking and LP/HP; shelves get a gentle fixed slope
+    const Q = isShelf
+      ? 0.707
+      : qCfg.min + Math.random() * (qCfg.max - qCfg.min);
+    return { type: zone.type, freq, gain: isShapeOnly ? 0 : Math.round(gain * 2) / 2, Q };
   });
 }
 
 function makeDecoyBands(targetBands, diff) {
   return targetBands.map(band => {
     const b = { ...band };
+    const isShapeOnly = band.type === 'lowpass' || band.type === 'highpass';
+
+    if (isShapeOnly) {
+      // For LP/HP: shift cutoff frequency by 1-2 octaves and vary Q
+      const octaveShift = (diff === 'easy' ? 1.5 : diff === 'medium' ? 1.0 : 0.6);
+      const direction = coin() ? octaveShift : -octaveShift;
+      b.freq = Math.round(Math.max(40, Math.min(18000, band.freq * Math.pow(2, direction))));
+      // Snap to nearest round freq
+      const snap = [40,63,80,100,125,160,200,250,315,400,500,630,800,1000,1250,1600,2000,2500,3150,4000,5000,6300,8000,10000,12500,16000];
+      b.freq = snap.reduce((prev, cur) => Math.abs(cur - b.freq) < Math.abs(prev - b.freq) ? cur : prev);
+      // Vary Q slightly
+      const qShift = diff === 'easy' ? 0.5 : diff === 'medium' ? 0.3 : 0.2;
+      b.Q = Math.max(0.3, Math.min(4, band.Q * (coin() ? 1 + qShift : 1 - qShift)));
+      return b;
+    }
+
     if (diff === 'easy') {
       // Flip gain sign — opposite tonal character
       b.gain = -band.gain;
@@ -707,8 +751,8 @@ function makeDecoyBands(targetBands, diff) {
 function shuffleArr(a) { const b=[...a]; for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];} return b; }
 
 // ── State ──────────────────────────────────────────────────────────────────────
-let numBands      = 2;
-let difficulty    = 'medium';
+let numBands      = 1;
+let difficulty    = 'easy';
 let sourceType    = 'pink';
 let showCurves    = true;
 
@@ -841,7 +885,7 @@ function renderGame() {
 
 // ── SVG Knobs ──────────────────────────────────────────────────────────────────
 function makeKnobSVG(value, min, max, label, color, unit, logScale) {
-  const R = 17, cx = 24, cy = 24, size = 48;
+  const R = 28, cx = 36, cy = 36, size = 72;
   const startDeg = 135, sweepDeg = 270;
 
   let t;
@@ -870,7 +914,7 @@ function makeKnobSVG(value, min, max, label, color, unit, logScale) {
   if (t > 0.005) {
     const fillSweep = t * sweepDeg;
     const la = fillSweep > 180 ? 1 : 0;
-    fillStr = `<path d="M ${sx.toFixed(2)},${sy.toFixed(2)} A ${R},${R} 0 ${la},1 ${vx.toFixed(2)},${vy.toFixed(2)}" fill="none" stroke="${color}" stroke-width="2.8" stroke-linecap="round"/>`;
+    fillStr = `<path d="M ${sx.toFixed(2)},${sy.toFixed(2)} A ${R},${R} 0 ${la},1 ${vx.toFixed(2)},${vy.toFixed(2)}" fill="none" stroke="${color}" stroke-width="4.5" stroke-linecap="round"/>`;
   }
 
   // Format value
@@ -879,13 +923,13 @@ function makeKnobSVG(value, min, max, label, color, unit, logScale) {
   else if (unit === 'Hz') disp = value >= 1000 ? (value/1000).toFixed(value%1000===0?0:1)+'k' : String(value);
   else                    disp = value.toFixed(1);
 
-  return `<svg viewBox="0 0 ${size} ${size+16}" width="${size}" height="${size+16}" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="${cx}" cy="${cy}" r="${R+3}" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
-    <path d="${track}" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2.8" stroke-linecap="round"/>
+  const totalH = size + 18;
+  return `<svg viewBox="0 0 ${size} ${totalH}" width="${size}" height="${totalH}" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="${cx}" cy="${cy}" r="${R+5}" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+    <path d="${track}" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="4.5" stroke-linecap="round"/>
     ${fillStr}
-    <text x="${cx}" y="${cy+4}" text-anchor="middle" fill="${color}" font-family="IBM Plex Mono,monospace" font-size="7" font-weight="600">${disp}</text>
-    <text x="${cx}" y="${size+5}" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-family="IBM Plex Mono,monospace" font-size="6.5">${unit}</text>
-    <text x="${cx}" y="${size+14}" text-anchor="middle" fill="rgba(255,255,255,0.28)" font-family="IBM Plex Mono,monospace" font-size="6">${label}</text>
+    <text x="${cx}" y="${cy+5}" text-anchor="middle" fill="${color}" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="700">${disp}</text>
+    <text x="${cx}" y="${size+13}" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="600">${unit}</text>
   </svg>`;
 }
 
@@ -900,12 +944,14 @@ function renderKnobs(bands, containerId, color) {
     return;
   }
   bands.forEach((band, i) => {
-    const typeLabel = band.type === 'peaking' ? 'PEAK' : band.type === 'lowshelf' ? 'LOW SHF' : 'HI SHF';
-    const dbKnob  = makeKnobSVG(band.gain, -18, 18,      'dB', color, 'dB', false);
-    const hzKnob  = makeKnobSVG(band.freq,  20, 20000,   'Hz', color, 'Hz', true);
-    const qKnob   = band.type === 'peaking'
-      ? makeKnobSVG(band.Q, 0.1, 10, 'Q', color, 'Q', true)
-      : '';
+    const LABELS = {
+      peaking: 'PEAK', lowshelf: 'LOW SHELF', highshelf: 'HIGH SHELF',
+      lowpass: 'LOW PASS', highpass: 'HIGH PASS'
+    };
+    const typeLabel = LABELS[band.type] || band.type.toUpperCase();
+    const dbKnob  = makeKnobSVG(band.gain, -18, 18,    'dB', color, 'dB', false);
+    const hzKnob  = makeKnobSVG(band.freq, 20, 20000,  'Hz', color, 'Hz', true);
+    const qKnob   = makeKnobSVG(band.Q,    0.1, 10,     'Q', color, 'Q',  true);
     const bandDiv = document.createElement('div');
     bandDiv.className = 'knob-band';
     bandDiv.innerHTML = `
