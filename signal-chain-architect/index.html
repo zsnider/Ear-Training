@@ -59,8 +59,8 @@ header {
   width: 32px; height: 32px; background: var(--accent);
   border-radius: 8px; display: flex; align-items: center; justify-content: center;
 }
-.brand-name { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; line-height: 1.2; }
-.brand-sub  { font-size: 10px; color: var(--muted); }
+.brand-name { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; line-height: 1.2; }
+.brand-sub  { display: none; }
 .score-row { display: flex; gap: 20px; align-items: center; }
 .stat { display: flex; flex-direction: column; align-items: flex-end; }
 .stat-val   { font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 600; color: var(--accent2); }
@@ -146,7 +146,13 @@ main {
   animation: pulse 1s ease-in-out infinite; display: inline-block;
 }
 @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
-.monitor-hint { font-size: 11px; color: var(--muted); font-style: italic; margin-left: auto; }
+.monitor-hint { font-size: 11px; color: var(--muted); font-style: italic; }
+.kbd-legend { flex-basis: 100%; font-size: 11px; color: var(--muted); display: flex; align-items: center; flex-wrap: wrap; gap: 2px; }
+kbd {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+  background: var(--surface3); border: 1px solid var(--border2);
+  border-radius: 4px; padding: 1px 5px; color: var(--muted);
+}
 
 /* ── Idle state ── */
 .idle-card {
@@ -349,7 +355,7 @@ main {
 
 <header>
   <div class="header-left">
-    <a href="../" class="back-btn">← Games</a>
+    <a href="../" class="back-btn">← Back</a>
     <div class="brand">
       <div class="brand-icon">
         <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -360,7 +366,7 @@ main {
         </svg>
       </div>
       <div>
-        <div class="brand-name">Signal Chain</div>
+        <div class="brand-name">Signal Chain Architect</div>
         <div class="brand-sub">SonicSandbox.app</div>
       </div>
     </div>
@@ -401,14 +407,14 @@ main {
     <div class="settings-row">
       <span class="settings-label">Chain</span>
       <div class="btn-group">
-        <button class="seg-btn"        id="chain2" onclick="setChainLength(2)">2</button>
-        <button class="seg-btn active" id="chain3" onclick="setChainLength(3)">3</button>
+        <button class="seg-btn active" id="chain2" onclick="setChainLength(2)">2</button>
+        <button class="seg-btn"        id="chain3" onclick="setChainLength(3)">3</button>
         <button class="seg-btn"        id="chain4" onclick="setChainLength(4)">4</button>
       </div>
       <span class="settings-label" style="margin-left:12px">Difficulty</span>
       <div class="btn-group">
-        <button class="seg-btn"        id="diffEasy"   onclick="setDifficulty('easy')">Easy</button>
-        <button class="seg-btn active" id="diffMedium" onclick="setDifficulty('medium')">Medium</button>
+        <button class="seg-btn active" id="diffEasy"   onclick="setDifficulty('easy')">Easy</button>
+        <button class="seg-btn"        id="diffMedium" onclick="setDifficulty('medium')">Medium</button>
         <button class="seg-btn"        id="diffHard"   onclick="setDifficulty('hard')">Hard</button>
       </div>
       <button class="new-round-btn" onclick="newRound()">New Round</button>
@@ -431,7 +437,15 @@ main {
       <button class="ctrl-btn" id="btnPause"   onclick="togglePause()"     disabled>⏸ Pause</button>
       <button class="ctrl-btn" id="btnRestart" onclick="restartAudio()"    disabled>⟲</button>
     </div>
-    <div class="monitor-hint" id="monitorHint"></div>
+    <div class="monitor-hint" id="monitorHint" style="display:none"></div>
+    <div class="kbd-legend">
+      <kbd>Space</kbd>&thinsp;/&thinsp;<kbd>D</kbd>&nbsp;A/B
+      &nbsp;·&nbsp;<kbd>P</kbd>&nbsp;Pause
+      &nbsp;·&nbsp;<kbd>F</kbd>&nbsp;Restart
+      &nbsp;·&nbsp;<kbd>←&nbsp;→</kbd>&nbsp;Seek
+      &nbsp;·&nbsp;<kbd>↑&nbsp;↓</kbd>&nbsp;Skip
+      &nbsp;·&nbsp;<kbd>↵</kbd>&nbsp;Submit
+    </div>
   </div>
 
   <!-- Idle state (shown before first round) -->
@@ -516,8 +530,8 @@ function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 function shuffle(a) { const b=[...a]; for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];} return b; }
 
 // ── State ──────────────────────────────────────────────────────────────────────
-let chainLength    = 3;
-let difficulty     = 'medium';
+let chainLength    = 2;
+let difficulty     = 'easy';
 let sourceType     = 'pink';
 let enabledEffects = ['eq', 'compressor', 'reverb', 'saturation']; // must keep ≥ 2
 let roundActive   = false;
@@ -1422,8 +1436,11 @@ window.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
   if (audioCtx && audioCtx.state === 'suspended' && e.code !== 'KeyP') audioCtx.resume();
 
-  if (e.code === 'KeyT')       { e.preventDefault(); setMonitor('target'); }
-  if (e.code === 'KeyY')       { e.preventDefault(); setMonitor('user'); }
+  // A/B toggle: Space or D switch between target and user chain
+  if (e.code === 'Space' || e.code === 'KeyD') {
+    e.preventDefault();
+    setMonitor(currentMonitor === 'target' ? 'user' : 'target');
+  }
   if (e.code === 'KeyP')       { e.preventDefault(); togglePause(); }
   if (e.code === 'KeyF')       { e.preventDefault(); restartAudio(); }
   if (e.code === 'ArrowLeft')  { e.preventDefault(); seekMusic(-10); }

@@ -356,8 +356,8 @@
   <div class="settings-row">
     <span class="label">Difficulty</span>
     <select id="diffSelect" onchange="setDifficulty(this.value)">
-      <option value="easy">Easy — ±3 to ±12 dB</option>
-      <option value="medium" selected>Medium — ±2 to ±9 dB</option>
+      <option value="easy" selected>Easy — ±3 to ±12 dB</option>
+      <option value="medium">Medium — ±2 to ±9 dB</option>
       <option value="hard">Hard — ±1 to ±6 dB</option>
       <option value="expert">Expert — ±0.5 to ±3 dB</option>
     </select>
@@ -368,7 +368,7 @@
     <div class="pill"        id="dirDown"  onclick="setDirection('down',this)">Down Only</div>
     <div class="vdiv" style="margin-left:auto;"></div>
     <span style="font-size:11px;color:var(--muted);white-space:nowrap;">
-      <kbd>A</kbd> ref &nbsp;·&nbsp; <kbd>B</kbd> adjusted &nbsp;·&nbsp; <kbd>P</kbd> pause &nbsp;·&nbsp; <kbd>F</kbd> restart &nbsp;·&nbsp; <kbd>←→</kbd> seek &nbsp;·&nbsp; <kbd>↑↓</kbd> track &nbsp;·&nbsp; <kbd>1–8</kbd> answer
+      <kbd>Space</kbd>&thinsp;/&thinsp;<kbd>D</kbd> A/B &nbsp;·&nbsp; <kbd>P</kbd> pause &nbsp;·&nbsp; <kbd>F</kbd> restart &nbsp;·&nbsp; <kbd>←→</kbd> seek &nbsp;·&nbsp; <kbd>↑↓</kbd> track &nbsp;·&nbsp; <kbd>1–8</kbd> answer
     </span>
   </div>
 
@@ -432,7 +432,7 @@ const DB_SETS = {
 };
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let difficulty  = 'medium';
+let difficulty  = 'easy';
 let direction   = 'both';
 let targetDb    = null;
 let currentMonitor = 'B'; // 'A' or 'B'
@@ -1114,8 +1114,10 @@ window.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
   if (e.code !== 'KeyP' && audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 
-  if (e.code === 'KeyA')       { e.preventDefault(); if (roundActive && !answered) setMonitor('A'); }
-  if (e.code === 'KeyB')       { e.preventDefault(); if (roundActive && !answered) setMonitor('B'); }
+  if ((e.code === 'Space' || e.code === 'KeyD') && roundActive && !answered) {
+    e.preventDefault();
+    setMonitor(currentMonitor === 'A' ? 'B' : 'A');
+  }
   if (e.code === 'KeyP')       { e.preventDefault(); togglePause(); }
   if (e.code === 'KeyF')       { e.preventDefault(); restartAudio(); }
   if (e.code === 'ArrowLeft')  { e.preventDefault(); seekMusic(-10); }

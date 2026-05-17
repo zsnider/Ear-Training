@@ -54,8 +54,8 @@ header {
   width: 32px; height: 32px; background: var(--accent);
   border-radius: 8px; display: flex; align-items: center; justify-content: center;
 }
-.brand-name { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; line-height: 1.2; }
-.brand-sub  { font-size: 10px; color: var(--muted); }
+.brand-name { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; line-height: 1.2; }
+.brand-sub  { display: none; }
 .score-row  { display: flex; gap: 20px; align-items: center; }
 .stat { display: flex; flex-direction: column; align-items: flex-end; }
 .stat-val   { font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 600; color: var(--accent2); }
@@ -394,13 +394,13 @@ input[type=range]:disabled::-webkit-slider-thumb { background: var(--muted); box
       <span class="settings-label">Params</span>
       <div class="btn-group">
         <button class="lock-btn active" id="lockDelayTime" onclick="toggleLock('delayTime')">Delay Time</button>
-        <button class="lock-btn active" id="lockFeedback"  onclick="toggleLock('feedback')">Feedback</button>
-        <button class="lock-btn active" id="lockWet"       onclick="toggleLock('wet')">Wet / Dry</button>
+        <button class="lock-btn"        id="lockFeedback"  onclick="toggleLock('feedback')">Feedback</button>
+        <button class="lock-btn"        id="lockWet"       onclick="toggleLock('wet')">Wet / Dry</button>
       </div>
       <span class="settings-label" style="margin-left:12px">Difficulty</span>
       <div class="btn-group">
-        <button class="seg-btn"        id="diffEasy"   onclick="setDifficulty('easy')">Easy</button>
-        <button class="seg-btn active" id="diffMedium" onclick="setDifficulty('medium')">Medium</button>
+        <button class="seg-btn active"  id="diffEasy"   onclick="setDifficulty('easy')">Easy</button>
+        <button class="seg-btn"        id="diffMedium" onclick="setDifficulty('medium')">Medium</button>
         <button class="seg-btn"        id="diffHard"   onclick="setDifficulty('hard')">Hard</button>
       </div>
       <button class="new-round-btn" onclick="newRound()">New Round</button>
@@ -564,9 +564,9 @@ const DIFFICULTY_CFG = {
 const PARAM_RANGES = { delayTime: 700, feedback: 90, wet: 100 };
 
 // ── State ──────────────────────────────────────────────────────────────────────
-let difficulty     = 'medium';
+let difficulty     = 'easy';
 let sourceType     = 'pink';
-let lockedParams   = { delayTime: false, feedback: false, wet: false };
+let lockedParams   = { delayTime: false, feedback: true, wet: true };
 
 let roundActive    = false;
 let answered       = false;
