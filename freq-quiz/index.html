@@ -398,17 +398,17 @@
   <div class="settings-row">
     <span class="label">Gain</span>
     <select id="gainSelect" onchange="setGainAmount(+this.value)">
-      <option value="12">± 12 dB (Easy)</option>
+      <option value="12" selected>± 12 dB (Easy)</option>
       <option value="9">± 9 dB</option>
-      <option value="6" selected>± 6 dB (Medium)</option>
+      <option value="6">± 6 dB (Medium)</option>
       <option value="4">± 4 dB</option>
       <option value="3">± 3 dB (Hard)</option>
       <option value="2">± 2 dB (Expert)</option>
     </select>
     <div class="vdiv"></div>
     <span class="label">Direction</span>
-    <div class="pill active" id="dirBoth"  onclick="setDirection('both',this)">Both</div>
-    <div class="pill"        id="dirBoost" onclick="setDirection('boost',this)">Boost Only</div>
+    <div class="pill"        id="dirBoth"  onclick="setDirection('both',this)">Both</div>
+    <div class="pill active" id="dirBoost" onclick="setDirection('boost',this)">Boost Only</div>
     <div class="pill"        id="dirCut"   onclick="setDirection('cut',this)">Cut Only</div>
     <div class="vdiv" style="margin-left:auto;"></div>
     <span style="font-size:11px;color:var(--muted);white-space:nowrap;">
@@ -479,8 +479,8 @@ const FREQ_SUBS   = ['Hz','Hz','Hz','Hz','kHz','kHz','kHz','kHz','kHz'];
 const LOG_MIN = Math.log10(20), LOG_MAX = Math.log10(22000);
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let gainAmount  = 6;
-let direction   = 'both';
+let gainAmount  = 12;
+let direction   = 'boost';
 let targetFreq  = null;
 let targetGain  = null;
 let roundActive = false;

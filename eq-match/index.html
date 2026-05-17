@@ -420,11 +420,11 @@
     <span class="label">Filters</span>
     <div id="filterSelection" style="display:flex; gap:8px; flex-wrap:wrap;">
       <div class="pill active" data-type="peaking"   onclick="toggleFilterType('peaking', this)">Peaking</div>
-      <div class="pill active" data-type="lowshelf"  onclick="toggleFilterType('lowshelf', this)">Low Shelf</div>
-      <div class="pill active" data-type="highshelf" onclick="toggleFilterType('highshelf', this)">High Shelf</div>
-      <div class="pill active" data-type="lowpass"   onclick="toggleFilterType('lowpass', this)">Low Pass</div>
-      <div class="pill active" data-type="highpass"  onclick="toggleFilterType('highpass', this)">High Pass</div>
-      <div class="pill active" data-type="notch"     onclick="toggleFilterType('notch', this)">Notch</div>
+      <div class="pill"        data-type="lowshelf"  onclick="toggleFilterType('lowshelf', this)">Low Shelf</div>
+      <div class="pill"        data-type="highshelf" onclick="toggleFilterType('highshelf', this)">High Shelf</div>
+      <div class="pill"        data-type="lowpass"   onclick="toggleFilterType('lowpass', this)">Low Pass</div>
+      <div class="pill"        data-type="highpass"  onclick="toggleFilterType('highpass', this)">High Pass</div>
+      <div class="pill"        data-type="notch"     onclick="toggleFilterType('notch', this)">Notch</div>
     </div>
   </div>
 
@@ -449,8 +449,8 @@
   <!-- Gain Direction -->
   <div class="setting-item">
     <span class="label">Gain Direction</span>
-    <div class="pill active" id="dirBoth"  onclick="setGainDirection('both',this)">Both</div>
-    <div class="pill"        id="dirBoost" onclick="setGainDirection('boost',this)">Boost Only (+)</div>
+    <div class="pill"        id="dirBoth"  onclick="setGainDirection('both',this)">Both</div>
+    <div class="pill active" id="dirBoost" onclick="setGainDirection('boost',this)">Boost Only (+)</div>
     <div class="pill"        id="dirCut"   onclick="setGainDirection('cut',this)">Cut Only (−)</div>
   </div>
 
@@ -515,10 +515,10 @@ let difficulty     = 1;
 let gainThreshold  = 10; // Default to Beginner
 let qMin = 0.5, qMax = 10.0;
 let fixedQ         = true;   // default ON
-let gainDirection  = 'both';
+let gainDirection  = 'boost';
 let freqMin        = 20, freqMax = 20000;
 let targetBands    = [], userBands = [];
-let enabledFilters = ['peaking','lowshelf','highshelf','lowpass','highpass','notch'];
+let enabledFilters = ['peaking'];
 let roundActive    = false, answered = false;
 let totalScore     = 0, streak = 0, round = 0;
 
