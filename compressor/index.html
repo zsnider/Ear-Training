@@ -528,6 +528,7 @@
     <div class="pill" onclick="setDifficulty('hard',this)">Hard</div>
     <div class="pill" onclick="setDifficulty('pro',this)">Pro</div>
     <div class="pill" onclick="setDifficulty('custom',this)">Custom</div>
+    <span id="multBadge" style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent2);background:rgba(232,134,90,0.08);border:1px solid rgba(232,134,90,0.2);border-radius:6px;padding:3px 8px;white-space:nowrap;">×1.0</span>
     <div class="vdiv"></div>
     <span class="label">Active Params</span>
     <div id="paramPills" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;"></div>
@@ -795,6 +796,11 @@ async function getManifest() {
 }
 
 // ── Difficulty / param pills ──────────────────────────────────────────────────
+function updateMultBadge() {
+  const el = document.getElementById('multBadge');
+  if (el && window.ScoringEngine) el.textContent = ScoringEngine.label('compressor', { difficulty });
+}
+
 function setDifficulty(d, el) {
   difficulty = d;
   if (d === 'custom') {
@@ -806,6 +812,7 @@ function setDifficulty(d, el) {
   document.querySelectorAll('.settings-bar .pill').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
   renderParamPills();
+  updateMultBadge();
   if (roundActive) newRound();
 }
 
@@ -1592,12 +1599,14 @@ function checkAnswer() {
   }
   const avgErr = totalErr / (points + 1);
   const score  = Math.round(Math.max(0, 100 - avgErr * 5));
+  const mult   = window.ScoringEngine ? ScoringEngine.multiplier('compressor', { difficulty }) : 1;
+  const weightedScore = Math.round(score * mult);
 
-  totalScore += score;
+  totalScore += weightedScore;
   streak = score >= 70 ? streak + 1 : 0;
   document.getElementById('totalScore').textContent  = totalScore;
   document.getElementById('streakCount').textContent = streak;
-  if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'compressor', correct: score >= 70, roundScore: score });
+  if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'compressor', correct: score >= 70, roundScore: weightedScore });
 
   const msgs = [
     [90, '🎯 Excellent! You have compression ears.'],
@@ -1669,6 +1678,7 @@ function showToast(msg) {
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 renderParamPills();
+updateMultBadge();
 drawTransfer('target', document.getElementById('targetTransfer'));
 drawTransfer('user',   document.getElementById('userTransfer'));
 window.addEventListener('resize', () => {
@@ -1680,6 +1690,7 @@ window.addEventListener('resize', () => {
 });
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../scoring.js"></script>
 <script src="../supabase-client.js"></script>
 </body>
 </html>

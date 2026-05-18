@@ -429,6 +429,7 @@
     <div class="pill active" data-diff="1" onclick="setDifficulty(1, this)">1</div>
     <div class="pill" data-diff="2" onclick="setDifficulty(2, this)">2</div>
     <div class="pill" data-diff="3" onclick="setDifficulty(3, this)">3</div>
+    <span id="multBadge" style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent2);background:rgba(136,146,255,0.08);border:1px solid rgba(136,146,255,0.2);border-radius:6px;padding:3px 8px;white-space:nowrap;">×1.0</span>
     <div class="divider"></div>
     <span class="drag-hint">Drag ← → = freq &nbsp;·&nbsp; ↑ ↓ = gain &nbsp;·&nbsp; Scroll = Q</span>
     <div class="divider"></div>
@@ -1373,15 +1374,22 @@ function toggleFilterType(type, el) {
 }
 
 // ── Difficulty / Tier ─────────────────────────────────────────────────────────
+function updateMultBadge() {
+  const el = document.getElementById('multBadge');
+  if (el && window.ScoringEngine) el.textContent = ScoringEngine.label('eq-match', { gainThreshold, difficulty });
+}
+
 function setDifficulty(n, btn) {
   difficulty = n;
   btn.parentElement.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  updateMultBadge();
   newRound();
 }
 
 function updateTier(val) {
   gainThreshold = parseFloat(val);
+  updateMultBadge();
   newRound();
 }
 
@@ -1617,12 +1625,14 @@ function checkAnswer() {
   }
 
   const score = Math.round((totalBandScore / targetBands.length) * 100);
+  const mult  = window.ScoringEngine ? ScoringEngine.multiplier('eq-match', { gainThreshold, difficulty }) : 1;
+  const weightedScore = Math.round(score * mult);
 
-  totalScore += score;
+  totalScore += weightedScore;
   if (score >= 75) streak++; else streak = 0;
   document.getElementById('totalScore').textContent = totalScore;
   document.getElementById('streakCount').textContent = streak;
-  if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'eq-match', correct: score >= 75, roundScore: score });
+  if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'eq-match', correct: score >= 75, roundScore: weightedScore });
 
   const msgs = [
     [90, '🎯 Excellent! Professional level hearing.', 'var(--green)'],
@@ -1697,6 +1707,7 @@ function showToast(msg) {
 // ── Init ──────────────────────────────────────────────────────────────────────
 window.addEventListener('resize', drawEQ);
 drawEQ();
+updateMultBadge();
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -1705,6 +1716,7 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../scoring.js"></script>
 <script src="../supabase-client.js"></script>
 </body>
 </html>

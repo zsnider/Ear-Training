@@ -3,14 +3,18 @@
 //   <script src="../scoring.js"></script>
 //
 // API:
-//   ScoringEngine.multiplier(game, settings)  → float   e.g. 2.5
-//   ScoringEngine.points(game, settings)       → int     e.g. 250  (base 100 × multiplier)
-//   ScoringEngine.label(game, settings)        → string  e.g. "×2.5"
+//   ScoringEngine.multiplier(game, settings)   → float  e.g. 2.5  (1.0 if weighted disabled)
+//   ScoringEngine.points(game, settings)        → int    e.g. 250  (base 100 × multiplier)
+//   ScoringEngine.label(game, settings)         → string e.g. "×2.5" (reflects effective multiplier)
+//   ScoringEngine.weightedEnabled()             → bool
+//   ScoringEngine.setWeighted(bool)             → void   (persists to localStorage)
 //
-// For accuracy-based games (Freq Hunter, Spatial Specialist) the caller
+// For accuracy-based games (Freq Hunter, Spatial Specialist, Compressor, etc.) the caller
 // should do: Math.round(rawScore * ScoringEngine.multiplier(game, settings))
 
 window.ScoringEngine = (() => {
+
+  const LS_KEY = 'ss_weighted_scoring';
 
   // ── Multiplier tables ────────────────────────────────────────────────────────
 
@@ -30,16 +34,46 @@ window.ScoringEngine = (() => {
   const QUICK_EQ_BANDS = { 1: 1.0, 2: 1.3, 3: 1.6 };
 
   // Spatial Specialist — keyed by gameMode
-  // Width mode requires centre-outward estimation, slightly harder
   const SPATIAL = { panning: 1.0, width: 1.2 };
 
   // Freq Hunter — keyed by gameMode
-  // Freq+Pan tracks two independent axes simultaneously
   const FREQ_HUNTER = { freq: 1.0, pan: 1.0, freqpan: 1.5 };
 
-  // ── Core helpers ─────────────────────────────────────────────────────────────
+  // Compressor — keyed by difficulty (Pro = threshold+ratio+attack+release)
+  const COMPRESSOR = { easy: 1.0, medium: 1.4, hard: 1.8, pro: 2.2, custom: 2.5 };
 
-  function multiplier(game, settings = {}) {
+  // EQ Match — two axes: gainThreshold (training tier) × numBands (filter count)
+  // All tier (gainThreshold=-1) ranges the full 0–12 dB window → base difficulty
+  const EQ_MATCH_TIER  = { 10: 1.0, 8: 1.2, 6: 1.5, 4: 2.0, 2: 2.8, 0: 4.0, '-1': 1.0 };
+  const EQ_MATCH_BANDS = { 1: 1.0, 2: 1.3, 3: 1.6 };
+
+  // Reverb Master — keyed by difficulty (Pro = roomSize+decay+wet+preDelay)
+  const REVERB = { easy: 1.0, medium: 1.4, hard: 1.8, pro: 2.2, custom: 2.5 };
+
+  // Delay Master — keyed by difficulty (tighter parameter ranges at higher difficulties)
+  const DELAY = { easy: 1.0, medium: 1.5, hard: 2.5 };
+
+  // Distortion Master — keyed by difficulty (Pro = drive+mix+type+tone)
+  const DISTORTION = { easy: 1.0, medium: 1.4, hard: 1.8, pro: 2.2, custom: 2.5 };
+
+  // Signal Chain Architect — two axes: difficulty × chainLength
+  const SCA_DIFF  = { easy: 1.0, medium: 1.5, hard: 2.2 };
+  const SCA_CHAIN = { 2: 1.0, 3: 1.3, 4: 1.6 };
+
+  // ── Weighted toggle ──────────────────────────────────────────────────────────
+
+  function weightedEnabled() {
+    const stored = localStorage.getItem(LS_KEY);
+    return stored === null ? true : stored === 'true';
+  }
+
+  function setWeighted(enabled) {
+    localStorage.setItem(LS_KEY, enabled ? 'true' : 'false');
+  }
+
+  // ── Raw multiplier (always computed, ignores toggle) ─────────────────────────
+
+  function rawMultiplier(game, settings = {}) {
     switch (game) {
 
       case 'freq-quiz':
@@ -63,9 +97,42 @@ window.ScoringEngine = (() => {
       case 'freq-hunter':
         return FREQ_HUNTER[settings.mode] ?? 1.0;
 
+      case 'compressor':
+        return COMPRESSOR[settings.difficulty] ?? 1.0;
+
+      case 'eq-match': {
+        const key = String(settings.gainThreshold);
+        const tm  = EQ_MATCH_TIER[key] ?? 1.0;
+        const bm  = EQ_MATCH_BANDS[settings.difficulty] ?? 1.0;
+        return tm * bm;
+      }
+
+      case 'reverb-master':
+        return REVERB[settings.difficulty] ?? 1.0;
+
+      case 'delay-master':
+        return DELAY[settings.difficulty] ?? 1.0;
+
+      case 'distortion-master':
+        return DISTORTION[settings.difficulty] ?? 1.0;
+
+      case 'signal-chain-architect': {
+        const dm = SCA_DIFF[settings.difficulty]   ?? 1.0;
+        const cm = SCA_CHAIN[settings.chainLength] ?? 1.0;
+        return dm * cm;
+      }
+
       default:
         return 1.0;
     }
+  }
+
+  // ── Public helpers ───────────────────────────────────────────────────────────
+
+  // Effective multiplier — returns 1.0 when weighted scoring is disabled
+  function multiplier(game, settings = {}) {
+    if (!weightedEnabled()) return 1.0;
+    return rawMultiplier(game, settings);
   }
 
   // Base points for a correct binary answer, weighted by difficulty
@@ -73,14 +140,14 @@ window.ScoringEngine = (() => {
     return Math.round(100 * multiplier(game, settings));
   }
 
-  // Display string shown in the UI, e.g. "×1.5" or "×2.5"
+  // Display string shown in the UI badge, e.g. "×1.5" or "×2.5"
+  // Always reflects the effective multiplier (×1.0 for everything when disabled)
   function label(game, settings = {}) {
     const m = multiplier(game, settings);
-    // Show one decimal only when not a whole number
     const str = Number.isInteger(m) ? `${m}` : m.toFixed(1).replace(/\.0$/, '');
     return `×${str}`;
   }
 
-  return { multiplier, points, label };
+  return { multiplier, points, label, weightedEnabled, setWeighted };
 
 })();

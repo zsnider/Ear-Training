@@ -253,6 +253,42 @@
   .activity-score { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; color: var(--text); }
   .activity-time { font-size: 11px; color: var(--muted); white-space: nowrap; }
 
+  /* ── Settings card ──────────────────────────────────── */
+  .settings-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 14px 20px;
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 32px; flex-wrap: wrap;
+  }
+  .settings-card .setting-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; font-weight: 600; color: var(--text); flex: 1; min-width: 160px;
+  }
+  .settings-card .setting-desc {
+    font-size: 12px; color: var(--muted); flex: 2; min-width: 200px;
+  }
+  .toggle-wrap { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .toggle-lbl { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); }
+  .toggle-lbl.active { color: var(--accent2); }
+  .toggle-switch { position: relative; width: 40px; height: 22px; cursor: pointer; display: inline-block; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-track {
+    position: absolute; inset: 0;
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 22px; transition: background 0.2s, border-color 0.2s;
+  }
+  .toggle-track::after {
+    content: ''; position: absolute; top: 3px; left: 3px;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--muted); transition: transform 0.2s, background 0.2s;
+  }
+  .toggle-switch input:checked + .toggle-track {
+    background: rgba(91,106,255,0.2); border-color: var(--accent);
+  }
+  .toggle-switch input:checked + .toggle-track::after {
+    transform: translateX(18px); background: var(--accent2);
+  }
+
   /* ── States ──────────────────────────────────────────── */
   .loading-state, .empty-state, .auth-wall {
     text-align: center; padding: 80px 20px;
@@ -285,6 +321,20 @@
   <div class="page-header">
     <h1>Your Progress</h1>
     <p id="subheader">Loading your stats…</p>
+  </div>
+
+  <!-- Scoring settings -->
+  <div class="settings-card">
+    <div class="setting-label">Weighted Scoring</div>
+    <div class="setting-desc">Harder difficulty settings earn proportionally more points. Disable to use a flat 100-point scale for every round.</div>
+    <div class="toggle-wrap">
+      <span class="toggle-lbl" id="weightedOffLbl">Off</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="weightedToggle" onchange="onWeightedToggle(this.checked)" checked>
+        <span class="toggle-track"></span>
+      </label>
+      <span class="toggle-lbl active" id="weightedOnLbl">On</span>
+    </div>
   </div>
 
   <!-- Auth wall (shown when not logged in) -->
@@ -352,8 +402,34 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="../scoring.js"></script>
 <script src="../supabase-client.js"></script>
 <script>
+// ── Weighted scoring toggle ───────────────────────────────
+function initWeightedToggle() {
+  const toggle = document.getElementById('weightedToggle');
+  if (!toggle) return;
+  // Read current value from ScoringEngine (defaults to true)
+  const enabled = window.ScoringEngine ? ScoringEngine.weightedEnabled() : true;
+  toggle.checked = enabled;
+  syncWeightedUI(enabled);
+}
+
+function onWeightedToggle(enabled) {
+  if (window.ScoringEngine) ScoringEngine.setWeighted(enabled);
+  syncWeightedUI(enabled);
+}
+
+function syncWeightedUI(enabled) {
+  const onLbl  = document.getElementById('weightedOnLbl');
+  const offLbl = document.getElementById('weightedOffLbl');
+  if (onLbl)  onLbl.classList.toggle('active', enabled);
+  if (offLbl) offLbl.classList.toggle('active', !enabled);
+}
+
+// Run on load
+initWeightedToggle();
+
 // ── Chart registry (destroy before redraw) ────────────────
 const chartRegistry = {};
 function destroyChart(id) {

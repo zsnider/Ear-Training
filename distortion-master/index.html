@@ -409,6 +409,7 @@
       <div class="pill" onclick="setDifficulty('hard',this)">Hard</div>
       <div class="pill" onclick="setDifficulty('pro',this)">Pro</div>
       <div class="pill" onclick="setDifficulty('custom',this)">Custom</div>
+      <span id="multBadge" style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent2);background:rgba(240,112,80,0.08);border:1px solid rgba(240,112,80,0.2);border-radius:6px;padding:3px 8px;white-space:nowrap;">×1.0</span>
     </div>
     <div class="setting-item" style="flex:1;">
       <span class="label">Params</span>
@@ -685,6 +686,11 @@ function setLoadStatus(msg, isLoading) {
 }
 
 // ── Difficulty ────────────────────────────────────────────────────────────────
+function updateMultBadge() {
+  const el = document.getElementById('multBadge');
+  if (el && window.ScoringEngine) el.textContent = ScoringEngine.label('distortion-master', { difficulty });
+}
+
 function setDifficulty(d, el) {
   difficulty = d;
   activeParams = d === 'custom' ? [...customParams] : [...DIFFICULTY[d].params];
@@ -692,6 +698,7 @@ function setDifficulty(d, el) {
   el.classList.add('active');
   document.getElementById('customHint').style.display = d === 'custom' ? '' : 'none';
   renderParamPills();
+  updateMultBadge();
   if (roundActive) newRound();
 }
 
@@ -1449,10 +1456,12 @@ function checkAnswer() {
   const avgErr = count>0 ? totalErr/count : 0;
   const score  = Math.round(Math.max(0, 100 - avgErr*110));
 
-  totalScore+=score; streak=score>=70?streak+1:0;
+  const mult = window.ScoringEngine ? ScoringEngine.multiplier('distortion-master', { difficulty }) : 1;
+  const weightedScore = Math.round(score * mult);
+  totalScore+=weightedScore; streak=score>=70?streak+1:0;
   document.getElementById('totalScore').textContent=totalScore;
   document.getElementById('streakCount').textContent=streak;
-  if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'distortion-master', correct: score >= 70, roundScore: score });
+  if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'distortion-master', correct: score >= 70, roundScore: weightedScore });
 
   const msgs=[
     [90,'🎯 Excellent! You hear distortion like a wizard.'],
@@ -1512,6 +1521,7 @@ function showToast(msg) {
 }
 
 renderParamPills();
+updateMultBadge();
 drawSpectrum('target', document.getElementById('targetSpectrum'));
 drawSpectrum('user',   document.getElementById('userSpectrum'));
 window.addEventListener('resize', () => {
@@ -1528,6 +1538,7 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../scoring.js"></script>
 <script src="../supabase-client.js"></script>
 </body>
 </html>

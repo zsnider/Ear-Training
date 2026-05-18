@@ -447,6 +447,7 @@ kbd {
         <button class="seg-btn"        id="diffMedium" onclick="setDifficulty('medium')">Medium</button>
         <button class="seg-btn"        id="diffHard"   onclick="setDifficulty('hard')">Hard</button>
       </div>
+      <span id="multBadge" style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent2);background:rgba(57,211,83,0.08);border:1px solid rgba(57,211,83,0.2);border-radius:6px;padding:3px 8px;white-space:nowrap;">×1.0</span>
       <button class="new-round-btn" onclick="newRound()">New Round</button>
     </div>
   </div>
@@ -703,10 +704,16 @@ function effSub(name, params) {
 }
 
 // ── Settings handlers ──────────────────────────────────────────────────────────
+function updateMultBadge() {
+  const el = document.getElementById('multBadge');
+  if (el && window.ScoringEngine) el.textContent = ScoringEngine.label('signal-chain-architect', { difficulty, chainLength });
+}
+
 function setChainLength(n) {
   if (n > enabledEffects.length) return; // can't request more than pool
   chainLength = n;
   updateChainLengthBtns();
+  updateMultBadge();
 }
 
 function setDifficulty(d) {
@@ -714,6 +721,7 @@ function setDifficulty(d) {
   ['diffEasy','diffMedium','diffHard'].forEach(id => {
     document.getElementById(id).classList.toggle('active', id === `diff${d.charAt(0).toUpperCase()+d.slice(1)}`);
   });
+  updateMultBadge();
 }
 
 function toggleEffect(name) {
@@ -1407,14 +1415,16 @@ function finaliseRound(skipped) {
 
   const isPerfect  = !skipped && correctPos === roundLen;
   const roundScore = skipped ? 0 : Math.round((correctPos / roundLen) * 100);
+  const mult = window.ScoringEngine ? ScoringEngine.multiplier('signal-chain-architect', { difficulty, chainLength }) : 1;
+  const weightedScore = Math.round(roundScore * mult);
 
   if (isPerfect) { correctCount++; streak++; }
   else if (!skipped) { streak = 0; }
   else { streak = 0; }
-  scoreTotal += roundScore;
+  scoreTotal += weightedScore;
 
   if (window.SonicSandbox) {
-    SonicSandbox.saveScore({ game: 'signal-chain-architect', correct: isPerfect, roundScore });
+    SonicSandbox.saveScore({ game: 'signal-chain-architect', correct: isPerfect, roundScore: weightedScore });
   }
 
   updateScoreDisplay();
@@ -1564,6 +1574,8 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2800);
 }
 
+updateMultBadge();
+
 // ── Service worker ─────────────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -1572,6 +1584,7 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../scoring.js"></script>
 <script src="../supabase-client.js"></script>
 </body>
 </html>
