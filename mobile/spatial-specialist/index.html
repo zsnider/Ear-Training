@@ -747,6 +747,11 @@ function submitAnswer() {
   document.getElementById('errorPct').textContent = Math.round(errPct) + '% off';
   setTimeout(() => { ef.style.width = Math.min(100, errPct * 1.5) + '%'; }, 60);
 
+  if (window.SonicSandbox) {
+    const mult = window.ScoringEngine ? ScoringEngine.multiplier('spatial-specialist', { mode: gameMode }) : 1;
+    SonicSandbox.saveScore({ game: 'spatial-specialist', correct: pts >= 70, roundScore: Math.round(pts * mult), rawScore: pts });
+  }
+
   addHistory(tier);
 }
 
@@ -904,5 +909,9 @@ document.addEventListener('touchend', e => {
   newRound();
 }, { passive: true });
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../../scoring.js"></script>
+<script src="../../supabase-client.js"></script>
 </body>
 </html>

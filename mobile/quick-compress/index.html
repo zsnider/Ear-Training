@@ -785,6 +785,12 @@ function selectAnswer(side) {
   document.getElementById('subA').textContent = '';
   document.getElementById('subB').textContent = '';
 
+  if (window.SonicSandbox) {
+    const rawScore = correct ? 100 : 0;
+    const maxPts   = window.ScoringEngine ? ScoringEngine.points('quick-compress', { tier: currentTier }) : 100;
+    SonicSandbox.saveScore({ game: 'quick-compress', correct, roundScore: correct ? maxPts : 0, rawScore });
+  }
+
   addHistory(correct);
 
   // Play compressed side so user can hear it clearly
@@ -1041,5 +1047,9 @@ document.addEventListener('touchend', e => {
   newRound();
 }, { passive: true });
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../../scoring.js"></script>
+<script src="../../supabase-client.js"></script>
 </body>
 </html>

@@ -657,8 +657,10 @@ function submitGuess() {
   document.getElementById('streakVal').textContent = streak;
   document.getElementById('errorVal').textContent  = Math.round(totalError) + '%';
 
-  if (window.SonicSandbox)
-    SonicSandbox.saveScore({ game: 'freq-hunter', correct: pts >= 70, roundScore: pts });
+  if (window.SonicSandbox) {
+    const mult = window.ScoringEngine ? ScoringEngine.multiplier('freq-hunter', { mode: gameMode }) : 1;
+    SonicSandbox.saveScore({ game: 'freq-hunter', correct: pts >= 70, roundScore: Math.round(pts * mult), rawScore: pts });
+  }
 
   const tier      = pts >= 85 ? 'perfect' : pts >= 60 ? 'good' : pts >= 35 ? 'ok' : 'bad';
   const tierLabel = pts >= 85 ? '🎯 Perfect!' : pts >= 60 ? '👍 Good' : pts >= 35 ? '🔶 Close' : '🔻 Keep going';
@@ -802,6 +804,7 @@ requestAnimationFrame(() => resizeCanvas());
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../../scoring.js"></script>
 <script src="../../supabase-client.js"></script>
 </body>
 </html>

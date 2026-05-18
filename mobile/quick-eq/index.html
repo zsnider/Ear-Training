@@ -903,6 +903,12 @@ function submitAnswer(choice) {
   document.getElementById('pickA').disabled = true;
   document.getElementById('pickB').disabled = true;
 
+  if (window.SonicSandbox) {
+    const rawScore = correct ? 100 : 0;
+    const maxPts   = window.ScoringEngine ? ScoringEngine.points('quick-eq', { difficulty, numBands }) : 100;
+    SonicSandbox.saveScore({ game: 'quick-eq', correct, roundScore: correct ? maxPts : 0, rawScore });
+  }
+
   addHistory(correct);
 
   // Play back target EQ after a short beat so user can hear the answer
@@ -1085,5 +1091,9 @@ window.addEventListener('resize', () => {
   }
 });
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../../scoring.js"></script>
+<script src="../../supabase-client.js"></script>
 </body>
 </html>

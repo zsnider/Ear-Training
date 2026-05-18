@@ -842,7 +842,9 @@ function submitAnswer(clickedFreq) {
   if (isCorrect) { score++; streak++; correctCount++; } else { streak = 0; }
 
   if (window.SonicSandbox) {
-    SonicSandbox.saveScore({ game: 'freq-quiz', correct: isCorrect, roundScore: isCorrect ? 100 : 0 });
+    const rawScore = isCorrect ? 100 : 0;
+    const maxPts   = window.ScoringEngine ? ScoringEngine.points('freq-quiz', { gainAmount }) : 100;
+    SonicSandbox.saveScore({ game: 'freq-quiz', correct: isCorrect, roundScore: isCorrect ? maxPts : 0, rawScore });
   }
 
   document.getElementById('scoreVal').textContent    = score;
@@ -902,6 +904,7 @@ document.addEventListener('touchend', e => {
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../../scoring.js"></script>
 <script src="../../supabase-client.js"></script>
 </body>
 </html>

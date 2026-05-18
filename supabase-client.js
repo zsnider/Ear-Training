@@ -42,17 +42,23 @@ window.SonicSandbox = {
   },
 
   // Call this at the end of each round in a game
-  // game: string slug e.g. 'eq-match', 'compressor', 'freq-quiz'
-  // correct: boolean
-  // roundScore: optional numeric (0–100 or similar)
-  async saveScore({ game, correct, roundScore = null }) {
+  // game:       string slug e.g. 'eq-match', 'compressor', 'freq-quiz'
+  // correct:    boolean
+  // roundScore: weighted score (0–100 × difficulty multiplier) — stored in round_score
+  // rawScore:   unweighted base score (0–100) — stored in raw_score for record-keeping
+  //
+  // To enable raw_score storage, run once in Supabase SQL Editor:
+  //   ALTER TABLE scores ADD COLUMN IF NOT EXISTS raw_score INTEGER;
+  async saveScore({ game, correct, roundScore = null, rawScore = null }) {
     if (!_currentUser) return; // not logged in — skip silently
-    const { error } = await _sb.from('scores').insert({
+    const row = {
       user_id: _currentUser.id,
       game,
       correct,
       round_score: roundScore,
-    });
+    };
+    if (rawScore !== null) row.raw_score = rawScore;
+    const { error } = await _sb.from('scores').insert(row);
     if (error) console.warn('[SonicSandbox] score save failed:', error.message);
   },
 
