@@ -391,6 +391,7 @@
       <option value="hard">Hard — ±1 to ±6 dB</option>
       <option value="expert">Expert — ±0.5 to ±3 dB</option>
     </select>
+    <span id="multBadge" style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;color:var(--accent2);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);border-radius:6px;padding:3px 8px;white-space:nowrap;">×1.0</span>
     <div class="vdiv"></div>
     <span class="label">Direction</span>
     <div class="pill active" id="dirBoth"  onclick="setDirection('both',this)">Both</div>
@@ -555,8 +556,14 @@ const ctx2d  = canvas.getContext('2d');
 // ── Settings ──────────────────────────────────────────────────────────────────
 function setDifficulty(d) {
   difficulty = d;
+  updateMultBadge();
   buildDbGrid();
   if (roundActive && !answered) newRound();
+}
+
+function updateMultBadge() {
+  const el = document.getElementById('multBadge');
+  if (el && window.ScoringEngine) el.textContent = ScoringEngine.label('level-logic', { difficulty });
 }
 
 function setDirection(d, el) {
@@ -907,8 +914,9 @@ function submitAnswer(clickedDb) {
   drawMeter(targetDb, true);
 
   const isCorrect = (parseFloat(clickedDb) === parseFloat(targetDb));
-  if (isCorrect) { score++; streak++; correctCount++; } else streak = 0;
-  if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'level-logic', correct: isCorrect, roundScore: isCorrect ? 100 : 0 });
+  const pts = window.ScoringEngine ? ScoringEngine.points('level-logic', { difficulty }) : 100;
+  if (isCorrect) { score += pts; streak++; correctCount++; } else streak = 0;
+  if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'level-logic', correct: isCorrect, roundScore: isCorrect ? pts : 0 });
 
   document.getElementById('scoreVal').textContent    = score;
   document.getElementById('streakVal').textContent   = streak;
@@ -1225,6 +1233,7 @@ function showToast(msg) {
 // ── Init ──────────────────────────────────────────────────────────────────────
 buildDbGrid();
 drawMeter(null, false);
+updateMultBadge();
 window.addEventListener('resize', () => {
   if (roundActive) drawMeter(targetDb, answered);
   else drawMeter(null, false);
@@ -1237,6 +1246,7 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../scoring.js"></script>
 <script src="../supabase-client.js"></script>
 </body>
 </html>

@@ -453,6 +453,7 @@
       <option value="3">± 3 dB (Hard)</option>
       <option value="2">± 2 dB (Expert)</option>
     </select>
+    <span id="multBadge" style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;color:var(--accent2);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);border-radius:6px;padding:3px 8px;white-space:nowrap;">×1.0</span>
     <div class="vdiv"></div>
     <span class="label">Direction</span>
     <div class="pill"        id="dirBoth"  onclick="setDirection('both',this)">Both</div>
@@ -684,7 +685,13 @@ const ctx2d  = canvas.getContext('2d');
 // ── Settings ──────────────────────────────────────────────────────────────────
 function setGainAmount(v) {
   gainAmount = v;
+  updateMultBadge();
   if (roundActive && !answered) newRound();
+}
+
+function updateMultBadge() {
+  const el = document.getElementById('multBadge');
+  if (el && window.ScoringEngine) el.textContent = ScoringEngine.label('freq-quiz', { gainAmount });
 }
 
 function setDirection(d, el) {
@@ -1071,8 +1078,9 @@ function submitAnswer(clickedFreq) {
   stopPlayback();
 
   const isCorrect = (clickedFreq === targetFreq);
-  if (isCorrect) { score++; streak++; correctCount++; } else streak = 0;
-  if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'freq-quiz', correct: isCorrect, roundScore: isCorrect ? 100 : 0 });
+  const pts = window.ScoringEngine ? ScoringEngine.points('freq-quiz', { gainAmount }) : 100;
+  if (isCorrect) { score += pts; streak++; correctCount++; } else streak = 0;
+  if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'freq-quiz', correct: isCorrect, roundScore: isCorrect ? pts : 0 });
 
   document.getElementById('scoreVal').textContent  = score;
   document.getElementById('streakVal').textContent = streak;
@@ -1293,6 +1301,7 @@ function showToast(msg) {
 buildFreqToggles();
 buildFreqGrid();
 drawEQ(null, 0);
+updateMultBadge();
 window.addEventListener('resize', () => drawEQ(roundActive ? targetFreq : null, targetGain ?? 0));
 
 if ('serviceWorker' in navigator) {
@@ -1304,6 +1313,7 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../scoring.js"></script>
 <script src="../supabase-client.js"></script>
 </body>
 </html>

@@ -391,6 +391,7 @@
       <option value="hard">Hard (4:1)</option>
       <option value="subtle">Subtle (2.5:1)</option>
     </select>
+    <span id="multBadge" style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;color:var(--accent2);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);border-radius:6px;padding:3px 8px;white-space:nowrap;">×1.0</span>
     <div class="vdiv"></div>
     <span id="tierDesc" style="font-size:11px;color:var(--muted);">Ratio 8:1 · Threshold −24dB · Attack 5ms · Release 50ms</span>
     <div class="vdiv" style="margin-left:auto;"></div>
@@ -576,7 +577,13 @@ let pathGainA = 0.55, pathGainB = 0.55;
 function setTier(t) {
   currentTier = t;
   document.getElementById('tierDesc').textContent = TIERS[t].label;
+  updateMultBadge();
   if (roundActive) newRound();
+}
+
+function updateMultBadge() {
+  const el = document.getElementById('multBadge');
+  if (el && window.ScoringEngine) el.textContent = ScoringEngine.label('quick-compress', { tier: currentTier });
 }
 
 // ── Round ─────────────────────────────────────────────────────────────────────
@@ -629,9 +636,10 @@ function selectAnswer(side) {
   answered = true;
 
   const correct = (side === compressedSide);
-  if (correct) { totalScore += 10; streak++; correctCount++; }
+  const pts = window.ScoringEngine ? ScoringEngine.points('quick-compress', { tier: currentTier }) : 100;
+  if (correct) { totalScore += pts; streak++; correctCount++; }
   else streak = 0;
-  if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'quick-compress', correct, roundScore: correct ? 100 : 0 });
+  if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'quick-compress', correct, roundScore: correct ? pts : 0 });
 
   document.getElementById('scoreVal').textContent    = totalScore;
   document.getElementById('streakVal').textContent   = streak;
@@ -1200,6 +1208,7 @@ function showToast(msg) {
 // ── Init ──────────────────────────────────────────────────────────────────────
 document.getElementById('tierDesc').textContent = TIERS[currentTier].label;
 document.getElementById('tierSelect').value = currentTier;
+updateMultBadge();
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -1208,6 +1217,7 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../scoring.js"></script>
 <script src="../supabase-client.js"></script>
 </body>
 </html>

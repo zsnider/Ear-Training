@@ -833,7 +833,8 @@ function submitGuess() {
   document.getElementById('scoreVal').textContent    = totalScore;
   document.getElementById('streakVal').textContent   = streak;
   document.getElementById('accuracyVal').textContent = Math.round(totalError) + '%';
-  if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'freq-hunter', correct: pts >= 70, roundScore: pts });
+  const weightedPts = window.ScoringEngine ? Math.round(pts * ScoringEngine.multiplier('freq-hunter', { mode: gameMode })) : pts;
+  if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'freq-hunter', correct: pts >= 70, roundScore: weightedPts });
 
   const tier = pts >= 85 ? 'perfect' : pts >= 60 ? 'good' : pts >= 35 ? 'ok' : 'bad';
   const tierLabel = pts >= 85 ? '🎯 Perfect!' : pts >= 60 ? '👍 Good' : pts >= 35 ? '🔶 Close' : '🔻 Keep going';
@@ -1206,6 +1207,7 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../scoring.js"></script>
 <script src="../supabase-client.js"></script>
 </body>
 </html>

@@ -418,6 +418,7 @@ kbd {
         <button class="seg-btn"        id="diffMedium" onclick="setDifficulty('medium')">Medium</button>
         <button class="seg-btn"        id="diffHard"   onclick="setDifficulty('hard')">Hard</button>
       </div>
+      <span id="multBadge" style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;color:var(--accent2);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);border-radius:6px;padding:3px 8px;white-space:nowrap;">×1.0</span>
       <button class="new-round-btn" onclick="newRound()">New Round</button>
     </div>
   </div>
@@ -950,12 +951,19 @@ let samplesManifest    = null;
 function setNumBands(n) {
   numBands = n;
   [1,2,3].forEach(i => document.getElementById(`bands${i}`).classList.toggle('active', i===n));
+  updateMultBadge();
 }
 function setDifficulty(d) {
   difficulty = d;
   ['diffEasy','diffMedium','diffHard'].forEach(id =>
     document.getElementById(id).classList.toggle('active',
       id === `diff${d[0].toUpperCase()+d.slice(1)}`));
+  updateMultBadge();
+}
+
+function updateMultBadge() {
+  const el = document.getElementById('multBadge');
+  if (el && window.ScoringEngine) el.textContent = ScoringEngine.label('quick-eq', { difficulty, numBands });
 }
 function setCurvesVisible(v) {
   showCurves = v;
@@ -1400,11 +1408,12 @@ function submitAnswer(choice) {
   stopPlayback();
 
   const isCorrect = choice === correctChoice;
-  if (isCorrect) { correctCount++; streak++; scoreTotal += 100; }
+  const pts = window.ScoringEngine ? ScoringEngine.points('quick-eq', { difficulty, numBands }) : 100;
+  if (isCorrect) { correctCount++; streak++; scoreTotal += pts; }
   else { streak = 0; }
 
   if (window.SonicSandbox) {
-    SonicSandbox.saveScore({ game: 'quick-eq', correct: isCorrect, roundScore: isCorrect ? 100 : 0 });
+    SonicSandbox.saveScore({ game: 'quick-eq', correct: isCorrect, roundScore: isCorrect ? pts : 0 });
   }
 
   updateScoreDisplay();
@@ -1516,6 +1525,8 @@ window.addEventListener('resize', () => {
   if (roundActive) redrawCanvases();
 });
 
+updateMultBadge();
+
 // ── Service worker ─────────────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -1524,6 +1535,7 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../scoring.js"></script>
 <script src="../supabase-client.js"></script>
 </body>
 </html>
