@@ -171,6 +171,15 @@ body {
 .eq-panel.reveal-wrong {
   border-color: var(--red) !important;
 }
+/* Shown when user guessed wrong — subtle hint where the target was */
+.eq-panel.reveal-hint {
+  border-color: rgba(62,207,142,0.5) !important;
+  border-style: dashed !important;
+}
+/* Decoy panel when user guessed correctly — muted, not red */
+.eq-panel.reveal-dimmed {
+  opacity: 0.35;
+}
 
 /* Panel header */
 .panel-hdr {
@@ -734,8 +743,9 @@ let isPlaying     = false;
 function onPickTap(e, side) {
   e.preventDefault();
   if (!gameStarted) { startGame(side); return; }
-  if (answered)     { clearTimeout(nextTimeout); newRound(); return; }
+  if (answered && roundActive) { newRound(); return; }
   if (!roundActive) return;
+  e.stopPropagation(); // prevent this answering tap from also triggering document touchend
   submitAnswer(side);
 }
 
@@ -848,10 +858,15 @@ function submitAnswer(choice) {
   document.getElementById('accuracyVal').textContent =
     totalRounds > 0 ? Math.round(correctCount / totalRounds * 100) + '%' : '—';
 
-  // Panel states
-  const wrongChoice = correctChoice === 'A' ? 'B' : 'A';
-  document.getElementById(`panel${correctChoice}`).classList.add('reveal-correct');
-  document.getElementById(`panel${wrongChoice}`).classList.add('reveal-wrong');
+  // Panel states — correct pick gets bright green; wrong pick gets red + correct gets subtle dashed green
+  const decoyChoice = correctChoice === 'A' ? 'B' : 'A';
+  if (correct) {
+    document.getElementById(`panel${correctChoice}`).classList.add('reveal-correct');
+    document.getElementById(`panel${decoyChoice}`).classList.add('reveal-dimmed');
+  } else {
+    document.getElementById(`panel${choice}`).classList.add('reveal-wrong');
+    document.getElementById(`panel${correctChoice}`).classList.add('reveal-hint');
+  }
 
   // Result labels
   const rA = document.getElementById('resultA');
@@ -881,8 +896,8 @@ function submitAnswer(choice) {
   rb.textContent = correct ? '✓ Correct!' : `✗ It was ${correctChoice}`;
   rb.className   = `result-badge ${correct ? 'good' : 'bad'}`;
   document.getElementById('promptText').innerHTML = correct
-    ? `🎯 Correct — <span>EQ ${correctChoice}</span> was the target`
-    : `✗ <span>EQ ${correctChoice}</span> was the target — keep training`;
+    ? `🎯 Correct — <span>EQ ${correctChoice}</span> was the target — tap anywhere to continue`
+    : `✗ <span>EQ ${correctChoice}</span> was the target — tap anywhere to continue`;
 
   document.getElementById('monitorRow').style.display = 'none';
   document.getElementById('pickA').disabled = true;
@@ -890,15 +905,13 @@ function submitAnswer(choice) {
 
   addHistory(correct);
 
-  // Play back target EQ after a beat
+  // Play back target EQ after a short beat so user can hear the answer
   setTimeout(() => {
     if (answered && roundActive) {
       currentMonitor = 'target';
       playCurrentRound();
     }
   }, 400);
-
-  nextTimeout = setTimeout(newRound, correct ? 2200 : 3000);
 }
 
 // ── Monitor ───────────────────────────────────────────────────────────────────
@@ -1052,6 +1065,18 @@ function addHistory(correct) {
   strip.appendChild(dot);
   while (strip.children.length > 30) strip.removeChild(strip.firstChild);
 }
+
+// ── Tap anywhere to continue after answering ──────────────────────────────────
+// Pick-button taps call stopPropagation before submitAnswer(), so they never
+// reach here when answering. This catches taps on the prompt card, canvases,
+// history strip, and any other non-footer area.
+document.addEventListener('touchend', e => {
+  if (!answered || !roundActive) return;
+  if (e.target.closest('.footer')) return;
+  if (e.target.closest('.header')) return;
+  if (e.target.closest('#monitorRow')) return;
+  newRound();
+}, { passive: true });
 
 // Redraw on orientation change
 window.addEventListener('resize', () => {
