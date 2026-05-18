@@ -57,6 +57,15 @@ body {
   padding: 10px 16px 8px;
   flex-shrink: 0;
 }
+.back-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  color: var(--text); text-decoration: none;
+  font-size: 18px; line-height: 1; flex-shrink: 0;
+  margin-right: 6px;
+}
+.back-btn:active { background: var(--surface3); }
 .brand { display: flex; align-items: center; gap: 8px; }
 .brand-icon {
   width: 28px; height: 28px;
@@ -217,21 +226,33 @@ canvas {
 /* Band info */
 .band-info {
   flex: 1; min-width: 0;
-  padding: 5px 8px;
+  padding: 7px 10px;
   overflow: hidden;
-  display: flex; flex-direction: column; justify-content: center; gap: 3px;
+  display: flex; flex-direction: column; justify-content: center; gap: 6px;
 }
 .band-row {
-  display: flex; align-items: baseline; gap: 4px;
-  font-size: 9px; line-height: 1.5; flex-shrink: 0;
+  display: flex; align-items: center; gap: 6px;
+  flex-shrink: 0;
 }
-.band-num  { color: rgba(255,255,255,0.3); font-family: 'IBM Plex Mono', monospace; font-weight: 700; min-width: 12px; }
-.band-type { font-family: 'IBM Plex Mono', monospace; font-weight: 700; }
-.band-vals { color: var(--text); opacity: 0.8; font-family: 'IBM Plex Mono', monospace; }
-.band-hidden {
-  font-size: 9px; color: var(--muted);
-  font-style: italic; padding: 4px 0;
+.band-num  {
+  color: rgba(255,255,255,0.25); font-family: 'IBM Plex Mono', monospace;
+  font-weight: 700; font-size: 10px; min-width: 16px; flex-shrink: 0;
 }
+.band-type {
+  font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 13px;
+  min-width: 58px; flex-shrink: 0;
+}
+.band-freq {
+  font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 13px;
+  color: var(--text); flex-shrink: 0;
+}
+.band-gain {
+  font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 13px;
+  flex-shrink: 0;
+}
+.band-gain.pos { color: var(--green); }
+.band-gain.neg { color: var(--red); }
+.band-gain.neutral { color: var(--muted); }
 
 /* Panel footer / pick button */
 .panel-foot {
@@ -297,6 +318,7 @@ canvas {
 
 <!-- Header -->
 <div class="header">
+  <a class="back-btn" href="/mobile/">‹</a>
   <div class="brand">
     <div class="brand-icon">
       <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
@@ -729,10 +751,8 @@ function onCurvesTap(e, show) {
   document.getElementById('pillShow').classList.toggle('active',  show);
   document.getElementById('pillHide').classList.toggle('active', !show);
   updateOverlays();
-  if (roundActive) {
-    redrawCanvases();
-    renderBandInfo(eqA, 'bandInfoA', '#00d4ff');
-    renderBandInfo(eqB, 'bandInfoB', '#f0a862');
+  if (roundActive && show) {
+    requestAnimationFrame(redrawCanvases);
   }
 }
 
@@ -844,13 +864,14 @@ function submitAnswer(choice) {
     rA.className='panel-result show-wrong';   rA.textContent='✗ Decoy';
   }
 
-  // Reveal curves if hidden
+  // Reveal curves if they were hidden
   if (!showCurves) {
-    document.getElementById('overlayA').style.display = 'none';
-    document.getElementById('overlayB').style.display = 'none';
-    redrawCanvases();
-    renderBandInfo(eqA, 'bandInfoA', '#00d4ff');
-    renderBandInfo(eqB, 'bandInfoB', '#f0a862');
+    document.getElementById('wrapA').style.display = '';
+    document.getElementById('wrapB').style.display = '';
+    requestAnimationFrame(() => {
+      drawEQCanvas(document.getElementById('canvasA'), eqA, '#00d4ff');
+      drawEQCanvas(document.getElementById('canvasB'), eqB, '#f0a862');
+    });
   }
 
   // Prompt card
@@ -893,8 +914,9 @@ function updateMonitorUI() {
 }
 
 function updateOverlays() {
-  document.getElementById('overlayA').style.display = (!showCurves && !answered) ? 'flex' : 'none';
-  document.getElementById('overlayB').style.display = (!showCurves && !answered) ? 'flex' : 'none';
+  const hidden = !showCurves && !answered;
+  document.getElementById('wrapA').style.display = hidden ? 'none' : '';
+  document.getElementById('wrapB').style.display = hidden ? 'none' : '';
 }
 
 function getCurrentEQBands() {
@@ -906,11 +928,6 @@ function getCurrentEQBands() {
 function renderBandInfo(bands, containerId, color) {
   const el = document.getElementById(containerId);
   el.innerHTML = '';
-  if (!showCurves && !answered) {
-    const h = document.createElement('div');
-    h.className = 'band-hidden'; h.textContent = 'Params hidden';
-    el.appendChild(h); return;
-  }
   const LABELS = {
     peaking:'PEAK', lowshelf:'LO SHF', highshelf:'HI SHF',
     lowpass:'LO PASS', highpass:'HI PASS'
@@ -922,11 +939,16 @@ function renderBandInfo(bands, containerId, color) {
     const freqStr = band.freq >= 1000
       ? (band.freq/1000).toFixed(band.freq%1000===0?0:1)+'k'
       : String(band.freq);
-    const gainStr = isShapeOnly ? '' : `·${band.gain>=0?'+':''}${band.gain.toFixed(1)}`;
-    const qStr    = (band.type==='lowshelf'||band.type==='highshelf') ? '' : `·Q${band.Q.toFixed(1)}`;
+    let gainHtml = '';
+    if (!isShapeOnly) {
+      const gainClass = band.gain > 0 ? 'pos' : band.gain < 0 ? 'neg' : 'neutral';
+      const gainStr = `${band.gain>=0?'+':''}${band.gain.toFixed(1)}dB`;
+      gainHtml = `<span class="band-gain ${gainClass}">${gainStr}</span>`;
+    }
     row.innerHTML = `<span class="band-num">B${i+1}</span>
       <span class="band-type" style="color:${color};">${LABELS[band.type]}</span>
-      <span class="band-vals">${freqStr}Hz${gainStr}${qStr}</span>`;
+      <span class="band-freq">${freqStr}Hz</span>
+      ${gainHtml}`;
     el.appendChild(row);
   });
 }
