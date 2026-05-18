@@ -354,6 +354,63 @@
     animation: pulse-ring 2s infinite;
   }
 
+  /* ── A/B Monitor row ── */
+  .monitor-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .monitor-row.hidden { display: none; }
+
+  .monitor-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .monitor-btn {
+    flex: 1;
+    max-width: 130px;
+    background: var(--surface);
+    border: 1.5px solid var(--border2);
+    border-radius: 14px;
+    padding: 11px 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.07em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .monitor-btn .mon-sub {
+    font-size: 9px;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+  .monitor-btn:active { transform: scale(0.95); }
+  .monitor-btn.mon-dry-active {
+    background: rgba(244,91,105,0.1);
+    border-color: var(--cut2);
+    color: var(--cut2);
+    box-shadow: 0 0 18px rgba(244,91,105,0.15);
+  }
+  .monitor-btn.mon-wet-active {
+    background: rgba(0,212,255,0.1);
+    border-color: var(--accent2);
+    color: var(--accent2);
+    box-shadow: 0 0 18px rgba(0,212,255,0.15);
+  }
+
   /* ── Playing indicator ── */
   .playing-bar {
     display: flex;
@@ -437,6 +494,18 @@
       <span id="playingLabel">Listening…</span>
     </div>
 
+    <!-- A/B dry/wet monitor toggle — shown during active rounds only -->
+    <div class="monitor-row hidden" id="monitorRow">
+      <button class="monitor-btn mon-dry-active" id="monBtnDry" onclick="setMonitor('dry')">
+        DRY
+        <span class="mon-sub">No EQ</span>
+      </button>
+      <button class="monitor-btn mon-wet-active" id="monBtnWet" onclick="setMonitor('wet')">
+        WET
+        <span class="mon-sub">With EQ</span>
+      </button>
+    </div>
+
     <!-- 2x2 frequency grid — filled by JS -->
     <div class="freq-grid" id="freqGrid"></div>
 
@@ -483,6 +552,7 @@ let gameStarted = false;
 let currentChoices = [];
 let score = 0, streak = 0, totalRounds = 0, correctCount = 0;
 let nextTimeout = null;
+let currentMonitor = 'wet'; // 'wet' = EQ active, 'dry' = EQ bypassed
 
 // ── Audio ──────────────────────────────────────────────────────────────────────
 let audioCtx       = null;
@@ -668,8 +738,15 @@ function newRound() {
   currentChoices = pickChoices(targetFreq);
   buildGrid(currentChoices, false);
 
+  // Reset monitor to wet for new round
+  currentMonitor = 'wet';
+  document.getElementById('monBtnDry').classList.remove('mon-dry-active');
+  document.getElementById('monBtnWet').classList.add('mon-wet-active');
+  document.getElementById('playingLabel').textContent = 'Listening… WET';
+
   // Playing indicator
   showPlayingBar(true);
+  showMonitorRow(true);
 
   // Start audio
   playRound();
@@ -731,12 +808,35 @@ function showPlayingBar(show) {
   bar.classList.toggle('hidden', !show);
 }
 
+// ── A/B Monitor ──────────────────────────────────────────────────────────────
+function showMonitorRow(show) {
+  document.getElementById('monitorRow').classList.toggle('hidden', !show);
+}
+
+function setMonitor(mode) {
+  if (!eqFilter || !roundActive || answered) return;
+  currentMonitor = mode;
+  // Smoothly ramp EQ gain: wet = full gain, dry = 0 (bypass)
+  eqFilter.gain.setTargetAtTime(
+    mode === 'wet' ? targetGain : 0,
+    audioCtx.currentTime,
+    0.03
+  );
+  // Update button active states
+  document.getElementById('monBtnDry').classList.toggle('mon-dry-active', mode === 'dry');
+  document.getElementById('monBtnWet').classList.toggle('mon-wet-active', mode === 'wet');
+  // Update playing label
+  document.getElementById('playingLabel').textContent =
+    mode === 'wet' ? 'Listening… WET' : 'Listening… DRY';
+}
+
 // ── Answer ──────────────────────────────────────────────────────────────────────
 function submitAnswer(clickedFreq) {
   if (!roundActive || answered) return;
   answered = true;
   stopPlayback();
   showPlayingBar(false);
+  showMonitorRow(false);
 
   const isCorrect = (clickedFreq === targetFreq);
   if (isCorrect) { score++; streak++; correctCount++; } else { streak = 0; }
@@ -795,6 +895,7 @@ buildIdleGrid();
 // answered is still false here; the click fires after and calls submitAnswer().
 document.addEventListener('touchend', e => {
   if (e.target.closest('footer') || e.target.closest('header')) return;
+  if (e.target.closest('#monitorRow')) return; // let monitor buttons handle their own clicks
   if (!gameStarted) { startGame(); return; }
   if (answered && roundActive) newRound();
 }, { passive: true });
