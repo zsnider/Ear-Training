@@ -822,7 +822,7 @@ function newRound() {
 
   // Reset panels
   ['A','B'].forEach(s => {
-    document.getElementById(`panel${s}`).classList.remove('reveal-correct','reveal-wrong');
+    document.getElementById(`panel${s}`).classList.remove('reveal-correct','reveal-wrong','reveal-hint','reveal-dimmed');
     const r = document.getElementById(`result${s}`);
     r.className = 'panel-result'; r.textContent = '';
   });
