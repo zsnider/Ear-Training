@@ -59,6 +59,15 @@ body {
   padding: 10px 16px 8px;
   flex-shrink: 0;
 }
+.back-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  color: var(--text); text-decoration: none;
+  font-size: 18px; line-height: 1; flex-shrink: 0;
+  margin-right: 6px;
+}
+.back-btn:active { background: var(--surface3); }
 
 .brand {
   display: flex;
@@ -220,7 +229,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 14px;
   position: relative;
   overflow: hidden;
   transition: all 0.15s;
@@ -258,10 +267,44 @@ body {
   opacity: 0.32;
 }
 
+/* Listen ring — the big button inside each card */
+.ab-ring {
+  width: 112px; height: 112px;
+  border-radius: 50%;
+  border: 2.5px solid;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+}
+.card-a .ab-ring { background: rgba(91,143,255,0.07);  border-color: rgba(91,143,255,0.30); }
+.card-b .ab-ring { background: rgba(232,160,48,0.07); border-color: rgba(232,160,48,0.30); }
+
+.ab-card.playing.card-a .ab-ring {
+  background: rgba(91,143,255,0.18);
+  border-color: var(--a-col);
+  box-shadow: 0 0 28px rgba(91,143,255,0.32);
+}
+.ab-card.playing.card-b .ab-ring {
+  background: rgba(232,160,48,0.18);
+  border-color: var(--b-col);
+  box-shadow: 0 0 28px rgba(232,160,48,0.32);
+}
+.ab-card.correct .ab-ring {
+  background: rgba(62,207,142,0.14);
+  border-color: var(--green);
+  box-shadow: 0 0 22px rgba(62,207,142,0.24);
+}
+.ab-card.wrong .ab-ring {
+  background: rgba(244,91,105,0.10);
+  border-color: var(--red);
+}
+.ab-card.dimmed .ab-ring { opacity: 0.35; }
+.ab-card:active .ab-ring { transform: scale(0.92); }
+
 /* Letter */
 .ab-letter {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: clamp(48px, 10vw, 72px);
+  font-size: 62px;
   font-weight: 700;
   line-height: 1;
   transition: color 0.2s;
@@ -274,7 +317,7 @@ body {
 /* Sub label */
 .ab-sub {
   font-size: 11px; color: var(--muted);
-  font-weight: 500; letter-spacing: 0.05em;
+  font-weight: 600; letter-spacing: 0.07em;
   text-transform: uppercase;
 }
 
@@ -396,6 +439,7 @@ body {
 
 <!-- Header -->
 <div class="header">
+  <a class="back-btn" href="/mobile/">‹</a>
   <div class="brand">
     <div class="brand-icon">
       <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
@@ -461,14 +505,18 @@ body {
   <div class="ab-card card-a" id="cardA">
     <div class="pulse-ring"></div>
     <div class="card-result" id="cardResultA"></div>
-    <div class="ab-letter">A</div>
+    <div class="ab-ring">
+      <div class="ab-letter">A</div>
+    </div>
     <div class="ab-sub" id="subA">Tap to start</div>
     <div class="card-tier" id="cardTierA"></div>
   </div>
   <div class="ab-card card-b" id="cardB">
     <div class="pulse-ring"></div>
     <div class="card-result" id="cardResultB"></div>
-    <div class="ab-letter">B</div>
+    <div class="ab-ring">
+      <div class="ab-letter">B</div>
+    </div>
     <div class="ab-sub" id="subB">Tap to start</div>
     <div class="card-tier" id="cardTierB"></div>
   </div>
@@ -691,8 +739,8 @@ function selectAnswer(side) {
   rb.textContent = correct ? '✓ Correct!' : `✗ It was ${compressedSide}`;
   rb.className   = `result-badge ${correct ? 'good' : 'bad'}`;
   document.getElementById('promptText').innerHTML = correct
-    ? `🎯 <span>${compressedSide}</span> was compressed — ${TIER_LABELS[currentTier]}`
-    : `✗ <span>${compressedSide}</span> was the compressed one — keep training`;
+    ? `🎯 <span>${compressedSide}</span> was compressed — ${TIER_LABELS[currentTier]} — tap anywhere to continue`
+    : `✗ <span>${compressedSide}</span> was the compressed one — keep training — tap anywhere to continue`;
 
   // Hide switch, show GR
   document.getElementById('switchRow').style.display = 'none';
@@ -704,14 +752,12 @@ function selectAnswer(side) {
 
   // Sub labels
   document.getElementById('subA').textContent = '';
-  document.getElementById('subB').textContent = 'Tap for next';
+  document.getElementById('subB').textContent = '';
 
   addHistory(correct);
 
   // Play compressed side so user can hear it clearly
   listenTo(compressedSide);
-
-  nextTimeout = setTimeout(newRound, correct ? 2000 : 3000);
 }
 
 // ── Listen ─────────────────────────────────────────────────────────────────────
@@ -952,6 +998,15 @@ function addHistory(correct) {
   strip.appendChild(dot);
   while (strip.children.length > 30) strip.removeChild(strip.firstChild);
 }
+
+// ── Tap anywhere to advance after answering ───────────────────────────────────
+// Card taps are handled by handleCardTap; this catches taps everywhere else.
+document.addEventListener('touchend', e => {
+  if (!answered || !roundActive) return;
+  // Card taps already call newRound() and reset answered, so by the time
+  // this fires they'll have answered=false — this is the fallback for other areas.
+  newRound();
+}, { passive: true });
 </script>
 </body>
 </html>
