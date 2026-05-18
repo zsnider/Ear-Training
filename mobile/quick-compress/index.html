@@ -266,6 +266,28 @@ body {
 .ab-card.dimmed {
   opacity: 0.32;
 }
+/* Revealed correct answer when user picked wrong */
+.ab-card.reveal {
+  background: rgba(62,207,142,0.05);
+  border-color: rgba(62,207,142,0.45);
+  border-style: dashed;
+}
+.ab-card.reveal .ab-ring {
+  background: rgba(62,207,142,0.08);
+  border-color: rgba(62,207,142,0.4);
+  border-style: dashed;
+}
+.ab-card.reveal .ab-letter { color: var(--green); }
+.ab-card.reveal .card-result {
+  opacity: 1;
+  background: rgba(62,207,142,0.15);
+  color: var(--green);
+}
+.ab-card.reveal .card-tier {
+  opacity: 1;
+  color: var(--accent2);
+  background: rgba(45,212,160,0.10);
+}
 
 /* Listen ring — the big button inside each card */
 .ab-ring {
@@ -616,11 +638,13 @@ let nextTimeout    = null;
 // ── Touch handlers ────────────────────────────────────────────────────────────
 document.getElementById('cardA').addEventListener('touchend', e => {
   e.preventDefault();
+  e.stopPropagation(); // prevent document touchend from double-firing
   handleCardTap('A');
 }, { passive: false });
 
 document.getElementById('cardB').addEventListener('touchend', e => {
   e.preventDefault();
+  e.stopPropagation(); // prevent document touchend from double-firing
   handleCardTap('B');
 }, { passive: false });
 
@@ -629,8 +653,7 @@ function handleCardTap(side) {
     startGame(side);
     return;
   }
-  if (answered) {
-    clearTimeout(nextTimeout);
+  if (answered && roundActive) {
     newRound();
     return;
   }
@@ -721,12 +744,20 @@ function selectAnswer(side) {
   const correctCard = document.getElementById(`card${compressedSide}`);
   const wrongCard   = document.getElementById(`card${wrongSide}`);
 
-  correctCard.classList.add('correct');
-  wrongCard.classList.add('dimmed');
-  if (!correct) document.getElementById(`card${side}`).classList.add('wrong');
+  if (correct) {
+    // User nailed it — full green on their pick
+    correctCard.classList.add('correct');
+    wrongCard.classList.add('dimmed');
+  } else {
+    // Wrong — red on user's pick, subtle dashed green on the correct card
+    document.getElementById(`card${side}`).classList.add('wrong');
+    correctCard.classList.add('reveal');
+    // The other non-picked, non-correct card (if any) gets dimmed
+    if (wrongSide !== side) wrongCard.classList.add('dimmed');
+  }
 
   // Card result labels
-  document.getElementById(`cardResult${compressedSide}`).textContent = '✓ Compressed';
+  document.getElementById(`cardResult${compressedSide}`).textContent = correct ? '✓ Compressed' : '→ Compressed';
   document.getElementById(`cardResult${wrongSide}`).textContent      = 'Dry';
   document.getElementById(`cardTier${compressedSide}`).textContent   =
     `${TIER_LABELS[currentTier]}`;
@@ -1000,11 +1031,13 @@ function addHistory(correct) {
 }
 
 // ── Tap anywhere to advance after answering ───────────────────────────────────
-// Card taps are handled by handleCardTap; this catches taps everywhere else.
+// Card taps stopPropagation so they never reach here — this catches taps on
+// the prompt card, history strip, and any other non-card, non-footer area.
 document.addEventListener('touchend', e => {
   if (!answered || !roundActive) return;
-  // Card taps already call newRound() and reset answered, so by the time
-  // this fires they'll have answered=false — this is the fallback for other areas.
+  if (e.target.closest('.footer')) return;
+  if (e.target.closest('.header')) return;
+  if (e.target.closest('#switchRow')) return;
   newRound();
 }, { passive: true });
 </script>
