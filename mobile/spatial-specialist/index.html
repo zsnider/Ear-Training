@@ -51,6 +51,15 @@ body {
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 16px 8px; flex-shrink: 0;
 }
+.back-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  color: var(--text); text-decoration: none;
+  font-size: 18px; line-height: 1; flex-shrink: 0;
+  margin-right: 6px;
+}
+.back-btn:active { background: var(--surface3); }
 .brand { display: flex; align-items: center; gap: 8px; }
 .brand-icon {
   width: 28px; height: 28px; background: var(--accent);
@@ -224,11 +233,15 @@ body {
   text-transform: uppercase; letter-spacing: 0.07em; margin-top: 4px;
 }
 
-/* Position description */
+/* Position description / diff reveal */
 .pos-desc {
-  font-size: 12px; color: var(--muted); text-align: center; min-height: 18px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px; font-weight: 600;
+  text-align: center; min-height: 20px; color: var(--muted);
 }
-.pos-desc span { color: var(--text); font-weight: 500; }
+.pos-desc .good { color: var(--green); }
+.pos-desc .ok   { color: var(--amber); }
+.pos-desc .bad  { color: var(--red);   }
 
 /* Error bar */
 .error-wrap {
@@ -290,6 +303,7 @@ body {
 
 <!-- Header -->
 <div class="header">
+  <a class="back-btn" href="/mobile/">‹</a>
   <div class="brand">
     <div class="brand-icon">
       <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
@@ -374,8 +388,8 @@ body {
       </div>
     </div>
 
-    <!-- Position description -->
-    <div class="pos-desc" id="posDesc">Drag or tap the ruler to set your position</div>
+    <!-- Difference reveal (shown after answer) -->
+    <div class="pos-desc" id="posDesc"></div>
 
     <!-- Error bar -->
     <div class="error-wrap" id="errorWrap">
@@ -461,9 +475,10 @@ let outGain      = null;
 let isPlaying    = false;
 
 // Drag tracking
-let isDragging  = false;
-let touchMoved  = false;
-let touchStartX = 0;
+let isDragging     = false;
+let touchMoved     = false;
+let touchStartX    = 0;
+let userHandleRatio = 0.5; // raw track position (0–1); 0.5 = center
 
 // ── Build ticks ───────────────────────────────────────────────────────────────
 function buildTicks() {
@@ -488,16 +503,23 @@ function buildTicks() {
       track.appendChild(label);
     });
   } else {
-    // Width mode: 0% (Mono) to 100% (Wide)
-    [0, 25, 50, 75, 100].forEach(pct => {
+    // Width mode: center = Mono, edges = Wide
+    const widthTicks = [
+      { pos: 0,   lbl: 'Wide' },
+      { pos: 25,  lbl: '50%'  },
+      { pos: 50,  lbl: 'Mono', isCenter: true },
+      { pos: 75,  lbl: '50%'  },
+      { pos: 100, lbl: 'Wide' },
+    ];
+    widthTicks.forEach(({ pos, lbl, isCenter }) => {
       const tick = document.createElement('div');
-      tick.className = 'pan-tick' + (pct === 0 ? ' center' : '');
-      tick.style.left = pct + '%';
+      tick.className = 'pan-tick' + (isCenter ? ' center' : '');
+      tick.style.left = pos + '%';
       track.appendChild(tick);
       const label = document.createElement('div');
       label.className = 'pan-tick-label';
-      label.style.left = pct + '%';
-      label.textContent = pct === 0 ? 'Mono' : pct === 100 ? 'Wide' : pct + '%';
+      label.style.left = pos + '%';
+      label.textContent = lbl;
       track.appendChild(label);
     });
   }
@@ -507,39 +529,37 @@ function buildTicks() {
 function fmtPan(v) {
   if (gameMode === 'width') {
     const pct = Math.round(v * 100);
-    if (pct <= 1) return '0% Mono';
-    if (pct >= 99) return '100% Wide';
-    return pct + '% Wide';
+    if (pct <= 1) return 'Mono';
+    if (pct >= 99) return 'Wide';
+    return pct + '%';
   }
   if (Math.abs(v) < 0.02) return 'C';
   const pct = Math.round(Math.abs(v) * 100);
   return (v < 0 ? 'L ' : 'R ') + pct + '%';
 }
 
-// ── Update handle + fill from userPan ────────────────────────────────────────
-function updatePanUI(pan) {
-  userPan = gameMode === 'width'
-    ? Math.max(0, Math.min(1, pan))
-    : Math.max(-1, Math.min(1, pan));
-
-  const pct = gameMode === 'width'
-    ? userPan * 100
-    : ((userPan + 1) / 2) * 100;
-
-  document.getElementById('userHandle').style.left = pct + '%';
-
+// ── Update handle + fill from raw track ratio (0–1, 0.5 = center) ─────────────
+function updatePanUI(ratio) {
+  userHandleRatio = Math.max(0, Math.min(1, ratio));
   const fill = document.getElementById('panFill');
+
   if (gameMode === 'width') {
+    // Width: distance from center → value. Both sides of center = wider.
+    userPan = Math.abs(userHandleRatio - 0.5) * 2; // 0 at center, 1 at edges
+    document.getElementById('userHandle').style.left = (userHandleRatio * 100) + '%';
+
     const halfFill = userPan * 50;
     fill.style.left  = (50 - halfFill) + '%';
     fill.style.width = (halfFill * 2) + '%';
     fill.style.background = 'linear-gradient(to right, rgba(244,91,105,0.4), rgba(124,92,252,0.6), rgba(62,207,142,0.4))';
-    // Speaker opacity shows width
     document.getElementById('spkL').style.opacity = 0.2 + userPan * 0.8;
     document.getElementById('spkR').style.opacity = 0.2 + userPan * 0.8;
-    const wDesc = userPan <= 0.01 ? 'Mono (0%)' : userPan >= 0.99 ? 'Full Stereo (100%)' : Math.round(userPan * 100) + '% Wide';
-    document.getElementById('posDesc').innerHTML = `Your guess: <span>${wDesc}</span>`;
   } else {
+    // Panning: left to right, -1 to 1
+    userPan = userHandleRatio * 2 - 1;
+    const pct = userHandleRatio * 100;
+    document.getElementById('userHandle').style.left = pct + '%';
+
     const center = 50;
     if (userPan < 0) {
       fill.style.left  = pct + '%';
@@ -555,19 +575,14 @@ function updatePanUI(pan) {
     const absV = Math.abs(userPan);
     document.getElementById('spkL').style.opacity = userPan <= 0 ? 0.4 + absV * 0.6 : Math.max(0.15, 0.5 - absV * 0.4);
     document.getElementById('spkR').style.opacity = userPan >= 0 ? 0.4 + absV * 0.6 : Math.max(0.15, 0.5 - absV * 0.4);
-    const desc = Math.abs(userPan) < 0.03 ? 'Center'
-      : Math.abs(userPan) > 0.97 ? (userPan < 0 ? 'Hard Left' : 'Hard Right')
-      : (userPan < 0 ? 'Left ' : 'Right ') + Math.round(Math.abs(userPan) * 100) + '%';
-    document.getElementById('posDesc').innerHTML = `Your guess: <span>${desc}</span>`;
   }
 
   document.getElementById('userReadout').textContent = fmtPan(userPan);
 }
 
 // ── Touch / drag on pan track ─────────────────────────────────────────────────
-function panFromTrackX(x, trackW) {
-  const ratio = Math.max(0, Math.min(1, x / trackW));
-  return gameMode === 'width' ? ratio : ratio * 2 - 1;
+function ratioFromTrackX(x, trackW) {
+  return Math.max(0, Math.min(1, x / trackW));
 }
 
 const panTrack = document.getElementById('panTrack');
@@ -575,15 +590,14 @@ const panTrack = document.getElementById('panTrack');
 panTrack.addEventListener('touchstart', e => {
   e.preventDefault();
   if (!gameStarted) { startGame(); return; }
-  if (answered) { clearTimeout(nextTimeout); newRound(); return; }
+  if (answered) { newRound(); return; }
   if (!roundActive) return;
   isDragging = true;
   touchMoved = false;
   touchStartX = e.touches[0].clientX;
-  // Move handle immediately to touch position
   const rect = panTrack.getBoundingClientRect();
   const x = Math.max(0, Math.min(rect.width, e.touches[0].clientX - rect.left));
-  updatePanUI(panFromTrackX(x, rect.width));
+  updatePanUI(ratioFromTrackX(x, rect.width));
 }, { passive: false });
 
 window.addEventListener('touchmove', e => {
@@ -592,7 +606,7 @@ window.addEventListener('touchmove', e => {
   if (dx > 5) touchMoved = true;
   const rect = panTrack.getBoundingClientRect();
   const x = Math.max(0, Math.min(rect.width, e.touches[0].clientX - rect.left));
-  updatePanUI(panFromTrackX(x, rect.width));
+  updatePanUI(ratioFromTrackX(x, rect.width));
   e.preventDefault();
 }, { passive: false });
 
@@ -607,12 +621,12 @@ window.addEventListener('touchend', () => {
   // Drag — just position the handle; user submits by tapping
 });
 
-// Also allow tapping outside the track (anywhere on the stereo card) to submit after dragging
+// Tap anywhere on the stereo card (not track) = submit current position
 document.getElementById('stereoCard').addEventListener('touchend', e => {
   if (!roundActive || answered || isDragging) return;
   if (!gameStarted) return;
-  if (e.target.closest('#panTrack')) return; // handled above
-  // Tap anywhere else on the card = submit current position
+  if (e.target.closest('#panTrack')) return; // handled by track handlers
+  e.stopPropagation(); // prevent document touchend from immediately advancing
   submitAnswer();
 }, { passive: false });
 
@@ -644,7 +658,8 @@ function newRound() {
 
   // Reset UI
   userPan = 0;
-  updatePanUI(0);
+  updatePanUI(0.5); // 0.5 = center of track = C for panning, Mono for width
+  document.getElementById('posDesc').textContent = '';
   document.getElementById('promptCard').classList.remove('correct-flash','wrong-flash');
   document.getElementById('resultBadge').className = 'result-badge';
   document.getElementById('resultBadge').textContent = '';
@@ -681,9 +696,9 @@ function submitAnswer() {
   document.getElementById('streakVal').textContent  = streak;
   document.getElementById('avgErrVal').textContent  = Math.round(totalErr) + '%';
 
-  // Reveal target handle
+  // Reveal target handle — width mode shows on right side of center
   const tPct = gameMode === 'width'
-    ? targetPan * 100
+    ? 50 + targetPan * 50
     : ((targetPan + 1) / 2) * 100;
   document.getElementById('targetHandle').style.left = tPct + '%';
   document.getElementById('targetHandle').classList.add('visible');
@@ -707,17 +722,22 @@ function submitAnswer() {
   rb.textContent = `+${pts}`;
   rb.className   = `result-badge ${pts >= 65 ? 'good' : pts >= 40 ? 'ok' : 'bad'}`;
 
+  document.getElementById('promptText').innerHTML =
+    `${msgs[tier]} · Target: <span>${fmtPan(targetPan)}</span> — tap anywhere to continue`;
+  document.getElementById('refRow').style.display = 'none';
+
+  // Difference reveal in posDesc
   let diffStr;
   if (gameMode === 'width') {
     const d = Math.round((userPan - targetPan) * 100);
-    diffStr = d === 0 ? 'exact' : (d > 0 ? '+' : '') + d + '% off';
+    diffStr = d === 0 ? 'exact' : Math.abs(d) + '% off';
   } else {
     const d = Math.round((userPan - targetPan) * 100);
     diffStr = d === 0 ? 'exact' : (d > 0 ? 'R +' : 'L ') + Math.abs(d) + '% off';
   }
-  document.getElementById('promptText').innerHTML =
-    `${msgs[tier]} · Target: <span>${fmtPan(targetPan)}</span> · Diff: <span>${diffStr}</span> — tap to continue`;
-  document.getElementById('refRow').style.display = 'none';
+  const diffClass = pts >= 65 ? 'good' : pts >= 40 ? 'ok' : 'bad';
+  document.getElementById('posDesc').innerHTML =
+    `Diff: <span class="${diffClass}">${diffStr}</span>`;
 
   // Error bar
   const ew = document.getElementById('errorWrap');
@@ -728,8 +748,6 @@ function submitAnswer() {
   setTimeout(() => { ef.style.width = Math.min(100, errPct * 1.5) + '%'; }, 60);
 
   addHistory(tier);
-
-  nextTimeout = setTimeout(newRound, pts >= 65 ? 2000 : 3000);
 }
 
 // ── Reference toggle ──────────────────────────────────────────────────────────
@@ -756,20 +774,13 @@ function onModeTap(e, mode) {
   gameMode = mode;
   document.getElementById('modePanning').classList.toggle('active', mode === 'panning');
   document.getElementById('modeWidth').classList.toggle('active',   mode === 'width');
-  // Update side labels
-  if (mode === 'width') {
-    document.getElementById('spkL').textContent = 'Mono';
-    document.getElementById('spkR').textContent = 'Wide';
-    document.getElementById('spkL').style.color = 'var(--muted)';
-    document.getElementById('spkR').style.color = 'var(--accent2)';
-  } else {
-    document.getElementById('spkL').textContent = 'L';
-    document.getElementById('spkR').textContent = 'R';
-    document.getElementById('spkL').style.color = '';
-    document.getElementById('spkR').style.color = '';
-  }
+  // Restore L/R labels for both modes (ticks label Mono/Wide in width mode)
+  document.getElementById('spkL').textContent = 'L';
+  document.getElementById('spkR').textContent = 'R';
+  document.getElementById('spkL').style.color = '';
+  document.getElementById('spkR').style.color = '';
   buildTicks();
-  updatePanUI(0);
+  updatePanUI(0.5);
 }
 
 function onSrcTap(e, src) {
@@ -882,9 +893,16 @@ function addHistory(tier) {
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 buildTicks();
-updatePanUI(0);
+updatePanUI(0.5);
 document.getElementById('promptText').innerHTML =
   `Tap the ruler to place your <span>pan</span> guess — or drag the handle first`;
+
+// ── Tap anywhere to advance after answering ───────────────────────────────────
+document.addEventListener('touchend', e => {
+  if (!answered || !roundActive || isDragging) return;
+  if (e.target.closest('#panTrack')) return; // already handled by panTrack touchstart
+  newRound();
+}, { passive: true });
 </script>
 </body>
 </html>
