@@ -769,21 +769,12 @@ function submitAnswer(clickedFreq) {
   rb.textContent = isCorrect ? '✓' : `✗ ${FREQ_LABELS[targetFreq]}${FREQ_UNITS[targetFreq]}`;
   rb.className = `result-badge ${isCorrect ? 'show-correct' : 'show-wrong'}`;
 
+  // Update prompt to signal tap-to-continue
+  document.getElementById('promptText').innerHTML = isCorrect
+    ? `<span>${FREQ_LABELS[targetFreq]}${FREQ_UNITS[targetFreq]}</span> was correct — tap anywhere to continue`
+    : `It was <span>${FREQ_LABELS[targetFreq]}${FREQ_UNITS[targetFreq]}</span> — tap anywhere to continue`;
+
   addHistory(isCorrect);
-
-  // Countdown bar → next round
-  const delay = isCorrect ? 1000 : 1800;
-  const bar = document.getElementById('progressBar');
-  const fill = document.getElementById('progressFill');
-  bar.style.display = 'block';
-  fill.style.transition = 'none';
-  fill.style.width = '100%';
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    fill.style.transition = `width ${delay}ms linear`;
-    fill.style.width = '0%';
-  }));
-
-  nextTimeout = setTimeout(newRound, delay);
 }
 
 // ── History ──────────────────────────────────────────────────────────────────────
@@ -797,6 +788,16 @@ function addHistory(correct) {
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 buildIdleGrid();
+
+// ── Tap anywhere to start / advance ───────────────────────────────────────
+// Disabled idle buttons block click on iOS — touchend on the document catches all
+// taps. touchend fires before click, so when a live answer button is tapped,
+// answered is still false here; the click fires after and calls submitAnswer().
+document.addEventListener('touchend', e => {
+  if (e.target.closest('footer') || e.target.closest('header')) return;
+  if (!gameStarted) { startGame(); return; }
+  if (answered && roundActive) newRound();
+}, { passive: true });
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>

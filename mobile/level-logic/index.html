@@ -759,17 +759,10 @@ function submitAnswer(clickedDb) {
   showMeter(targetDb);
   addHistory(isCorrect);
 
-  // Countdown to next round
-  const delay = isCorrect ? 1200 : 2000;
-  const bar  = document.getElementById('progressBar');
-  const fill = document.getElementById('progressFill');
-  bar.style.display = 'block';
-  fill.style.transition = 'none'; fill.style.width = '100%';
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    fill.style.transition = `width ${delay}ms linear`;
-    fill.style.width = '0%';
-  }));
-  nextTimeout = setTimeout(newRound, delay);
+  // Signal tap-to-continue in the prompt
+  document.getElementById('promptText').innerHTML = isCorrect
+    ? `Correct! <span>${fmtDb(targetDb)} dB</span> — tap anywhere to continue`
+    : `It was <span>${fmtDb(targetDb)} dB</span> — tap anywhere to continue`;
 }
 
 // Need rb in submitAnswer scope
@@ -871,6 +864,16 @@ function showPlayingBar(show) {
 
 // ── Init ───────────────────────────────────────────────────────────────────────
 buildIdleGrid();
+
+// ── Tap anywhere to start / advance ────────────────────────────────────────────
+// Disabled idle buttons block click on iOS — touchend on the document catches all
+// taps. touchend fires before click, so when a live answer button is tapped,
+// answered is still false here; the click fires after and calls submitAnswer().
+document.addEventListener('touchend', e => {
+  if (e.target.closest('footer') || e.target.closest('header')) return;
+  if (!gameStarted) { startGame(); return; }
+  if (answered && roundActive) newRound();
+}, { passive: true });
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
