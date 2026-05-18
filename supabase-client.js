@@ -81,4 +81,27 @@ window.SonicSandbox = {
       accuracy: Math.round((correct / scores.length) * 100),
     };
   },
+
+  // Delete the current user's account and all associated data.
+  // Requires the `delete_user` SQL function in Supabase (run once in SQL Editor):
+  //
+  //   CREATE OR REPLACE FUNCTION delete_user()
+  //   RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public
+  //   AS $$
+  //   BEGIN
+  //     DELETE FROM scores WHERE user_id = auth.uid();
+  //     DELETE FROM auth.users WHERE id = auth.uid();
+  //   END;
+  //   $$;
+  //
+  async deleteAccount() {
+    if (!_currentUser) return { error: { message: 'Not signed in.' } };
+    const { error } = await _sb.rpc('delete_user');
+    if (error) {
+      console.warn('[SonicSandbox] deleteAccount failed:', error.message);
+      return { error };
+    }
+    await _sb.auth.signOut();
+    return { error: null };
+  },
 };

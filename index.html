@@ -409,9 +409,34 @@
   }
   .modal-msg.error { color: #f07070; }
   .modal-msg.success { color: var(--qc-accent2); }
+
+  /* ── Mobile banner ─────────────────────────────────────── */
+  #mobileBanner {
+    display: none;
+    width: 100%; background: rgba(91,106,255,0.07);
+    border-bottom: 1px solid rgba(91,106,255,0.18);
+    padding: 10px 24px;
+    align-items: center; justify-content: center; gap: 10px;
+    font-size: 13px; color: var(--muted);
+  }
+  #mobileBanner a {
+    color: var(--accent2); text-decoration: none; font-weight: 500;
+  }
+  #mobileBanner a:hover { text-decoration: underline; }
+  .banner-dismiss {
+    background: none; border: none; color: var(--muted);
+    font-size: 16px; cursor: pointer; padding: 0 0 0 4px; line-height: 1;
+  }
+  .banner-dismiss:hover { color: var(--text); }
 </style>
 </head>
 <body>
+
+<!-- Mobile banner (desktop users see this; mobile users are auto-redirected) -->
+<div id="mobileBanner">
+  📱 Playing on mobile? <a href="/mobile/">Try the mobile version →</a>
+  <button class="banner-dismiss" id="bannerDismiss" title="Dismiss">×</button>
+</div>
 
 <!-- Nav -->
 <nav>
@@ -812,6 +837,29 @@
     if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
     else { msg.textContent = 'Check your email to confirm your account.'; msg.className = 'modal-msg success'; }
   });
+
+  // ── Mobile detection ──────────────────────────────────────
+  (function() {
+    const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+      (('ontouchstart' in window || navigator.maxTouchPoints > 0) &&
+       window.matchMedia('(max-width: 820px)').matches);
+    const prefersDesktop = localStorage.getItem('ss_prefer_desktop') === '1';
+
+    if (isMobile && !prefersDesktop) {
+      window.location.replace('/mobile/');
+      return;
+    }
+
+    // On desktop (or opted-out): show the mobile banner unless dismissed
+    if (!sessionStorage.getItem('ss_banner_dismissed')) {
+      const banner = document.getElementById('mobileBanner');
+      banner.style.display = 'flex';
+      document.getElementById('bannerDismiss').addEventListener('click', () => {
+        banner.style.display = 'none';
+        sessionStorage.setItem('ss_banner_dismissed', '1');
+      });
+    }
+  })();
 
   // Update nav when auth state changes
   document.addEventListener('ss:authchange', e => {

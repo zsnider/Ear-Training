@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Freq Quiz</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg:       #080a0e;
+    --surface:  #111520;
+    --surface2: #181e2e;
+    --border:   rgba(255,255,255,0.08);
+    --border2:  rgba(255,255,255,0.14);
+    --text:     #e8edf8;
+    --muted:    #5a6480;
+    --accent:   #00d4ff;
+    --accent2:  #60e8ff;
+    --boost:    #f0b429;
+    --boost2:   #ffd166;
+    --cut:      #f45b69;
+    --cut2:     #ff8a94;
+    --correct:  #3ecf8e;
+    --wrong:    #f45b69;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    user-select: none;
+    touch-action: manipulation;
+  }
+
+  /* ── Layout shell ── */
+  .shell {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    /* iPhone safe areas */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px 10px;
+    flex-shrink: 0;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .back-btn {
+    width: 36px; height: 36px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s;
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 16px;
+  }
+  .back-btn:active { background: var(--surface2); }
+
+  .brand {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .brand-icon {
+    width: 28px; height: 28px;
+    background: var(--accent);
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .brand-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px; font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  .brand-name span { color: var(--accent); }
+
+  .stats-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .stat {
+    text-align: center;
+  }
+  .stat-val {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 20px; font-weight: 700;
+    color: var(--accent2);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 9px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 2px;
+  }
+  .vdiv { width: 1px; height: 20px; background: var(--border2); }
+
+  /* ── Main game area ── */
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0 16px;
+    gap: 12px;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* ── Prompt card ── */
+  .prompt-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-shrink: 0;
+    transition: border-color 0.25s, box-shadow 0.25s;
+    min-height: 72px;
+  }
+  .prompt-card.correct-flash {
+    border-color: var(--correct);
+    box-shadow: 0 0 24px rgba(62,207,142,0.2);
+  }
+  .prompt-card.wrong-flash {
+    border-color: var(--wrong);
+    box-shadow: 0 0 24px rgba(244,91,105,0.2);
+  }
+
+  .prompt-left { display: flex; flex-direction: column; gap: 6px; }
+
+  .direction-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.07em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 6px; width: fit-content;
+  }
+  .direction-badge.boost { background: rgba(240,180,41,0.15); color: var(--boost2); border: 1px solid rgba(240,180,41,0.3); }
+  .direction-badge.cut   { background: rgba(244,91,105,0.12); color: var(--cut2);   border: 1px solid rgba(244,91,105,0.25); }
+  .direction-badge.idle  { background: var(--surface2); color: var(--muted); border: 1px solid var(--border2); }
+
+  .prompt-text {
+    font-size: 16px; font-weight: 500; color: var(--text); line-height: 1.3;
+  }
+  .prompt-text span { color: var(--accent2); font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
+
+  .result-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 22px; font-weight: 700;
+    opacity: 0; transition: opacity 0.15s;
+    white-space: nowrap;
+  }
+  .result-badge.show-correct { opacity: 1; color: var(--correct); }
+  .result-badge.show-wrong   { opacity: 1; color: var(--wrong); }
+
+  /* ── Progress bar (countdown) ── */
+  .progress-bar {
+    height: 3px;
+    background: var(--border2);
+    border-radius: 2px;
+    overflow: hidden;
+    flex-shrink: 0;
+    display: none;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--accent);
+    width: 100%;
+    transition: none;
+  }
+
+  /* ── 2x2 Frequency grid ── */
+  .freq-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .freq-btn {
+    background: var(--surface);
+    border: 2px solid var(--border2);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: transform 0.1s, border-color 0.15s, background 0.15s, box-shadow 0.15s;
+    position: relative;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .freq-btn:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+  .freq-btn:disabled { cursor: not-allowed; }
+
+  .freq-hz {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 28px; font-weight: 700;
+    color: var(--text); letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .freq-sub {
+    font-size: 11px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .freq-region {
+    font-size: 10px; color: var(--muted);
+    letter-spacing: 0.04em;
+    margin-top: 2px;
+  }
+
+  /* Answer states */
+  .freq-btn.correct {
+    background: rgba(62,207,142,0.15);
+    border-color: var(--correct);
+    box-shadow: 0 0 24px rgba(62,207,142,0.25);
+  }
+  .freq-btn.correct .freq-hz { color: var(--correct); }
+  .freq-btn.wrong {
+    background: rgba(244,91,105,0.1);
+    border-color: var(--wrong);
+  }
+  .freq-btn.wrong .freq-hz { color: var(--wrong); }
+  .freq-btn.reveal {
+    background: rgba(62,207,142,0.08);
+    border-color: rgba(62,207,142,0.45);
+    border-style: dashed;
+  }
+  .freq-btn.reveal .freq-hz { color: var(--correct); }
+  .freq-btn.dimmed { opacity: 0.25; }
+
+  /* Idle state - tap to start */
+  .freq-btn.idle-tap {
+    border-color: rgba(0,212,255,0.2);
+  }
+  .freq-btn.idle-tap:active {
+    border-color: var(--accent);
+    background: rgba(0,212,255,0.06);
+  }
+
+  /* ── History strip ── */
+  .history-strip {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    justify-content: center;
+    min-height: 12px;
+    flex-shrink: 0;
+  }
+  .hist-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .hist-dot.c { background: var(--correct); }
+  .hist-dot.w { background: var(--wrong); }
+
+  /* ── Footer ── */
+  footer {
+    padding: 10px 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .footer-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Difficulty pills */
+  .diff-btn {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    padding: 10px 8px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px; font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .diff-btn:active { transform: scale(0.97); }
+  .diff-btn.active {
+    background: rgba(0,212,255,0.1);
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+
+  /* Source pills */
+  .source-btn {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    padding: 8px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .source-btn:active { transform: scale(0.97); }
+  .source-btn.active {
+    background: rgba(0,212,255,0.08);
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+
+  /* ── Playing pulse on tap buttons ── */
+  @keyframes pulse-ring {
+    0%   { box-shadow: 0 0 0 0 rgba(0,212,255,0.35); }
+    70%  { box-shadow: 0 0 0 10px rgba(0,212,255,0); }
+    100% { box-shadow: 0 0 0 0 rgba(0,212,255,0); }
+  }
+  .freq-btn.playing-hint {
+    border-color: rgba(0,212,255,0.3);
+    animation: pulse-ring 2s infinite;
+  }
+
+  /* ── Playing indicator ── */
+  .playing-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--muted);
+    flex-shrink: 0;
+    height: 18px;
+  }
+  .playing-bar .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pdot 1.1s infinite;
+  }
+  @keyframes pdot {
+    0%,100% { opacity:1; transform:scale(1); }
+    50%     { opacity:0.3; transform:scale(0.6); }
+  }
+  .playing-bar.hidden { visibility: hidden; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- Header -->
+  <header>
+    <div class="header-left">
+      <a class="back-btn" href="/mobile/">‹</a>
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+            <path d="M1 9 Q3 5 5 9 Q7 13 9 9 Q11 5 13 9 Q15 13 17 9"
+                  stroke="black" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+          </svg>
+        </div>
+        <span class="brand-name">FREQ <span>QUIZ</span></span>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat">
+        <div class="stat-val" id="scoreVal">0</div>
+        <div class="stat-label">Score</div>
+      </div>
+      <div class="vdiv"></div>
+      <div class="stat">
+        <div class="stat-val" id="streakVal">0</div>
+        <div class="stat-label">Streak</div>
+      </div>
+      <div class="vdiv"></div>
+      <div class="stat">
+        <div class="stat-val" id="accuracyVal">—</div>
+        <div class="stat-label">Acc</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Game -->
+  <main>
+
+    <!-- Prompt card -->
+    <div class="prompt-card" id="promptCard">
+      <div class="prompt-left">
+        <div class="direction-badge idle" id="dirBadge">Ready</div>
+        <div class="prompt-text" id="promptText">Tap any tile to begin</div>
+      </div>
+      <div class="result-badge" id="resultBadge"></div>
+    </div>
+
+    <!-- Countdown bar -->
+    <div class="progress-bar" id="progressBar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <!-- Playing indicator -->
+    <div class="playing-bar hidden" id="playingBar">
+      <div class="dot"></div>
+      <span id="playingLabel">Listening…</span>
+    </div>
+
+    <!-- 2x2 frequency grid — filled by JS -->
+    <div class="freq-grid" id="freqGrid"></div>
+
+    <!-- History -->
+    <div class="history-strip" id="historyStrip"></div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-row">
+      <button class="diff-btn active" id="diffEasy"   onclick="setDifficulty(12, this)">Easy  ±12 dB</button>
+      <button class="diff-btn"        id="diffMedium" onclick="setDifficulty(6,  this)">Medium  ±6 dB</button>
+      <button class="diff-btn"        id="diffHard"   onclick="setDifficulty(3,  this)">Hard  ±3 dB</button>
+    </div>
+    <div class="footer-row">
+      <button class="source-btn active" id="srcPink"  onclick="setSource('pink')">Pink Noise</button>
+      <button class="source-btn"        id="srcLoop"  onclick="setSource('loop')">Loops</button>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+// ── Constants ──────────────────────────────────────────────────────────────────
+const ALL_FREQS  = [63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+const FREQ_LABELS = { 63:'63', 125:'125', 250:'250', 500:'500', 1000:'1k', 2000:'2k', 4000:'4k', 8000:'8k', 16000:'16k' };
+const FREQ_UNITS  = { 63:'Hz', 125:'Hz', 250:'Hz', 500:'Hz', 1000:'kHz', 2000:'kHz', 4000:'kHz', 8000:'kHz', 16000:'kHz' };
+const FREQ_REGION = {
+  63:'Sub-Bass', 125:'Bass', 250:'Low-Mid',
+  500:'Low-Mid', 1000:'Midrange', 2000:'Upper-Mid',
+  4000:'Presence', 8000:'Brilliance', 16000:'Air'
+};
+const LOG_MIN = Math.log10(20), LOG_MAX = Math.log10(22000);
+const CHOICES = 4; // always show 4 options
+
+// ── State ──────────────────────────────────────────────────────────────────────
+let gainAmount  = 12;
+let targetFreq  = null;
+let targetGain  = null;
+let roundActive = false;
+let answered    = false;
+let gameStarted = false;
+let currentChoices = [];
+let score = 0, streak = 0, totalRounds = 0, correctCount = 0;
+let nextTimeout = null;
+
+// ── Audio ──────────────────────────────────────────────────────────────────────
+let audioCtx       = null;
+let noiseSource    = null;
+let eqFilter       = null;
+let outGain        = null;
+let isPlaying      = false;
+let loopIdx        = 0;
+let loopAudioEl    = null, loopMediaSrc = null;
+let sourceType     = 'pink';
+
+// Curated loop list for iOS build
+const IOS_LOOPS = [
+  'alex-morgan-acid-jazz-groove-517096.mp3',
+  'alex-morgan-bebop-coffee-shop-517090.mp3',
+  'atlasaudio-house-518082.mp3',
+  'leberch-spain-518570.mp3',
+  'nastelbom-lounge-house-314576.mp3',
+  'ohpalmusic-passive-hip-hop-beat-90bpm-d-minor-177334.mp3',
+  'prettyjohn1-disco-funk-520385.mp3',
+  'the_mountain-deep-house-483808.mp3',
+];
+let loopFileNames = IOS_LOOPS;
+
+function randNext(len, cur) {
+  if (len <= 1) return 0;
+  let next;
+  do { next = Math.floor(Math.random() * len); } while (next === cur);
+  return next;
+}
+
+// ── Init audio ──────────────────────────────────────────────────────────────────
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function makePinkNoise(durationSecs) {
+  const rate = audioCtx.sampleRate;
+  const len  = Math.ceil(rate * durationSecs);
+  const buf  = audioCtx.createBuffer(1, len, rate);
+  const d    = buf.getChannelData(0);
+  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+  for (let i=0;i<len;i++){
+    const w=Math.random()*2-1;
+    b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
+    b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
+    b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
+    d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11; b6=w*0.115926;
+  }
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf; return src;
+}
+
+// ── Source ──────────────────────────────────────────────────────────────────────
+function setSource(type) {
+  sourceType = type;
+  updateSourceUI();
+}
+
+function updateSourceUI() {
+  document.getElementById('srcPink').classList.toggle('active', sourceType === 'pink');
+  document.getElementById('srcLoop').classList.toggle('active', sourceType === 'loop');
+}
+
+// ── Difficulty ──────────────────────────────────────────────────────────────────
+function setDifficulty(gain, el) {
+  gainAmount = gain;
+  ['diffEasy','diffMedium','diffHard'].forEach(id => document.getElementById(id).classList.remove('active'));
+  el.classList.add('active');
+  if (roundActive && !answered) newRound();
+}
+
+// ── Build 4 choices for this round ──────────────────────────────────────────────
+function pickChoices(correct) {
+  const pool = ALL_FREQS.filter(f => f !== correct);
+  // Shuffle pool and take 3
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i+1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  const choices = [correct, ...pool.slice(0, CHOICES - 1)];
+  // Shuffle choices
+  for (let i = choices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i+1));
+    [choices[i], choices[j]] = [choices[j], choices[i]];
+  }
+  return choices;
+}
+
+// ── Build grid ──────────────────────────────────────────────────────────────────
+function buildGrid(choices, disabled) {
+  const grid = document.getElementById('freqGrid');
+  grid.innerHTML = '';
+  choices.forEach(f => {
+    const btn = document.createElement('button');
+    btn.className = 'freq-btn' + (disabled ? ' idle-tap' : ' playing-hint');
+    btn.id = `freq-${f}`;
+    btn.dataset.freq = f;
+    btn.disabled = disabled;
+    btn.innerHTML = `
+      <div class="freq-hz">${FREQ_LABELS[f]}</div>
+      <div class="freq-sub">${FREQ_UNITS[f]}</div>
+      <div class="freq-region">${FREQ_REGION[f]}</div>
+    `;
+    btn.addEventListener('click', () => {
+      if (!gameStarted) { startGame(); return; }
+      submitAnswer(f);
+    });
+    grid.appendChild(btn);
+  });
+}
+
+// ── Show idle grid (before first tap) ──────────────────────────────────────────
+function buildIdleGrid() {
+  // Show 4 random frequencies as a teaser
+  const sample = [...ALL_FREQS].sort(() => Math.random()-0.5).slice(0,4);
+  buildGrid(sample, true);
+}
+
+// ── Start game (first tap) ──────────────────────────────────────────────────────
+function startGame() {
+  initAudio();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  gameStarted = true;
+  newRound();
+}
+
+// ── New round ──────────────────────────────────────────────────────────────────
+function newRound() {
+  clearTimeout(nextTimeout);
+  stopPlayback();
+
+  if (sourceType === 'loop' && loopFileNames.length > 0)
+    loopIdx = randNext(loopFileNames.length, loopIdx);
+
+  answered    = false;
+  roundActive = true;
+
+  // Pick random target freq
+  targetFreq = ALL_FREQS[Math.floor(Math.random() * ALL_FREQS.length)];
+  // Always boost for now (simpler UX), 50/50 boost/cut can be added later
+  targetGain = Math.random() > 0.5 ? gainAmount : -gainAmount;
+
+  totalRounds++;
+
+  // Update prompt
+  const isBoost = targetGain > 0;
+  const badge = document.getElementById('dirBadge');
+  badge.textContent = isBoost ? `↑ Boost  +${gainAmount} dB` : `↓ Cut  −${gainAmount} dB`;
+  badge.className = `direction-badge ${isBoost ? 'boost' : 'cut'}`;
+  document.getElementById('promptText').innerHTML =
+    `Which frequency is being <span>${isBoost ? 'boosted' : 'cut'}</span>?`;
+
+  // Reset prompt card
+  document.getElementById('promptCard').classList.remove('correct-flash','wrong-flash');
+  const rb = document.getElementById('resultBadge');
+  rb.className = 'result-badge';
+  rb.textContent = '';
+
+  // Progress bar
+  const bar = document.getElementById('progressBar');
+  bar.style.display = 'none';
+
+  // Build new choices grid
+  currentChoices = pickChoices(targetFreq);
+  buildGrid(currentChoices, false);
+
+  // Playing indicator
+  showPlayingBar(true);
+
+  // Start audio
+  playRound();
+}
+
+// ── Playback ──────────────────────────────────────────────────────────────────
+function playRound() {
+  initAudio();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  stopPlayback();
+
+  eqFilter = audioCtx.createBiquadFilter();
+  eqFilter.type = 'peaking';
+  eqFilter.frequency.value = targetFreq;
+  eqFilter.Q.value = 3.0;
+  eqFilter.gain.value = targetGain;
+
+  outGain = audioCtx.createGain();
+  outGain.gain.value = 0.65;
+  eqFilter.connect(outGain);
+  outGain.connect(audioCtx.destination);
+
+  if (sourceType === 'loop' && loopFileNames.length > 0) {
+    if (!loopAudioEl) { loopAudioEl = new Audio(); loopAudioEl.loop = true; }
+    if (!loopMediaSrc) { loopMediaSrc = audioCtx.createMediaElementSource(loopAudioEl); }
+    const fname = loopFileNames[loopIdx % loopFileNames.length];
+    if (loopAudioEl._currentFname !== fname) {
+      loopAudioEl.src = `../../samples/loops/${fname}`;
+      loopAudioEl._currentFname = fname;
+    }
+    loopMediaSrc.connect(eqFilter);
+    loopAudioEl.play().catch(e => console.warn('loop autoplay blocked:', e));
+    noiseSource = loopMediaSrc;
+  } else {
+    const src = makePinkNoise(6);
+    src.loop = true;
+    src.connect(eqFilter);
+    src.start(0);
+    noiseSource = src;
+  }
+
+  isPlaying = true;
+}
+
+function stopPlayback() {
+  if (noiseSource && noiseSource !== loopMediaSrc) {
+    try { noiseSource.stop(); } catch(e) {}
+  }
+  noiseSource = null;
+  if (loopAudioEl) loopAudioEl.pause();
+  if (loopMediaSrc) { try { loopMediaSrc.disconnect(); } catch(e) {} }
+  if (eqFilter)  { try { eqFilter.disconnect(); }  catch(e) {} eqFilter = null; }
+  if (outGain)   { try { outGain.disconnect(); }   catch(e) {} outGain = null; }
+  isPlaying = false;
+}
+
+function showPlayingBar(show) {
+  const bar = document.getElementById('playingBar');
+  bar.classList.toggle('hidden', !show);
+}
+
+// ── Answer ──────────────────────────────────────────────────────────────────────
+function submitAnswer(clickedFreq) {
+  if (!roundActive || answered) return;
+  answered = true;
+  stopPlayback();
+  showPlayingBar(false);
+
+  const isCorrect = (clickedFreq === targetFreq);
+  if (isCorrect) { score++; streak++; correctCount++; } else { streak = 0; }
+
+  if (window.SonicSandbox) {
+    SonicSandbox.saveScore({ game: 'freq-quiz', correct: isCorrect, roundScore: isCorrect ? 100 : 0 });
+  }
+
+  document.getElementById('scoreVal').textContent    = score;
+  document.getElementById('streakVal').textContent   = streak;
+  document.getElementById('accuracyVal').textContent =
+    totalRounds > 0 ? Math.round(correctCount / totalRounds * 100) + '%' : '—';
+
+  // Color the buttons
+  currentChoices.forEach(f => {
+    const btn = document.getElementById(`freq-${f}`);
+    if (!btn) return;
+    btn.disabled = true;
+    btn.classList.remove('playing-hint', 'idle-tap');
+    if (f === targetFreq && isCorrect)       btn.classList.add('correct');
+    else if (f === clickedFreq && !isCorrect) btn.classList.add('wrong');
+    else if (f === targetFreq && !isCorrect) btn.classList.add('reveal');
+    else                                      btn.classList.add('dimmed');
+  });
+
+  // Prompt card flash
+  document.getElementById('promptCard').classList.add(isCorrect ? 'correct-flash' : 'wrong-flash');
+
+  const rb = document.getElementById('resultBadge');
+  rb.textContent = isCorrect ? '✓' : `✗ ${FREQ_LABELS[targetFreq]}${FREQ_UNITS[targetFreq]}`;
+  rb.className = `result-badge ${isCorrect ? 'show-correct' : 'show-wrong'}`;
+
+  addHistory(isCorrect);
+
+  // Countdown bar → next round
+  const delay = isCorrect ? 1000 : 1800;
+  const bar = document.getElementById('progressBar');
+  const fill = document.getElementById('progressFill');
+  bar.style.display = 'block';
+  fill.style.transition = 'none';
+  fill.style.width = '100%';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    fill.style.transition = `width ${delay}ms linear`;
+    fill.style.width = '0%';
+  }));
+
+  nextTimeout = setTimeout(newRound, delay);
+}
+
+// ── History ──────────────────────────────────────────────────────────────────────
+function addHistory(correct) {
+  const strip = document.getElementById('historyStrip');
+  const dot = document.createElement('div');
+  dot.className = `hist-dot ${correct ? 'c' : 'w'}`;
+  strip.appendChild(dot);
+  while (strip.children.length > 30) strip.removeChild(strip.firstChild);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+buildIdleGrid();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../../supabase-client.js"></script>
+</body>
+</html>
