@@ -515,7 +515,7 @@ const steps = [
 
 <br><br>Think of it like a very precise tone control. Instead of just turning up the "bass" or "treble" on a stereo, an EQ lets you pinpoint exactly which frequencies to adjust and by how much — with surgical precision or broad, musical curves.
 
-<br><br>EQ is used for two main purposes: <strong>corrective</strong> (fixing problems — removing harshness, reducing muddiness) and <strong>creative</strong> (shaping character — making something brighter, warmer, or more present). Great mixing engineers use both.`,
+<br><br>EQ is used for two main purposes: <strong>corrective</strong> (fixing problems — removing harshness, reducing muddiness) and <strong>creative</strong> (shaping character — making something brighter, warmer, or more present).`,
     keyPoints: [
       { strong: "Boost", rest: " — raise the volume at a specific frequency range" },
       { strong: "Cut", rest: " — reduce the volume at a specific frequency range" },
@@ -773,76 +773,109 @@ function freqToPercent(hz) {
 // ─────────────────────────────────────────────────────────────
 
 function buildReferenceChartSVG() {
-  const W = 760, BX = 10, BW = 740, BY = 74, BH = 20;
+  // Bar geometry
+  const W = 760, BX = 10, BW = 740, BY = 88, BH = 20;
   const Lmin = Math.log10(20), Lr = 3.0;
   const xp = hz => BX + (Math.log10(hz) - Lmin) / Lr * BW;
 
-  // Frequency tick marks along the bar
+  // ── Span label helper ────────────────────────────────────────
+  // Renders: TEXT followed by a dash line extending to hz2.
+  // Vertical dashed connector from left edge (hz1) down to bar (subtle).
+  // tw = approximate text pixel width at this font size
+  function spanLabel(text, hz1, hz2, ty, col, tw) {
+    const x1 = xp(hz1), x2 = xp(hz2);
+    const lineStart = x1 + tw + 3;        // line begins after text
+    const lineEnd   = Math.max(lineStart + 6, x2);
+    const lineY     = ty - 2.5;           // horizontally centered on cap height
+    // Subtle vertical connector from hz1 to bar
+    const conn = `<line x1="${x1.toFixed(1)}" y1="${ty+3}" x2="${x1.toFixed(1)}" y2="${(BY-1).toFixed(1)}"
+          stroke="${col}" stroke-width="0.4" stroke-dasharray="2,2" opacity="0.2"/>`;
+    const hline = lineEnd > lineStart + 4
+      ? `<line x1="${lineStart.toFixed(1)}" y1="${lineY.toFixed(1)}"
+              x2="${lineEnd.toFixed(1)}"   y2="${lineY.toFixed(1)}"
+              stroke="${col}" stroke-width="0.85" opacity="0.65"/>`
+      : '';
+    const label = `<text x="${x1.toFixed(1)}" y="${ty}"
+          font-family="IBM Plex Mono,monospace" font-size="9.5" font-weight="600"
+          letter-spacing="0.08em" fill="${col}" opacity="0.9">${text}</text>`;
+    return conn + hline + label;
+  }
+
+  // ── Centered span label helper (for below-bar labels) ────────
+  // Renders: left-dash ── TEXT ── right-dash, all centered between hz1/hz2
+  function centeredLabel(text, hz1, hz2, ty, col, tw) {
+    const x1 = xp(hz1), x2 = xp(hz2), xc = (x1 + x2) / 2;
+    const halfText = tw / 2 + 4;
+    const lx2 = xc - halfText, rx1 = xc + halfText;
+    const lineY = ty - 3;
+    return [
+      lx2 > x1 + 4 ? `<line x1="${x1.toFixed(1)}" y1="${lineY.toFixed(1)}" x2="${lx2.toFixed(1)}" y2="${lineY.toFixed(1)}" stroke="${col}" stroke-width="0.85" opacity="0.55"/>` : '',
+      `<text x="${xc.toFixed(1)}" y="${ty}" text-anchor="middle"
+          font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600"
+          letter-spacing="0.1em" fill="${col}" opacity="0.82">${text}</text>`,
+      rx1 < x2 - 4 ? `<line x1="${rx1.toFixed(1)}" y1="${lineY.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${lineY.toFixed(1)}" stroke="${col}" stroke-width="0.85" opacity="0.55"/>` : '',
+    ].join('');
+  }
+
+  // ── Above-bar spans ──────────────────────────────────────────
+  // Five rows, each non-overlapping within the row.
+  // Format: [text, hz_left, hz_right, row_y, color, approx_text_px_width]
+  //
+  // Verified x positions (BX=10, BW=740):
+  //   62Hz=131  125=206  200=257  250=281  300=300  400=331
+  //   500=354  700=391  800=404  1.5k=472  2k=503   2.5k=527
+  //   3k=547   3.5k=563  4k=578  5.5k=612  6k=621  7k=638
+  //   8k=652   10k=675  12k=694  16k=727
+  //
+  // Row 1 (y=11): PRESENCE only — very wide, anchored high
+  // Row 2 (y=23): BOOMY · HARSH · AIR
+  // Row 3 (y=35): MUDDY · SIBILANT
+  // Row 4 (y=47): WARM · NASAL · BRIGHT
+  // Row 5 (y=59): BASS · BOXY · EDGY
+  const aboveSpans = [
+    // Row 1
+    ['PRESENCE', 2000,  10000, 11, '#a5b4fc', 72],
+    // Row 2
+    ['BOOMY',    62,    250,   23, '#9ca3af', 50],
+    ['HARSH',    2500,  5500,  23, '#9ca3af', 46],
+    ['AIR',      10000, 16000, 23, '#dbeafe', 26],
+    // Row 3
+    ['MUDDY',    200,   500,   35, '#9ca3af', 50],
+    ['SIBILANT', 3500,  8000,  35, '#9ca3af', 65],
+    // Row 4
+    ['WARM',     150,   450,   47, '#8892ff', 44],
+    ['NASAL',    800,   1500,  47, '#9ca3af', 48],
+    ['BRIGHT',   6000,  12000, 47, '#c7d2fe', 54],
+    // Row 5
+    ['BASS',     62,    200,   59, '#818cf8', 37],
+    ['BOXY',     300,   700,   59, '#9ca3af', 40],
+    ['EDGY',     3000,  7000,  59, '#9ca3af', 36],
+  ];
+
+  const aboveSVG = aboveSpans.map(args => spanLabel(...args)).join('');
+
+  // ── Frequency tick marks ─────────────────────────────────────
   const ticks = [
     {hz:62,l:'62'},{hz:125,l:'125'},{hz:250,l:'250'},{hz:500,l:'500'},
     {hz:1000,l:'1k'},{hz:2000,l:'2k'},{hz:4000,l:'4k'},{hz:8000,l:'8k'},{hz:16000,l:'16k'},
   ];
-
   const tickSVG = ticks.map(t => {
     const x = xp(t.hz).toFixed(1);
-    return `<line x1="${x}" y1="${BY+BH}" x2="${x}" y2="${BY+BH+6}" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
-            <text x="${x}" y="${BY+BH+17}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" fill="rgba(255,255,255,0.38)">${t.l}</text>`;
+    return `<line x1="${x}" y1="${BY+BH}" x2="${x}" y2="${BY+BH+6}"
+              stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+            <text x="${x}" y="${BY+BH+17}" text-anchor="middle"
+              font-family="IBM Plex Mono,monospace" font-size="9"
+              fill="rgba(255,255,255,0.4)">${t.l}</text>`;
   }).join('');
 
-  // Separator lines inside the bar at each tick
+  // Separator lines on bar at tick positions
   const sepSVG = ticks.map(t => {
     const x = xp(t.hz).toFixed(1);
-    return `<line x1="${x}" y1="${BY}" x2="${x}" y2="${BY+BH}" stroke="rgba(0,0,0,0.28)" stroke-width="0.8"/>`;
+    return `<line x1="${x}" y1="${BY}" x2="${x}" y2="${BY+BH}"
+              stroke="rgba(0,0,0,0.28)" stroke-width="0.8"/>`;
   }).join('');
 
-  // Above labels: [text, hz_center, row_y (text baseline), color]
-  // Row 1 (y=14) — problem-zone labels (things that sound bad when boosted)
-  // Row 2 (y=32) — tonal character labels (what you're adding when you boost)
-  // Row 3 (y=52) — span/range labels
-  const pointLabels = [
-    ['BOOMY',    100,   14, '#9ca3af'],
-    ['MUDDY',    320,   14, '#9ca3af'],
-    ['HARSH',    3500,  14, '#9ca3af'],
-    ['SIBILANT', 8000,  14, '#9ca3af'],
-    ['BASS',     80,    32, '#818cf8'],
-    ['WARM',     200,   32, '#8892ff'],
-    ['BOXY',     530,   32, '#9ca3af'],
-    ['PRESENCE', 2800,  32, '#a5b4fc'],
-    ['BRIGHT',   9000,  32, '#c7d2fe'],
-    ['NASAL',    700,   52, '#9ca3af'],
-    ['AIR',      14000, 52, '#dbeafe'],
-  ];
-
-  const pointSVG = pointLabels.map(([t, hz, ty, col]) => {
-    const x = xp(hz).toFixed(1);
-    return `<line x1="${x}" y1="${ty+4}" x2="${x}" y2="${BY-1}" stroke="${col}" stroke-width="0.6" stroke-dasharray="2,2" opacity="0.35"/>
-            <text x="${x}" y="${ty}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9.5" font-weight="600" letter-spacing="0.08em" fill="${col}" opacity="0.88">${t}</text>`;
-  }).join('');
-
-  // Span labels in row 3: [text, hz1, hz2, color]
-  const spanSVG = [
-    ['FULL', 100,  320,  '#8892ff'],
-    ['EDGY', 2000, 5000, '#9ca3af'],
-  ].map(([t, hz1, hz2, col]) => {
-    const x1 = xp(hz1).toFixed(1), x2 = xp(hz2).toFixed(1);
-    const xc = ((xp(hz1)+xp(hz2))/2).toFixed(1);
-    return `<line x1="${x1}" y1="55" x2="${x2}" y2="55" stroke="${col}" stroke-width="0.8" opacity="0.45"/>
-            <line x1="${xc}" y1="57" x2="${xc}" y2="${BY-1}" stroke="${col}" stroke-width="0.6" stroke-dasharray="2,2" opacity="0.3"/>
-            <text x="${xc}" y="52" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9.5" font-weight="600" letter-spacing="0.08em" fill="${col}" opacity="0.85">${t}</text>`;
-  }).join('');
-
-  // Below bar: labels for what a cut sounds like
-  const belowSVG = [
-    ['THIN', 62,   250,   'rgba(255,255,255,0.28)'],
-    ['DULL', 5000, 16000, 'rgba(255,255,255,0.28)'],
-  ].map(([t, hz1, hz2, col]) => {
-    const x1 = xp(hz1).toFixed(1), x2 = xp(hz2).toFixed(1);
-    const xc = ((xp(hz1)+xp(hz2))/2).toFixed(1);
-    return `<line x1="${x1}" y1="130" x2="${x2}" y2="130" stroke="${col}" stroke-width="0.8"/>
-            <text x="${xc}" y="142" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" letter-spacing="0.1em" fill="${col}">${t}</text>`;
-  }).join('');
-
-  // Region name labels (our simplified bands, below tick labels)
+  // Region name labels below ticks (our simplified 6-band names)
   const regionSVG = [
     ['SUB',      35    ],
     ['BASS',     122   ],
@@ -852,10 +885,34 @@ function buildReferenceChartSVG() {
     ['HIGHS',    10954 ],
   ].map(([t, hz]) => {
     const x = xp(hz).toFixed(1);
-    return `<text x="${x}" y="${BY+BH+31}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7.5" letter-spacing="0.1em" fill="rgba(255,255,255,0.2)">${t}</text>`;
+    return `<text x="${x}" y="${BY+BH+31}" text-anchor="middle"
+        font-family="IBM Plex Mono,monospace" font-size="7.5"
+        letter-spacing="0.1em" fill="rgba(255,255,255,0.2)">${t}</text>`;
   }).join('');
 
-  return `<svg class="spectrum-svg" viewBox="0 0 ${W} 150" xmlns="http://www.w3.org/2000/svg">
+  // ── Below-bar labels ─────────────────────────────────────────
+  // Three stacked rows. "— LABEL —" centered spans.
+  // THIN & DULL share row B1 (they occupy opposite ends so no overlap).
+  // WARM and SWEET each get their own row.
+  //
+  //   THIN  20–400 Hz  → center ≈ x170   DULL  6k–16k → center ≈ x674
+  //   WARM 800–6kHz    → center ≈ x513
+  //   SWEET 1.5k–8kHz  → center ≈ x563
+  const B1 = BY + BH + 48;
+  const B2 = B1 + 14;
+  const B3 = B2 + 14;
+  const col_b = 'rgba(255,255,255,0.3)';
+
+  const belowSVG = [
+    centeredLabel('THIN',  20,   400,   B1, col_b, 34),
+    centeredLabel('DULL',  6000, 16000, B1, col_b, 34),
+    centeredLabel('WARM',  800,  6000,  B2, col_b, 34),
+    centeredLabel('SWEET', 1500, 8000,  B3, col_b, 40),
+  ].join('');
+
+  const svgH = B3 + 12;  // ≈ 192
+
+  return `<svg class="spectrum-svg" viewBox="0 0 ${W} ${svgH}" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id="refBarGrad" x1="0" x2="1" y1="0" y2="0">
         <stop offset="0%"   stop-color="#1e1b4b"/>
@@ -867,10 +924,10 @@ function buildReferenceChartSVG() {
       </linearGradient>
     </defs>
     <rect x="${BX}" y="${BY}" width="${BW}" height="${BH}" fill="url(#refBarGrad)" rx="3"/>
-    <rect x="${BX}" y="${BY}" width="${BW}" height="${BH}" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5" rx="3"/>
+    <rect x="${BX}" y="${BY}" width="${BW}" height="${BH}" fill="none"
+          stroke="rgba(255,255,255,0.1)" stroke-width="0.5" rx="3"/>
     ${sepSVG}
-    ${pointSVG}
-    ${spanSVG}
+    ${aboveSVG}
     ${tickSVG}
     ${regionSVG}
     ${belowSVG}
