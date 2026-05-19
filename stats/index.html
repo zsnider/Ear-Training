@@ -256,9 +256,15 @@
   /* ── Settings card ──────────────────────────────────── */
   .settings-card {
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: 14px; padding: 14px 20px;
+    border-radius: 14px; padding: 0 20px;
+    margin-bottom: 32px;
+  }
+  .settings-row-item {
     display: flex; align-items: center; gap: 16px;
-    margin-bottom: 32px; flex-wrap: wrap;
+    padding: 14px 0; flex-wrap: wrap;
+  }
+  .settings-row-item + .settings-row-item {
+    border-top: 1px solid var(--border);
   }
   .settings-card .setting-label {
     font-family: 'IBM Plex Mono', monospace;
@@ -323,17 +329,31 @@
     <p id="subheader">Loading your stats…</p>
   </div>
 
-  <!-- Scoring settings -->
+  <!-- Settings -->
   <div class="settings-card">
-    <div class="setting-label">Weighted Scoring</div>
-    <div class="setting-desc">Harder difficulty settings earn proportionally more points. Disable to use a flat 100-point scale for every round.</div>
-    <div class="toggle-wrap">
-      <span class="toggle-lbl" id="weightedOffLbl">Off</span>
-      <label class="toggle-switch">
-        <input type="checkbox" id="weightedToggle" onchange="onWeightedToggle(this.checked)" checked>
-        <span class="toggle-track"></span>
-      </label>
-      <span class="toggle-lbl active" id="weightedOnLbl">On</span>
+    <div class="settings-row-item">
+      <div class="setting-label">Weighted Scoring</div>
+      <div class="setting-desc">Harder difficulty settings earn proportionally more points. Disable to use a flat 100-point scale for every round.</div>
+      <div class="toggle-wrap">
+        <span class="toggle-lbl" id="weightedOffLbl">Off</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="weightedToggle" onchange="onWeightedToggle(this.checked)" checked>
+          <span class="toggle-track"></span>
+        </label>
+        <span class="toggle-lbl active" id="weightedOnLbl">On</span>
+      </div>
+    </div>
+    <div class="settings-row-item">
+      <div class="setting-label">Progress Graphs</div>
+      <div class="setting-desc">Show progress charts as accuracy percentage, or as average score per session.</div>
+      <div class="toggle-wrap">
+        <span class="toggle-lbl active" id="chartAccLbl">Accuracy</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="chartModeToggle" onchange="onChartModeToggle(this.checked)">
+          <span class="toggle-track"></span>
+        </label>
+        <span class="toggle-lbl" id="chartScoreLbl">Score</span>
+      </div>
     </div>
   </div>
 
@@ -370,7 +390,7 @@
     <div class="section-label">Overall Progress</div>
     <div class="chart-card" id="overallChartCard" style="display:none;">
       <div class="chart-header">
-        <div class="chart-title">Accuracy Over Time</div>
+        <div class="chart-title" id="overallChartTitle">Accuracy Over Time</div>
         <div class="chart-meta" id="chartMeta"></div>
       </div>
       <div class="chart-wrap">
@@ -405,11 +425,15 @@
 <script src="../scoring.js"></script>
 <script src="../supabase-client.js"></script>
 <script>
+// ── Module-level data (for chart redraws on toggle) ──────
+let _allScores   = [];
+let _byGame      = {};
+let _sortedGames = [];
+
 // ── Weighted scoring toggle ───────────────────────────────
 function initWeightedToggle() {
   const toggle = document.getElementById('weightedToggle');
   if (!toggle) return;
-  // Read current value from ScoringEngine (defaults to true)
   const enabled = window.ScoringEngine ? ScoringEngine.weightedEnabled() : true;
   toggle.checked = enabled;
   syncWeightedUI(enabled);
@@ -427,8 +451,40 @@ function syncWeightedUI(enabled) {
   if (offLbl) offLbl.classList.toggle('active', !enabled);
 }
 
+// ── Chart mode toggle (accuracy vs score) ────────────────
+let chartMode = localStorage.getItem('ss_chart_mode') || 'accuracy';
+
+function initChartModeToggle() {
+  const toggle = document.getElementById('chartModeToggle');
+  if (!toggle) return;
+  const isScore = chartMode === 'score';
+  toggle.checked = isScore;
+  syncChartModeUI(isScore);
+}
+
+function onChartModeToggle(isScore) {
+  chartMode = isScore ? 'score' : 'accuracy';
+  localStorage.setItem('ss_chart_mode', chartMode);
+  syncChartModeUI(isScore);
+  // Redraw all charts with new mode
+  if (_allScores.length) {
+    const title = document.getElementById('overallChartTitle');
+    if (title) title.textContent = isScore ? 'Score Over Time' : 'Accuracy Over Time';
+    drawOverallChart(_allScores);
+    _sortedGames.forEach(g => drawGameChart(`chart-${g}`, _byGame[g], GAME_COLORS[g] || '#8892ff'));
+  }
+}
+
+function syncChartModeUI(isScore) {
+  const accLbl   = document.getElementById('chartAccLbl');
+  const scoreLbl = document.getElementById('chartScoreLbl');
+  if (accLbl)   accLbl.classList.toggle('active', !isScore);
+  if (scoreLbl) scoreLbl.classList.toggle('active',  isScore);
+}
+
 // Run on load
 initWeightedToggle();
+initChartModeToggle();
 
 // ── Chart registry (destroy before redraw) ────────────────
 const chartRegistry = {};
@@ -492,19 +548,39 @@ function hexToRgba(hex, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-// Group an array of score rows (any order) into daily accuracy points,
-// returned in ascending date order.
+// Group rows into daily accuracy points, ascending date order.
 function groupByDay(rows) {
   const days = {};
   rows.forEach(r => {
-    const day = r.created_at.slice(0, 10); // YYYY-MM-DD
+    const day = r.created_at.slice(0, 10);
     if (!days[day]) days[day] = { correct: 0, total: 0 };
     days[day].total++;
     if (r.correct) days[day].correct++;
   });
   return Object.entries(days)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, d]) => ({ date, accuracy: Math.round(d.correct / d.total * 100) }));
+    .map(([date, d]) => ({ date, value: Math.round(d.correct / d.total * 100) }));
+}
+
+// Group rows into daily average-score points, ascending date order.
+// Rows with null round_score are skipped.
+function groupByDayScore(rows) {
+  const days = {};
+  rows.forEach(r => {
+    if (r.round_score == null) return;
+    const day = r.created_at.slice(0, 10);
+    if (!days[day]) days[day] = { sum: 0, count: 0 };
+    days[day].sum   += r.round_score;
+    days[day].count += 1;
+  });
+  return Object.entries(days)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, d]) => ({ date, value: Math.round(d.sum / d.count) }));
+}
+
+// Return the appropriate day-grouped series based on current chartMode.
+function getDayData(rows) {
+  return chartMode === 'score' ? groupByDayScore(rows) : groupByDay(rows);
 }
 
 function fmtDate(dateStr) {
@@ -512,8 +588,10 @@ function fmtDate(dateStr) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-// Shared Chart.js default options for both chart sizes
-function baseChartOpts(color, showAxes) {
+// Shared Chart.js default options for both chart sizes.
+// mode: 'accuracy' | 'score'
+function baseChartOpts(color, showAxes, mode) {
+  const isScore = mode === 'score';
   return {
     responsive: true,
     maintainAspectRatio: false,
@@ -528,7 +606,7 @@ function baseChartOpts(color, showAxes) {
         bodyColor: '#dde2ee',
         titleFont: { family: "'IBM Plex Mono', monospace", size: 10 },
         bodyFont: { family: "'IBM Plex Mono', monospace", size: 12, weight: '600' },
-        callbacks: { label: ctx => `${ctx.parsed.y}% accuracy` }
+        callbacks: { label: ctx => isScore ? `${ctx.parsed.y} pts` : `${ctx.parsed.y}% accuracy` }
       }
     },
     scales: {
@@ -545,14 +623,15 @@ function baseChartOpts(color, showAxes) {
       },
       y: {
         display: showAxes,
-        min: 0, max: 100,
+        min: 0,
+        ...(isScore ? {} : { max: 100 }),
         grid: { color: 'rgba(255,255,255,0.05)' },
         border: { display: false },
         ticks: {
           color: '#6b7280',
           font: { family: "'IBM Plex Mono', monospace", size: 10 },
-          callback: v => v + '%',
-          stepSize: 25,
+          callback: v => isScore ? v : v + '%',
+          ...(isScore ? {} : { stepSize: 25 }),
         }
       }
     }
@@ -564,7 +643,7 @@ function makeDataset(ctx, dayData, color, tension, pointRadius) {
   gradient.addColorStop(0, hexToRgba(color, 0.25));
   gradient.addColorStop(1, hexToRgba(color, 0));
   return {
-    data: dayData.map(d => d.accuracy),
+    data: dayData.map(d => d.value),
     borderColor: color,
     backgroundColor: gradient,
     borderWidth: tension > 0.2 ? 2 : 1.5,
@@ -579,7 +658,7 @@ function makeDataset(ctx, dayData, color, tension, pointRadius) {
 }
 
 function drawOverallChart(scores) {
-  const dayData = groupByDay(scores);
+  const dayData = getDayData(scores);
   const card    = document.getElementById('overallChartCard');
 
   if (dayData.length < 2) { card.style.display = 'none'; return; }
@@ -589,23 +668,26 @@ function drawOverallChart(scores) {
   document.getElementById('chartMeta').textContent =
     `${scores.length} rounds · ${span} of data`;
 
-  const canvas  = document.getElementById('overallChart');
-  const ctx     = canvas.getContext('2d');
+  const title = document.getElementById('overallChartTitle');
+  if (title) title.textContent = chartMode === 'score' ? 'Score Over Time' : 'Accuracy Over Time';
+
+  const canvas = document.getElementById('overallChart');
+  const ctx    = canvas.getContext('2d');
   destroyChart('overall');
 
-  const labels  = dayData.map(d => fmtDate(d.date));
-  const pr      = dayData.length <= 20 ? 4 : 2;
+  const labels = dayData.map(d => fmtDate(d.date));
+  const pr     = dayData.length <= 20 ? 4 : 2;
 
   chartRegistry['overall'] = new Chart(ctx, {
     type: 'line',
     data: { labels, datasets: [makeDataset(ctx, dayData, '#8892ff', 0.35, pr)] },
-    options: baseChartOpts('#8892ff', true),
+    options: baseChartOpts('#8892ff', true, chartMode),
   });
 }
 
 function drawGameChart(canvasId, rows, color) {
-  const dayData = groupByDay(rows);
-  if (dayData.length < 2) return; // sparkline needs at least 2 points
+  const dayData = getDayData(rows);
+  if (dayData.length < 2) return;
 
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
@@ -618,7 +700,7 @@ function drawGameChart(canvasId, rows, color) {
       labels: dayData.map(d => fmtDate(d.date)),
       datasets: [makeDataset(ctx, dayData, color, 0.4, 0)],
     },
-    options: baseChartOpts(color, false),
+    options: baseChartOpts(color, false, chartMode),
   });
 }
 
@@ -754,12 +836,17 @@ async function loadStats(user) {
   const byGame = {};
   scores.forEach(s => { (byGame[s.game] = byGame[s.game] || []).push(s); });
 
+  // Store at module level for chart redraws on toggle change
+  _allScores   = scores;
+  _byGame      = byGame;
+
   // Training plan
   const recs = getRecommendations(byGame);
   document.getElementById('planGrid').innerHTML = recs.map((r, i) => buildPlanCard(r, i)).join('');
 
   // Per-game cards, sorted by most rounds played
   const sortedGames = Object.keys(byGame).sort((a, b) => byGame[b].length - byGame[a].length);
+  _sortedGames = sortedGames;
   document.getElementById('gameGrid').innerHTML = sortedGames.map(g => buildGameCard(g, byGame[g])).join('');
 
   // Draw overall chart (needs DOM to exist first)
@@ -792,8 +879,7 @@ function buildGameCard(game, rows) {
     : null;
   const col      = accColor(accPct);
   const color    = GAME_COLORS[game] || '#8892ff';
-  const dayData  = groupByDay(rows);
-  const hasChart = dayData.length >= 2;
+  const hasChart = getDayData(rows).length >= 2;
 
   return `
     <div class="game-card">
