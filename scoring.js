@@ -39,8 +39,9 @@ window.ScoringEngine = (() => {
   // Freq Hunter — keyed by gameMode
   const FREQ_HUNTER = { freq: 1.0, pan: 1.0, freqpan: 1.5 };
 
-  // Compressor — keyed by difficulty (Pro = threshold+ratio+attack+release)
-  const COMPRESSOR = { easy: 1.0, medium: 1.4, hard: 1.8, pro: 2.2, custom: 2.5 };
+  // Compressor — preset difficulties keyed by name; custom mode = 0.3 × numParams
+  // (threshold, ratio, attack, release, knee, makeup → up to 6 params → max ×1.8 in custom)
+  const COMPRESSOR = { easy: 1.0, medium: 1.4, hard: 1.8, pro: 2.2 };
 
   // EQ Match — two axes: gainThreshold (training tier) × numBands (filter count)
   // All tier (gainThreshold=-1) ranges the full 0–12 dB window → base difficulty
@@ -100,6 +101,8 @@ window.ScoringEngine = (() => {
         return FREQ_HUNTER[settings.mode] ?? 1.0;
 
       case 'compressor':
+        if (settings.difficulty === 'custom')
+          return parseFloat((0.3 * (settings.numParams || 1)).toFixed(2));
         return COMPRESSOR[settings.difficulty] ?? 1.0;
 
       case 'eq-match': {

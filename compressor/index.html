@@ -801,7 +801,7 @@ async function getManifest() {
 // ── Difficulty / param pills ──────────────────────────────────────────────────
 function updateMultBadge() {
   const el = document.getElementById('multBadge');
-  if (el && window.ScoringEngine) el.textContent = ScoringEngine.label('compressor', { difficulty });
+  if (el && window.ScoringEngine) el.textContent = ScoringEngine.label('compressor', { difficulty, numParams: activeParams.length });
 }
 
 function setDifficulty(d, el) {
@@ -822,9 +822,14 @@ function setDifficulty(d, el) {
 function toggleCustomParam(key) {
   if (difficulty !== 'custom') return;
   const idx = activeParams.indexOf(key);
-  if (idx >= 0) { activeParams.splice(idx, 1); }
-  else          { activeParams.push(key); }
+  if (idx >= 0) {
+    if (activeParams.length <= 1) { showToast('At least one parameter must be active'); return; }
+    activeParams.splice(idx, 1);
+  } else {
+    activeParams.push(key);
+  }
   renderParamPills();
+  updateMultBadge();
   if (roundActive) {
     renderKnobs('user', userSettings, false);
     drawTransfer('user', document.getElementById('userTransfer'));
@@ -1602,7 +1607,7 @@ function checkAnswer() {
   }
   const avgErr = totalErr / (points + 1);
   const score  = Math.round(Math.max(0, 100 - avgErr * 5));
-  const mult   = window.ScoringEngine ? ScoringEngine.multiplier('compressor', { difficulty }) : 1;
+  const mult   = window.ScoringEngine ? ScoringEngine.multiplier('compressor', { difficulty, numParams: activeParams.length }) : 1;
   const weightedScore = Math.round(score * mult);
 
   totalScore += weightedScore;
