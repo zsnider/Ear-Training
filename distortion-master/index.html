@@ -691,7 +691,7 @@ function setLoadStatus(msg, isLoading) {
 // ── Difficulty ────────────────────────────────────────────────────────────────
 function updateMultBadge() {
   const el = document.getElementById('multBadge');
-  if (el && window.ScoringEngine) el.textContent = ScoringEngine.label('distortion-master', { difficulty });
+  if (el && window.ScoringEngine) el.textContent = ScoringEngine.label('distortion-master', { difficulty, numParams: activeParams.length });
 }
 
 function setDifficulty(d, el) {
@@ -736,6 +736,7 @@ function toggleCustomParam(key) {
   }
   activeParams = [...customParams];
   renderParamPills();
+  updateMultBadge();
   if (roundActive) {
     renderKnobs('target', targetSettings, true);
     renderKnobs('user', userSettings, false);
@@ -1459,7 +1460,7 @@ function checkAnswer() {
   const avgErr = count>0 ? totalErr/count : 0;
   const score  = Math.round(Math.max(0, 100 - avgErr*110));
 
-  const mult = window.ScoringEngine ? ScoringEngine.multiplier('distortion-master', { difficulty }) : 1;
+  const mult = window.ScoringEngine ? ScoringEngine.multiplier('distortion-master', { difficulty, numParams: activeParams.length }) : 1;
   const weightedScore = Math.round(score * mult);
   totalScore+=weightedScore; streak=score>=70?streak+1:0;
   document.getElementById('totalScore').textContent=totalScore;

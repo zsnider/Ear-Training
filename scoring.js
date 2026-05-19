@@ -102,7 +102,7 @@ window.ScoringEngine = (() => {
 
       case 'compressor':
         if (settings.difficulty === 'custom')
-          return parseFloat((0.3 * (settings.numParams || 1)).toFixed(2));
+          return parseFloat((1.0 + 0.3 * (settings.numParams || 1)).toFixed(2));
         return COMPRESSOR[settings.difficulty] ?? 1.0;
 
       case 'eq-match': {
@@ -113,6 +113,8 @@ window.ScoringEngine = (() => {
       }
 
       case 'reverb-master':
+        if (settings.difficulty === 'custom')
+          return parseFloat((1.0 + 0.3 * (settings.numParams || 1)).toFixed(2));
         return REVERB[settings.difficulty] ?? 1.0;
 
       case 'delay-master': {
@@ -122,6 +124,8 @@ window.ScoringEngine = (() => {
       }
 
       case 'distortion-master':
+        if (settings.difficulty === 'custom')
+          return parseFloat((1.0 + 0.3 * (settings.numParams || 1)).toFixed(2));
         return DISTORTION[settings.difficulty] ?? 1.0;
 
       case 'signal-chain-architect': {
