@@ -33,11 +33,11 @@ window.ScoringEngine = (() => {
   const QUICK_EQ_DIFF  = { easy: 1.0, medium: 1.5, hard: 2.2 };
   const QUICK_EQ_BANDS = { 1: 1.0, 2: 1.3, 3: 1.6 };
 
-  // Spatial Specialist — keyed by gameMode
-  const SPATIAL = { panning: 1.0, width: 1.2 };
+  // Spatial Specialist — uniform across game modes
+  const SPATIAL = { panning: 1.0, width: 1.0 };
 
-  // Freq Hunter — keyed by gameMode
-  const FREQ_HUNTER = { freq: 1.0, pan: 1.0, freqpan: 1.5 };
+  // Freq Hunter — uniform across game modes
+  const FREQ_HUNTER = { freq: 1.0, pan: 1.0, freqpan: 1.0 };
 
   // Compressor — preset difficulties keyed by name; custom mode = 0.3 × numParams
   // (threshold, ratio, attack, release, knee, makeup → up to 6 params → max ×1.8 in custom)
