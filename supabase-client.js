@@ -19,6 +19,9 @@ _sb.auth.getSession().then(({ data: { session } }) => {
 _sb.auth.onAuthStateChange((_event, session) => {
   _currentUser = session?.user ?? null;
   document.dispatchEvent(new CustomEvent('ss:authchange', { detail: _currentUser }));
+  if (_event === 'PASSWORD_RECOVERY') {
+    document.dispatchEvent(new CustomEvent('ss:passwordrecovery', { detail: _currentUser }));
+  }
 });
 
 window.SonicSandbox = {
@@ -86,6 +89,56 @@ window.SonicSandbox = {
       correct,
       accuracy: Math.round((correct / scores.length) * 100),
     };
+  },
+
+  // Fetch the current user's profile row (includes username)
+  async getProfile() {
+    if (!_currentUser) return null;
+    const { data } = await _sb
+      .from('profiles')
+      .select('*')
+      .eq('id', _currentUser.id)
+      .maybeSingle();
+    return data;
+  },
+
+  // Create or update the username for the current user
+  async setUsername(username) {
+    if (!_currentUser) return { error: { message: 'Not signed in.' } };
+    const { error } = await _sb
+      .from('profiles')
+      .upsert({ id: _currentUser.id, username: username.trim() });
+    return { error };
+  },
+
+  // Returns true if the username is already taken (case-insensitive).
+  // Pass excludeSelf=true when editing so your own name doesn't register as taken.
+  // Requires a Supabase RLS SELECT policy that allows reading any profile row
+  // (needed for leaderboards too). Add in Supabase SQL Editor:
+  //   CREATE POLICY "Anyone can read profiles"
+  //   ON profiles FOR SELECT USING (true);
+  async isUsernameTaken(username, excludeSelf = false) {
+    let q = _sb
+      .from('profiles')
+      .select('id')
+      .ilike('username', username.trim());
+    if (excludeSelf && _currentUser) q = q.neq('id', _currentUser.id);
+    const { data } = await q.maybeSingle();
+    return !!data;
+  },
+
+  // Send a password-reset email. The link redirects to /account/ where the
+  // ss:passwordrecovery event is caught and a set-new-password form is shown.
+  async resetPasswordForEmail(email) {
+    const redirectTo = window.location.origin + '/account/';
+    const { error } = await _sb.auth.resetPasswordForEmail(email, { redirectTo });
+    return { error };
+  },
+
+  // Update the current user's password (call after PASSWORD_RECOVERY event).
+  async updatePassword(newPassword) {
+    const { error } = await _sb.auth.updateUser({ password: newPassword });
+    return { error };
   },
 
   // Delete the current user's account and all associated data.

@@ -410,6 +410,32 @@
   .modal-msg.error { color: #f07070; }
   .modal-msg.success { color: var(--qc-accent2); }
 
+  /* ── Username modal extras ───────────────────────────── */
+  .username-hint {
+    font-size: 12px; color: var(--muted); margin-top: -10px;
+    margin-bottom: 18px; line-height: 1.5;
+  }
+  .username-check {
+    font-size: 12px; min-height: 18px;
+    margin-top: -10px; margin-bottom: 14px;
+    transition: color 0.15s;
+  }
+  .username-check.available { color: var(--qc-accent2); }
+  .username-check.taken     { color: #f07070; }
+  .username-skip {
+    display: block; text-align: center; margin-top: 14px;
+    font-size: 12px; color: var(--muted); cursor: pointer;
+    background: none; border: none; font-family: inherit;
+    text-decoration: underline; width: 100%;
+  }
+  .username-skip:hover { color: var(--text); }
+  .set-username-link {
+    color: var(--accent2); background: none; border: none;
+    font-family: 'IBM Plex Mono', monospace; font-size: 13px;
+    cursor: pointer; padding: 0; text-decoration: underline;
+  }
+  .set-username-link:hover { opacity: 0.8; }
+
   /* ── Mobile banner ─────────────────────────────────────── */
   #mobileBanner {
     display: none;
@@ -537,7 +563,7 @@
       </svg>
     </div>
     <div class="card-name">Freq Quiz</div>
-    <div class="card-desc">A frequency is boosted or cut. Listen and pick the right frequency from 9 choices — fast, multiple choice ear training.</div>
+    <div class="card-desc">A frequency is boosted or cut. Listen and pick the right frequency from 9 choices — multiple choice frequency recognition.</div>
     <div class="card-tags">
       <span class="tag">Hz</span>
       <span class="tag">Boost / Cut</span>
@@ -590,7 +616,7 @@
       </svg>
     </div>
     <div class="card-name">QuickEQ</div>
-    <div class="card-desc">Two EQ curves are shown — one is applied to the audio. A/B listen and identify which curve matches the target by ear.</div>
+    <div class="card-desc">Two EQ curves are shown — one is applied to the audio. Identify which curve matches the target by ear.</div>
     <div class="card-tags">
       <span class="tag">A/B Identification</span>
       <span class="tag">5 Filter Types</span>
@@ -610,7 +636,7 @@
       </svg>
     </div>
     <div class="card-name">Quick Compress</div>
-    <div class="card-desc">Two signals play side by side — one compressed, one dry. Pick which is which before time runs out.</div>
+    <div class="card-desc">Two signals play side by side — one compressed, one dry. Identify the compressed audio.</div>
     <div class="card-tags">
       <span class="tag">A/B Identification</span>
       <span class="tag">Compressed vs Dry</span>
@@ -656,7 +682,7 @@
       </svg>
     </div>
     <div class="card-name">Spatial Specialist</div>
-    <div class="card-desc">2 games in 1! In panning mode, a sound plays at a hidden stereo position. In width mode, guess the stereo width.</div>
+    <div class="card-desc">2 games in 1! In panning mode, a sound plays at a hidden stereo position. In width mode, two audio sources are panned left and right. Guess the stereo width.</div>
     <div class="card-tags">
       <span class="tag">Stereo Pan</span>
       <span class="tag">Width</span>
@@ -741,7 +767,7 @@
       </svg>
     </div>
     <div class="card-name">Delay Master</div>
-    <div class="card-desc">Match a target delay by ear. Set delay time, feedback, and wet/dry to replicate the processed signal. Lock any parameters for hints.</div>
+    <div class="card-desc">Match a target delay by ear. Set delay time, feedback, and wet/dry to replicate the processed signal.</div>
     <div class="card-tags">
       <span class="tag">Delay Time</span>
       <span class="tag">Feedback</span>
@@ -781,6 +807,23 @@
   </div>
 </div>
 
+<!-- Username setup modal -->
+<div class="modal-overlay" id="usernameModal">
+  <div class="modal">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent2);margin-bottom:8px;">Welcome</div>
+    <h2 style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;margin-bottom:10px;">Choose a username</h2>
+    <p style="font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:26px;">Your username will appear on leaderboards and game stats. You can change it later.</p>
+    <label for="usernameInput">Username</label>
+    <input type="text" id="usernameInput" placeholder="e.g. basshead42" maxlength="20"
+           autocomplete="off" autocapitalize="off" spellcheck="false">
+    <div class="username-check" id="usernameCheck"></div>
+    <p class="username-hint">3–20 characters · Letters, numbers, _ and - only</p>
+    <button class="modal-submit" id="usernameSubmit">Set username</button>
+    <div class="modal-msg" id="usernameMsg"></div>
+    <button class="username-skip" id="usernameSkip">Skip for now</button>
+  </div>
+</div>
+
 <!-- Footer -->
 <footer>
   <div class="footer-left">
@@ -797,6 +840,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./supabase-client.js"></script>
 <script>
+  // ── Auth modal refs ───────────────────────────────────────
   const authModal  = document.getElementById('authModal');
   const authArea   = document.getElementById('authArea');
   const openBtn    = document.getElementById('openAuthBtn');
@@ -805,12 +849,19 @@
   const tabSignin  = document.getElementById('tabSignin');
   const tabSignup  = document.getElementById('tabSignup');
 
-  // Open / close modal
+  // ── Username modal refs ───────────────────────────────────
+  const usernameModal  = document.getElementById('usernameModal');
+  const usernameInput  = document.getElementById('usernameInput');
+  const usernameCheck  = document.getElementById('usernameCheck');
+  const usernameSubmit = document.getElementById('usernameSubmit');
+  const usernameMsg    = document.getElementById('usernameMsg');
+
+  // ── Open / close auth modal ───────────────────────────────
   openBtn.addEventListener('click', () => authModal.classList.add('open'));
   closeBtn.addEventListener('click', () => authModal.classList.remove('open'));
   authModal.addEventListener('click', e => { if (e.target === authModal) authModal.classList.remove('open'); });
 
-  // Tab switching
+  // ── Tab switching ─────────────────────────────────────────
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       tabs.forEach(t => t.classList.remove('active'));
@@ -820,7 +871,7 @@
     });
   });
 
-  // Sign in
+  // ── Sign in ───────────────────────────────────────────────
   document.getElementById('siSubmit').addEventListener('click', async () => {
     const msg = document.getElementById('siMsg');
     msg.textContent = 'Signing in…'; msg.className = 'modal-msg';
@@ -832,7 +883,7 @@
     else { authModal.classList.remove('open'); }
   });
 
-  // Sign up
+  // ── Sign up ───────────────────────────────────────────────
   document.getElementById('suSubmit').addEventListener('click', async () => {
     const msg = document.getElementById('suMsg');
     msg.textContent = 'Creating account…'; msg.className = 'modal-msg';
@@ -843,6 +894,81 @@
     if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
     else { msg.textContent = 'Check your email to confirm your account.'; msg.className = 'modal-msg success'; }
   });
+
+  // ── Username modal logic ──────────────────────────────────
+  function validateUsername(val) {
+    if (val.length < 3)  return 'Too short — min 3 characters';
+    if (val.length > 20) return 'Too long — max 20 characters';
+    if (!/^[a-zA-Z0-9_-]+$/.test(val)) return 'Letters, numbers, _ and - only';
+    return null;
+  }
+
+  function openUsernameModal() {
+    usernameInput.value = '';
+    usernameCheck.textContent = '';
+    usernameCheck.className = 'username-check';
+    usernameMsg.textContent = '';
+    usernameModal.classList.add('open');
+    setTimeout(() => usernameInput.focus(), 50);
+  }
+
+  let _unCheckTimer;
+  usernameInput.addEventListener('input', () => {
+    const val = usernameInput.value.trim();
+    clearTimeout(_unCheckTimer);
+    const err = validateUsername(val);
+    if (err) {
+      usernameCheck.textContent = val.length > 0 ? err : '';
+      usernameCheck.className = 'username-check';
+      return;
+    }
+    usernameCheck.textContent = 'Checking…';
+    usernameCheck.className = 'username-check';
+    _unCheckTimer = setTimeout(async () => {
+      const taken = await SonicSandbox.isUsernameTaken(val);
+      if (usernameInput.value.trim() !== val) return; // stale
+      if (taken) {
+        usernameCheck.textContent = `"${val}" is already taken`;
+        usernameCheck.className = 'username-check taken';
+      } else {
+        usernameCheck.textContent = `"${val}" is available ✓`;
+        usernameCheck.className = 'username-check available';
+      }
+    }, 500);
+  });
+
+  usernameSubmit.addEventListener('click', async () => {
+    const val = usernameInput.value.trim();
+    const err = validateUsername(val);
+    if (err) { usernameMsg.textContent = err; usernameMsg.className = 'modal-msg error'; return; }
+    usernameMsg.textContent = 'Saving…'; usernameMsg.className = 'modal-msg';
+    const { error } = await SonicSandbox.setUsername(val);
+    if (error) {
+      const isConflict = error.message?.toLowerCase().includes('duplicate') ||
+                         error.message?.toLowerCase().includes('unique') ||
+                         error.code === '23505';
+      usernameMsg.textContent = isConflict
+        ? `"${val}" is already taken — try another.`
+        : error.message;
+      usernameMsg.className = 'modal-msg error';
+    } else {
+      usernameModal.classList.remove('open');
+      _setNavUsername(val);
+    }
+  });
+
+  document.getElementById('usernameSkip').addEventListener('click', () => {
+    usernameModal.classList.remove('open');
+  });
+  usernameModal.addEventListener('click', e => {
+    if (e.target === usernameModal) usernameModal.classList.remove('open');
+  });
+
+  // Update the nav username display
+  function _setNavUsername(username) {
+    const el = document.querySelector('.username-display');
+    if (el) el.textContent = '@' + username;
+  }
 
   // ── Mobile detection ──────────────────────────────────────
   (function() {
@@ -856,7 +982,6 @@
       return;
     }
 
-    // On desktop (or opted-out): show the mobile banner unless dismissed
     if (!sessionStorage.getItem('ss_banner_dismissed')) {
       const banner = document.getElementById('mobileBanner');
       banner.style.display = 'flex';
@@ -867,18 +992,39 @@
     }
   })();
 
-  // Update nav when auth state changes
-  document.addEventListener('ss:authchange', e => {
+  // ── Auth state → update nav ───────────────────────────────
+  document.addEventListener('ss:authchange', async e => {
     const user = e.detail;
     if (user) {
+      // Render pill immediately; placeholder shown until profile loads
       authArea.innerHTML = `
         <div class="user-pill">
-          <a href="./stats/" style="color:var(--accent2);text-decoration:none;font-size:13px;">My Stats</a>
-          <span style="color:var(--border2)">·</span>
-          <span>${user.email}</span>
+          <span class="username-display" style="color:var(--muted);font-size:12px;">${user.email}</span>
           <button class="signout-btn" id="signOutBtn">Sign out</button>
         </div>`;
       document.getElementById('signOutBtn').addEventListener('click', () => SonicSandbox.signOut());
+
+      // Fetch profile to show username (or prompt to set one)
+      const profile = await SonicSandbox.getProfile();
+      if (profile?.username) {
+        // @username links to account page
+        const el = document.querySelector('.username-display');
+        if (el) {
+          el.outerHTML = `<a class="set-username-link" href="./account/">@${profile.username}</a>`;
+        }
+      } else {
+        // No username yet — prompt to set one
+        const el = document.querySelector('.username-display');
+        if (el) {
+          el.innerHTML = `<button class="set-username-link" id="setUsernameBtn">Set username</button>`;
+          document.getElementById('setUsernameBtn').addEventListener('click', openUsernameModal);
+        }
+        // Auto-prompt once per session
+        if (!sessionStorage.getItem('ss_username_prompted')) {
+          sessionStorage.setItem('ss_username_prompted', '1');
+          openUsernameModal();
+        }
+      }
     } else {
       authArea.innerHTML = `<button class="auth-btn" id="openAuthBtn">Sign in</button>`;
       document.getElementById('openAuthBtn').addEventListener('click', () => authModal.classList.add('open'));

@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Account — SonicSandbox</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg:       #0a0b0d;
+    --surface:  #13151a;
+    --surface2: #1a1d24;
+    --border:   rgba(255,255,255,0.08);
+    --border2:  rgba(255,255,255,0.14);
+    --text:     #dde2ee;
+    --muted:    #6b7280;
+    --accent:   #5b6aff;
+    --accent2:  #8892ff;
+    --green:    #2dd4a0;
+    --red:      #d44a2a;
+    --red2:     #f07070;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ── Nav ──────────────────────────────────────────── */
+  nav {
+    width: 100%; max-width: 1600px;
+    padding: 20px 28px;
+    display: flex; align-items: center;
+  }
+  .nav-logo-wrap { flex: 1; display: flex; align-items: center; }
+  .nav-logo {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 17px; font-weight: 600;
+    color: var(--text); text-decoration: none;
+    letter-spacing: -0.01em;
+  }
+  .nav-logo span { color: var(--accent2); }
+  .nav-center {
+    display: flex; align-items: center; gap: 28px; flex-shrink: 0;
+  }
+  .nav-link {
+    font-size: 13px; font-weight: 500; color: var(--muted);
+    text-decoration: none; transition: color 0.15s;
+  }
+  .nav-link:hover { color: var(--text); }
+  .nav-right {
+    flex: 1; display: flex; align-items: center;
+    justify-content: flex-end; gap: 12px;
+  }
+  .user-pill {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .signout-btn {
+    font-size: 12px; color: var(--muted); background: none;
+    border: none; cursor: pointer; font-family: inherit;
+    padding: 0; text-decoration: underline;
+  }
+  .signout-btn:hover { color: var(--text); }
+  .nav-username {
+    color: var(--accent2); font-size: 13px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  @media (max-width: 600px) {
+    nav { padding: 16px 20px; }
+    .nav-center { display: none; }
+    .nav-logo { font-size: 15px; }
+  }
+
+  /* ── Page layout ──────────────────────────────────── */
+  .page {
+    width: 100%; max-width: 640px;
+    padding: 48px 24px 80px;
+    display: flex; flex-direction: column; gap: 24px;
+  }
+
+  .page-heading {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 26px; font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+  .page-sub {
+    font-size: 14px; color: var(--muted); line-height: 1.6;
+  }
+
+  /* ── Section cards ────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .card-header {
+    padding: 18px 24px 14px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .card-body { padding: 4px 0; }
+
+  /* ── Field rows ───────────────────────────────────── */
+  .field-row {
+    display: flex; align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    gap: 16px;
+  }
+  .field-row:last-child { border-bottom: none; }
+
+  .field-label {
+    font-size: 12px; font-weight: 500;
+    letter-spacing: 0.04em; color: var(--muted);
+    min-width: 110px; flex-shrink: 0;
+  }
+  .field-value {
+    font-size: 14px; color: var(--text);
+    flex: 1;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .field-action {
+    flex-shrink: 0;
+  }
+
+  /* ── Edit username inline ─────────────────────────── */
+  .edit-link {
+    font-size: 12px; color: var(--accent2);
+    background: none; border: none; cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+    text-decoration: underline; padding: 0;
+  }
+  .edit-link:hover { opacity: 0.75; }
+
+  .edit-form { display: none; flex-direction: column; gap: 8px; flex: 1; }
+  .edit-form.active { display: flex; }
+  .edit-input {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 8px; padding: 8px 12px;
+    color: var(--text); font-size: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    outline: none; transition: border-color 0.15s;
+    width: 100%;
+  }
+  .edit-input:focus { border-color: var(--accent); }
+  .edit-row-btns { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .save-btn {
+    font-size: 12px; font-weight: 600;
+    background: var(--accent); color: #fff;
+    border: none; border-radius: 6px;
+    padding: 6px 14px; cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+    transition: opacity 0.15s;
+  }
+  .save-btn:hover { opacity: 0.85; }
+  .cancel-btn {
+    font-size: 12px; color: var(--muted);
+    background: none; border: none; cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+    text-decoration: underline; padding: 0;
+  }
+  .cancel-btn:hover { color: var(--text); }
+  .edit-hint {
+    font-size: 11px; color: var(--muted); line-height: 1.5;
+  }
+  .edit-check {
+    font-size: 12px; min-height: 16px; transition: color 0.15s;
+  }
+  .edit-check.available { color: var(--green); }
+  .edit-check.taken     { color: var(--red2); }
+  .edit-msg { font-size: 12px; color: var(--red2); min-height: 16px; }
+
+  /* ── Stats snapshot ───────────────────────────────── */
+  .stats-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1px; background: var(--border);
+  }
+  .stat-cell {
+    background: var(--surface);
+    padding: 24px 28px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .stat-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 32px; font-weight: 600;
+    color: var(--text); line-height: 1;
+  }
+  .stat-label {
+    font-size: 12px; color: var(--muted); letter-spacing: 0.03em;
+  }
+  .stats-footer {
+    padding: 14px 24px;
+    border-top: 1px solid var(--border);
+  }
+  .stats-link {
+    font-size: 13px; color: var(--accent2);
+    text-decoration: none; font-weight: 500;
+  }
+  .stats-link:hover { text-decoration: underline; }
+
+  /* ── Action rows ──────────────────────────────────── */
+  .action-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    gap: 16px;
+  }
+  .action-row:last-child { border-bottom: none; }
+  .action-label {
+    font-size: 14px; color: var(--text); font-weight: 500;
+  }
+  .action-sub {
+    font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.5;
+  }
+  .action-btn {
+    font-size: 13px; font-weight: 500;
+    background: var(--surface2); color: var(--text);
+    border: 1px solid var(--border2); border-radius: 8px;
+    padding: 8px 16px; cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+    transition: border-color 0.15s, background 0.15s;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .action-btn:hover { border-color: var(--accent); background: var(--surface); }
+  .action-msg {
+    font-size: 12px; color: var(--green);
+    margin-top: 6px; min-height: 16px;
+  }
+
+  /* ── New password form ────────────────────────────── */
+  .new-pw-form { display: none; flex-direction: column; gap: 10px; width: 100%; }
+  .new-pw-form.active { display: flex; }
+  .pw-input {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 8px; padding: 9px 13px;
+    color: var(--text); font-size: 14px; font-family: inherit;
+    outline: none; transition: border-color 0.15s; width: 100%;
+  }
+  .pw-input:focus { border-color: var(--accent); }
+  .pw-msg { font-size: 12px; min-height: 16px; }
+  .pw-msg.error { color: var(--red2); }
+  .pw-msg.success { color: var(--green); }
+
+  /* ── Danger zone ──────────────────────────────────── */
+  .danger-card {
+    background: var(--surface);
+    border: 1px solid rgba(212, 74, 42, 0.2);
+    border-radius: 16px; overflow: hidden;
+  }
+  .danger-header {
+    padding: 18px 24px 14px;
+    border-bottom: 1px solid rgba(212, 74, 42, 0.15);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: rgba(212, 74, 42, 0.7);
+  }
+  .danger-body { padding: 20px 24px; }
+  .danger-desc {
+    font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 16px;
+  }
+  .danger-btn {
+    font-size: 13px; font-weight: 500;
+    background: rgba(212, 74, 42, 0.1); color: var(--red2);
+    border: 1px solid rgba(212, 74, 42, 0.3); border-radius: 8px;
+    padding: 9px 18px; cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .danger-btn:hover { background: rgba(212, 74, 42, 0.18); border-color: rgba(212, 74, 42, 0.5); }
+
+  /* ── Delete confirm ───────────────────────────────── */
+  .delete-confirm { display: none; margin-top: 16px; }
+  .delete-confirm.active { display: block; }
+  .delete-confirm p {
+    font-size: 13px; color: var(--muted); margin-bottom: 10px; line-height: 1.6;
+  }
+  .delete-confirm strong { color: var(--text); font-family: 'IBM Plex Mono', monospace; }
+  .delete-input {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 8px; padding: 9px 13px;
+    color: var(--text); font-size: 14px; font-family: 'IBM Plex Mono', monospace;
+    outline: none; transition: border-color 0.15s; width: 100%;
+    margin-bottom: 10px;
+  }
+  .delete-input:focus { border-color: var(--red2); }
+  .delete-go-btn {
+    font-size: 13px; font-weight: 600;
+    background: var(--red); color: #fff;
+    border: none; border-radius: 8px;
+    padding: 9px 20px; cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+    transition: opacity 0.15s;
+    opacity: 0.4; pointer-events: none;
+  }
+  .delete-go-btn.ready { opacity: 1; pointer-events: auto; }
+  .delete-go-btn:hover.ready { opacity: 0.85; }
+  .delete-msg { font-size: 12px; color: var(--red2); margin-top: 8px; min-height: 16px; }
+
+  /* ── Loading / redirect ───────────────────────────── */
+  #loadingState {
+    padding: 80px 24px; text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; color: var(--muted);
+  }
+
+  /* ── Password recovery banner ─────────────────────── */
+  #recoveryBanner {
+    display: none;
+    width: 100%; background: rgba(91, 106, 255, 0.08);
+    border-bottom: 1px solid rgba(91, 106, 255, 0.2);
+    padding: 12px 28px;
+    font-size: 13px; color: var(--accent2);
+    font-family: 'IBM Plex Mono', monospace;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div id="recoveryBanner">🔐 Set your new password below</div>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-logo-wrap">
+    <a class="nav-logo" href="/">Sonic<span>Sandbox</span></a>
+  </div>
+  <div class="nav-center">
+    <a class="nav-link" href="/">Games</a>
+    <a class="nav-link" href="/about/">About</a>
+    <a class="nav-link" href="/stats/">Stats</a>
+  </div>
+  <div class="nav-right" id="navRight">
+    <!-- filled by JS -->
+  </div>
+</nav>
+
+<!-- Loading state -->
+<div id="loadingState">Loading your account…</div>
+
+<!-- Page content (hidden until auth resolves) -->
+<div class="page" id="pageContent" style="display:none;">
+
+  <div>
+    <h1 class="page-heading">Your Account</h1>
+    <p class="page-sub">Manage your profile and preferences.</p>
+  </div>
+
+  <!-- ── Profile card ─────────────────────────────── -->
+  <div class="card">
+    <div class="card-header">Profile</div>
+    <div class="card-body">
+
+      <!-- Username row -->
+      <div class="field-row" id="usernameRow">
+        <div class="field-label">Username</div>
+        <div class="field-value" id="usernameDisplay">—</div>
+        <div class="field-action">
+          <button class="edit-link" id="editUsernameBtn">Edit</button>
+        </div>
+      </div>
+
+      <!-- Username edit form (hidden by default) -->
+      <div class="field-row" id="usernameEditRow" style="display:none; flex-direction:column; align-items:flex-start; gap:10px;">
+        <div style="width:100%;">
+          <input class="edit-input" type="text" id="usernameInput"
+                 placeholder="e.g. basshead42" maxlength="20"
+                 autocomplete="off" autocapitalize="off" spellcheck="false">
+          <div class="edit-check" id="usernameCheck"></div>
+        </div>
+        <div class="edit-hint">3–20 characters · Letters, numbers, _ and - only</div>
+        <div class="edit-row-btns">
+          <button class="save-btn" id="usernameSave">Save</button>
+          <button class="cancel-btn" id="usernameCancel">Cancel</button>
+          <span class="edit-msg" id="usernameMsg"></span>
+        </div>
+      </div>
+
+      <!-- Email row -->
+      <div class="field-row">
+        <div class="field-label">Email</div>
+        <div class="field-value" id="emailDisplay">—</div>
+      </div>
+
+      <!-- Member since row -->
+      <div class="field-row">
+        <div class="field-label">Member since</div>
+        <div class="field-value" id="memberSinceDisplay">—</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Stats snapshot ───────────────────────────── -->
+  <div class="card">
+    <div class="card-header">Your Stats</div>
+    <div class="stats-grid">
+      <div class="stat-cell">
+        <div class="stat-value" id="statRounds">—</div>
+        <div class="stat-label">Rounds played</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-value" id="statAccuracy">—</div>
+        <div class="stat-label">Overall accuracy</div>
+      </div>
+    </div>
+    <div class="stats-footer">
+      <a class="stats-link" href="/stats/">View full stats →</a>
+    </div>
+  </div>
+
+  <!-- ── Security card ────────────────────────────── -->
+  <div class="card">
+    <div class="card-header">Security</div>
+    <div class="card-body">
+
+      <!-- Change password -->
+      <div class="action-row" id="passwordRow">
+        <div>
+          <div class="action-label">Password</div>
+          <div class="action-sub">Send a reset link to your email address.</div>
+          <div class="action-msg" id="pwResetMsg"></div>
+        </div>
+        <button class="action-btn" id="sendResetBtn">Send reset email</button>
+      </div>
+
+      <!-- Set new password form (shown on PASSWORD_RECOVERY event) -->
+      <div class="action-row" id="newPasswordRow" style="display:none; flex-direction:column; align-items:flex-start;">
+        <div class="action-label" style="margin-bottom:12px;">Set new password</div>
+        <div class="new-pw-form active" style="max-width:340px;">
+          <input class="pw-input" type="password" id="newPwInput"
+                 placeholder="New password (min 6 characters)" autocomplete="new-password">
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button class="save-btn" id="newPwSave">Update password</button>
+            <span class="pw-msg" id="newPwMsg"></span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Danger zone ───────────────────────────────── -->
+  <div class="danger-card">
+    <div class="danger-header">Danger Zone</div>
+    <div class="danger-body">
+      <p class="danger-desc">
+        Permanently deletes your account and all associated scores and data.
+        This cannot be undone.
+      </p>
+      <button class="danger-btn" id="deleteAccountBtn">Delete my account</button>
+
+      <div class="delete-confirm" id="deleteConfirm">
+        <p>Type <strong>DELETE</strong> below to confirm:</p>
+        <input class="delete-input" type="text" id="deleteConfirmInput"
+               placeholder="Type DELETE" autocomplete="off" spellcheck="false">
+        <button class="delete-go-btn" id="deleteGoBtn">Permanently delete account</button>
+        <div class="delete-msg" id="deleteMsg"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../supabase-client.js"></script>
+<script>
+  let _currentProfile = null;
+  let _inRecoveryMode = false;
+
+  // ── Nav ────────────────────────────────────────────────
+  document.addEventListener('ss:authchange', async e => {
+    const user = e.detail;
+    const navRight = document.getElementById('navRight');
+
+    if (!user && !_inRecoveryMode) {
+      // Not logged in — redirect to home
+      window.location.replace('/');
+      return;
+    }
+
+    if (user) {
+      // Render nav
+      navRight.innerHTML = `
+        <div class="user-pill">
+          <span class="nav-username" id="navUsername">…</span>
+          <button class="signout-btn" id="signOutBtn">Sign out</button>
+        </div>`;
+      document.getElementById('signOutBtn').addEventListener('click', () => SonicSandbox.signOut());
+
+      // Load profile + populate page
+      await loadAccount(user);
+    }
+  });
+
+  // ── Password recovery event ────────────────────────────
+  document.addEventListener('ss:passwordrecovery', () => {
+    _inRecoveryMode = true;
+    document.getElementById('recoveryBanner').style.display = 'block';
+    document.getElementById('passwordRow').style.display = 'none';
+    document.getElementById('newPasswordRow').style.display = 'flex';
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('pageContent').style.display = 'flex';
+    document.getElementById('newPwInput').focus();
+  });
+
+  // ── Load and populate account page ────────────────────
+  async function loadAccount(user) {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('pageContent').style.display = 'flex';
+
+    // Email
+    document.getElementById('emailDisplay').textContent = user.email;
+
+    // Member since
+    const since = new Date(user.created_at);
+    document.getElementById('memberSinceDisplay').textContent =
+      since.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+    // Profile (username)
+    _currentProfile = await SonicSandbox.getProfile();
+    renderUsername();
+
+    // Stats
+    const stats = await SonicSandbox.getStats();
+    document.getElementById('statRounds').textContent =
+      stats.total > 0 ? stats.total.toLocaleString() : '0';
+    document.getElementById('statAccuracy').textContent =
+      stats.accuracy !== null ? stats.accuracy + '%' : '—';
+  }
+
+  function renderUsername() {
+    const display = document.getElementById('usernameDisplay');
+    const navUsername = document.getElementById('navUsername');
+    if (_currentProfile?.username) {
+      display.textContent = '@' + _currentProfile.username;
+      if (navUsername) navUsername.textContent = '@' + _currentProfile.username;
+    } else {
+      display.innerHTML = `<span style="color:var(--muted);font-style:italic;">Not set</span>`;
+      if (navUsername) navUsername.textContent = 'Account';
+    }
+  }
+
+  // ── Username inline edit ───────────────────────────────
+  const usernameRow     = document.getElementById('usernameRow');
+  const usernameEditRow = document.getElementById('usernameEditRow');
+  const usernameInput   = document.getElementById('usernameInput');
+  const usernameCheck   = document.getElementById('usernameCheck');
+  const usernameMsg     = document.getElementById('usernameMsg');
+
+  document.getElementById('editUsernameBtn').addEventListener('click', () => {
+    usernameRow.style.display = 'none';
+    usernameEditRow.style.display = 'flex';
+    usernameInput.value = _currentProfile?.username ?? '';
+    usernameCheck.textContent = '';
+    usernameCheck.className = 'edit-check';
+    usernameMsg.textContent = '';
+    usernameInput.focus();
+  });
+
+  document.getElementById('usernameCancel').addEventListener('click', () => {
+    usernameEditRow.style.display = 'none';
+    usernameRow.style.display = 'flex';
+  });
+
+  function validateUsername(val) {
+    if (val.length < 3)  return 'Too short — min 3 characters';
+    if (val.length > 20) return 'Too long — max 20 characters';
+    if (!/^[a-zA-Z0-9_-]+$/.test(val)) return 'Letters, numbers, _ and - only';
+    return null;
+  }
+
+  let _checkTimer;
+  usernameInput.addEventListener('input', () => {
+    const val = usernameInput.value.trim();
+    clearTimeout(_checkTimer);
+    const err = validateUsername(val);
+    if (err) {
+      usernameCheck.textContent = val.length > 0 ? err : '';
+      usernameCheck.className = 'edit-check';
+      return;
+    }
+    // Don't bother checking if it's unchanged
+    if (val === _currentProfile?.username) {
+      usernameCheck.textContent = 'That\'s your current username';
+      usernameCheck.className = 'edit-check';
+      return;
+    }
+    usernameCheck.textContent = 'Checking…';
+    usernameCheck.className = 'edit-check';
+    _checkTimer = setTimeout(async () => {
+      const taken = await SonicSandbox.isUsernameTaken(val, true /* excludeSelf */);
+      if (usernameInput.value.trim() !== val) return;
+      if (taken) {
+        usernameCheck.textContent = `"${val}" is already taken`;
+        usernameCheck.className = 'edit-check taken';
+      } else {
+        usernameCheck.textContent = `"${val}" is available ✓`;
+        usernameCheck.className = 'edit-check available';
+      }
+    }, 500);
+  });
+
+  document.getElementById('usernameSave').addEventListener('click', async () => {
+    const val = usernameInput.value.trim();
+    const err = validateUsername(val);
+    if (err) { usernameMsg.textContent = err; return; }
+
+    usernameMsg.textContent = 'Saving…';
+    const { error } = await SonicSandbox.setUsername(val);
+    if (error) {
+      const isConflict = error.message?.toLowerCase().includes('duplicate') ||
+                         error.message?.toLowerCase().includes('unique') ||
+                         error.code === '23505';
+      usernameMsg.textContent = isConflict
+        ? `"${val}" is already taken — try another.`
+        : error.message;
+    } else {
+      _currentProfile = { ..._currentProfile, username: val };
+      usernameEditRow.style.display = 'none';
+      usernameRow.style.display = 'flex';
+      renderUsername();
+    }
+  });
+
+  // ── Send password reset ────────────────────────────────
+  document.getElementById('sendResetBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('sendResetBtn');
+    const msg = document.getElementById('pwResetMsg');
+    const user = SonicSandbox.getUser();
+    if (!user) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    const { error } = await SonicSandbox.resetPasswordForEmail(user.email);
+    if (error) {
+      msg.style.color = 'var(--red2)';
+      msg.textContent = error.message;
+      btn.disabled = false;
+      btn.textContent = 'Send reset email';
+    } else {
+      msg.textContent = 'Check your email for the reset link.';
+      btn.textContent = 'Email sent';
+    }
+  });
+
+  // ── Set new password (after recovery redirect) ─────────
+  document.getElementById('newPwSave').addEventListener('click', async () => {
+    const pw  = document.getElementById('newPwInput').value;
+    const msg = document.getElementById('newPwMsg');
+    if (pw.length < 6) {
+      msg.textContent = 'Password must be at least 6 characters';
+      msg.className = 'pw-msg error';
+      return;
+    }
+    msg.textContent = 'Updating…'; msg.className = 'pw-msg';
+    const { error } = await SonicSandbox.updatePassword(pw);
+    if (error) {
+      msg.textContent = error.message; msg.className = 'pw-msg error';
+    } else {
+      msg.textContent = 'Password updated!'; msg.className = 'pw-msg success';
+      document.getElementById('recoveryBanner').style.display = 'none';
+      document.getElementById('newPasswordRow').style.display = 'none';
+      document.getElementById('passwordRow').style.display = 'flex';
+      document.getElementById('newPwInput').value = '';
+    }
+  });
+
+  // ── Delete account ─────────────────────────────────────
+  document.getElementById('deleteAccountBtn').addEventListener('click', () => {
+    document.getElementById('deleteConfirm').classList.add('active');
+    document.getElementById('deleteConfirmInput').focus();
+  });
+
+  document.getElementById('deleteConfirmInput').addEventListener('input', function() {
+    const ready = this.value === 'DELETE';
+    document.getElementById('deleteGoBtn').classList.toggle('ready', ready);
+  });
+
+  document.getElementById('deleteGoBtn').addEventListener('click', async () => {
+    const msg = document.getElementById('deleteMsg');
+    const btn = document.getElementById('deleteGoBtn');
+    btn.textContent = 'Deleting…'; btn.disabled = true;
+    const { error } = await SonicSandbox.deleteAccount();
+    if (error) {
+      msg.textContent = error.message;
+      btn.textContent = 'Permanently delete account';
+      btn.disabled = false;
+    } else {
+      window.location.replace('/');
+    }
+  });
+</script>
+</body>
+</html>
