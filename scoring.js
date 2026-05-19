@@ -50,8 +50,10 @@ window.ScoringEngine = (() => {
   // Reverb Master — keyed by difficulty (Pro = roomSize+decay+wet+preDelay)
   const REVERB = { easy: 1.0, medium: 1.4, hard: 1.8, pro: 2.2, custom: 2.5 };
 
-  // Delay Master — keyed by difficulty (tighter parameter ranges at higher difficulties)
-  const DELAY = { easy: 1.0, medium: 1.5, hard: 2.5 };
+  // Delay Master — base keyed by difficulty, plus per-param-count bonus
+  // 1 param: +0  |  2 params: +0.3  |  3 params: +0.6
+  const DELAY       = { easy: 1.0, medium: 1.5, hard: 2.0 };
+  const DELAY_PARAMS = { 1: 0, 2: 0.3, 3: 0.6 };
 
   // Distortion Master — keyed by difficulty (Pro = drive+mix+type+tone)
   const DISTORTION = { easy: 1.0, medium: 1.4, hard: 1.8, pro: 2.2, custom: 2.5 };
@@ -110,8 +112,11 @@ window.ScoringEngine = (() => {
       case 'reverb-master':
         return REVERB[settings.difficulty] ?? 1.0;
 
-      case 'delay-master':
-        return DELAY[settings.difficulty] ?? 1.0;
+      case 'delay-master': {
+        const base   = DELAY[settings.difficulty] ?? 1.0;
+        const pBonus = DELAY_PARAMS[settings.numParams] ?? 0;
+        return base + pBonus;
+      }
 
       case 'distortion-master':
         return DISTORTION[settings.difficulty] ?? 1.0;

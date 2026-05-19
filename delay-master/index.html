@@ -708,9 +708,14 @@ let customIdx          = 0;
 let samplesManifest    = null;
 
 // ── Settings ───────────────────────────────────────────────────────────────────
+function getNumParams() {
+  return Object.values(lockedParams).filter(v => !v).length;
+}
+
 function updateMultBadge() {
   const el = document.getElementById('multBadge');
-  if (el && window.ScoringEngine) el.textContent = ScoringEngine.label('delay-master', { difficulty });
+  if (el && window.ScoringEngine)
+    el.textContent = ScoringEngine.label('delay-master', { difficulty, numParams: getNumParams() });
 }
 
 function setDifficulty(d) {
@@ -722,10 +727,16 @@ function setDifficulty(d) {
 }
 
 function toggleLock(param) {
+  // Prevent locking the last active (guessed) parameter
+  if (!lockedParams[param]) {
+    const otherActive = Object.entries(lockedParams).filter(([k, v]) => k !== param && !v).length;
+    if (otherActive === 0) { showToast('At least one parameter must be active'); return; }
+  }
   lockedParams[param] = !lockedParams[param];
   const btnId = { delayTime: 'lockDelayTime', feedback: 'lockFeedback', wet: 'lockWet' }[param];
   // active = being guessed (not locked); inactive = locked/shown
   document.getElementById(btnId).classList.toggle('active', !lockedParams[param]);
+  updateMultBadge();
 }
 
 // ── Round generation ───────────────────────────────────────────────────────────
@@ -1285,7 +1296,7 @@ function submitAnswer() {
   });
 
   const roundScore = scoredCount === 0 ? 100 : Math.round(totalScore / scoredCount);
-  const mult = window.ScoringEngine ? ScoringEngine.multiplier('delay-master', { difficulty }) : 1;
+  const mult = window.ScoringEngine ? ScoringEngine.multiplier('delay-master', { difficulty, numParams: getNumParams() }) : 1;
   const weightedScore = Math.round(roundScore * mult);
   scoreTotal += weightedScore;
   roundScores.push(weightedScore);
