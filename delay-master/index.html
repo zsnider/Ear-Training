@@ -137,6 +137,8 @@ main {
 .monitor-btn:hover { color: var(--text); }
 .monitor-btn.active-target { border-color: var(--accent); color: var(--accent2); }
 .monitor-btn.active-target .monitor-dot { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+.monitor-btn.active-user { border-color: rgba(251,146,60,0.5); color: rgba(251,146,60,0.85); }
+.monitor-btn.active-user .monitor-dot { background: rgba(251,146,60,0.7); }
 .monitor-btn.active-dry { border-color: var(--text); color: var(--text); }
 .monitor-btn.active-dry .monitor-dot { background: var(--text); box-shadow: 0 0 6px rgba(232,237,248,0.5); }
 .monitor-btn:disabled { opacity: 0.35; cursor: not-allowed; }
@@ -447,6 +449,9 @@ input[type=range]:disabled::-webkit-slider-thumb { background: var(--muted); box
       <button class="monitor-btn" id="monitorTarget" onclick="setMonitor('target')" disabled>
         <span class="monitor-dot"></span>TARGET
       </button>
+      <button class="monitor-btn" id="monitorUser" onclick="setMonitor('user')" disabled>
+        <span class="monitor-dot"></span>YOUR DELAY
+      </button>
       <button class="monitor-btn" id="monitorDry" onclick="setMonitor('dry')" disabled>
         <span class="monitor-dot"></span>DRY
       </button>
@@ -458,7 +463,8 @@ input[type=range]:disabled::-webkit-slider-thumb { background: var(--muted); box
       <button class="ctrl-btn" id="btnRestart" onclick="restartAudio()"    disabled>⟲</button>
     </div>
     <div class="kbd-legend">
-      <kbd>Space</kbd>&thinsp;/&thinsp;<kbd>D</kbd>&nbsp;A/B
+      <kbd>Space</kbd>&nbsp;Target/Your Delay
+      &nbsp;·&nbsp;<kbd>D</kbd>&nbsp;Dry
       &nbsp;·&nbsp;<kbd>P</kbd>&nbsp;Pause
       &nbsp;·&nbsp;<kbd>F</kbd>&nbsp;Restart
       &nbsp;·&nbsp;<kbd>←&nbsp;→</kbd>&nbsp;Seek
@@ -474,7 +480,7 @@ input[type=range]:disabled::-webkit-slider-thumb { background: var(--muted); box
     <div class="idle-text">
       Listen to the <strong>TARGET</strong> delay signal. Adjust three parameters —
       <strong>Delay Time</strong>, <strong>Feedback</strong>, and <strong>Wet / Dry</strong> — to match what you hear.
-      Toggle <strong>DRY</strong> with Space or D. Use <strong>Reveal</strong> above to lock any parameters you want shown.
+      Use <kbd>Space</kbd> to compare Target vs Your Delay, and <kbd>D</kbd> to check the dry signal. Use <strong>Reveal</strong> above to lock any parameters you want shown.
     </div>
   </div>
 
@@ -630,7 +636,8 @@ input[type=range]:disabled::-webkit-slider-thumb { background: var(--muted); box
     <p>
       A useful trick for Delay Time: listen for the moment the first repeat arrives after the original
       sound, and count how long that gap feels. Short = fast tempo or slapback; long = spacious echo.
-      Toggle <kbd>Space</kbd>/<kbd>D</kbd> between Target and dry to re-anchor your sense of the original.
+      Use <kbd>Space</kbd> to A/B between the Target and Your Delay to hear how close you are, and
+      <kbd>D</kbd> to check the dry signal and re-anchor your sense of the original.
     </p>
   </div>
 
@@ -662,7 +669,8 @@ let lockedParams   = { delayTime: false, feedback: true, wet: true };
 
 let roundActive    = false;
 let answered       = false;
-let currentMonitor = 'target';
+let currentMonitor = 'target'; // 'target' | 'user' | 'dry'
+let preDryMonitor  = 'target'; // restored when leaving dry
 
 let targetParams   = { delayTime: 300, feedback: 40, wet: 40 };
 let userParams     = { delayTime: 400, feedback: 45, wet: 50  };
@@ -756,6 +764,7 @@ function newRound() {
   answered       = false;
   roundActive    = true;
   currentMonitor = 'target';
+  preDryMonitor  = 'target';
   totalRounds++;
 
   renderGame();
@@ -778,7 +787,7 @@ function renderGame() {
     .map(([k]) => ({ delayTime: 'Delay Time', feedback: 'Feedback', wet: 'Wet/Dry' }[k]));
   document.getElementById('gamePrompt').innerHTML = guessNames.length === 0
     ? `All parameters revealed — listen to the <strong>TARGET</strong> delay to familiarise yourself.`
-    : `Match the <strong>TARGET</strong> delay. Adjust <strong>${guessNames.join(', ')}</strong> to match. Space or D to toggle DRY.`;
+    : `Match the <strong>TARGET</strong> delay. Adjust <strong>${guessNames.join(', ')}</strong>. <kbd>Space</kbd> compares Target ↔ Your Delay · <kbd>D</kbd> toggles Dry.`;
 
   // Clear score badges
   ['scoreDelayTime','scoreFeedback','scoreWet'].forEach(id => {
@@ -790,7 +799,7 @@ function renderGame() {
   syncSlidersToUserParams();
 
   // Buttons
-  ['monitorTarget','monitorDry'].forEach(id =>
+  ['monitorTarget','monitorUser','monitorDry'].forEach(id =>
     document.getElementById(id).disabled = false);
   document.getElementById('btnPlay').disabled    = false;
   document.getElementById('btnPause').disabled   = false;
@@ -855,6 +864,8 @@ function onSliderChange(param, value) {
     param === 'delayTime' ? 'sliderDelayTime' : param === 'feedback' ? 'sliderFeedback' : 'sliderWet'
   ));
   redrawUserViz();
+  // Live audio update when listening to your own delay
+  if (currentMonitor === 'user' && isPlaying) { stopPlayback(); playCurrentRound(); }
 }
 
 // ── Delay echo visualizer ──────────────────────────────────────────────────────
@@ -961,30 +972,48 @@ function redrawUserViz() {
 
 // ── Monitor ────────────────────────────────────────────────────────────────────
 function setMonitor(m) {
-  if (m !== 'target' && m !== 'dry') return;
+  if (!['target','user','dry'].includes(m)) return;
+  if (m === 'dry' && currentMonitor !== 'dry') preDryMonitor = currentMonitor;
   currentMonitor = m;
   updateMonitorUI();
   if (roundActive && isPlaying) { stopPlayback(); playCurrentRound(); }
 }
 
-function toggleTargetDry() {
+// Space: toggle between target and your delay (ignores dry)
+function toggleTargetUser() {
   if (!roundActive) return;
-  setMonitor(currentMonitor === 'target' ? 'dry' : 'target');
+  if (currentMonitor === 'dry') {
+    setMonitor(preDryMonitor === 'user' ? 'user' : 'target');
+  } else {
+    setMonitor(currentMonitor === 'target' ? 'user' : 'target');
+  }
+}
+
+// D: toggle dry on/off
+function toggleDry() {
+  if (!roundActive) return;
+  setMonitor(currentMonitor === 'dry' ? preDryMonitor : 'dry');
 }
 
 function updateMonitorUI() {
   const tBtn = document.getElementById('monitorTarget');
+  const uBtn = document.getElementById('monitorUser');
   const dBtn = document.getElementById('monitorDry');
-  tBtn.classList.remove('active-target','active-dry');
-  dBtn.classList.remove('active-target','active-dry');
-  if (currentMonitor === 'target') tBtn.classList.add('active-target');
-  else                             dBtn.classList.add('active-dry');
+  [tBtn, uBtn, dBtn].forEach(b => b && b.classList.remove('active-target','active-user','active-dry'));
+
+  if      (currentMonitor === 'target') tBtn && tBtn.classList.add('active-target');
+  else if (currentMonitor === 'user')   uBtn && uBtn.classList.add('active-user');
+  else                                  dBtn && dBtn.classList.add('active-dry');
 
   const hint = document.getElementById('monitorHint');
-  if (!roundActive) { hint.textContent = ''; return; }
-  hint.textContent = currentMonitor === 'target'
-    ? 'Hearing: target delay  [Space/D → DRY]'
-    : 'Hearing: dry signal  [Space/D → TARGET]';
+  if (!roundActive) { hint.textContent = ''; hint.style.display = 'none'; return; }
+  hint.style.display = '';
+  if (currentMonitor === 'target')
+    hint.textContent = 'Hearing: target delay  [Space → Your Delay · D → Dry]';
+  else if (currentMonitor === 'user')
+    hint.textContent = 'Hearing: your delay  [Space → Target · D → Dry]';
+  else
+    hint.textContent = 'Hearing: dry signal  [D → return]';
 }
 
 // ── Audio ──────────────────────────────────────────────────────────────────────
@@ -1017,9 +1046,8 @@ function buildDelayChain(params, destNode) {
 }
 
 function getChainParams() {
-  if (currentMonitor === 'dry') {
-    return { delayTime: 0.001, feedback: 0, wet: 0 };
-  }
+  if (currentMonitor === 'dry')  return { delayTime: 0.001, feedback: 0, wet: 0 };
+  if (currentMonitor === 'user') return toAudioParams(userParams);
   return toAudioParams(targetParams);
 }
 
@@ -1352,8 +1380,8 @@ function addHistory(score) {
 window.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT') return;
   if (audioCtx && audioCtx.state === 'suspended' && e.code !== 'KeyP') audioCtx.resume();
-  if (e.code === 'Space')      { e.preventDefault(); toggleTargetDry(); }
-  if (e.code === 'KeyD')       { e.preventDefault(); toggleTargetDry(); }
+  if (e.code === 'Space')      { e.preventDefault(); toggleTargetUser(); }
+  if (e.code === 'KeyD')       { e.preventDefault(); toggleDry(); }
   if (e.code === 'KeyP')       { e.preventDefault(); togglePause(); }
   if (e.code === 'KeyF')       { e.preventDefault(); restartAudio(); }
   if (e.code === 'Enter')      { e.preventDefault(); if (roundActive && !answered) submitAnswer(); }
