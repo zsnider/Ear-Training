@@ -140,14 +140,23 @@ window.ScoringEngine = (() => {
     return Math.round(100 * multiplier(game, settings));
   }
 
-  // Display string shown in the UI badge, e.g. "×1.5" or "×2.5"
-  // Always reflects the effective multiplier (×1.0 for everything when disabled)
-  function label(game, settings = {}) {
-    const m = multiplier(game, settings);
-    const str = Number.isInteger(m) ? `${m}` : m.toFixed(1).replace(/\.0$/, '');
-    return `×${str}`;
+  // Format a multiplier float to a display string, always one decimal place
+  function fmt(m) {
+    return `×${m.toFixed(1)}`;
   }
 
-  return { multiplier, points, label, weightedEnabled, setWeighted };
+  // Display string for the difficulty badge — always shows the RAW (difficulty-based)
+  // multiplier so the badge always reflects current settings regardless of the toggle.
+  function label(game, settings = {}) {
+    return fmt(rawMultiplier(game, settings));
+  }
+
+  // Display string for the scoring engine (respects the weighted toggle).
+  // Use this if you need to show the effective (post-toggle) multiplier.
+  function effectiveLabel(game, settings = {}) {
+    return fmt(multiplier(game, settings));
+  }
+
+  return { multiplier, rawMultiplier, points, label, effectiveLabel, weightedEnabled, setWeighted };
 
 })();

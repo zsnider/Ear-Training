@@ -375,6 +375,7 @@ input[type=range]:disabled::-webkit-slider-thumb { background: var(--muted); box
   .new-round-btn { margin-left:0; width:100%; }
 }
 </style>
+  <script src="../scoring.js"></script>
 </head>
 <body>
 
@@ -396,12 +397,15 @@ input[type=range]:disabled::-webkit-slider-thumb { background: var(--muted); box
       </div>
     </div>
   </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;">
   <div class="score-row">
     <div class="stat"><div class="stat-val" id="roundVal">0</div><div class="stat-label">Rounds</div></div>
     <div class="stat"><div class="stat-val" id="scoreVal">0</div><div class="stat-label">Score</div></div>
     <div class="stat"><div class="stat-val" id="streakVal">0</div><div class="stat-label">Streak</div></div>
     <div class="stat"><div class="stat-val" id="avgVal">—</div><div class="stat-label">Avg</div></div>
   </div>
+  <div id="multBadge" style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:0.04em;margin-top:2px;text-align:right;opacity:0.7;">×1.0</div>
+</div>
 </header>
 
 <main>
@@ -433,7 +437,6 @@ input[type=range]:disabled::-webkit-slider-thumb { background: var(--muted); box
         <button class="seg-btn"        id="diffMedium" onclick="setDifficulty('medium')">Medium</button>
         <button class="seg-btn"        id="diffHard"   onclick="setDifficulty('hard')">Hard</button>
       </div>
-      <span id="multBadge" style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent2);background:rgba(251,146,60,0.08);border:1px solid rgba(251,146,60,0.2);border-radius:6px;padding:3px 8px;white-space:nowrap;">×1.0</span>
       <button class="new-round-btn" onclick="newRound()">New Round</button>
     </div>
   </div>
@@ -1385,7 +1388,6 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="../scoring.js"></script>
 <script src="../supabase-client.js"></script>
 </body>
 </html>

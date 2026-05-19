@@ -388,6 +388,7 @@
       background: rgba(91,106,255,0.1) !important;
     }
   </style>
+  <script src="../scoring.js"></script>
 </head>
 <body>
 
@@ -403,6 +404,7 @@
       <span class="brand-name">EQ MATCH</span>
     </div>
   </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;">
   <div class="score-area">
     <div class="stat">
       <div class="stat-val" id="totalScore">0</div>
@@ -419,6 +421,8 @@
       <div class="stat-label">Round</div>
     </div>
   </div>
+  <div id="multBadge" style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:0.04em;margin-top:2px;text-align:right;opacity:0.7;">×1.0</div>
+</div>
 </header>
 
 <div class="main">
@@ -429,7 +433,6 @@
     <div class="pill active" data-diff="1" onclick="setDifficulty(1, this)">1</div>
     <div class="pill" data-diff="2" onclick="setDifficulty(2, this)">2</div>
     <div class="pill" data-diff="3" onclick="setDifficulty(3, this)">3</div>
-    <span id="multBadge" style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent2);background:rgba(136,146,255,0.08);border:1px solid rgba(136,146,255,0.2);border-radius:6px;padding:3px 8px;white-space:nowrap;">×1.0</span>
     <div class="divider"></div>
     <span class="drag-hint">Drag ← → = freq &nbsp;·&nbsp; ↑ ↓ = gain &nbsp;·&nbsp; Scroll = Q</span>
     <div class="divider"></div>
@@ -1716,7 +1719,6 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="../scoring.js"></script>
 <script src="../supabase-client.js"></script>
 </body>
 </html>

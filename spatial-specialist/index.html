@@ -461,6 +461,7 @@
 .help-block { display: flex; flex-direction: column; gap: 8px; }
 .help-divider { border: none; border-top: 1px solid var(--border); }
 </style>
+  <script src="../scoring.js"></script>
 </head>
 <body>
 
@@ -479,6 +480,7 @@
       <span class="brand-name">SPATIAL <span>SPECIALIST</span></span>
     </div>
   </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;">
   <div class="score-row">
     <div class="stat">
       <div class="stat-val" id="scoreVal">0</div>
@@ -500,6 +502,8 @@
       <div class="stat-label">Round</div>
     </div>
   </div>
+  <div id="multBadge" style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:0.04em;margin-top:2px;text-align:right;opacity:0.7;">×1.0</div>
+</div>
 </header>
 
 <div class="main">
@@ -749,6 +753,11 @@ function promptTextForMode(mode) {
     : `Where is the sound <span>panned</span>? Click anywhere on the field to place your guess`;
 }
 
+function updateMultBadge() {
+  const el = document.getElementById('multBadge');
+  if (el && window.ScoringEngine) el.textContent = ScoringEngine.label('spatial-specialist', { mode: gameMode });
+}
+
 function setGameMode(mode, el) {
   gameMode = mode;
   ['modePanning','modeWidth'].forEach(id=>document.getElementById(id).classList.remove('active'));
@@ -775,6 +784,7 @@ function setGameMode(mode, el) {
   }
 
   updatePanUI(userPan);
+  updateMultBadge();
 }
 
 // ── Pan value formatting ──────────────────────────────────────────────────────
@@ -1448,6 +1458,7 @@ function showToast(msg) {
 // ── Init ──────────────────────────────────────────────────────────────────────
 buildTicks();
 updatePanUI(0);
+updateMultBadge();
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -1456,7 +1467,6 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="../scoring.js"></script>
 <script src="../supabase-client.js"></script>
 </body>
 </html>
