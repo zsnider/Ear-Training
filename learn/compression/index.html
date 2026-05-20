@@ -566,7 +566,7 @@ const steps = [
       labelA: 'Uncompressed',
       labelB: 'Compressed',
       compA: null,
-      compB: { threshold: -18, ratio: 4, attack: 0.008, release: 0.12, knee: 6 },
+      compB: { threshold: -28, ratio: 20, attack: 0.001, release: 0.06, knee: 0, makeupGain: 10 },
     }
   },
 
@@ -890,82 +890,195 @@ function label(text, x, y, col=MUTED, size=9, anchor='middle', weight=400) {
 
 // ── Waveform compare ──────────────────────────────────────────
 function buildWaveformCompare() {
-  const H = 140, mid = H/2;
-  // Generate a simple stylized drum waveform
-  function waveBar(x, h, col, opacity=1) {
-    return `<rect x="${x-3}" y="${mid-h}" width="6" height="${h*2}" fill="${col}" opacity="${opacity}" rx="2"/>`;
+  const H = 170;
+  const rowH = 66, gap = 18, padY = 8, plotW = SVG_W - 40;
+  const CYCLES = 18;
+
+  // Build a sine waveform path with a time-varying amplitude envelope
+  function wavePath(yMid, ampFn, col, opacity) {
+    const steps = 500;
+    let d = '';
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const x = 20 + t * plotW;
+      const amp = ampFn(t);
+      const y = yMid - Math.sin(t * Math.PI * 2 * CYCLES) * amp;
+      d += (i === 0 ? 'M' : 'L') + `${x.toFixed(1)},${y.toFixed(1)} `;
+    }
+    return `<path d="${d}" fill="none" stroke="${col}" stroke-width="1.4" opacity="${opacity}"/>`;
   }
-  // Pattern: kick, hat, snare, hat, kick, hat, snare, hat
-  const beats = [
-    {x:60,  h:48, type:'kick'},
-    {x:155, h:14, type:'hat'},
-    {x:250, h:36, type:'snare'},
-    {x:345, h:14, type:'hat'},
-    {x:440, h:48, type:'kick'},
-    {x:535, h:14, type:'hat'},
-    {x:630, h:36, type:'snare'},
-    {x:720, h:14, type:'hat'},
-  ];
 
-  // Uncompressed: peaks vary widely
-  const uncBars = beats.map(b => {
-    const col = b.type==='kick' ? COMP : b.type==='snare' ? COMP2 : MUTED;
-    return waveBar(b.x, b.h, col, 0.9);
-  }).join('');
+  // Uncompressed: quiet → loud (wide dynamic range) → quiet
+  function uncAmp(t) {
+    if (t < 0.15) return 5 + t / 0.15 * 7;
+    if (t < 0.25) return 12 + (t - 0.15) / 0.10 * 26; // rapid onset
+    if (t < 0.72) return 38;                            // loud section
+    if (t < 0.82) return 38 - (t - 0.72) / 0.10 * 26; // fade out
+    return 12;
+  }
 
-  // Compressed: peaks more uniform (scale down peaks, boost quieter)
-  const compBars = beats.map(b => {
-    const h = b.type==='kick' ? 32 : b.type==='snare' ? 28 : 14;
-    const col = b.type==='kick' ? COMP : b.type==='snare' ? COMP2 : MUTED;
-    return waveBar(b.x, h, col, 0.85);
-  }).join('');
+  // Compressed: same quiet sections, but peaks uniformly reduced
+  function compAmp(t) {
+    if (t < 0.15) return 5 + t / 0.15 * 7;
+    if (t < 0.25) return 12 + (t - 0.15) / 0.10 * 8;  // smaller ramp
+    if (t < 0.72) return 20;                            // clamped
+    if (t < 0.82) return 20 - (t - 0.72) / 0.10 * 8;
+    return 12;
+  }
 
-  const row = (bars, yOff, lbl) => `
-    <g transform="translate(0,${yOff})">
-      <line x1="16" y1="${mid}" x2="${SVG_W-16}" y2="${mid}" stroke="${MUTED}" stroke-width="0.5" opacity="0.4"/>
-      ${bars}
-      ${label(lbl, 16, 10, MUTED, 9, 'start', 600)}
-    </g>`;
+  const mid1 = padY + rowH / 2;
+  const mid2 = padY + rowH + gap + rowH / 2;
 
-  return svgWrap(
-    row(uncBars, 4, 'UNCOMPRESSED') +
-    row(compBars, 74, 'COMPRESSED'),
-    148
-  );
-}
-
-// ── Signal flow block diagram ─────────────────────────────────
-function buildSignalFlow() {
-  const H = 90;
-  const blocks = [
-    { x: 30,  w: 90,  label: 'INPUT' },
-    { x: 200, w: 110, label: 'DETECTOR' },
-    { x: 390, w: 110, label: 'GAIN CELL' },
-    { x: 580, w: 110, label: 'OUTPUT' },
-  ];
-  const blocksSVG = blocks.map(b =>
-    `<rect x="${b.x}" y="30" width="${b.w}" height="34" rx="6" fill="rgba(232,134,90,0.1)" stroke="${COMP}" stroke-width="1" opacity="0.8"/>
-     ${label(b.label, b.x + b.w/2, 52, COMP2, 9, 'middle', 600)}`
-  ).join('');
-
-  // Arrows between blocks
-  const arrows = [
-    [120, 200], [310, 390], [500, 580]
-  ].map(([x1, x2]) =>
-    `<line x1="${x1}" y1="47" x2="${x2-8}" y2="47" stroke="${COMP}" stroke-width="1.5" opacity="0.6"/>
-     <polygon points="${x2-8},43 ${x2},47 ${x2-8},51" fill="${COMP}" opacity="0.6"/>`
-  ).join('');
-
-  // Sidechain arrow from detector down to gain cell
-  const sc = `
-    <line x1="255" y1="64" x2="255" y2="82" stroke="${MUTED}" stroke-width="1" stroke-dasharray="3,2" opacity="0.5"/>
-    <line x1="255" y1="82" x2="445" y2="82" stroke="${MUTED}" stroke-width="1" stroke-dasharray="3,2" opacity="0.5"/>
-    <line x1="445" y1="82" x2="445" y2="64" stroke="${MUTED}" stroke-width="1" stroke-dasharray="3,2" opacity="0.5"/>
-    <polygon points="441,64 445,56 449,64" fill="${MUTED}" opacity="0.5"/>
-    ${label('detection signal', 350, 79, MUTED, 8, 'middle')}
+  // Threshold marker line (shown only on uncompressed row to show what the compressor is reacting to)
+  const threshY = mid1 - 20;
+  const threshLine = `
+    <line x1="20" y1="${threshY}" x2="${20 + plotW}" y2="${threshY}"
+      stroke="#6366f1" stroke-width="1" stroke-dasharray="5,3" opacity="0.6"/>
+    ${label('threshold', 20 + plotW - 2, threshY - 4, '#6366f1', 8, 'end', 600)}
   `;
 
-  return svgWrap(blocksSVG + arrows + sc, H);
+  const zeroline = (y) => `<line x1="20" y1="${y}" x2="${20+plotW}" y2="${y}" stroke="${MUTED}" stroke-width="0.5" opacity="0.18"/>`;
+
+  return svgWrap(`
+    ${label('UNCOMPRESSED — wide dynamic range', 20, padY + 8, MUTED, 9, 'start', 600)}
+    ${zeroline(mid1)}
+    ${threshLine}
+    ${wavePath(mid1, uncAmp, COMP, 0.88)}
+
+    ${label('COMPRESSED — peaks controlled, quieter parts preserved', 20, padY + rowH + gap + 8, COMP, 9, 'start', 600)}
+    ${zeroline(mid2)}
+    ${wavePath(mid2, compAmp, COMP2, 0.88)}
+  `, H);
+}
+
+// ── Signal flow — three-panel Input / Compressor Gain / Output ─
+function buildSignalFlow() {
+  const H = 262;
+  const panelH = 66, gap = 14;
+  const lPad = 96, rPad = 16;
+  const plotW = SVG_W - lPad - rPad;
+  const STEPS = 400;
+  const CYCLES = 11;
+
+  // Time boundaries (normalized 0–1)
+  const aS = 0.28, aE = 0.40;   // attack zone
+  const rS = 0.72, rE = 0.84;   // release zone
+
+  function xAt(t) { return lPad + t * plotW; }
+
+  // Zone fills shared across all panels
+  function zoneFills(yTop, h) {
+    return `
+      <rect x="${xAt(aS).toFixed(1)}" y="${yTop}" width="${(xAt(aE)-xAt(aS)).toFixed(1)}" height="${h}" fill="#e8865a" opacity="0.16" rx="2"/>
+      <rect x="${xAt(aE).toFixed(1)}" y="${yTop}" width="${(xAt(rS)-xAt(aE)).toFixed(1)}" height="${h}" fill="#f0a882" opacity="0.10"/>
+      <rect x="${xAt(rS).toFixed(1)}" y="${yTop}" width="${(xAt(rE)-xAt(rS)).toFixed(1)}" height="${h}" fill="#fde68a" opacity="0.16" rx="2"/>
+    `;
+  }
+
+  // Sine waveform path with amplitude envelope
+  function wavePath(yBase, midFrac, ampFn, col, opacity=0.85) {
+    const yMid = yBase + panelH * midFrac;
+    let d = '';
+    for (let i = 0; i <= STEPS; i++) {
+      const t = i / STEPS;
+      const x = xAt(t);
+      const y = yMid - Math.sin(t * Math.PI * 2 * CYCLES) * ampFn(t);
+      d += (i === 0 ? 'M' : 'L') + `${x.toFixed(1)},${y.toFixed(1)} `;
+    }
+    return `<path d="${d}" fill="none" stroke="${col}" stroke-width="1.3" opacity="${opacity}"/>`;
+  }
+
+  // ── Panel 1: Input Signal ────────────────────────────────────
+  const p1y = 6;
+  const p1mid = p1y + panelH * 0.52;
+  const threshY1 = p1y + panelH * 0.24;
+
+  function inputAmp(t) {
+    if (t < aS - 0.04) return 7;
+    if (t < aE) return 7 + (t - (aS-0.04)) / (aE-(aS-0.04)) * 22;
+    if (t < rS) return 29;
+    if (t < rE) return 29 - (t - rS) / (rE - rS) * 22;
+    return 7;
+  }
+
+  const panel1 = `
+    ${zoneFills(p1y, panelH)}
+    <line x1="${lPad}" y1="${p1y}" x2="${lPad}" y2="${p1y+panelH}" stroke="${MUTED}" stroke-width="0.8" opacity="0.3"/>
+    <line x1="${lPad}" y1="${p1mid}" x2="${xAt(1)}" y2="${p1mid}" stroke="${MUTED}" stroke-width="0.5" opacity="0.18"/>
+    <line x1="${lPad}" y1="${threshY1}" x2="${xAt(1)}" y2="${threshY1}" stroke="#6366f1" stroke-width="1.2" stroke-dasharray="5,3" opacity="0.75"/>
+    ${label('Threshold', xAt(1)-2, threshY1-4, '#6366f1', 8, 'end', 600)}
+    ${wavePath(p1y, 0.52, inputAmp, COMP)}
+    ${label('Input', lPad/2, p1y + panelH*0.45, MUTED, 9, 'middle', 600)}
+    ${label('Signal', lPad/2, p1y + panelH*0.45+13, MUTED, 9, 'middle', 600)}
+  `;
+
+  // Zone labels at top (above panel 1)
+  const zoneLabels = `
+    ${label('Attack', xAt((aS+aE)/2), p1y-2, '#e8865a', 8, 'middle', 600)}
+    ${label('Release', xAt((rS+rE)/2), p1y-2, '#b45309', 8, 'middle', 600)}
+  `;
+
+  // ── Panel 2: Compressor Gain ─────────────────────────────────
+  const p2y = p1y + panelH + gap;
+  const gainTopFrac = 0.18, gainBotFrac = 0.82;
+  const gainTopY = p2y + panelH * gainTopFrac;
+  const gainBotY = p2y + panelH * gainBotFrac;
+
+  function gainY(t) {
+    let normalized; // 0 = no GR, 1 = full GR
+    if (t < aS) normalized = 0;
+    else if (t < aE) normalized = (t - aS) / (aE - aS);
+    else if (t < rS) normalized = 1;
+    else if (t < rE) normalized = 1 - (t - rS) / (rE - rS);
+    else normalized = 0;
+    return gainTopY + normalized * (gainBotY - gainTopY);
+  }
+
+  let gainPath = '';
+  for (let i = 0; i <= STEPS; i++) {
+    const t = i / STEPS;
+    const x = xAt(t);
+    const y = gainY(t);
+    gainPath += (i === 0 ? 'M' : 'L') + `${x.toFixed(1)},${y.toFixed(1)} `;
+  }
+
+  const panel2 = `
+    ${zoneFills(p2y, panelH)}
+    <line x1="${lPad}" y1="${p2y}" x2="${lPad}" y2="${p2y+panelH}" stroke="${MUTED}" stroke-width="0.8" opacity="0.3"/>
+    <line x1="${lPad}" y1="${gainTopY}" x2="${xAt(1)}" y2="${gainTopY}" stroke="${MUTED}" stroke-width="0.6" stroke-dasharray="3,2" opacity="0.28"/>
+    ${label('0 dB', lPad-4, gainTopY+3, MUTED, 7.5, 'end')}
+    ${label('−GR', lPad-4, gainBotY+3, MUTED, 7.5, 'end')}
+    <path d="${gainPath}" fill="none" stroke="${COMP2}" stroke-width="2.2" opacity="0.92" stroke-linejoin="round"/>
+    ${label('Compressor', lPad/2, p2y + panelH*0.42, MUTED, 9, 'middle', 600)}
+    ${label('Gain', lPad/2, p2y + panelH*0.42+13, MUTED, 9, 'middle', 600)}
+  `;
+
+  // ── Panel 3: Output Signal ───────────────────────────────────
+  const p3y = p2y + panelH + gap;
+  const p3mid = p3y + panelH * 0.52;
+  const threshY3 = p3y + panelH * 0.24;
+
+  function outputAmp(t) {
+    if (t < aS - 0.04) return 7;
+    if (t < aE) return 7 + (t - (aS-0.04)) / (aE-(aS-0.04)) * 8; // small ramp during attack
+    if (t < rS) return 15;                                          // clamped by compression
+    if (t < rE) return 15 + (t - rS) / (rE - rS) * 14;            // recovers as compressor releases
+    return 7;
+  }
+
+  const panel3 = `
+    ${zoneFills(p3y, panelH)}
+    <line x1="${lPad}" y1="${p3y}" x2="${lPad}" y2="${p3y+panelH}" stroke="${MUTED}" stroke-width="0.8" opacity="0.3"/>
+    <line x1="${lPad}" y1="${p3mid}" x2="${xAt(1)}" y2="${p3mid}" stroke="${MUTED}" stroke-width="0.5" opacity="0.18"/>
+    <line x1="${lPad}" y1="${threshY3}" x2="${xAt(1)}" y2="${threshY3}" stroke="#6366f1" stroke-width="1.2" stroke-dasharray="5,3" opacity="0.75"/>
+    ${label('Threshold', xAt(1)-2, threshY3-4, '#6366f1', 8, 'end', 600)}
+    ${wavePath(p3y, 0.52, outputAmp, COMP)}
+    ${label('Output', lPad/2, p3y + panelH*0.45, MUTED, 9, 'middle', 600)}
+    ${label('Signal', lPad/2, p3y + panelH*0.45+13, MUTED, 9, 'middle', 600)}
+    <line x1="${lPad}" y1="${p3y+panelH}" x2="${xAt(1)}" y2="${p3y+panelH}" stroke="${MUTED}" stroke-width="0.5" opacity="0.2"/>
+  `;
+
+  return svgWrap(zoneLabels + panel1 + panel2 + panel3, H);
 }
 
 // ── Transfer curve ────────────────────────────────────────────
@@ -1095,45 +1208,123 @@ function buildTransferRatios(p) {
   return svgWrap(ticksSVG + ref + curves + threshMark + legendSVG + axes, H);
 }
 
-// ── Attack compare waveform ───────────────────────────────────
+// ── Attack compare — waveform + gain envelope, two-panel ─────
 function buildAttackCompare() {
-  const H = 150, mid = 50;
+  const H = 210;
+  const halfW = SVG_W / 2;
+  const padL = 14, padT = 20, padR = 14;
+  const plotW = halfW - padL - padR - 6;
+  const waveH = 70, gainH = 52, secGap = 16;
+  const STEPS = 300;
 
-  function drumHit(x, peakH, envH, col, attackW, label_) {
-    // Waveform peak
-    const wave = `<rect x="${x-4}" y="${mid-peakH}" width="8" height="${peakH*2}" fill="${col}" opacity="0.7" rx="2"/>`;
-    // Envelope line (shows compressor envelope)
-    const envY = mid - envH;
-    const envPath = `M ${x-4} ${mid-peakH} L ${x+attackW} ${envY} L ${x+60} ${envY+6} L ${x+80} ${mid}`;
-    const env = `<path d="${envPath}" fill="none" stroke="${COMP2}" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.7"/>`;
-    return wave + env + `<text x="${x}" y="${mid+peakH+16}" text-anchor="middle" ${FONT} font-size="8" fill="${MUTED}">${label_}</text>`;
+  // Threshold crossing happens at t=0.12 into each panel
+  const tThresh = 0.12;
+
+  // A single sustained hit: amplitude rises fast, then decays
+  function hitAmp(t) {
+    if (t < tThresh) return 6;                        // below threshold — quiet
+    const elapsed = t - tThresh;
+    return 6 + Math.exp(-elapsed * 1.8) * 32;         // loud peak, then decay
   }
 
-  const fastSVG = `
-    ${label('FAST ATTACK (1 ms)', 16, 12, COMP, 9, 'start', 600)}
-    <line x1="16" y1="${mid}" x2="${SVG_W/2-20}" y2="${mid}" stroke="${MUTED}" stroke-width="0.5" opacity="0.3"/>
-    ${drumHit(80,  40, 30, COMP, 3, 'kick')}
-    ${drumHit(220, 28, 22, COMP2, 3, 'snare')}
-    ${drumHit(330, 12, 10, MUTED, 2, 'hat')}
-  `;
+  // Compressor gain envelope — drops after threshold, at speed set by attackFrac
+  // attackFrac: fraction of total plot width to reach full GR
+  function gainEnvY(t, attackFrac, gainTopY, gainBotY) {
+    if (t < tThresh) return gainTopY;
+    const elapsed = t - tThresh;
+    const normalized = Math.min(elapsed / attackFrac, 1);
+    // Smooth exponential approach
+    const gr = 1 - Math.exp(-normalized * 5);
+    return gainTopY + gr * (gainBotY - gainTopY);
+  }
 
-  const slowSVG = `
-    ${label('SLOW ATTACK (50 ms)', SVG_W/2+16, 12, COMP2, 9, 'start', 600)}
-    <line x1="${SVG_W/2+10}" y1="${mid}" x2="${SVG_W-16}" y2="${mid}" stroke="${MUTED}" stroke-width="0.5" opacity="0.3"/>
-    ${[{x:SVG_W/2+80,h:40,col:COMP,lbl:'kick'},{x:SVG_W/2+220,h:28,col:COMP2,lbl:'snare'},{x:SVG_W/2+330,h:12,col:MUTED,lbl:'hat'}].map(b =>
-      `<rect x="${b.x-4}" y="${mid-b.h}" width="8" height="${b.h*2}" fill="${b.col}" opacity="0.7" rx="2"/>` +
-      `<path d="M ${b.x-4} ${mid-b.h} L ${b.x+30} ${mid-b.h} L ${b.x+50} ${mid-b.h*0.75} L ${b.x+80} ${mid}" fill="none" stroke="${COMP2}" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.7"/>` +
-      `<text x="${b.x}" y="${mid+b.h+16}" text-anchor="middle" ${FONT} font-size="8" fill="${MUTED}">${b.lbl}</text>`
-    ).join('')}
-  `;
+  function panel(xOff, attackFrac, titleText, subtitleText, col, showTransient) {
+    const wMid = padT + waveH / 2;
+    const gainTopY = padT + waveH + secGap;
+    const gainBotY = gainTopY + gainH;
 
-  const divider = `<line x1="${SVG_W/2}" y1="4" x2="${SVG_W/2}" y2="${H-8}" stroke="${MUTED}" stroke-width="0.5" stroke-dasharray="3,3" opacity="0.3"/>`;
-  const envLegend = `
-    <line x1="${SVG_W-140}" y1="${H-14}" x2="${SVG_W-120}" y2="${H-14}" stroke="${COMP2}" stroke-width="1.5" stroke-dasharray="3,2"/>
-    ${label('compressor envelope', SVG_W-116, H-10, MUTED, 8, 'start')}
-  `;
+    // Waveform path
+    let wavePts = '';
+    for (let i = 0; i <= STEPS; i++) {
+      const t = i / STEPS;
+      const x = xOff + padL + t * plotW;
+      const amp = hitAmp(t);
+      const y = padT + waveH / 2 - Math.sin(t * Math.PI * 2 * 9) * amp;
+      wavePts += (i === 0 ? 'M' : 'L') + `${x.toFixed(1)},${y.toFixed(1)} `;
+    }
 
-  return svgWrap(fastSVG + slowSVG + divider + envLegend, H);
+    // Gain envelope path
+    let gainPts = '';
+    for (let i = 0; i <= STEPS; i++) {
+      const t = i / STEPS;
+      const x = xOff + padL + t * plotW;
+      const y = gainEnvY(t, attackFrac, gainTopY, gainBotY);
+      gainPts += (i === 0 ? 'M' : 'L') + `${x.toFixed(1)},${y.toFixed(1)} `;
+    }
+
+    // Attack zone fill on waveform
+    const ax1 = xOff + padL + tThresh * plotW;
+    const attackEndT = tThresh + attackFrac;
+    const ax2 = xOff + padL + Math.min(attackEndT, 1) * plotW;
+
+    // Transient ghost — if slow attack, show the big initial peak passing through
+    let transientGhost = '';
+    if (showTransient) {
+      // Draw a "ghost" of what the full uncompressed peak looks like during attack time
+      let ghostPts = '';
+      for (let i = 0; i <= STEPS; i++) {
+        const t = i / STEPS;
+        if (t < tThresh || t > tThresh + attackFrac * 1.1) continue;
+        const x = xOff + padL + t * plotW;
+        const amp = hitAmp(t);
+        const y = padT + waveH / 2 - Math.sin(t * Math.PI * 2 * 9) * amp;
+        if (ghostPts === '') ghostPts = `M${x.toFixed(1)},${y.toFixed(1)} `;
+        else ghostPts += `L${x.toFixed(1)},${y.toFixed(1)} `;
+      }
+      transientGhost = `<path d="${ghostPts}" fill="none" stroke="${col}" stroke-width="2.5" opacity="0.25"/>
+        ${label('transient passes through', xOff + padL + (tThresh + attackFrac*0.5)*plotW, padT + 8, col, 7.5, 'middle', 600)}`;
+    }
+
+    // Attack bracket annotation on gain panel
+    const bracketY = gainBotY + 10;
+    const bracket = attackFrac < 0.06
+      ? `<line x1="${ax1}" y1="${bracketY}" x2="${ax1+3}" y2="${bracketY}" stroke="${col}" stroke-width="1.2" opacity="0.6"/>
+         ${label('instant', ax1+2, bracketY+9, col, 7.5, 'start', 600)}`
+      : `<line x1="${ax1}" y1="${bracketY}" x2="${ax2}" y2="${bracketY}" stroke="${col}" stroke-width="1.2" opacity="0.6"/>
+         <line x1="${ax1}" y1="${bracketY-3}" x2="${ax1}" y2="${bracketY+3}" stroke="${col}" stroke-width="1.2" opacity="0.6"/>
+         <line x1="${ax2}" y1="${bracketY-3}" x2="${ax2}" y2="${bracketY+3}" stroke="${col}" stroke-width="1.2" opacity="0.6"/>
+         ${label('attack time', (ax1+ax2)/2, bracketY+9, col, 7.5, 'middle', 600)}`;
+
+    return `
+      ${label(titleText, xOff + padL + plotW/2, 10, col, 9, 'middle', 600)}
+      ${label(subtitleText, xOff + padL + plotW/2, 20, MUTED, 7.5, 'middle')}
+
+      <!-- Waveform -->
+      <rect x="${ax1}" y="${padT}" width="${Math.max(ax2-ax1,1)}" height="${waveH}" fill="${col}" opacity="0.08"/>
+      <line x1="${xOff+padL}" y1="${wMid}" x2="${xOff+padL+plotW}" y2="${wMid}" stroke="${MUTED}" stroke-width="0.5" opacity="0.2"/>
+      ${transientGhost}
+      <path d="${wavePts}" fill="none" stroke="${col}" stroke-width="1.5" opacity="0.85"/>
+      ${label('WAVEFORM', xOff+padL, padT+waveH+4, MUTED, 7, 'start')}
+
+      <!-- Gain envelope panel -->
+      <rect x="${xOff+padL}" y="${gainTopY}" width="${plotW}" height="${gainH}" fill="rgba(255,255,255,0.02)" rx="3"/>
+      <line x1="${xOff+padL}" y1="${gainTopY}" x2="${xOff+padL+plotW}" y2="${gainTopY}" stroke="${MUTED}" stroke-width="0.6" stroke-dasharray="3,2" opacity="0.3"/>
+      ${label('0 dB', xOff+padL-2, gainTopY+4, MUTED, 7, 'end')}
+      ${label('max GR', xOff+padL-2, gainBotY+4, MUTED, 7, 'end')}
+      <path d="${gainPts}" fill="none" stroke="${col}" stroke-width="2.5" opacity="0.95"/>
+      ${label('COMPRESSOR GAIN', xOff+padL, gainBotY+4, MUTED, 7, 'start')}
+      ${bracket}
+    `;
+  }
+
+  const divider = `<line x1="${halfW}" y1="4" x2="${halfW}" y2="${H-4}" stroke="${MUTED}" stroke-width="0.5" stroke-dasharray="4,3" opacity="0.25"/>`;
+
+  return svgWrap(
+    panel(0,         0.03, 'FAST ATTACK — 1 ms',  'compressor grabs the peak immediately', COMP,  false) +
+    panel(halfW + 2, 0.40, 'SLOW ATTACK — 50 ms', 'transient punches through before GR sets in', COMP2, true) +
+    divider,
+    H
+  );
 }
 
 // ── Release compare waveform ──────────────────────────────────
@@ -1848,7 +2039,7 @@ function renderStep(idx) {
 function getDiagramTitle(type) {
   const titles = {
     'waveform-compare':   'Dynamic range — uncompressed vs. compressed waveform',
-    'signal-flow':        'Signal flow — how a compressor processes audio',
+    'signal-flow':        'Input signal, compressor gain, and output — with attack and release zones',
     'transfer':           'Transfer curve — input level vs. output level',
     'transfer-ratios':    'Transfer curve — comparing compression ratios',
     'attack-compare':     'Attack — how quickly the compressor engages',
