@@ -511,9 +511,7 @@
       navRight.innerHTML = `
         <div class="user-pill">
           <span class="nav-username" id="navUsername">…</span>
-          <button class="signout-btn" id="signOutBtn">Sign out</button>
         </div>`;
-      document.getElementById('signOutBtn').addEventListener('click', () => SonicSandbox.signOut());
 
       // Load profile + populate page
       await loadAccount(user);
