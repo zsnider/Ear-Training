@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Account — SonicSandbox</title>
+<link rel="apple-touch-icon" href="../../icons/icon-192.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg:       #0a0b0d;
+  --surface:  #13151a;
+  --surface2: #1a1d24;
+  --border:   rgba(255,255,255,0.08);
+  --border2:  rgba(255,255,255,0.14);
+  --text:     #dde2ee;
+  --muted:    #6b7280;
+  --accent:   #5b6aff;
+  --accent2:  #8892ff;
+  --green:    #2dd4a0;
+  --red:      #d44a2a;
+  --red2:     #f07070;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { background: #000; }
+
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: calc(env(safe-area-inset-bottom) + 24px);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+body.visible { opacity: 1; }
+
+/* ── Header ── */
+.app-header {
+  display: flex; align-items: center;
+  padding: 16px 20px 8px;
+  gap: 8px;
+}
+.back-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--surface2); border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text); text-decoration: none; flex-shrink: 0;
+  transition: border-color 0.15s;
+}
+.back-btn:active { border-color: var(--accent); opacity: 0.7; }
+.header-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 16px; font-weight: 700; flex: 1; text-align: center;
+  margin-right: 44px; /* balance back button */
+}
+
+/* ── Recovery banner ── */
+#recoveryBanner {
+  display: none;
+  background: rgba(91, 106, 255, 0.1);
+  border-bottom: 1px solid rgba(91, 106, 255, 0.2);
+  padding: 12px 20px;
+  font-size: 13px; color: var(--accent2);
+  font-family: 'IBM Plex Mono', monospace;
+  text-align: center;
+}
+
+/* ── Hero profile ── */
+.profile-hero {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 20px 20px 24px; gap: 10px; text-align: center;
+}
+.hero-avatar {
+  width: 68px; height: 68px; border-radius: 50%;
+  background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 24px; font-weight: 700; color: #fff;
+}
+.hero-username {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 18px; font-weight: 700; color: var(--text);
+}
+.hero-email { font-size: 12px; color: var(--muted); word-break: break-all; }
+.hero-since { font-size: 11px; color: var(--muted); }
+
+/* ── Sections ── */
+.sections { display: flex; flex-direction: column; gap: 16px; padding: 0 16px; }
+
+.section-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.section-header {
+  padding: 14px 18px 10px;
+  border-bottom: 1px solid var(--border);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; font-weight: 600;
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted);
+}
+
+/* ── Field rows ── */
+.field-row {
+  display: flex; align-items: center;
+  padding: 14px 18px; gap: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.field-row:last-child { border-bottom: none; }
+.field-label {
+  font-size: 11px; font-weight: 500; letter-spacing: 0.04em;
+  color: var(--muted); min-width: 90px; flex-shrink: 0;
+}
+.field-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px; color: var(--text); flex: 1; word-break: break-all;
+}
+.field-edit-btn {
+  font-size: 12px; color: var(--accent2); background: none; border: none;
+  font-family: 'IBM Plex Sans', sans-serif;
+  text-decoration: underline; padding: 6px 0 6px 8px; cursor: pointer;
+  flex-shrink: 0; min-height: 44px; min-width: 44px; text-align: right;
+}
+
+/* ── Username edit form ── */
+.username-edit-area {
+  display: none; flex-direction: column; gap: 10px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.username-edit-area.active { display: flex; }
+.edit-input {
+  width: 100%; padding: 12px 14px; border-radius: 10px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  color: var(--text); font-size: 16px; font-family: 'IBM Plex Mono', monospace;
+  outline: none; -webkit-appearance: none; transition: border-color 0.15s;
+}
+.edit-input:focus { border-color: var(--accent); }
+.edit-check { font-size: 12px; min-height: 16px; transition: color 0.15s; }
+.edit-check.available { color: var(--green); }
+.edit-check.taken { color: var(--red2); }
+.edit-hint { font-size: 11px; color: var(--muted); line-height: 1.5; }
+.edit-btns { display: flex; gap: 10px; align-items: center; }
+.save-btn {
+  padding: 11px 20px; border-radius: 10px;
+  background: var(--accent); color: #fff; font-size: 14px; font-weight: 600;
+  border: none; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif;
+  -webkit-tap-highlight-color: transparent; min-height: 44px;
+}
+.save-btn:active { opacity: 0.8; }
+.cancel-btn {
+  font-size: 13px; color: var(--muted); background: none; border: none;
+  font-family: 'IBM Plex Sans', sans-serif; text-decoration: underline;
+  padding: 8px; cursor: pointer; min-height: 44px;
+}
+.edit-msg { font-size: 12px; color: var(--red2); min-height: 16px; flex: 1; }
+
+/* ── Stats grid ── */
+.stats-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1px; background: var(--border);
+}
+.stat-cell {
+  background: var(--surface); padding: 20px 18px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.stat-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 28px; font-weight: 700; color: var(--text); line-height: 1;
+}
+.stat-label { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+.stats-footer { padding: 14px 18px; border-top: 1px solid var(--border); }
+.stats-link { font-size: 13px; color: var(--accent2); text-decoration: none; font-weight: 500; }
+.stats-link:active { opacity: 0.7; }
+
+/* ── Action rows ── */
+.action-row {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.action-row:last-child { border-bottom: none; }
+.action-label { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+.action-sub { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 12px; }
+.action-btn-full {
+  width: 100%; padding: 13px; border-radius: 12px;
+  font-size: 14px; font-weight: 600;
+  border: 1px solid var(--border2); background: var(--surface2); color: var(--text);
+  cursor: pointer; font-family: 'IBM Plex Sans', sans-serif;
+  -webkit-tap-highlight-color: transparent; transition: opacity 0.15s;
+  min-height: 48px;
+}
+.action-btn-full:active { opacity: 0.7; }
+.action-msg { font-size: 12px; color: var(--green); margin-top: 8px; min-height: 16px; }
+.action-msg.error { color: var(--red2); }
+
+/* ── New password form ── */
+.new-pw-form { display: none; flex-direction: column; gap: 10px; }
+.new-pw-form.active { display: flex; }
+.pw-input {
+  width: 100%; padding: 12px 14px; border-radius: 10px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  color: var(--text); font-size: 16px; font-family: inherit;
+  outline: none; -webkit-appearance: none; transition: border-color 0.15s;
+}
+.pw-input:focus { border-color: var(--accent); }
+.pw-msg { font-size: 12px; min-height: 16px; }
+.pw-msg.error { color: var(--red2); }
+.pw-msg.success { color: var(--green); }
+
+/* ── Sign out button ── */
+.signout-btn-full {
+  width: 100%; padding: 13px; border-radius: 12px;
+  font-size: 14px; font-weight: 600;
+  border: 1px solid var(--border2); background: var(--surface2); color: var(--text);
+  cursor: pointer; font-family: 'IBM Plex Sans', sans-serif;
+  -webkit-tap-highlight-color: transparent; min-height: 48px;
+}
+.signout-btn-full:active { opacity: 0.7; }
+
+/* ── Danger card ── */
+.danger-card {
+  background: var(--surface);
+  border: 1px solid rgba(212, 74, 42, 0.2);
+  border-radius: 16px; overflow: hidden;
+  margin: 0 16px;
+}
+.danger-header {
+  padding: 14px 18px 10px;
+  border-bottom: 1px solid rgba(212, 74, 42, 0.15);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; font-weight: 600;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: rgba(212, 74, 42, 0.7);
+}
+.danger-body { padding: 18px; }
+.danger-desc { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 14px; }
+.danger-btn {
+  width: 100%; padding: 13px; border-radius: 12px;
+  font-size: 14px; font-weight: 600;
+  background: rgba(212, 74, 42, 0.1); color: var(--red2);
+  border: 1px solid rgba(212, 74, 42, 0.3);
+  cursor: pointer; font-family: 'IBM Plex Sans', sans-serif;
+  -webkit-tap-highlight-color: transparent; min-height: 48px;
+}
+.danger-btn:active { opacity: 0.7; }
+
+/* ── Delete confirm ── */
+.delete-confirm {
+  display: none; flex-direction: column; gap: 12px; margin-top: 14px;
+  background: rgba(212, 74, 42, 0.06);
+  border: 1px solid rgba(212, 74, 42, 0.2);
+  border-radius: 12px; padding: 16px;
+}
+.delete-confirm.active { display: flex; }
+.delete-confirm p { font-size: 13px; color: var(--muted); line-height: 1.55; }
+.delete-confirm strong { color: var(--text); font-family: 'IBM Plex Mono', monospace; }
+.delete-input {
+  width: 100%; padding: 12px 14px; border-radius: 10px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  color: var(--text); font-size: 16px; font-family: 'IBM Plex Mono', monospace;
+  outline: none; -webkit-appearance: none; transition: border-color 0.15s;
+}
+.delete-input:focus { border-color: var(--red2); }
+.delete-go-btn {
+  width: 100%; padding: 13px; border-radius: 12px;
+  font-size: 14px; font-weight: 600;
+  background: var(--red); color: #fff; border: none;
+  cursor: pointer; font-family: 'IBM Plex Sans', sans-serif;
+  -webkit-tap-highlight-color: transparent; min-height: 48px;
+  opacity: 0.35; pointer-events: none;
+}
+.delete-go-btn.ready { opacity: 1; pointer-events: auto; }
+.delete-go-btn:active { opacity: 0.75; }
+.delete-msg { font-size: 12px; color: var(--red2); min-height: 16px; }
+
+/* ── Spacer ── */
+.spacer { height: 16px; }
+</style>
+</head>
+<body>
+
+<div id="recoveryBanner">🔐 Set your new password below</div>
+
+<!-- Header -->
+<div class="app-header">
+  <a class="back-btn" href="/mobile/" aria-label="Back">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+      <path d="M15 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </a>
+  <div class="header-title">Account</div>
+</div>
+
+<!-- Profile hero -->
+<div class="profile-hero">
+  <div class="hero-avatar" id="heroAvatar">?</div>
+  <div class="hero-username" id="heroUsername">—</div>
+  <div class="hero-email" id="heroEmail"></div>
+  <div class="hero-since" id="heroSince"></div>
+</div>
+
+<!-- Page sections -->
+<div class="sections">
+
+  <!-- Profile card -->
+  <div class="section-card">
+    <div class="section-header">Profile</div>
+
+    <!-- Username display row -->
+    <div class="field-row" id="usernameRow">
+      <div class="field-label">Username</div>
+      <div class="field-value" id="usernameDisplay">—</div>
+      <button class="field-edit-btn" id="editUsernameBtn">Edit</button>
+    </div>
+
+    <!-- Username edit form -->
+    <div class="username-edit-area" id="usernameEditArea">
+      <input class="edit-input" type="text" id="usernameInput"
+             placeholder="e.g. basshead42" maxlength="20"
+             autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <div class="edit-check" id="usernameCheck"></div>
+      <div class="edit-hint">3–20 characters · Letters, numbers, _ and - only</div>
+      <div class="edit-btns">
+        <button class="save-btn" id="usernameSave" ontouchend="onUsernameSave(event)">Save</button>
+        <button class="cancel-btn" id="usernameCancel" ontouchend="onUsernameCancel(event)">Cancel</button>
+        <span class="edit-msg" id="usernameMsg"></span>
+      </div>
+    </div>
+
+    <!-- Email row -->
+    <div class="field-row">
+      <div class="field-label">Email</div>
+      <div class="field-value" id="emailDisplay">—</div>
+    </div>
+
+    <!-- Member since row -->
+    <div class="field-row">
+      <div class="field-label">Member since</div>
+      <div class="field-value" id="memberSinceDisplay">—</div>
+    </div>
+  </div>
+
+  <!-- Stats snapshot -->
+  <div class="section-card">
+    <div class="section-header">Your Stats</div>
+    <div class="stats-grid">
+      <div class="stat-cell">
+        <div class="stat-value" id="statRounds">—</div>
+        <div class="stat-label">Rounds played</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-value" id="statAccuracy">—</div>
+        <div class="stat-label">Accuracy</div>
+      </div>
+    </div>
+    <div class="stats-footer">
+      <a class="stats-link" href="/stats/">View full stats →</a>
+    </div>
+  </div>
+
+  <!-- Security card -->
+  <div class="section-card">
+    <div class="section-header">Security</div>
+
+    <!-- Send reset email (normal state) -->
+    <div class="action-row" id="passwordRow">
+      <div class="action-label">Password</div>
+      <div class="action-sub">Send a reset link to your email address.</div>
+      <button class="action-btn-full" id="sendResetBtn" ontouchend="onSendReset(event)">Send password reset email</button>
+      <div class="action-msg" id="pwResetMsg"></div>
+    </div>
+
+    <!-- Set new password (shown on PASSWORD_RECOVERY event) -->
+    <div class="action-row" id="newPasswordRow" style="display:none;">
+      <div class="action-label" style="margin-bottom:12px;">Set new password</div>
+      <div class="new-pw-form active">
+        <input class="pw-input" type="password" id="newPwInput"
+               placeholder="New password (min 6 characters)" autocomplete="new-password">
+        <button class="save-btn" id="newPwSave" ontouchend="onNewPwSave(event)">Update password</button>
+        <div class="pw-msg" id="newPwMsg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sign out -->
+  <div class="section-card">
+    <div class="section-header">Session</div>
+    <div class="action-row">
+      <button class="signout-btn-full" id="signOutBtn" ontouchend="onSignOut(event)">Sign out</button>
+    </div>
+  </div>
+
+</div><!-- /sections -->
+
+<div class="spacer"></div>
+
+<!-- Danger zone -->
+<div class="danger-card">
+  <div class="danger-header">Danger Zone</div>
+  <div class="danger-body">
+    <p class="danger-desc">Permanently deletes your account and all associated score data. This cannot be undone.</p>
+    <button class="danger-btn" id="deleteAccountBtn" ontouchend="onDeleteTap(event)">Delete my account</button>
+    <div class="delete-confirm" id="deleteConfirm">
+      <p>Type <strong>DELETE</strong> to confirm:</p>
+      <input class="delete-input" type="text" id="deleteConfirmInput"
+             placeholder="Type DELETE" autocomplete="off" spellcheck="false">
+      <button class="delete-go-btn" id="deleteGoBtn" ontouchend="onDeleteGo(event)">Permanently delete account</button>
+      <div class="delete-msg" id="deleteMsg"></div>
+    </div>
+  </div>
+</div>
+
+<div class="spacer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../../supabase-client.js"></script>
+<script>
+requestAnimationFrame(() => document.body.classList.add('visible'));
+
+let _currentProfile = null;
+let _inRecovery = false;
+
+// ── Auth state ────────────────────────────────────────────
+document.addEventListener('ss:authchange', async (e) => {
+  const user = e.detail;
+  if (!user && !_inRecovery) {
+    window.location.replace('/mobile/');
+    return;
+  }
+  if (user) await loadAccount(user);
+});
+
+// ── Password recovery ─────────────────────────────────────
+document.addEventListener('ss:passwordrecovery', () => {
+  _inRecovery = true;
+  document.getElementById('recoveryBanner').style.display = 'block';
+  document.getElementById('passwordRow').style.display = 'none';
+  document.getElementById('newPasswordRow').style.display = 'block';
+  setTimeout(() => document.getElementById('newPwInput').focus(), 100);
+});
+
+// ── Load account data ─────────────────────────────────────
+async function loadAccount(user) {
+  // Email
+  document.getElementById('emailDisplay').textContent = user.email;
+  document.getElementById('heroEmail').textContent = user.email;
+
+  // Member since
+  const since = new Date(user.created_at);
+  const sinceStr = since.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  document.getElementById('memberSinceDisplay').textContent = sinceStr;
+  document.getElementById('heroSince').textContent = 'Member since ' + sinceStr;
+
+  // Profile / username
+  _currentProfile = await SonicSandbox.getProfile();
+  renderUsername();
+
+  // Stats
+  const stats = await SonicSandbox.getStats();
+  document.getElementById('statRounds').textContent   = stats.total > 0 ? stats.total.toLocaleString() : '0';
+  document.getElementById('statAccuracy').textContent = stats.accuracy !== null ? stats.accuracy + '%' : '—';
+}
+
+function renderUsername() {
+  const username = _currentProfile?.username;
+  const user = SonicSandbox.getUser();
+
+  // Hero avatar initial
+  const initial = username ? username[0].toUpperCase() : (user?.email || '?')[0].toUpperCase();
+  document.getElementById('heroAvatar').textContent = initial;
+
+  if (username) {
+    document.getElementById('heroUsername').textContent = '@' + username;
+    document.getElementById('usernameDisplay').textContent = '@' + username;
+  } else {
+    document.getElementById('heroUsername').textContent = user?.email ?? '—';
+    document.getElementById('usernameDisplay').innerHTML = '<span style="color:var(--muted);font-style:italic;">Not set</span>';
+  }
+}
+
+// ── Username edit ─────────────────────────────────────────
+document.getElementById('editUsernameBtn').addEventListener('click', openEdit);
+
+function openEdit() {
+  document.getElementById('usernameRow').style.display = 'none';
+  const area = document.getElementById('usernameEditArea');
+  area.classList.add('active');
+  const input = document.getElementById('usernameInput');
+  input.value = _currentProfile?.username ?? '';
+  document.getElementById('usernameCheck').textContent = '';
+  document.getElementById('usernameCheck').className = 'edit-check';
+  document.getElementById('usernameMsg').textContent = '';
+  input.focus();
+}
+
+function closeEdit() {
+  document.getElementById('usernameEditArea').classList.remove('active');
+  document.getElementById('usernameRow').style.display = 'flex';
+}
+
+function onUsernameCancel(e) { e.preventDefault(); closeEdit(); }
+
+function validateUsername(val) {
+  if (val.length < 3)  return 'Too short — min 3 characters';
+  if (val.length > 20) return 'Too long — max 20 characters';
+  if (!/^[a-zA-Z0-9_-]+$/.test(val)) return 'Letters, numbers, _ and - only';
+  return null;
+}
+
+let _checkTimer;
+document.getElementById('usernameInput').addEventListener('input', () => {
+  const val = document.getElementById('usernameInput').value.trim();
+  const check = document.getElementById('usernameCheck');
+  clearTimeout(_checkTimer);
+  const err = validateUsername(val);
+  if (err) {
+    check.textContent = val.length > 0 ? err : '';
+    check.className = 'edit-check';
+    return;
+  }
+  if (val === _currentProfile?.username) {
+    check.textContent = "That's your current username";
+    check.className = 'edit-check';
+    return;
+  }
+  check.textContent = 'Checking…';
+  check.className = 'edit-check';
+  _checkTimer = setTimeout(async () => {
+    const taken = await SonicSandbox.isUsernameTaken(val, true);
+    if (document.getElementById('usernameInput').value.trim() !== val) return;
+    if (taken) {
+      check.textContent = `"${val}" is already taken`;
+      check.className = 'edit-check taken';
+    } else {
+      check.textContent = `"${val}" is available ✓`;
+      check.className = 'edit-check available';
+    }
+  }, 500);
+});
+
+async function onUsernameSave(e) {
+  e.preventDefault();
+  const val = document.getElementById('usernameInput').value.trim();
+  const msg = document.getElementById('usernameMsg');
+  const err = validateUsername(val);
+  if (err) { msg.textContent = err; return; }
+
+  msg.textContent = 'Saving…';
+  const { error } = await SonicSandbox.setUsername(val);
+  if (error) {
+    const isConflict = error.message?.toLowerCase().includes('duplicate') ||
+                       error.message?.toLowerCase().includes('unique') ||
+                       error.code === '23505';
+    msg.textContent = isConflict ? `"${val}" is already taken — try another.` : error.message;
+  } else {
+    _currentProfile = { ..._currentProfile, username: val };
+    closeEdit();
+    renderUsername();
+  }
+}
+
+// ── Send password reset ───────────────────────────────────
+async function onSendReset(e) {
+  e.preventDefault();
+  const btn = document.getElementById('sendResetBtn');
+  const msg = document.getElementById('pwResetMsg');
+  const user = SonicSandbox.getUser();
+  if (!user) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  const { error } = await SonicSandbox.resetPasswordForEmail(user.email);
+  if (error) {
+    msg.textContent = error.message; msg.className = 'action-msg error';
+    btn.disabled = false; btn.textContent = 'Send password reset email';
+  } else {
+    msg.textContent = 'Check your email for the reset link.';
+    btn.textContent = 'Email sent';
+  }
+}
+
+// ── Set new password ──────────────────────────────────────
+async function onNewPwSave(e) {
+  e.preventDefault();
+  const pw  = document.getElementById('newPwInput').value;
+  const msg = document.getElementById('newPwMsg');
+  if (pw.length < 6) {
+    msg.textContent = 'Password must be at least 6 characters';
+    msg.className = 'pw-msg error'; return;
+  }
+  msg.textContent = 'Updating…'; msg.className = 'pw-msg';
+  const { error } = await SonicSandbox.updatePassword(pw);
+  if (error) {
+    msg.textContent = error.message; msg.className = 'pw-msg error';
+  } else {
+    msg.textContent = 'Password updated!'; msg.className = 'pw-msg success';
+    document.getElementById('recoveryBanner').style.display = 'none';
+    document.getElementById('newPasswordRow').style.display = 'none';
+    document.getElementById('passwordRow').style.display = 'block';
+    document.getElementById('newPwInput').value = '';
+  }
+}
+
+// ── Sign out ──────────────────────────────────────────────
+async function onSignOut(e) {
+  e.preventDefault();
+  await SonicSandbox.signOut();
+  window.location.replace('/mobile/');
+}
+
+// ── Delete account ────────────────────────────────────────
+function onDeleteTap(e) {
+  e.preventDefault();
+  document.getElementById('deleteConfirm').classList.add('active');
+  document.getElementById('deleteConfirmInput').focus();
+}
+
+document.getElementById('deleteConfirmInput').addEventListener('input', function() {
+  document.getElementById('deleteGoBtn').classList.toggle('ready', this.value === 'DELETE');
+});
+
+async function onDeleteGo(e) {
+  e.preventDefault();
+  if (!document.getElementById('deleteGoBtn').classList.contains('ready')) return;
+  const msg = document.getElementById('deleteMsg');
+  const btn = document.getElementById('deleteGoBtn');
+  btn.textContent = 'Deleting…'; btn.disabled = true;
+  const { error } = await SonicSandbox.deleteAccount();
+  if (error) {
+    msg.textContent = error.message;
+    btn.textContent = 'Permanently delete account'; btn.disabled = false;
+  } else {
+    window.location.replace('/mobile/');
+  }
+}
+</script>
+</body>
+</html>

@@ -6,8 +6,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="SonicSandbox">
-<title>SonicSandbox — Mobile</title>
 <link rel="apple-touch-icon" href="../icons/icon-192.png">
+<title>SonicSandbox — Mobile</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
 
@@ -51,6 +51,7 @@ body.visible { opacity: 1; }
   width: 32px; height: 32px; background: var(--accent);
   border-radius: 9px; display: flex; align-items: center; justify-content: center;
 }
+
 .brand-name {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 16px; font-weight: 700; letter-spacing: 0.03em;
@@ -256,6 +257,20 @@ body.visible { opacity: 1; }
 }
 .btn-cancel-delete { background: var(--surface2); border: 1px solid var(--border2); color: var(--muted); }
 .btn-confirm-delete { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); color: #f87171; }
+.profile-username {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 15px; font-weight: 700; color: var(--text);
+}
+.profile-email-small { font-size: 11px; color: var(--muted); margin-top: 2px; word-break: break-all; }
+.account-link {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; padding: 14px; border-radius: 12px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  color: var(--accent2); font-size: 14px; font-weight: 600;
+  text-decoration: none; font-family: 'IBM Plex Sans', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+.account-link:active { opacity: 0.7; }
 </style>
 </head>
 <body>
@@ -263,12 +278,6 @@ body.visible { opacity: 1; }
 <!-- Header -->
 <div class="app-header">
   <div class="brand">
-    <div class="brand-icon">
-      <svg width="18" height="18" viewBox="0 0 32 32" fill="none">
-        <path d="M2 16 Q5 8 8 16 Q11 24 14 16 Q17 8 20 16 Q23 24 26 16 Q28 10 30 16"
-              stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </div>
     <div class="brand-name">Sonic<span>Sandbox</span></div>
   </div>
   <div id="profileBtnWrap">
@@ -468,7 +477,8 @@ body.visible { opacity: 1; }
           <div class="profile-user">
             <div class="profile-avatar-lg" id="profileAvatarLg">?</div>
             <div>
-              <div class="profile-email" id="profileEmail">—</div>
+              <div class="profile-username" id="profileUsername">—</div>
+              <div class="profile-email-small" id="profileEmail"></div>
               <div class="profile-since" id="profileSince"></div>
             </div>
           </div>
@@ -482,18 +492,7 @@ body.visible { opacity: 1; }
               <div class="stat-label">Accuracy</div>
             </div>
           </div>
-          <div class="profile-actions">
-            <button class="action-btn" ontouchend="onSignOut(event)">Sign out</button>
-            <button class="action-btn danger" ontouchend="onDeleteAccountTap(event)">Delete account</button>
-            <div class="delete-confirm" id="deleteConfirm">
-              <p>This will permanently delete your account and all score history. This cannot be undone.</p>
-              <div class="delete-confirm-btns">
-                <button class="btn-cancel-delete" ontouchend="onCancelDelete(event)">Cancel</button>
-                <button class="btn-confirm-delete" ontouchend="onConfirmDelete(event)">Delete</button>
-              </div>
-              <div class="sheet-msg" id="deleteMsg"></div>
-            </div>
-          </div>
+          <a class="account-link" href="/mobile/account/">View Account →</a>
         </div>
       </div>
 
@@ -525,7 +524,6 @@ function openSheet() {
 function closeSheet() {
   sheetOverlay.classList.remove('open');
   setTimeout(() => { sheetOverlay.style.display = 'none'; }, 350);
-  document.getElementById('deleteConfirm').classList.remove('visible');
 }
 function onProfileTap(e) { e.preventDefault(); openSheet(); }
 function onOverlayTap(e) { if (e.target === sheetOverlay) { e.preventDefault(); closeSheet(); } }
@@ -567,47 +565,31 @@ async function onSignUp(e) {
   else { msg.textContent = 'Check your email to confirm your account.'; msg.className = 'sheet-msg success'; }
 }
 
-// ── Sign out ──────────────────────────────────────────────
-async function onSignOut(e) {
-  e.preventDefault();
-  await SonicSandbox.signOut();
-  closeSheet();
-}
-
-// ── Delete account ────────────────────────────────────────
-function onDeleteAccountTap(e) {
-  e.preventDefault();
-  document.getElementById('deleteConfirm').classList.toggle('visible');
-}
-function onCancelDelete(e) {
-  e.preventDefault();
-  document.getElementById('deleteConfirm').classList.remove('visible');
-}
-async function onConfirmDelete(e) {
-  e.preventDefault();
-  const msg = document.getElementById('deleteMsg');
-  msg.textContent = 'Deleting account…'; msg.className = 'sheet-msg';
-  const { error } = await SonicSandbox.deleteAccount();
-  if (error) { msg.textContent = error.message; msg.className = 'sheet-msg error'; }
-  else { closeSheet(); }
-}
-
 // ── Auth state ────────────────────────────────────────────
 document.addEventListener('ss:authchange', async (e) => {
   const user = e.detail;
   const wrap = document.getElementById('profileBtnWrap');
 
   if (user) {
-    const initial = (user.email || '?')[0].toUpperCase();
+    // Fetch profile for username
+    const profile = await SonicSandbox.getProfile();
+    const username = profile?.username;
+    const initial = username ? username[0].toUpperCase() : (user.email || '?')[0].toUpperCase();
+
     wrap.innerHTML = `<div class="profile-avatar" ontouchend="onProfileTap(event)">${initial}</div>`;
     document.getElementById('sheetLoggedOut').style.display = 'none';
     document.getElementById('sheetLoggedIn').style.display  = '';
     document.getElementById('profileAvatarLg').textContent  = initial;
-    document.getElementById('profileEmail').textContent     = user.email;
+
+    // Show @username prominently; email smaller below
+    document.getElementById('profileUsername').textContent = username ? '@' + username : user.email;
+    document.getElementById('profileEmail').textContent    = username ? user.email : '';
+
     const joined = user.created_at
       ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
       : '';
     document.getElementById('profileSince').textContent = joined ? `Member since ${joined}` : '';
+
     const stats = await SonicSandbox.getStats();
     document.getElementById('statRounds').textContent   = stats.total;
     document.getElementById('statAccuracy').textContent = stats.accuracy !== null ? `${stats.accuracy}%` : '—';
