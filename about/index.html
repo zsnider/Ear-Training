@@ -81,6 +81,22 @@
   .nav-right {
     display: flex; align-items: center; gap: 12px;
   }
+  .user-pill {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .set-username-link {
+    color: var(--accent2); background: none; border: none;
+    font-family: 'IBM Plex Mono', monospace; font-size: 13px;
+    cursor: pointer; padding: 0; text-decoration: none;
+  }
+  .set-username-link:hover { opacity: 0.8; }
+  .auth-btn {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 500;
+    padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border2);
+    background: var(--surface2); color: var(--text); cursor: pointer; text-decoration: none;
+  }
 
   .bmac-btn {
     display: inline-flex; align-items: center; gap: 7px;
@@ -425,6 +441,7 @@
     <a class="nav-link" href="/stats/">Stats</a>
   </div>
   <div class="nav-right">
+    <div id="authArea"></div>
     <a class="bmac-btn" href="https://www.buymeacoffee.com/sonicsandbox" target="_blank" rel="noopener">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
         <path d="M18 8h1a4 4 0 0 1 0 8h-1" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -1089,6 +1106,30 @@
     </a>
   </div>
 </footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../supabase-client.js"></script>
+<script>
+(function() {
+  const authArea = document.getElementById('authArea');
+  document.addEventListener('ss:authchange', async e => {
+    const user = e.detail;
+    if (user) {
+      authArea.innerHTML = `<div class="user-pill"><span class="username-display" style="color:var(--muted);font-size:12px;">${user.email}</span></div>`;
+      const profile = await SonicSandbox.getProfile();
+      const el = authArea.querySelector('.username-display');
+      if (!el) return;
+      if (profile?.username) {
+        el.outerHTML = `<a class="set-username-link" href="/account/">@${profile.username}</a>`;
+      } else {
+        el.outerHTML = `<a class="set-username-link" href="/account/">Set username</a>`;
+      }
+    } else {
+      authArea.innerHTML = `<a class="auth-btn" href="/">Sign in</a>`;
+    }
+  });
+})();
+</script>
 
 </body>
 </html>
