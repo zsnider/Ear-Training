@@ -432,6 +432,15 @@
     <div class="card-header">Security</div>
     <div class="card-body">
 
+      <!-- Sign out -->
+      <div class="action-row">
+        <div>
+          <div class="action-label">Sign out</div>
+          <div class="action-sub">Sign out of SonicSandbox on this device.</div>
+        </div>
+        <button class="action-btn" id="signOutPageBtn">Sign out</button>
+      </div>
+
       <!-- Change password -->
       <div class="action-row" id="passwordRow">
         <div>
@@ -640,6 +649,9 @@
       renderUsername();
     }
   });
+
+  // ── Sign out ───────────────────────────────────────────
+  document.getElementById('signOutPageBtn').addEventListener('click', () => SonicSandbox.signOut());
 
   // ── Send password reset ────────────────────────────────
   document.getElementById('sendResetBtn').addEventListener('click', async () => {

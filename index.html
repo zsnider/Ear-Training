@@ -1001,9 +1001,7 @@
       authArea.innerHTML = `
         <div class="user-pill">
           <span class="username-display" style="color:var(--muted);font-size:12px;">${user.email}</span>
-          <button class="signout-btn" id="signOutBtn">Sign out</button>
         </div>`;
-      document.getElementById('signOutBtn').addEventListener('click', () => SonicSandbox.signOut());
 
       // Fetch profile to show username (or prompt to set one)
       const profile = await SonicSandbox.getProfile();

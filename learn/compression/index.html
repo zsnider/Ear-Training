@@ -436,6 +436,23 @@
   @keyframes fadeIn {
     from { opacity: 0; } to { opacity: 1; }
   }
+
+  .user-pill {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .set-username-link {
+    color: var(--comp-accent); background: none; border: none;
+    font-family: 'IBM Plex Mono', monospace; font-size: 13px;
+    cursor: pointer; padding: 0; text-decoration: none;
+  }
+  .set-username-link:hover { opacity: 0.8; }
+  .auth-btn {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 500;
+    padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border2);
+    background: var(--surface2); color: var(--text); cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -453,7 +470,6 @@
   </div>
   <div class="nav-right">
     <div id="authArea">
-      <button class="auth-btn" id="openAuthBtn" style="font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;padding:8px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;">Sign in</button>
     </div>
     <a class="bmac-btn" href="https://www.buymeacoffee.com/sonicsandbox" target="_blank" rel="noopener">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -536,6 +552,31 @@
     </a>
   </div>
 </footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../../supabase-client.js"></script>
+<script>
+// ── Auth nav ──────────────────────────────────────────────────
+(function() {
+  const authArea = document.getElementById('authArea');
+  document.addEventListener('ss:authchange', async e => {
+    const user = e.detail;
+    if (user) {
+      authArea.innerHTML = `<div class="user-pill"><span class="username-display" style="color:var(--muted);font-size:12px;">${user.email}</span></div>`;
+      const profile = await SonicSandbox.getProfile();
+      const el = authArea.querySelector('.username-display');
+      if (!el) return;
+      if (profile?.username) {
+        el.outerHTML = `<a class="set-username-link" href="/account/">@${profile.username}</a>`;
+      } else {
+        el.outerHTML = `<a class="set-username-link" href="/account/">Set username</a>`;
+      }
+    } else {
+      authArea.innerHTML = `<a class="auth-btn" href="/" style="text-decoration:none;">Sign in</a>`;
+    }
+  });
+})();
+</script>
 
 <script>
 // ─────────────────────────────────────────────────────────────
