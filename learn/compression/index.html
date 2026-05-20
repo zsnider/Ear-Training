@@ -1,0 +1,1923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compression — SonicSandbox Learn</title>
+<meta name="description" content="Learn compression from threshold to parallel techniques. Interactive lessons with live gain-reduction metering and drum pattern demos.">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg:       #0a0b0d;
+    --surface:  #13151a;
+    --surface2: #1a1d24;
+    --surface3: #21252f;
+    --border:   rgba(255,255,255,0.08);
+    --border2:  rgba(255,255,255,0.14);
+    --text:     #dde2ee;
+    --muted:    #6b7280;
+    --accent:   #5b6aff;
+    --accent2:  #8892ff;
+    --comp-accent:  #e8865a;
+    --comp-accent2: #f0a882;
+    --eq-accent:    #5b6aff;
+    --rev-accent:   #5b3fd4;
+    --dist-accent:  #d44a2a;
+    --delay-accent: #f97316;
+    --pan-accent:   #7c5cfc;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+  }
+
+  /* ── Nav ───────────────────────────────────────────────── */
+  nav {
+    width: 100%; max-width: 1600px;
+    padding: 20px 28px;
+    display: flex; align-items: center;
+  }
+  .nav-logo-wrap { flex: 1; display: flex; align-items: center; }
+  .nav-logo {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 17px; font-weight: 600;
+    color: var(--text); text-decoration: none;
+    letter-spacing: -0.01em;
+  }
+  .nav-logo span { color: var(--comp-accent2); }
+  .nav-center { display: flex; align-items: center; gap: 28px; flex-shrink: 0; }
+  .nav-link {
+    font-size: 13px; font-weight: 500; color: var(--muted);
+    text-decoration: none; transition: color 0.15s;
+  }
+  .nav-link:hover, .nav-link.active { color: var(--text); }
+  .nav-right {
+    flex: 1; display: flex; align-items: center;
+    justify-content: flex-end; gap: 12px;
+  }
+  .bmac-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: #FFDD00; color: #000;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px; font-weight: 600;
+    padding: 8px 16px; border-radius: 8px;
+    text-decoration: none;
+    transition: opacity 0.15s, transform 0.15s;
+    white-space: nowrap;
+  }
+  .bmac-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+  @media (max-width: 600px) {
+    nav { padding: 16px 20px; }
+    .nav-center { display: none; }
+    .bmac-btn { display: none; }
+    .nav-logo { font-size: 15px; }
+  }
+
+  /* ── Page header ───────────────────────────────────────── */
+  .page-header {
+    width: 100%; max-width: 900px;
+    padding: 52px 24px 36px;
+    text-align: center;
+  }
+  .page-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 18px;
+  }
+  .page-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(26px, 4vw, 44px);
+    font-weight: 600; letter-spacing: -0.03em; line-height: 1.15;
+    color: var(--text); margin-bottom: 14px;
+  }
+  .page-sub {
+    font-size: 15px; color: var(--muted); font-weight: 300;
+    max-width: 480px; margin: 0 auto; line-height: 1.7;
+  }
+
+  /* ── Tool Selector ─────────────────────────────────────── */
+  .tool-selector-wrap {
+    width: 100%; max-width: 900px;
+    padding: 0 24px 40px;
+  }
+  .tool-selector-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 14px;
+  }
+  .tool-selector { display: flex; gap: 10px; flex-wrap: wrap; }
+  .tool-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 18px; border-radius: 10px;
+    border: 1px solid var(--border2);
+    background: var(--surface2);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; font-weight: 600;
+    color: var(--muted);
+    cursor: pointer; text-decoration: none;
+    transition: border-color 0.18s, color 0.18s, background 0.18s, transform 0.18s;
+  }
+  .tool-btn.active {
+    border-color: var(--comp-accent);
+    color: var(--comp-accent2);
+    background: rgba(232,134,90,0.1);
+  }
+  .tool-btn.disabled {
+    opacity: 0.38; cursor: not-allowed; pointer-events: none;
+  }
+  .tool-btn:not(.disabled):not(.active):hover {
+    border-color: var(--border2);
+    color: var(--text);
+    background: var(--surface3);
+    transform: translateY(-1px);
+  }
+  .soon-badge {
+    font-size: 9px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    background: rgba(255,255,255,0.06); color: var(--muted);
+    padding: 2px 6px; border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .tool-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: currentColor; opacity: 0.7; flex-shrink: 0;
+  }
+
+  /* ── Module container ──────────────────────────────────── */
+  .module-wrap {
+    width: 100%; max-width: 860px;
+    padding: 0 24px 80px;
+  }
+
+  /* ── Step progress bar ─────────────────────────────────── */
+  .progress-bar-wrap {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 28px;
+  }
+  .progress-dots { display: flex; gap: 6px; flex-wrap: wrap; }
+  .progress-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border2);
+    transition: background 0.2s, transform 0.2s;
+    cursor: pointer;
+  }
+  .progress-dot.done   { background: rgba(232,134,90,0.45); }
+  .progress-dot.active { background: var(--comp-accent2); transform: scale(1.3); }
+  .progress-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); margin-left: auto;
+  }
+
+  /* ── Step card ─────────────────────────────────────────── */
+  .step-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 36px 36px 32px;
+    position: relative; overflow: hidden;
+  }
+  .step-card::before {
+    content: ''; position: absolute; inset: 0; border-radius: 20px;
+    background: radial-gradient(ellipse at top left, rgba(232,134,90,0.08), transparent 60%);
+    pointer-events: none;
+  }
+
+  .step-number {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--comp-accent); margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .step-number::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  .step-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(20px, 3vw, 28px);
+    font-weight: 600; letter-spacing: -0.02em;
+    color: var(--text); margin-bottom: 18px;
+    line-height: 1.25;
+  }
+
+  .step-body {
+    font-size: 15px; color: var(--muted);
+    line-height: 1.75; font-weight: 300;
+    margin-bottom: 28px;
+  }
+  .step-body strong { color: var(--text); font-weight: 500; }
+  .step-body em { color: var(--comp-accent2); font-style: normal; font-weight: 500; }
+
+  /* ── Diagram wrap ──────────────────────────────────────── */
+  .diagram-wrap {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 20px 14px;
+    margin-bottom: 24px;
+  }
+  .diagram-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 12px;
+  }
+  .diagram-svg { width: 100%; height: auto; display: block; }
+
+  /* ── Key points ────────────────────────────────────────── */
+  .key-points {
+    background: rgba(232,134,90,0.05);
+    border: 1px solid rgba(232,134,90,0.16);
+    border-radius: 12px; padding: 18px 20px;
+    margin-bottom: 24px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .key-points-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--comp-accent); margin-bottom: 4px;
+  }
+  .key-point {
+    display: flex; gap: 10px; align-items: flex-start;
+    font-size: 13px; color: var(--muted); line-height: 1.55;
+  }
+  .key-point::before {
+    content: '→';
+    color: var(--comp-accent2); font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; margin-top: 1px; flex-shrink: 0;
+  }
+  .key-point strong { color: var(--text); font-weight: 500; }
+
+  /* ── Audio demo ────────────────────────────────────────── */
+  .audio-demo {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 20px;
+    margin-bottom: 28px;
+  }
+  .audio-demo-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 8px;
+  }
+  .audio-demo-desc {
+    font-size: 13px; color: var(--muted); line-height: 1.55;
+    margin-bottom: 14px;
+  }
+  .demo-controls {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .play-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 9px 18px; border-radius: 8px;
+    background: var(--comp-accent); border: none;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; font-weight: 600; color: #fff;
+    cursor: pointer; transition: transform 0.15s, opacity 0.15s;
+    flex-shrink: 0;
+  }
+  .play-btn:hover { transform: scale(1.04); opacity: 0.9; }
+  .play-btn.playing {
+    background: rgba(232,134,90,0.2);
+    border: 1.5px solid var(--comp-accent);
+    color: var(--comp-accent2);
+  }
+  .play-btn.secondary {
+    background: var(--surface3);
+    border: 1px solid var(--border2);
+    color: var(--muted);
+  }
+  .play-btn.secondary:hover { color: var(--text); }
+  .play-btn.secondary.playing {
+    background: rgba(232,134,90,0.1);
+    border-color: var(--comp-accent);
+    color: var(--comp-accent2);
+  }
+
+  /* Volume */
+  .vol-wrap { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  input[type=range].vol-slider {
+    -webkit-appearance: none; appearance: none;
+    width: 72px; height: 3px;
+    border-radius: 2px;
+    background: var(--border2); outline: none; cursor: pointer;
+  }
+  input[type=range].vol-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 13px; height: 13px;
+    border-radius: 50%; background: var(--comp-accent2); cursor: pointer;
+  }
+
+  /* ── GR Meter ──────────────────────────────────────────── */
+  .gr-meter-wrap {
+    display: flex; align-items: center; gap: 10px;
+    margin-top: 12px;
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .gr-meter-wrap.visible { opacity: 1; }
+  .gr-meter-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted); white-space: nowrap; flex-shrink: 0;
+  }
+  .gr-canvas-wrap {
+    flex: 1; height: 18px;
+    background: var(--surface3); border-radius: 4px;
+    overflow: hidden; position: relative;
+  }
+  canvas.gr-canvas {
+    width: 100%; height: 100%; display: block;
+  }
+  .gr-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; color: var(--comp-accent2);
+    min-width: 52px; text-align: right; flex-shrink: 0;
+  }
+
+  /* ── Step navigation ───────────────────────────────────── */
+  .step-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; margin-top: 4px;
+  }
+  .nav-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 11px 22px; border-radius: 10px;
+    border: 1px solid var(--border2); background: var(--surface2);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; font-weight: 600; color: var(--muted);
+    cursor: pointer; transition: border-color 0.15s, color 0.15s, transform 0.15s;
+    text-decoration: none;
+  }
+  .nav-btn:hover { border-color: var(--border2); color: var(--text); transform: translateY(-1px); }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+  .nav-btn.primary {
+    background: var(--comp-accent); border-color: var(--comp-accent); color: #fff;
+  }
+  .nav-btn.primary:hover { opacity: 0.88; }
+  .nav-btn.finish {
+    background: rgba(232,134,90,0.15); border-color: var(--comp-accent);
+    color: var(--comp-accent2);
+  }
+  .step-counter {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; color: var(--muted);
+  }
+
+  /* ── Completion card ────────────────────────────────────── */
+  .completion-card { text-align: center; padding: 56px 36px; }
+  .completion-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 26px; font-weight: 600;
+    color: var(--text); margin-bottom: 12px;
+  }
+  .completion-sub {
+    font-size: 15px; color: var(--muted); line-height: 1.7;
+    max-width: 440px; margin: 0 auto 32px;
+  }
+  .completion-cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 28px; border-radius: 10px;
+    background: var(--comp-accent); color: #fff;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px; font-weight: 600;
+    text-decoration: none;
+    transition: opacity 0.15s, transform 0.15s;
+  }
+  .completion-cta:hover { opacity: 0.88; transform: translateY(-1px); }
+  .completion-restart {
+    display: block; margin: 18px auto 0;
+    background: none; border: none; color: var(--muted);
+    font-size: 13px; cursor: pointer; text-decoration: underline;
+    font-family: inherit;
+  }
+  .completion-restart:hover { color: var(--text); }
+
+  /* ── Footer ─────────────────────────────────────────────── */
+  footer {
+    margin-top: auto; width: 100%;
+    border-top: 1px solid var(--border);
+    padding: 28px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .footer-left { font-size: 13px; color: var(--muted); }
+  .footer-left a {
+    color: var(--muted); text-decoration: none;
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  }
+  .footer-left a:hover { color: var(--text); }
+
+  @media (max-width: 600px) {
+    .step-card { padding: 24px 20px 22px; }
+    .module-wrap { padding: 0 16px 60px; }
+    .tool-selector-wrap { padding: 0 16px 32px; }
+    .page-header { padding: 32px 16px 24px; }
+    .step-nav { flex-direction: column; }
+    .nav-btn { width: 100%; justify-content: center; }
+    .demo-controls { flex-wrap: wrap; }
+  }
+
+  /* ── SVG animation keyframes ────────────────────────────── */
+  @keyframes dashFlow {
+    to { stroke-dashoffset: -20; }
+  }
+  @keyframes dotPulse {
+    0%, 100% { opacity: 0.6; r: 4; }
+    50% { opacity: 1; r: 6; }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; } to { opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-logo-wrap">
+    <a class="nav-logo" href="/">Sonic<span>Sandbox</span></a>
+  </div>
+  <div class="nav-center">
+    <a class="nav-link" href="/">Games</a>
+    <a class="nav-link active" href="/learn/">Learn</a>
+    <a class="nav-link" href="/about/">About</a>
+    <a class="nav-link" href="/stats/">Stats</a>
+  </div>
+  <div class="nav-right">
+    <div id="authArea">
+      <button class="auth-btn" id="openAuthBtn" style="font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;padding:8px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;">Sign in</button>
+    </div>
+    <a class="bmac-btn" href="https://www.buymeacoffee.com/sonicsandbox" target="_blank" rel="noopener">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M18 8h1a4 4 0 0 1 0 8h-1" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <line x1="6" y1="1" x2="6" y2="4" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+        <line x1="10" y1="1" x2="10" y2="4" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+        <line x1="14" y1="1" x2="14" y2="4" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      Buy me a coffee
+    </a>
+  </div>
+</nav>
+
+<!-- Page header -->
+<div class="page-header">
+  <div class="page-eyebrow">SonicSandbox / Learning Center</div>
+  <h1 class="page-title">Learn the tools.</h1>
+  <p class="page-sub">Guided lessons on the audio processing tools that shape every mix. Read, listen, and understand — then go train your ears.</p>
+</div>
+
+<!-- Tool Selector -->
+<div class="tool-selector-wrap">
+  <div class="tool-selector-label">Choose a topic</div>
+  <div class="tool-selector">
+    <a class="tool-btn" href="/learn/">
+      <div class="tool-dot" style="color:var(--eq-accent)"></div>
+      EQ
+    </a>
+    <button class="tool-btn active">
+      <div class="tool-dot" style="color:var(--comp-accent2)"></div>
+      Compression
+    </button>
+    <div class="tool-btn disabled">
+      <div class="tool-dot" style="color:var(--rev-accent)"></div>
+      Reverb <span class="soon-badge">Soon</span>
+    </div>
+    <div class="tool-btn disabled">
+      <div class="tool-dot" style="color:var(--dist-accent)"></div>
+      Saturation <span class="soon-badge">Soon</span>
+    </div>
+    <div class="tool-btn disabled">
+      <div class="tool-dot" style="color:var(--delay-accent)"></div>
+      Delay <span class="soon-badge">Soon</span>
+    </div>
+    <div class="tool-btn disabled">
+      <div class="tool-dot" style="color:var(--pan-accent)"></div>
+      Panning &amp; Width <span class="soon-badge">Soon</span>
+    </div>
+  </div>
+</div>
+
+<!-- Compression Module -->
+<div class="module-wrap" id="compModule">
+
+  <div class="progress-bar-wrap">
+    <div class="progress-dots" id="progressDots"></div>
+    <div class="progress-label" id="progressLabel">Step 1 of 12</div>
+  </div>
+
+  <div class="step-card" id="stepCard"></div>
+
+  <div class="step-nav" id="stepNav" style="margin-top:20px;">
+    <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>← Previous</button>
+    <span class="step-counter" id="stepCounter"></span>
+    <button class="nav-btn primary" id="nextBtn" onclick="navigate(1)">Next →</button>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-left">
+    <a href="/">SonicSandbox</a>
+    &nbsp;·&nbsp; Ear training for sound engineers, producers, &amp; musicians
+  </div>
+  <div class="footer-right">
+    <a class="bmac-btn" href="https://www.buymeacoffee.com/sonicsandbox" target="_blank" rel="noopener" style="font-size:12px;padding:6px 13px;">
+      Support the project
+    </a>
+  </div>
+</footer>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+//  STEP DATA
+// ─────────────────────────────────────────────────────────────
+
+const steps = [
+
+  // ── Step 1 — Introduction ────────────────────────────────
+  {
+    title: "What is Compression?",
+    number: "Step 01 — Introduction",
+    body: `<strong>Compression</strong> is one of the most powerful — and most misunderstood — tools in audio production. At its core, a compressor does one thing: <em>reduces the dynamic range</em> of a signal by automatically turning down the louder parts.
+
+<br><br>Dynamic range is the difference between the quietest and loudest moments in a performance. A vocalist might sing softly in a verse and belt in the chorus — that variation is dynamic range. A compressor keeps those peaks in check so nothing jumps out unexpectedly, and helps quieter moments stay present in the mix.
+
+<br><br>Used transparently, compression is invisible to the listener — it just makes things feel <strong>more controlled and polished</strong>. Pushed harder, it becomes a creative tool: adding punch to drums, sustain to guitars, or the signature "pumping" sound of modern electronic music.`,
+    diagram: { type: 'waveform-compare' },
+    keyPoints: [
+      { strong: "Dynamic range", rest: " — the difference between the quietest and loudest parts of a signal" },
+      { strong: "Gain reduction", rest: " — the amount a compressor turns down the signal above threshold" },
+      { strong: "Transparent vs. colored", rest: " — compression can be subtle or a defining part of the sound" },
+      { strong: "Every genre uses it", rest: " — from a barely-touching vocal glue to hard-pumping EDM sidechains" },
+    ],
+    audio: {
+      desc: "Drums without compression, then with moderate compression applied — notice how the dynamics tighten and the sustain of each hit becomes more even.",
+      type: 'ab',
+      labelA: 'Uncompressed',
+      labelB: 'Compressed',
+      compA: null,
+      compB: { threshold: -18, ratio: 4, attack: 0.008, release: 0.12, knee: 6 },
+    }
+  },
+
+  // ── Step 2 — How Compression Works ──────────────────────
+  {
+    title: "How Compression Works",
+    number: "Step 02 — Signal Flow",
+    body: `A compressor monitors the <em>level</em> of the incoming signal. The moment that level crosses a defined point — the <strong>threshold</strong> — the compressor starts reducing the gain by a controlled amount defined by the <strong>ratio</strong>.
+
+<br><br>How quickly it reacts is determined by the <strong>attack</strong> time. How quickly it lets go once the signal drops back below the threshold is the <strong>release</strong> time. After compression, you often apply <strong>makeup gain</strong> to restore overall loudness.
+
+<br><br>The live meter below shows <em>gain reduction</em> — how many dB the compressor is actively pulling down. Watch it respond to each drum hit as the pattern plays. When a peak crosses the threshold, the compressor acts; between hits, it releases.`,
+    diagram: { type: 'signal-flow' },
+    keyPoints: [
+      { strong: "Threshold", rest: " — the level at which compression begins" },
+      { strong: "Ratio", rest: " — how aggressively the excess signal is reduced" },
+      { strong: "Attack / Release", rest: " — how fast the compressor engages and lets go" },
+      { strong: "Makeup gain", rest: " — added after compression to restore overall level" },
+    ],
+    audio: {
+      desc: "Watch the gain reduction meter as the drum pattern plays. Each kick and snare peak triggers the compressor — the meter shows exactly how many dB are being pulled back in real time.",
+      type: 'single',
+      showGR: true,
+      comp: { threshold: -20, ratio: 4, attack: 0.010, release: 0.15, knee: 6 },
+    }
+  },
+
+  // ── Step 3 — Threshold ───────────────────────────────────
+  {
+    title: "Threshold",
+    number: "Step 03 — Parameter",
+    body: `The <strong>threshold</strong> is the level at which the compressor starts working. Signals below the threshold pass through completely unchanged. The moment the signal crosses it, gain reduction begins.
+
+<br><br>A <em>high threshold</em> (closer to 0 dBFS) means only the very loudest peaks get compressed — ideal for catching transient spikes while leaving the body of a performance natural. A <em>low threshold</em> means the compressor is working almost constantly, producing a more even, heavily processed sound.
+
+<br><br>On the transfer curve below, the threshold is the point where the line bends. To the left of it: input = output (1:1). To the right: output is reduced according to the ratio. Moving the threshold left compresses more of the signal; moving it right compresses only the peaks.`,
+    diagram: { type: 'transfer', params: { threshold: -24, ratio: 4, knee: 3, showThresholdLabel: true } },
+    keyPoints: [
+      { strong: "High threshold (e.g. −6 dB)", rest: " — light touch, only the loudest peaks are affected" },
+      { strong: "Low threshold (e.g. −30 dB)", rest: " — compressor is active most of the time; heavy, consistent gain reduction" },
+      { strong: "Tip", rest: " — start with the threshold set so you see 3–6 dB of gain reduction on peaks. That's a good starting point for most sources." },
+    ],
+    audio: {
+      desc: "High threshold (−6 dB): only peak hits trigger compression. Low threshold (−30 dB): nearly every hit is compressed, leveling the pattern.",
+      type: 'ab',
+      labelA: 'High threshold (−6 dB)',
+      labelB: 'Low threshold (−30 dB)',
+      compA: { threshold: -6, ratio: 4, attack: 0.010, release: 0.15, knee: 3 },
+      compB: { threshold: -30, ratio: 4, attack: 0.010, release: 0.15, knee: 3 },
+    }
+  },
+
+  // ── Step 4 — Ratio ───────────────────────────────────────
+  {
+    title: "Ratio",
+    number: "Step 04 — Parameter",
+    body: `The <strong>ratio</strong> determines how aggressively the compressor reduces gain once the signal crosses the threshold. It's expressed as an input-to-output ratio: for every X dB above the threshold going in, only 1 dB comes out.
+
+<br><br>A ratio of <em>2:1</em> is gentle — 2 dB in, 1 dB out above threshold. <em>4:1</em> is moderate. <em>8:1 or higher</em> is heavy compression, approaching limiting. At <em>infinity:1</em>, the output is completely clamped at the threshold — that is a limiter.
+
+<br><br>The transfer curve shows the slope of the compressed region. A gentle ratio produces a shallow slope; a high ratio produces a nearly flat line above the threshold, meaning all excess level is aggressively attenuated.`,
+    diagram: { type: 'transfer-ratios', params: { threshold: -24 } },
+    keyPoints: [
+      { strong: "2:1", rest: " — gentle, musical; great for vocals, acoustic instruments" },
+      { strong: "4:1", rest: " — versatile middle ground; works on most sources" },
+      { strong: "8:1+", rest: " — heavy limiting character; transient control, bus glue" },
+      { strong: "∞:1", rest: " — limiting; nothing gets through above the threshold" },
+    ],
+    audio: {
+      desc: "Gentle 2:1 ratio vs. aggressive 8:1. Same threshold and timing — only the ratio changes. Notice how the peaks become more and more uniform at 8:1.",
+      type: 'ab',
+      labelA: 'Ratio 2:1',
+      labelB: 'Ratio 8:1',
+      compA: { threshold: -20, ratio: 2, attack: 0.010, release: 0.15, knee: 6 },
+      compB: { threshold: -20, ratio: 8, attack: 0.010, release: 0.15, knee: 6 },
+    }
+  },
+
+  // ── Step 5 — Attack ──────────────────────────────────────
+  {
+    title: "Attack",
+    number: "Step 05 — Parameter",
+    body: `The <strong>attack</strong> time controls how quickly the compressor responds when the signal exceeds the threshold. It's measured in milliseconds — the time from when the signal crosses the threshold to when the compressor reaches full gain reduction.
+
+<br><br>A <em>fast attack</em> (1–5 ms) catches transients immediately, clamping peaks but potentially dulling the initial snap of a drum or guitar pick. A <em>slow attack</em> (20–80 ms) lets the initial transient through before the compressor grabs — preserving the natural punch and impact of a hit while still controlling the sustain.
+
+<br><br>The waveform diagram shows how the compressor envelope responds over time. Notice how a slow attack lets the early peak breathe before gain reduction sets in.`,
+    diagram: { type: 'attack-compare' },
+    keyPoints: [
+      { strong: "Fast attack (1–5 ms)", rest: " — catches transients; tighter, more controlled sound; can reduce punch" },
+      { strong: "Slow attack (30–80 ms)", rest: " — lets transients through; more natural, punchier result" },
+      { strong: "Rule of thumb", rest: " — for drums: slow attack to keep the initial crack, then let compression control the body" },
+      { strong: "Context matters", rest: " — for a de-esser or limiter, you want the fastest possible attack" },
+    ],
+    audio: {
+      desc: "Fast 1 ms attack vs. slow 50 ms attack on the same drum pattern. The slow attack lets each hit's initial snap punch through before the compressor engages.",
+      type: 'ab',
+      labelA: 'Fast attack (1 ms)',
+      labelB: 'Slow attack (50 ms)',
+      compA: { threshold: -18, ratio: 4, attack: 0.001, release: 0.15, knee: 6 },
+      compB: { threshold: -18, ratio: 4, attack: 0.050, release: 0.15, knee: 6 },
+    }
+  },
+
+  // ── Step 6 — Release ─────────────────────────────────────
+  {
+    title: "Release",
+    number: "Step 06 — Parameter",
+    body: `The <strong>release</strong> time determines how quickly the compressor stops reducing gain once the signal falls back below the threshold. Like attack, it's measured in milliseconds.
+
+<br><br>A <em>fast release</em> (50–100 ms) allows the compressor to recover quickly between hits — keeping each transient at consistent levels but potentially causing an audible "pumping" artifact on slower material. A <em>slow release</em> (200–600 ms) means the compressor stays engaged longer, smoothing out the dynamics over time but potentially over-compressing quieter notes that follow loud ones.
+
+<br><br>Getting attack and release working together is one of the core skills of compression. The goal is usually to have the compressor breathe in a way that feels natural and musical for the tempo and style of the music.`,
+    diagram: { type: 'release-compare' },
+    keyPoints: [
+      { strong: "Fast release (50–100 ms)", rest: " — snappy recovery; good for up-tempo material; watch for pumping" },
+      { strong: "Slow release (300–600 ms)", rest: " — smooth, sustained gain reduction; works for ballads, vocals" },
+      { strong: "Tempo sync", rest: " — setting release to match the groove (1/4 note or 1/8 note) can make pumping feel musical" },
+      { strong: "Auto release", rest: " — many modern compressors adjust release automatically based on signal content" },
+    ],
+    audio: {
+      desc: "Fast 60 ms release vs. slow 500 ms release. The fast release lets the compressor snap back between hits; the slow release creates a smoother, more blanketed feel.",
+      type: 'ab',
+      labelA: 'Fast release (60 ms)',
+      labelB: 'Slow release (500 ms)',
+      compA: { threshold: -18, ratio: 4, attack: 0.010, release: 0.060, knee: 6 },
+      compB: { threshold: -18, ratio: 4, attack: 0.010, release: 0.500, knee: 6 },
+    }
+  },
+
+  // ── Step 7 — Knee ────────────────────────────────────────
+  {
+    title: "Knee",
+    number: "Step 07 — Parameter",
+    body: `The <strong>knee</strong> controls how abruptly the compressor transitions from uncompressed to compressed behavior around the threshold. It determines the shape of the transfer curve at the bend point.
+
+<br><br>A <em>hard knee</em> means an abrupt transition — below the threshold nothing happens, above it full ratio is applied immediately. This can sound punchy and precise, but can also be audible if the threshold is hit frequently. A <em>soft knee</em> gradually introduces gain reduction starting a few dB below the threshold, reaching the full ratio only a few dB above it. This produces a more transparent, natural-sounding compression.
+
+<br><br>The transfer curve shows the difference clearly. Hard knee is a sharp corner; soft knee is a smooth curve.`,
+    diagram: { type: 'knee-compare', params: { threshold: -24, ratio: 4 } },
+    keyPoints: [
+      { strong: "Hard knee", rest: " — immediate, precise; better for transient control and limiting" },
+      { strong: "Soft knee", rest: " — gradual onset; more transparent, musical compression" },
+      { strong: "Typical values", rest: " — knee width of 0 dB = hard, 6–10 dB = soft" },
+      { strong: "When to use hard", rest: " — drums, limiting, situations where you want precision" },
+    ],
+    audio: {
+      desc: "Hard knee vs. soft knee on drums. The hard knee hits abruptly when the threshold is crossed; the soft knee eases in more naturally.",
+      type: 'ab',
+      labelA: 'Hard knee (0 dB)',
+      labelB: 'Soft knee (10 dB)',
+      compA: { threshold: -18, ratio: 4, attack: 0.010, release: 0.15, knee: 0 },
+      compB: { threshold: -18, ratio: 4, attack: 0.010, release: 0.15, knee: 10 },
+    }
+  },
+
+  // ── Step 8 — Makeup Gain ─────────────────────────────────
+  {
+    title: "Makeup Gain",
+    number: "Step 08 — Parameter",
+    body: `Compression <em>reduces</em> the level of a signal. After applying gain reduction to peaks, the overall average level of the signal ends up quieter than the original. <strong>Makeup gain</strong> (sometimes called output gain) compensates for this — boosting the compressed signal back up to a useful level.
+
+<br><br>Without makeup gain, a compressed signal will sound lower in level than the original. Adding makeup gain after compression allows the now-tamed peaks to sit at the right level in the mix, while the quieter parts (which have been relatively boosted by the reduced dynamic range) become more present.
+
+<br><br>Be careful not to over-apply makeup gain — it's easy to mistake "louder" for "better." When comparing compression settings, always null-test: match levels before judging character.`,
+    diagram: { type: 'makeup-gain' },
+    keyPoints: [
+      { strong: "Purpose", rest: " — restores output level after gain reduction; keeps signals at mix-ready levels" },
+      { strong: "Rule of thumb", rest: " — apply roughly the same dB of makeup gain as your average gain reduction" },
+      { strong: "Watch the level", rest: " — louder often sounds better; always compare at matched levels" },
+      { strong: "Auto makeup gain", rest: " — many modern compressors apply this automatically, which can hide the effect of your settings" },
+    ],
+    audio: {
+      desc: "Compressed drums without makeup gain (quieter), then with makeup gain added to restore level. Same gain reduction — notice how properly leveled compression feels more controlled without being quiet.",
+      type: 'ab',
+      labelA: 'No makeup gain',
+      labelB: 'With makeup gain',
+      compA: { threshold: -20, ratio: 4, attack: 0.010, release: 0.15, knee: 6, makeupGain: 0 },
+      compB: { threshold: -20, ratio: 4, attack: 0.010, release: 0.15, knee: 6, makeupGain: 6 },
+    }
+  },
+
+  // ── Step 9 — Compressor Types ────────────────────────────
+  {
+    title: "Compressor Types",
+    number: "Step 09 — Hardware Flavors",
+    body: `Not all compressors sound the same. The circuit topology of a compressor — whether hardware or emulated — gives it a distinct character that goes beyond the basic parameters. Four classic types have become the industry standard:
+
+<br><br><strong>VCA (Voltage-Controlled Amplifier)</strong> compressors are fast, precise, and versatile. The SSL G-Bus and API 2500 are classics. Great for drums and buses. <strong>FET (Field Effect Transistor)</strong> compressors (like the UREI 1176) are extremely fast with a distinctive aggressive character — used heavily on vocals and room mics.
+
+<br><br><strong>Optical</strong> compressors use a light element and photocell, giving them a smooth, program-dependent response. The LA-2A is the classic example — beloved for vocals. <strong>Variable-Mu</strong> compressors (like the Fairchild 670) use tubes and react very slowly, providing a smooth, vintage glue — classic for bus and mastering work.`,
+    diagram: { type: 'comp-types' },
+    keyPoints: [
+      { strong: "VCA", rest: " — fast, clean, versatile; drums, buses (SSL G-Bus, API 2500, dbx 160)" },
+      { strong: "FET", rest: " — fast, aggressive, punchy; vocals, room mics (1176, Purple MC77)" },
+      { strong: "Optical", rest: " — smooth, musical, program-dependent; vocals, mix bus (LA-2A, Tube-Tech CL 1B)" },
+      { strong: "Variable-Mu", rest: " — slow, warm, vintage glue; mastering, buses (Fairchild 670, Manley Variable Mu)" },
+    ],
+    audio: {
+      desc: "A moderately compressed drum pattern — representative of what you might hear through a well-set VCA compressor on a drum bus.",
+      type: 'single',
+      showGR: true,
+      comp: { threshold: -18, ratio: 4, attack: 0.010, release: 0.12, knee: 6 },
+    }
+  },
+
+  // ── Step 10 — Parallel Compression ──────────────────────
+  {
+    title: "Parallel Compression",
+    number: "Step 10 — Technique",
+    body: `<strong>Parallel compression</strong> (sometimes called New York compression) blends a heavily compressed signal with the original dry signal. The result combines the transient impact and natural dynamics of the uncompressed signal with the density and sustain of the fully compressed one.
+
+<br><br>The key insight is that <em>the best qualities of both extremes</em> can coexist. Compress aggressively — don't worry about killing the transients — and then blend it back in under the dry signal. The dry signal provides the attack and punch; the compressed signal provides the body, sustain, and glue.
+
+<br><br>Parallel compression is especially popular on drums, where it preserves the crack of the snare and attack of the kick while adding a powerful, full-sounding sustain underneath. It's also used on full mixes (mid/side buses) and on individual instruments.`,
+    diagram: { type: 'parallel-routing' },
+    keyPoints: [
+      { strong: "Dry signal", rest: " — provides transients, punch, and natural dynamics" },
+      { strong: "Wet signal", rest: " — provides density, sustain, and controlled body" },
+      { strong: "Blending", rest: " — typically 20–50% wet, but no rules; trust your ears" },
+      { strong: "Go heavy", rest: " — parallel compression lets you crush the compressor hard; the dry signal saves it" },
+    ],
+    audio: {
+      desc: "Dry drums vs. heavy parallel compression blend. The compressed signal alone sounds crushed — blended with the dry, it adds powerful sustain without losing the initial attack.",
+      type: 'ab',
+      labelA: 'Dry only',
+      labelB: 'Parallel blend (50/50)',
+      compA: null,
+      compB: { threshold: -40, ratio: 20, attack: 0.001, release: 0.08, knee: 3, parallelMix: 0.5 },
+    }
+  },
+
+  // ── Step 11 — Sidechain Compression ─────────────────────
+  {
+    title: "Sidechain Compression",
+    number: "Step 11 — Technique",
+    body: `In a standard compressor, the signal that triggers the gain reduction is the same signal being processed. <strong>Sidechain compression</strong> changes this: the compressor's detector listens to a <em>different</em> signal, while the gain reduction is applied to another.
+
+<br><br>The most common use is <em>kick-triggered bass ducking</em>: the bass guitar feeds a compressor, but the kick drum feeds the detector. Every time the kick hits, the bass momentarily ducks — creating clarity and separation in the low end without cutting either instrument's frequency content.
+
+<br><br>In electronic music, sidechain compression from the kick into the mix bus creates the signature <em>pumping</em> sound — the whole mix breathes in rhythm with the kick. This effect, popularized in French house and modern EDM, is now a deliberate creative choice in many genres.`,
+    diagram: { type: 'sidechain-routing' },
+    keyPoints: [
+      { strong: "Detector input", rest: " — the signal that triggers compression (e.g., kick drum)" },
+      { strong: "Gain reduction target", rest: " — the signal whose level is actually reduced (e.g., bass, pads, full mix)" },
+      { strong: "Pumping effect", rest: " — exaggerated sidechain on the mix bus; a deliberate creative choice" },
+      { strong: "Frequency sidechain", rest: " — EQ the sidechain signal to react to specific frequencies (e.g., only respond to low end)" },
+    ],
+    audio: {
+      desc: "Simulated sidechain pumping: a sustained bass pad ducks rhythmically in time with the kick pattern, creating the classic sidechain effect.",
+      type: 'sidechain',
+      comp: { threshold: -20, ratio: 10, attack: 0.001, release: 0.18, knee: 0 },
+    }
+  },
+
+  // ── Step 12 — Practical Tips ─────────────────────────────
+  {
+    title: "Practical Tips",
+    number: "Step 12 — Putting It Together",
+    body: `Knowing the parameters is only the beginning — developing an ear for compression takes deliberate practice. Here are the principles that separate workmanlike compression from musical compression.
+
+<br><br><strong>Always compare at matched levels.</strong> Compression reduces gain; makeup gain restores it. If the compressed version is even 0.5 dB louder, it will psychoacoustically seem "better." Match levels before judging character.
+
+<br><br><strong>Start with the purpose.</strong> Are you controlling a problem (a vocal that clips, a bass with uneven notes)? Or shaping character (adding punch to a snare, gluing a mix)? These require different approaches. Corrective compression is often lighter and more precise; creative compression can be heavier and more audible.
+
+<br><br><strong>Listen to the gain reduction meter, not just the sound.</strong> 3–6 dB of GR on peaks is a solid starting point for most sources. More than 10 dB of sustained GR often means the threshold is too low or the ratio too high.`,
+    diagram: { type: 'tips-chart' },
+    keyPoints: [
+      { strong: "Drums / percussion", rest: " — moderate ratio (4:1), slow attack (20–50ms), fast release (60–120ms), 4–8 dB GR" },
+      { strong: "Vocals", rest: " — gentle ratio (2–3:1), medium attack (10–30ms), medium release (150–300ms), 2–4 dB GR" },
+      { strong: "Bass", rest: " — moderate ratio (4:1), fast attack (5–10ms), program-dependent release, 3–6 dB GR" },
+      { strong: "Mix bus", rest: " — gentle ratio (2:1), slow attack (30–50ms), musical release, 1–3 dB GR" },
+    ],
+    audio: {
+      desc: "Well-set compression on drums: moderate ratio, slow enough attack to preserve punch, fast enough release to follow the groove. Notice the controlled, musical feel.",
+      type: 'single',
+      showGR: true,
+      comp: { threshold: -20, ratio: 4, attack: 0.025, release: 0.10, knee: 6 },
+    }
+  },
+
+];
+
+// ─────────────────────────────────────────────────────────────
+//  DIAGRAM SVG BUILDERS
+// ─────────────────────────────────────────────────────────────
+
+function buildDiagramSVG(diagram) {
+  const type = diagram.type;
+  const p = diagram.params || {};
+
+  if (type === 'waveform-compare')  return buildWaveformCompare();
+  if (type === 'signal-flow')       return buildSignalFlow();
+  if (type === 'transfer')          return buildTransferCurve(p);
+  if (type === 'transfer-ratios')   return buildTransferRatios(p);
+  if (type === 'attack-compare')    return buildAttackCompare();
+  if (type === 'release-compare')   return buildReleaseCompare();
+  if (type === 'knee-compare')      return buildKneeCompare(p);
+  if (type === 'makeup-gain')       return buildMakeupGain();
+  if (type === 'comp-types')        return buildCompTypes();
+  if (type === 'parallel-routing')  return buildParallelRouting();
+  if (type === 'sidechain-routing') return buildSidechainRouting();
+  if (type === 'tips-chart')        return buildTipsChart();
+  return '';
+}
+
+// ── Shared SVG helpers ────────────────────────────────────────
+const SVG_W = 760;
+const FONT  = "font-family='IBM Plex Mono,monospace'";
+const MUTED = "rgba(255,255,255,0.28)";
+const COMP  = "#e8865a";
+const COMP2 = "#f0a882";
+
+function svgWrap(content, h, extra='') {
+  return `<svg class="diagram-svg" viewBox="0 0 ${SVG_W} ${h}" xmlns="http://www.w3.org/2000/svg" ${extra}>${content}</svg>`;
+}
+
+function label(text, x, y, col=MUTED, size=9, anchor='middle', weight=400) {
+  return `<text x="${x}" y="${y}" text-anchor="${anchor}" ${FONT} font-size="${size}" font-weight="${weight}" fill="${col}" letter-spacing="0.06em">${text}</text>`;
+}
+
+// ── Waveform compare ──────────────────────────────────────────
+function buildWaveformCompare() {
+  const H = 140, mid = H/2;
+  // Generate a simple stylized drum waveform
+  function waveBar(x, h, col, opacity=1) {
+    return `<rect x="${x-3}" y="${mid-h}" width="6" height="${h*2}" fill="${col}" opacity="${opacity}" rx="2"/>`;
+  }
+  // Pattern: kick, hat, snare, hat, kick, hat, snare, hat
+  const beats = [
+    {x:60,  h:48, type:'kick'},
+    {x:155, h:14, type:'hat'},
+    {x:250, h:36, type:'snare'},
+    {x:345, h:14, type:'hat'},
+    {x:440, h:48, type:'kick'},
+    {x:535, h:14, type:'hat'},
+    {x:630, h:36, type:'snare'},
+    {x:720, h:14, type:'hat'},
+  ];
+
+  // Uncompressed: peaks vary widely
+  const uncBars = beats.map(b => {
+    const col = b.type==='kick' ? COMP : b.type==='snare' ? COMP2 : MUTED;
+    return waveBar(b.x, b.h, col, 0.9);
+  }).join('');
+
+  // Compressed: peaks more uniform (scale down peaks, boost quieter)
+  const compBars = beats.map(b => {
+    const h = b.type==='kick' ? 32 : b.type==='snare' ? 28 : 14;
+    const col = b.type==='kick' ? COMP : b.type==='snare' ? COMP2 : MUTED;
+    return waveBar(b.x, h, col, 0.85);
+  }).join('');
+
+  const row = (bars, yOff, lbl) => `
+    <g transform="translate(0,${yOff})">
+      <line x1="16" y1="${mid}" x2="${SVG_W-16}" y2="${mid}" stroke="${MUTED}" stroke-width="0.5" opacity="0.4"/>
+      ${bars}
+      ${label(lbl, 16, 10, MUTED, 9, 'start', 600)}
+    </g>`;
+
+  return svgWrap(
+    row(uncBars, 4, 'UNCOMPRESSED') +
+    row(compBars, 74, 'COMPRESSED'),
+    148
+  );
+}
+
+// ── Signal flow block diagram ─────────────────────────────────
+function buildSignalFlow() {
+  const H = 90;
+  const blocks = [
+    { x: 30,  w: 90,  label: 'INPUT' },
+    { x: 200, w: 110, label: 'DETECTOR' },
+    { x: 390, w: 110, label: 'GAIN CELL' },
+    { x: 580, w: 110, label: 'OUTPUT' },
+  ];
+  const blocksSVG = blocks.map(b =>
+    `<rect x="${b.x}" y="30" width="${b.w}" height="34" rx="6" fill="rgba(232,134,90,0.1)" stroke="${COMP}" stroke-width="1" opacity="0.8"/>
+     ${label(b.label, b.x + b.w/2, 52, COMP2, 9, 'middle', 600)}`
+  ).join('');
+
+  // Arrows between blocks
+  const arrows = [
+    [120, 200], [310, 390], [500, 580]
+  ].map(([x1, x2]) =>
+    `<line x1="${x1}" y1="47" x2="${x2-8}" y2="47" stroke="${COMP}" stroke-width="1.5" opacity="0.6"/>
+     <polygon points="${x2-8},43 ${x2},47 ${x2-8},51" fill="${COMP}" opacity="0.6"/>`
+  ).join('');
+
+  // Sidechain arrow from detector down to gain cell
+  const sc = `
+    <line x1="255" y1="64" x2="255" y2="82" stroke="${MUTED}" stroke-width="1" stroke-dasharray="3,2" opacity="0.5"/>
+    <line x1="255" y1="82" x2="445" y2="82" stroke="${MUTED}" stroke-width="1" stroke-dasharray="3,2" opacity="0.5"/>
+    <line x1="445" y1="82" x2="445" y2="64" stroke="${MUTED}" stroke-width="1" stroke-dasharray="3,2" opacity="0.5"/>
+    <polygon points="441,64 445,56 449,64" fill="${MUTED}" opacity="0.5"/>
+    ${label('detection signal', 350, 79, MUTED, 8, 'middle')}
+  `;
+
+  return svgWrap(blocksSVG + arrows + sc, H);
+}
+
+// ── Transfer curve ────────────────────────────────────────────
+function buildTransferCurve(p) {
+  const H = 220;
+  const T = p.threshold ?? -24;
+  const R = p.ratio ?? 4;
+  const knee = p.knee ?? 3;
+  const pad = 40;
+  const axW = SVG_W - pad*2 - 20;
+  const axH = H - pad*2;
+  const ax = pad + 20, ay = pad, ax2 = ax + axW, ay2 = ay + axH;
+  const dBmin = -60, dBmax = 0;
+
+  function dBtoX(db) { return ax + (db - dBmin) / (dBmax - dBmin) * axW; }
+  function dBtoY(db) { return ay + (1 - (db - dBmin) / (dBmax - dBmin)) * axH; }
+
+  // 1:1 reference line
+  const ref = `<line x1="${dBtoX(dBmin)}" y1="${dBtoY(dBmin)}" x2="${dBtoX(dBmax)}" y2="${dBtoY(dBmax)}"
+    stroke="${MUTED}" stroke-width="1" stroke-dasharray="4,3" opacity="0.4"/>`;
+
+  // Compressed line with soft knee
+  const kH = knee / 2;
+  const points = [];
+  for (let db = dBmin; db <= dBmax; db += 0.5) {
+    let out;
+    if (db < T - kH) {
+      out = db;
+    } else if (db > T + kH) {
+      out = T + (db - T) / R;
+    } else {
+      // Soft knee quadratic blend
+      const x = (db - (T - kH)) / (2 * kH);
+      out = db + (1/R - 1) * Math.pow(x, 2) * kH;
+    }
+    points.push(`${dBtoX(db).toFixed(1)},${dBtoY(out).toFixed(1)}`);
+  }
+  const curve = `<polyline points="${points.join(' ')}" fill="none" stroke="${COMP}" stroke-width="2" stroke-linejoin="round"/>`;
+
+  // Threshold marker
+  const tx = dBtoX(T);
+  const threshMark = `
+    <line x1="${tx}" y1="${ay}" x2="${tx}" y2="${ay2}" stroke="${COMP2}" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
+    ${label('THRESHOLD', tx, ay - 6, COMP2, 8, 'middle', 600)}
+  `;
+
+  // Axis labels
+  const dbTicks = [-60, -48, -36, -24, -12, 0];
+  const ticksSVG = dbTicks.map(db => {
+    const x = dBtoX(db), y = dBtoY(db);
+    return `<line x1="${ax}" y1="${y.toFixed(1)}" x2="${ax2}" y2="${y.toFixed(1)}" stroke="${MUTED}" stroke-width="0.5" opacity="0.15"/>
+            ${label(db+'', ax-4, y+3, MUTED, 8, 'end')}
+            <line x1="${x.toFixed(1)}" y1="${ay}" x2="${x.toFixed(1)}" y2="${ay2}" stroke="${MUTED}" stroke-width="0.5" opacity="0.15"/>
+            ${label(db+'', x, ay2+12, MUTED, 8, 'middle')}`;
+  }).join('');
+
+  const axes = `
+    <line x1="${ax}" y1="${ay}" x2="${ax}" y2="${ay2}" stroke="${MUTED}" stroke-width="1" opacity="0.5"/>
+    <line x1="${ax}" y1="${ay2}" x2="${ax2}" y2="${ay2}" stroke="${MUTED}" stroke-width="1" opacity="0.5"/>
+    ${label('OUTPUT (dBFS)', ax - 28, ay + axH/2, MUTED, 8, 'middle')}
+    ${label('INPUT (dBFS)', ax + axW/2, ay2 + 24, MUTED, 8, 'middle')}
+  `;
+
+  return svgWrap(
+    `<g transform="rotate(-90,${ax-28},${ay+axH/2}) translate(0,0)">${label('OUTPUT (dBFS)', ax-28, ay+axH/2+2, MUTED, 8, 'middle')}</g>` +
+    ticksSVG + ref + curve + threshMark + axes +
+    `${label('INPUT (dBFS)', ax + axW/2, ay2 + 24, MUTED, 8, 'middle')}`,
+    H
+  );
+}
+
+// ── Transfer curve — multiple ratios ─────────────────────────
+function buildTransferRatios(p) {
+  const H = 220;
+  const T = p.threshold ?? -24;
+  const pad = 40;
+  const axW = SVG_W - pad*2 - 20;
+  const axH = H - pad*2;
+  const ax = pad + 20, ay = pad, ax2 = ax + axW, ay2 = ay + axH;
+  const dBmin = -60, dBmax = 0;
+
+  function dBtoX(db) { return ax + (db - dBmin) / (dBmax - dBmin) * axW; }
+  function dBtoY(db) { return ay + (1 - (db - dBmin) / (dBmax - dBmin)) * axH; }
+
+  const ratios = [
+    { r: 2,   col: '#a5b4fc', lbl: '2:1' },
+    { r: 4,   col: COMP2,     lbl: '4:1' },
+    { r: 8,   col: COMP,      lbl: '8:1' },
+    { r: 100, col: '#f87171', lbl: '∞:1' },
+  ];
+
+  const ref = `<line x1="${dBtoX(dBmin)}" y1="${dBtoY(dBmin)}" x2="${dBtoX(dBmax)}" y2="${dBtoY(dBmax)}"
+    stroke="${MUTED}" stroke-width="1" stroke-dasharray="4,3" opacity="0.35"/>`;
+
+  const curves = ratios.map(({ r, col }) => {
+    const pts = [];
+    for (let db = dBmin; db <= dBmax; db += 0.5) {
+      const out = db < T ? db : T + (db - T) / r;
+      pts.push(`${dBtoX(db).toFixed(1)},${dBtoY(out).toFixed(1)}`);
+    }
+    return `<polyline points="${pts.join(' ')}" fill="none" stroke="${col}" stroke-width="1.8" stroke-linejoin="round" opacity="0.9"/>`;
+  }).join('');
+
+  // Legend
+  const legendSVG = ratios.map(({ col, lbl }, i) =>
+    `<rect x="${ax2 - 96 + i*0}" y="${ay + i*18}" width="10" height="10" rx="2" fill="${col}" opacity="0.9"/>
+     ${label(lbl, ax2 - 82, ay + i*18 + 9, col, 9, 'start', 600)}`
+  ).join('');
+
+  const tx = dBtoX(T);
+  const threshMark = `<line x1="${tx}" y1="${ay}" x2="${tx}" y2="${ay2}" stroke="${MUTED}" stroke-width="1" stroke-dasharray="3,3" opacity="0.4"/>
+    ${label('T', tx, ay - 5, MUTED, 8, 'middle')}`;
+
+  const axes = `
+    <line x1="${ax}" y1="${ay}" x2="${ax}" y2="${ay2}" stroke="${MUTED}" stroke-width="1" opacity="0.5"/>
+    <line x1="${ax}" y1="${ay2}" x2="${ax2}" y2="${ay2}" stroke="${MUTED}" stroke-width="1" opacity="0.5"/>
+  `;
+  const dbTicks = [-60, -48, -36, -24, -12, 0];
+  const ticksSVG = dbTicks.map(db => {
+    const x = dBtoX(db), y = dBtoY(db);
+    return `<line x1="${ax}" y1="${y.toFixed(1)}" x2="${ax2}" y2="${y.toFixed(1)}" stroke="${MUTED}" stroke-width="0.5" opacity="0.12"/>
+            ${label(db+'', ax-4, y+3, MUTED, 8, 'end')}
+            <line x1="${x.toFixed(1)}" y1="${ay}" x2="${x.toFixed(1)}" y2="${ay2}" stroke="${MUTED}" stroke-width="0.5" opacity="0.12"/>
+            ${label(db+'', x, ay2+12, MUTED, 8, 'middle')}`;
+  }).join('');
+
+  return svgWrap(ticksSVG + ref + curves + threshMark + legendSVG + axes, H);
+}
+
+// ── Attack compare waveform ───────────────────────────────────
+function buildAttackCompare() {
+  const H = 150, mid = 50;
+
+  function drumHit(x, peakH, envH, col, attackW, label_) {
+    // Waveform peak
+    const wave = `<rect x="${x-4}" y="${mid-peakH}" width="8" height="${peakH*2}" fill="${col}" opacity="0.7" rx="2"/>`;
+    // Envelope line (shows compressor envelope)
+    const envY = mid - envH;
+    const envPath = `M ${x-4} ${mid-peakH} L ${x+attackW} ${envY} L ${x+60} ${envY+6} L ${x+80} ${mid}`;
+    const env = `<path d="${envPath}" fill="none" stroke="${COMP2}" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.7"/>`;
+    return wave + env + `<text x="${x}" y="${mid+peakH+16}" text-anchor="middle" ${FONT} font-size="8" fill="${MUTED}">${label_}</text>`;
+  }
+
+  const fastSVG = `
+    ${label('FAST ATTACK (1 ms)', 16, 12, COMP, 9, 'start', 600)}
+    <line x1="16" y1="${mid}" x2="${SVG_W/2-20}" y2="${mid}" stroke="${MUTED}" stroke-width="0.5" opacity="0.3"/>
+    ${drumHit(80,  40, 30, COMP, 3, 'kick')}
+    ${drumHit(220, 28, 22, COMP2, 3, 'snare')}
+    ${drumHit(330, 12, 10, MUTED, 2, 'hat')}
+  `;
+
+  const slowSVG = `
+    ${label('SLOW ATTACK (50 ms)', SVG_W/2+16, 12, COMP2, 9, 'start', 600)}
+    <line x1="${SVG_W/2+10}" y1="${mid}" x2="${SVG_W-16}" y2="${mid}" stroke="${MUTED}" stroke-width="0.5" opacity="0.3"/>
+    ${[{x:SVG_W/2+80,h:40,col:COMP,lbl:'kick'},{x:SVG_W/2+220,h:28,col:COMP2,lbl:'snare'},{x:SVG_W/2+330,h:12,col:MUTED,lbl:'hat'}].map(b =>
+      `<rect x="${b.x-4}" y="${mid-b.h}" width="8" height="${b.h*2}" fill="${b.col}" opacity="0.7" rx="2"/>` +
+      `<path d="M ${b.x-4} ${mid-b.h} L ${b.x+30} ${mid-b.h} L ${b.x+50} ${mid-b.h*0.75} L ${b.x+80} ${mid}" fill="none" stroke="${COMP2}" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.7"/>` +
+      `<text x="${b.x}" y="${mid+b.h+16}" text-anchor="middle" ${FONT} font-size="8" fill="${MUTED}">${b.lbl}</text>`
+    ).join('')}
+  `;
+
+  const divider = `<line x1="${SVG_W/2}" y1="4" x2="${SVG_W/2}" y2="${H-8}" stroke="${MUTED}" stroke-width="0.5" stroke-dasharray="3,3" opacity="0.3"/>`;
+  const envLegend = `
+    <line x1="${SVG_W-140}" y1="${H-14}" x2="${SVG_W-120}" y2="${H-14}" stroke="${COMP2}" stroke-width="1.5" stroke-dasharray="3,2"/>
+    ${label('compressor envelope', SVG_W-116, H-10, MUTED, 8, 'start')}
+  `;
+
+  return svgWrap(fastSVG + slowSVG + divider + envLegend, H);
+}
+
+// ── Release compare waveform ──────────────────────────────────
+function buildReleaseCompare() {
+  const H = 150, mid = 50;
+
+  function releaseSection(xOff, releaseLen, title, col) {
+    const hits = [{x:60,h:40,type:'kick'},{x:160,h:28,type:'snare'},{x:260,h:12,type:'hat'},{x:340,h:40,type:'kick'}];
+    const bars = hits.map(b => {
+      const c = b.type==='kick' ? COMP : b.type==='snare' ? COMP2 : MUTED;
+      return `<rect x="${xOff+b.x-4}" y="${mid-b.h}" width="8" height="${b.h*2}" fill="${c}" opacity="0.7" rx="2"/>`;
+    }).join('');
+    // GR envelope: goes down fast on hit, comes back up at releaseLen rate
+    const env = hits.map(b =>
+      `<path d="M ${xOff+b.x} ${mid-b.h+4} Q ${xOff+b.x+releaseLen/2} ${mid-4} ${xOff+b.x+releaseLen} ${mid}" fill="none" stroke="${col}" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.65"/>`
+    ).join('');
+    return `${label(title, xOff+16, 12, col, 9, 'start', 600)}
+            <line x1="${xOff+10}" y1="${mid}" x2="${xOff+SVG_W/2-20}" y2="${mid}" stroke="${MUTED}" stroke-width="0.5" opacity="0.3"/>
+            ${bars}${env}`;
+  }
+
+  const divider = `<line x1="${SVG_W/2}" y1="4" x2="${SVG_W/2}" y2="${H-8}" stroke="${MUTED}" stroke-width="0.5" stroke-dasharray="3,3" opacity="0.3"/>`;
+  return svgWrap(
+    releaseSection(0,       20, 'FAST RELEASE (60 ms)',  COMP) +
+    releaseSection(SVG_W/2, 70, 'SLOW RELEASE (500 ms)', COMP2) +
+    divider,
+    H
+  );
+}
+
+// ── Knee compare transfer curve ───────────────────────────────
+function buildKneeCompare(p) {
+  const H = 200, T = p.threshold ?? -24, R = p.ratio ?? 4;
+  const pad = 36, axW = SVG_W/2 - pad*2 - 10, axH = H - pad*2;
+  const dBmin = -48, dBmax = 0;
+
+  function dBtoXL(db) { return pad+10 + (db-dBmin)/(dBmax-dBmin)*axW; }
+  function dBtoXR(db) { return SVG_W/2+pad+10 + (db-dBmin)/(dBmax-dBmin)*axW; }
+  function dBtoY(db)  { return pad + (1-(db-dBmin)/(dBmax-dBmin))*axH; }
+
+  function curve(xFn, knee) {
+    const kH = knee/2;
+    const pts = [];
+    for (let db = dBmin; db <= dBmax; db += 0.5) {
+      let out;
+      if (db < T - kH) { out = db; }
+      else if (db > T + kH) { out = T + (db-T)/R; }
+      else {
+        const x = (db-(T-kH))/(2*kH);
+        out = db + (1/R-1)*Math.pow(x,2)*kH;
+      }
+      pts.push(`${xFn(db).toFixed(1)},${dBtoY(out).toFixed(1)}`);
+    }
+    return `<polyline points="${pts.join(' ')}" fill="none" stroke="${COMP}" stroke-width="2"/>`;
+  }
+
+  function panel(xFn, xOff, title, knee, kneeLabel) {
+    const ref = `<line x1="${xFn(dBmin)}" y1="${dBtoY(dBmin)}" x2="${xFn(dBmax)}" y2="${dBtoY(dBmax)}"
+      stroke="${MUTED}" stroke-width="1" stroke-dasharray="3,3" opacity="0.3"/>`;
+    const ax = `<line x1="${xFn(dBmin)}" y1="${pad}" x2="${xFn(dBmin)}" y2="${pad+axH}" stroke="${MUTED}" stroke-width="1" opacity="0.4"/>
+                <line x1="${xFn(dBmin)}" y1="${pad+axH}" x2="${xFn(dBmax)}" y2="${pad+axH}" stroke="${MUTED}" stroke-width="1" opacity="0.4"/>`;
+    const tx = xFn(T);
+    const tm = `<line x1="${tx}" y1="${pad}" x2="${tx}" y2="${pad+axH}" stroke="${COMP2}" stroke-width="1" stroke-dasharray="3,2" opacity="0.5"/>`;
+    return `${label(title, xOff+axW/2+pad+10, 14, COMP2, 9, 'middle', 600)}
+            ${label(kneeLabel, xOff+axW/2+pad+10, H-6, MUTED, 8, 'middle')}
+            ${ref}${curve(xFn, knee)}${ax}${tm}`;
+  }
+
+  const divider = `<line x1="${SVG_W/2}" y1="8" x2="${SVG_W/2}" y2="${H-8}" stroke="${MUTED}" stroke-width="0.5" stroke-dasharray="4,3" opacity="0.3"/>`;
+  return svgWrap(
+    panel(dBtoXL, 0,       'HARD KNEE', 0,  'knee: 0 dB') +
+    panel(dBtoXR, SVG_W/2, 'SOFT KNEE', 10, 'knee: 10 dB') +
+    divider,
+    H
+  );
+}
+
+// ── Makeup gain meter visualization ──────────────────────────
+function buildMakeupGain() {
+  const H = 100;
+  const bars = [
+    { x: 80,  w: 60, h: 60, col: MUTED, lbl: 'Input' },
+    { x: 250, w: 60, h: 34, col: COMP,  lbl: 'Compressed' },
+    { x: 420, w: 60, h: 34, col: COMP2, lbl: '+ Makeup', extra: true },
+    { x: 590, w: 60, h: 60, col: '#a5b4fc', lbl: 'Output' },
+  ];
+  const base = H - 20;
+  const barsSVG = bars.map(b => {
+    const mkArrow = b.extra
+      ? `<line x1="${b.x+b.w+4}" y1="${base-b.h/2}" x2="${b.x+b.w+30}" y2="${base-b.h/2}" stroke="${COMP2}" stroke-width="1.5"/>
+         <polygon points="${b.x+b.w+26},${base-b.h/2-3} ${b.x+b.w+34},${base-b.h/2} ${b.x+b.w+26},${base-b.h/2+3}" fill="${COMP2}"/>`
+      : '';
+    return `<rect x="${b.x}" y="${base-b.h}" width="${b.w}" height="${b.h}" fill="${b.col}" opacity="0.25" rx="3"/>
+            <rect x="${b.x}" y="${base-b.h}" width="${b.w}" height="3" fill="${b.col}" opacity="0.7" rx="1"/>
+            ${label(b.lbl, b.x+b.w/2, base+14, MUTED, 8, 'middle')}${mkArrow}`;
+  }).join('');
+
+  const arrows = [[140,250],[310,420],[480,590]].map(([x1,x2]) =>
+    `<line x1="${x1}" y1="${base-20}" x2="${x2-6}" y2="${base-20}" stroke="${MUTED}" stroke-width="1" stroke-dasharray="3,2" opacity="0.4"/>
+     <polygon points="${x2-6},${base-23} ${x2},${base-20} ${x2-6},${base-17}" fill="${MUTED}" opacity="0.4"/>`
+  ).join('');
+
+  return svgWrap(barsSVG + arrows, H);
+}
+
+// ── Compressor types chart ────────────────────────────────────
+function buildCompTypes() {
+  const H = 130;
+  const types = [
+    { name: 'VCA',         sub: 'SSL G-Bus · API 2500',       attack: 0.9, color: '#60a5fa' },
+    { name: 'FET',         sub: '1176 · Purple MC77',          attack: 1.0, color: '#f472b6' },
+    { name: 'Optical',     sub: 'LA-2A · Tube-Tech CL 1B',     attack: 0.3, color: COMP2 },
+    { name: 'Variable-Mu', sub: 'Fairchild 670 · Manley Vari', attack: 0.1, color: '#a78bfa' },
+  ];
+  const colW = SVG_W / 4;
+
+  const cards = types.map((t, i) => {
+    const cx = i * colW + colW/2;
+    const barW = t.attack * (colW - 32);
+    return `
+      <rect x="${i*colW+8}" y="8" width="${colW-16}" height="${H-16}" rx="8" fill="${t.color}" fill-opacity="0.07" stroke="${t.color}" stroke-width="0.8" stroke-opacity="0.35"/>
+      ${label(t.name, cx, 34, t.color, 10, 'middle', 600)}
+      ${label(t.sub.split('·')[0].trim(), cx, 50, MUTED, 8, 'middle')}
+      ${label(t.sub.split('·')[1].trim(), cx, 62, MUTED, 8, 'middle')}
+      ${label('SPEED', cx, 80, MUTED, 7.5, 'middle')}
+      <rect x="${i*colW+colW/2-barW/2}" y="86" width="${barW}" height="7" rx="3" fill="${t.color}" opacity="0.75"/>
+      ${label(t.attack>=0.8?'Very fast':t.attack>=0.5?'Fast':t.attack>=0.2?'Slow':'Very slow', cx, 108, t.color, 8, 'middle', 600)}
+    `;
+  }).join('');
+
+  return svgWrap(cards, H);
+}
+
+// ── Parallel routing diagram ──────────────────────────────────
+function buildParallelRouting() {
+  const H = 140;
+  // Main path: IN -> split -> DRY path (top) -> MIX -> OUT
+  //                      -> COMP path (bottom) -> MIX -> OUT
+  const inX=60, splitX=180, dryY=38, compY=102, mixX=550, outX=700;
+
+  const lines = `
+    <line x1="${inX+40}" y1="${H/2}" x2="${splitX}" y2="${H/2}" stroke="${COMP}" stroke-width="2" opacity="0.7"/>
+    <line x1="${splitX}" y1="${H/2}" x2="${splitX}" y2="${dryY}" stroke="${COMP}" stroke-width="1.5" opacity="0.5"/>
+    <line x1="${splitX}" y1="${H/2}" x2="${splitX}" y2="${compY}" stroke="${COMP}" stroke-width="1.5" opacity="0.5"/>
+    <line x1="${splitX}" y1="${dryY}" x2="${mixX}" y2="${dryY}" stroke="${COMP}" stroke-width="1.5" opacity="0.5"/>
+    <line x1="${splitX}" y1="${compY}" x2="${mixX-100}" y2="${compY}" stroke="${COMP}" stroke-width="1.5" opacity="0.5"/>
+    <line x1="${mixX}" y1="${dryY}" x2="${mixX}" y2="${H/2}" stroke="${COMP}" stroke-width="1.5" opacity="0.5"/>
+    <line x1="${mixX-60}" y1="${compY}" x2="${mixX}" y2="${H/2}" stroke="${COMP}" stroke-width="1.5" opacity="0.5"/>
+    <line x1="${mixX}" y1="${H/2}" x2="${outX}" y2="${H/2}" stroke="${COMP}" stroke-width="2" opacity="0.7"/>
+  `;
+
+  function box(x, y, w, h, col, lbl, sub='') {
+    return `<rect x="${x}" y="${y-h/2}" width="${w}" height="${h}" rx="6" fill="${col}" fill-opacity="0.12" stroke="${col}" stroke-width="0.9" stroke-opacity="0.6"/>
+            ${label(lbl, x+w/2, y+4, col, 9, 'middle', 600)}
+            ${sub ? label(sub, x+w/2, y+16, MUTED, 8, 'middle') : ''}`;
+  }
+
+  const boxes = `
+    ${box(inX-8, H/2, 56, 30, COMP, 'IN')}
+    ${box(mixX-8, H/2, 56, 30, COMP, 'MIX')}
+    ${box(outX-8, H/2, 56, 30, COMP, 'OUT')}
+    ${box(splitX+30, dryY, 120, 28, MUTED, 'DRY', 'unprocessed')}
+    ${box(splitX+30, compY, 140, 28, COMP, 'COMPRESSOR', 'heavy settings')}
+  `;
+
+  return svgWrap(lines + boxes, H);
+}
+
+// ── Sidechain routing diagram ─────────────────────────────────
+function buildSidechainRouting() {
+  const H = 150;
+  const kickX=80, compX=340, bassX=80, outX=560;
+
+  const lines = `
+    <line x1="${kickX+60}" y1="46" x2="${compX}" y2="46" stroke="${MUTED}" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.5"/>
+    ${label('sidechain (detector input)', 230, 36, MUTED, 8, 'middle')}
+    <line x1="${bassX+60}" y1="${H-46}" x2="${compX}" y2="${H-46}" stroke="${COMP}" stroke-width="2" opacity="0.7"/>
+    <line x1="${compX+120}" y1="${H-46}" x2="${outX}" y2="${H-46}" stroke="${COMP}" stroke-width="2" opacity="0.7"/>
+    <polygon points="${compX-6},${H-50} ${compX},${H-46} ${compX-6},${H-42}" fill="${COMP}" opacity="0.7"/>
+  `;
+
+  function box(x, y, w, h, col, lbl, sub='') {
+    return `<rect x="${x}" y="${y-h/2}" width="${w}" height="${h}" rx="6" fill="${col}" fill-opacity="0.1" stroke="${col}" stroke-width="0.9" stroke-opacity="0.6"/>
+            ${label(lbl, x+w/2, y+4, col, 9, 'middle', 600)}
+            ${sub ? label(sub, x+w/2, y+16, MUTED, 8, 'middle') : ''}`;
+  }
+
+  const boxes = `
+    ${box(kickX-8, 46, 76, 30, MUTED, 'KICK', 'trigger')}
+    ${box(bassX-8, H-46, 76, 30, COMP, 'BASS', 'audio in')}
+    ${box(compX, (46+H-46)/2, 120, 68, COMP2, 'COMPRESSOR', '')}
+    ${box(outX, H-46, 76, 30, COMP, 'OUT', 'ducked bass')}
+    ${label('DETECTOR', compX+60, 46+4, COMP2, 8, 'middle')}
+    ${label('GAIN CELL', compX+60, H-46+4, COMP2, 8, 'middle')}
+  `;
+
+  return svgWrap(lines + boxes, H);
+}
+
+// ── Tips chart ────────────────────────────────────────────────
+function buildTipsChart() {
+  const H = 120;
+  const rows = [
+    { lbl: 'Drums',    ratio: '4:1',  attack: '20–50ms',  release: '60–120ms',  gr: '4–8 dB' },
+    { lbl: 'Vocals',   ratio: '2–3:1',attack: '10–30ms',  release: '150–300ms', gr: '2–4 dB' },
+    { lbl: 'Bass',     ratio: '4:1',  attack: '5–10ms',   release: 'auto',      gr: '3–6 dB' },
+    { lbl: 'Mix Bus',  ratio: '2:1',  attack: '30–50ms',  release: 'musical',   gr: '1–3 dB' },
+  ];
+  const cols = [0, 120, 240, 380, 520, 640];
+  const headers = ['SOURCE','RATIO','ATTACK','RELEASE','GR'];
+
+  const hdr = headers.map((h, i) =>
+    label(h, cols[i]+10, 18, MUTED, 8, 'start', 600)
+  ).join('');
+
+  const rowsSVG = rows.map((r, ri) => {
+    const y = 36 + ri * 22;
+    const bg = ri%2===0 ? `<rect x="0" y="${y-10}" width="${SVG_W}" height="22" fill="rgba(255,255,255,0.02)" rx="4"/>` : '';
+    const vals = [r.lbl, r.ratio, r.attack, r.release, r.gr];
+    const col = ri===0 ? COMP : ri===1 ? COMP2 : ri===2 ? '#a5b4fc' : '#7dd3fc';
+    return bg + vals.map((v, i) =>
+      label(v, cols[i]+10, y+4, i===0 ? col : MUTED, 9, 'start', i===0?600:400)
+    ).join('');
+  }).join('');
+
+  return svgWrap(
+    `<line x1="0" y1="24" x2="${SVG_W}" y2="24" stroke="${MUTED}" stroke-width="0.5" opacity="0.3"/>` +
+    hdr + rowsSVG,
+    H
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+//  AUDIO ENGINE — DRUM PATTERN + COMPRESSOR
+// ─────────────────────────────────────────────────────────────
+
+let audioCtx    = null;
+let activeNodes = [];
+let isPlayingA  = false;
+let isPlayingB  = false;
+let rafId       = null;
+let activeComp  = null;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function makePinkNoise(ctx, duration) {
+  const n = Math.ceil(ctx.sampleRate * duration);
+  const buf = ctx.createBuffer(1, n, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+  for (let i=0;i<n;i++) {
+    const w=Math.random()*2-1;
+    b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
+    b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
+    b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
+    d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)/7; b6=w*0.115926;
+  }
+  return buf;
+}
+
+function scheduleKick(ctx, t, dest, nodes) {
+  const osc = ctx.createOscillator();
+  const g   = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(160, t);
+  osc.frequency.exponentialRampToValueAtTime(42, t + 0.07);
+  g.gain.setValueAtTime(1.6, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+  osc.connect(g); g.connect(dest);
+  osc.start(t); osc.stop(t + 0.36);
+  nodes.push(osc);
+
+  // Click layer
+  const nbuf = makePinkNoise(ctx, 0.02);
+  const ns = ctx.createBufferSource();
+  ns.buffer = nbuf;
+  const nhp = ctx.createBiquadFilter();
+  nhp.type = 'bandpass'; nhp.frequency.value = 3000; nhp.Q.value = 0.7;
+  const ng = ctx.createGain();
+  ng.gain.setValueAtTime(0.5, t);
+  ng.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
+  ns.connect(nhp); nhp.connect(ng); ng.connect(dest);
+  ns.start(t); ns.stop(t + 0.022);
+  nodes.push(ns);
+}
+
+function scheduleSnare(ctx, t, dest, nodes) {
+  const nbuf = makePinkNoise(ctx, 0.25);
+  const ns = ctx.createBufferSource();
+  ns.buffer = nbuf;
+  const hp = ctx.createBiquadFilter();
+  hp.type = 'highpass'; hp.frequency.value = 1200; hp.Q.value = 0.7;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(1.1, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+  ns.connect(hp); hp.connect(g); g.connect(dest);
+  ns.start(t); ns.stop(t + 0.24);
+  nodes.push(ns);
+
+  // Tone layer
+  const osc = ctx.createOscillator();
+  osc.type = 'triangle'; osc.frequency.value = 180;
+  const og = ctx.createGain();
+  og.gain.setValueAtTime(0.4, t);
+  og.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+  osc.connect(og); og.connect(dest);
+  osc.start(t); osc.stop(t + 0.09);
+  nodes.push(osc);
+}
+
+function scheduleHat(ctx, t, dest, nodes, open=false) {
+  const nbuf = makePinkNoise(ctx, open ? 0.18 : 0.06);
+  const ns = ctx.createBufferSource();
+  ns.buffer = nbuf;
+  const hp = ctx.createBiquadFilter();
+  hp.type = 'highpass'; hp.frequency.value = 7000;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.4, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + (open?0.16:0.05));
+  ns.connect(hp); hp.connect(g); g.connect(dest);
+  ns.start(t); ns.stop(t + (open?0.18:0.06));
+  nodes.push(ns);
+}
+
+function buildPattern(ctx, comp, outputGain, nodes, bars=6) {
+  const bpm = 120, beat = 60/bpm;
+  const pattern = [
+    {type:'kick',  t:0},
+    {type:'hat',   t:beat*0.5},
+    {type:'snare', t:beat},
+    {type:'hat',   t:beat*1.5},
+    {type:'kick',  t:beat*2},
+    {type:'hat',   t:beat*2.5},
+    {type:'kick',  t:beat*3,  ghost:true},
+    {type:'snare', t:beat*3},
+    {type:'hat',   t:beat*3.5},
+  ];
+  const now = ctx.currentTime + 0.05;
+  for (let bar=0; bar<bars; bar++) {
+    const barStart = now + bar*beat*4;
+    pattern.forEach(hit => {
+      const t = barStart + hit.t;
+      if (hit.type==='kick')  scheduleKick(ctx, t, comp, nodes);
+      if (hit.type==='snare') scheduleSnare(ctx, t, comp, nodes);
+      if (hit.type==='hat')   scheduleHat(ctx, t, comp, nodes);
+    });
+  }
+  return now + bars*beat*4;
+}
+
+function makeCompressor(ctx, settings) {
+  if (!settings) return null;
+  const comp = ctx.createDynamicsCompressor();
+  comp.threshold.value = settings.threshold ?? -24;
+  comp.ratio.value     = settings.ratio     ?? 4;
+  comp.attack.value    = settings.attack    ?? 0.010;
+  comp.release.value   = settings.release   ?? 0.15;
+  comp.knee.value      = settings.knee      ?? 6;
+  return comp;
+}
+
+function stopAll() {
+  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  activeNodes.forEach(n => { try { n.stop(); } catch(e){} });
+  activeNodes = [];
+  activeComp  = null;
+  isPlayingA  = false;
+  isPlayingB  = false;
+  updateBtnState('A', false);
+  updateBtnState('B', false);
+  const grWrap = document.querySelector('.gr-meter-wrap');
+  if (grWrap) grWrap.classList.remove('visible');
+  const grVal = document.querySelector('.gr-value');
+  if (grVal) grVal.textContent = '';
+}
+
+function updateBtnState(side, playing) {
+  const btn = document.getElementById(`playBtn${side}`);
+  if (!btn) return;
+  if (playing) {
+    btn.classList.add('playing');
+    btn.innerHTML = stopIcon() + (side==='B' && btn.dataset.labelb ? btn.dataset.labelb : (btn.dataset.labela || 'Stop'));
+  } else {
+    btn.classList.remove('playing');
+    btn.innerHTML = playIcon() + (side==='B' ? (btn.dataset.labelb||'') : (btn.dataset.labela||'Play'));
+  }
+}
+
+function playIcon() {
+  return `<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><polygon points="5,3 19,12 5,21"/></svg>`;
+}
+function stopIcon() {
+  return `<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>`;
+}
+
+function startGRMeter(comp) {
+  const canvas = document.querySelector('.gr-canvas');
+  const grWrap = document.querySelector('.gr-meter-wrap');
+  const grVal  = document.querySelector('.gr-value');
+  if (!canvas || !comp) return;
+  grWrap.classList.add('visible');
+  const ctx2d = canvas.getContext('2d');
+
+  function draw() {
+    if (!activeComp) return;
+    const gr = Math.abs(activeComp.reduction);
+    const maxGR = 20;
+    const frac  = Math.min(gr / maxGR, 1);
+    const W = canvas.width  = canvas.offsetWidth;
+    const H = canvas.height = canvas.offsetHeight;
+    ctx2d.clearRect(0, 0, W, H);
+    // Gradient bar
+    const grad = ctx2d.createLinearGradient(0, 0, W, 0);
+    grad.addColorStop(0,   '#e8865a');
+    grad.addColorStop(0.5, '#f0a882');
+    grad.addColorStop(1,   '#fecdd3');
+    ctx2d.fillStyle = grad;
+    ctx2d.beginPath();
+    ctx2d.roundRect(0, 1, W * frac, H - 2, 3);
+    ctx2d.fill();
+    if (grVal) grVal.textContent = `−${gr.toFixed(1)} dB`;
+    rafId = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function playSection(side, settings, showGR) {
+  const ctx = getAudioCtx();
+  const nodes = [];
+  const vol = parseFloat(document.querySelector('.vol-slider')?.value ?? 0.55);
+  const masterGain = ctx.createGain();
+  masterGain.gain.value = vol * 0.55;
+  masterGain.connect(ctx.destination);
+
+  let dest;
+  if (settings) {
+    const comp = makeCompressor(ctx, settings);
+    comp.connect(masterGain);
+    dest = comp;
+    activeComp = comp;
+
+    // Makeup gain
+    const mk = settings.makeupGain ?? 0;
+    if (mk > 0) {
+      masterGain.gain.value *= Math.pow(10, mk/20) * 0.6;
+    }
+
+    // Parallel blend
+    if (settings.parallelMix && settings.parallelMix > 0) {
+      const dryGain = ctx.createGain();
+      dryGain.gain.value = 1 - settings.parallelMix;
+      dryGain.connect(ctx.destination);
+      const wetGain = ctx.createGain();
+      wetGain.gain.value = settings.parallelMix;
+      comp.disconnect();
+      comp.connect(wetGain); wetGain.connect(ctx.destination);
+      const split = ctx.createGain();
+      split.gain.value = vol * 0.55;
+      split.connect(dryGain);
+      split.connect(comp);
+      dest = split;
+      masterGain.disconnect();
+    }
+  } else {
+    dest = masterGain;
+    activeComp = null;
+  }
+
+  const endTime = buildPattern(ctx, dest, masterGain, nodes);
+  nodes.push(masterGain);
+  activeNodes = [...activeNodes, ...nodes];
+
+  if (side==='A') { isPlayingA=true; updateBtnState('A', true); }
+  else            { isPlayingB=true; updateBtnState('B', true); }
+
+  if (showGR && activeComp) startGRMeter(activeComp);
+
+  const remaining = (endTime - ctx.currentTime) * 1000;
+  setTimeout(() => {
+    if (side==='A' && isPlayingA) { isPlayingA=false; updateBtnState('A',false); activeComp=null; }
+    if (side==='B' && isPlayingB) { isPlayingB=false; updateBtnState('B',false); activeComp=null; }
+    if (!isPlayingA && !isPlayingB) {
+      if (rafId) { cancelAnimationFrame(rafId); rafId=null; }
+      const grWrap = document.querySelector('.gr-meter-wrap');
+      if (grWrap) grWrap.classList.remove('visible');
+      const grVal = document.querySelector('.gr-value');
+      if (grVal) grVal.textContent = '';
+    }
+  }, remaining + 150);
+}
+
+function playSidechain() {
+  const ctx = getAudioCtx();
+  const vol = parseFloat(document.querySelector('.vol-slider')?.value ?? 0.55);
+  const nodes = [];
+  const masterGain = ctx.createGain();
+  masterGain.gain.value = vol * 0.5;
+  masterGain.connect(ctx.destination);
+
+  // Sidechain compressor on bass pad
+  const comp = ctx.createDynamicsCompressor();
+  comp.threshold.value = -20; comp.ratio.value = 10;
+  comp.attack.value = 0.001; comp.release.value = 0.18; comp.knee.value = 0;
+  comp.connect(masterGain);
+  activeComp = comp;
+
+  // Bass pad (sustained sine at ~80 Hz)
+  const bpm=120, beat=60/bpm, bars=8;
+  const padOsc = ctx.createOscillator();
+  padOsc.type = 'sawtooth'; padOsc.frequency.value = 80;
+  const padFilter = ctx.createBiquadFilter();
+  padFilter.type = 'lowpass'; padFilter.frequency.value = 400;
+  const padGain = ctx.createGain();
+  padGain.gain.value = 0.7;
+  padOsc.connect(padFilter); padFilter.connect(padGain); padGain.connect(comp);
+  padOsc.start(ctx.currentTime+0.05);
+  padOsc.stop(ctx.currentTime+0.05+bars*beat*4);
+  nodes.push(padOsc);
+
+  // Kick drums — scheduleKick into BOTH comp (for detection) and direct (subtle click)
+  const kickOnlyDest = ctx.createGain();
+  kickOnlyDest.gain.value = 0; // silent — we use it only to drive the sidechain effect
+  // Simulate sidechain: use GainNode automation to duck the comp output
+  const now = ctx.currentTime + 0.05;
+  for (let bar=0; bar<bars; bar++) {
+    const barStart = now + bar*beat*4;
+    // Kick on beats 1 and 3
+    [0, beat*2].forEach(offset => {
+      const t = barStart + offset;
+      // Duck the padGain
+      padGain.gain.cancelScheduledValues(t);
+      padGain.gain.setValueAtTime(0.7, t);
+      padGain.gain.linearRampToValueAtTime(0.05, t+0.008);
+      padGain.gain.linearRampToValueAtTime(0.7, t+0.22);
+      // Kick to output directly (audible kick)
+      scheduleKick(ctx, t, masterGain, nodes);
+    });
+    // Snare on beats 2 and 4
+    [beat, beat*3].forEach(offset => {
+      scheduleSnare(ctx, barStart+offset, masterGain, nodes);
+    });
+    // Hats
+    [beat*0.5,beat*1.5,beat*2.5,beat*3.5].forEach(offset => {
+      scheduleHat(ctx, barStart+offset, masterGain, nodes);
+    });
+  }
+
+  nodes.push(masterGain);
+  activeNodes = nodes;
+  isPlayingA = true;
+  updateBtnState('A', true);
+  startGRMeter(comp);
+
+  const endTime = now + bars*beat*4;
+  const remaining = (endTime - ctx.currentTime)*1000;
+  setTimeout(() => {
+    isPlayingA=false; updateBtnState('A',false); activeComp=null;
+    if (rafId) { cancelAnimationFrame(rafId); rafId=null; }
+    const grWrap = document.querySelector('.gr-meter-wrap');
+    if (grWrap) grWrap.classList.remove('visible');
+    const grVal = document.querySelector('.gr-value');
+    if (grVal) grVal.textContent = '';
+  }, remaining+150);
+}
+
+function toggleA(settings, showGR) {
+  if (isPlayingA) { stopAll(); return; }
+  if (isPlayingB) stopAll();
+  playSection('A', settings, showGR);
+}
+function toggleB(settings, showGR) {
+  if (isPlayingB) { stopAll(); return; }
+  if (isPlayingA) stopAll();
+  playSection('B', settings, showGR);
+}
+function toggleSidechain() {
+  if (isPlayingA || isPlayingB) { stopAll(); return; }
+  playSidechain();
+}
+
+// ─────────────────────────────────────────────────────────────
+//  STEP RENDERER
+// ─────────────────────────────────────────────────────────────
+
+let currentStep = 0;
+
+function renderStep(idx) {
+  stopAll();
+  const step = steps[idx];
+  const card = document.getElementById('stepCard');
+  const total = steps.length;
+
+  // Key points
+  const kpHTML = step.keyPoints.map(kp =>
+    `<div class="key-point"><strong>${kp.strong}</strong>${kp.rest}</div>`
+  ).join('');
+
+  // Diagram
+  const diagramHTML = `
+    <div class="diagram-wrap">
+      <div class="diagram-title">${getDiagramTitle(step.diagram.type)}</div>
+      ${buildDiagramSVG(step.diagram)}
+    </div>
+  `;
+
+  // Audio controls
+  const audio = step.audio;
+  let controlsHTML = '';
+  const volSlider = `<div class="vol-wrap" style="margin-left:auto;">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="color:var(--muted)">
+      <polygon points="11,5 6,9 2,9 2,15 6,15 11,19" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" fill="none"/>
+      <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+    </svg>
+    <input type="range" class="vol-slider" min="0" max="1" step="0.02" value="0.55" title="Volume">
+  </div>`;
+
+  if (audio.type === 'ab') {
+    const settA = audio.compA ? JSON.stringify(audio.compA) : 'null';
+    const settB = audio.compB ? JSON.stringify(audio.compB) : 'null';
+    controlsHTML = `
+      <div class="demo-controls">
+        <button class="play-btn secondary" id="playBtnA"
+          data-labela="${audio.labelA}"
+          onclick='toggleA(${settA}, false)'>${playIcon()} ${audio.labelA}</button>
+        <button class="play-btn" id="playBtnB"
+          data-labelb="${audio.labelB}"
+          onclick='toggleB(${settB}, false)'>${playIcon()} ${audio.labelB}</button>
+        ${volSlider}
+      </div>
+    `;
+  } else if (audio.type === 'single') {
+    const sett = JSON.stringify(audio.comp);
+    const showGR = audio.showGR ? 'true' : 'false';
+    controlsHTML = `
+      <div class="demo-controls">
+        <button class="play-btn" id="playBtnA"
+          data-labela="Play pattern"
+          onclick='toggleA(${sett}, ${showGR})'>${playIcon()} Play pattern</button>
+        ${volSlider}
+      </div>
+      ${audio.showGR ? `
+      <div class="gr-meter-wrap">
+        <span class="gr-meter-label">Gain Reduction</span>
+        <div class="gr-canvas-wrap">
+          <canvas class="gr-canvas"></canvas>
+        </div>
+        <span class="gr-value"></span>
+      </div>` : ''}
+    `;
+  } else if (audio.type === 'sidechain') {
+    controlsHTML = `
+      <div class="demo-controls">
+        <button class="play-btn" id="playBtnA"
+          data-labela="Play sidechain demo"
+          onclick='toggleSidechain()'>${playIcon()} Play sidechain demo</button>
+        ${volSlider}
+      </div>
+      <div class="gr-meter-wrap">
+        <span class="gr-meter-label">Gain Reduction</span>
+        <div class="gr-canvas-wrap">
+          <canvas class="gr-canvas"></canvas>
+        </div>
+        <span class="gr-value"></span>
+      </div>
+    `;
+  }
+
+  card.innerHTML = `
+    <div class="step-number">${step.number}</div>
+    <h2 class="step-title">${step.title}</h2>
+    <div class="step-body">${step.body}</div>
+    ${diagramHTML}
+    <div class="key-points">
+      <div class="key-points-label">Key Takeaways</div>
+      ${kpHTML}
+    </div>
+    <div class="audio-demo">
+      <div class="audio-demo-label">Listen</div>
+      <div class="audio-demo-desc">${audio.desc}</div>
+      ${controlsHTML}
+    </div>
+  `;
+
+  // Progress dots
+  const dots = document.getElementById('progressDots');
+  dots.innerHTML = steps.map((_,i) =>
+    `<div class="progress-dot ${i<idx?'done':''} ${i===idx?'active':''}"
+          onclick="goToStep(${i})" title="Step ${i+1}"></div>`
+  ).join('');
+
+  document.getElementById('progressLabel').textContent = `Step ${idx+1} of ${total}`;
+  document.getElementById('stepCounter').textContent = `${idx+1} / ${total}`;
+
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  prevBtn.disabled = idx === 0;
+  if (idx === total-1) {
+    nextBtn.textContent = 'Complete';
+    nextBtn.className = 'nav-btn finish';
+    nextBtn.onclick = showCompletion;
+  } else {
+    nextBtn.textContent = 'Next →';
+    nextBtn.className = 'nav-btn primary';
+    nextBtn.onclick = () => navigate(1);
+  }
+}
+
+function getDiagramTitle(type) {
+  const titles = {
+    'waveform-compare':   'Dynamic range — uncompressed vs. compressed waveform',
+    'signal-flow':        'Signal flow — how a compressor processes audio',
+    'transfer':           'Transfer curve — input level vs. output level',
+    'transfer-ratios':    'Transfer curve — comparing compression ratios',
+    'attack-compare':     'Attack — how quickly the compressor engages',
+    'release-compare':    'Release — how quickly the compressor lets go',
+    'knee-compare':       'Knee — hard vs. soft transition at the threshold',
+    'makeup-gain':        'Makeup gain — restoring level after compression',
+    'comp-types':         'Compressor types — character and speed comparison',
+    'parallel-routing':   'Parallel compression — signal routing',
+    'sidechain-routing':  'Sidechain compression — routing diagram',
+    'tips-chart':         'Starting point settings by source type',
+  };
+  return titles[type] || '';
+}
+
+function navigate(dir) {
+  const next = currentStep + dir;
+  if (next < 0 || next >= steps.length) return;
+  currentStep = next;
+  renderStep(currentStep);
+  window.scrollTo({ top: document.getElementById('stepCard').offsetTop - 100, behavior: 'smooth' });
+}
+
+function goToStep(idx) {
+  currentStep = idx;
+  renderStep(currentStep);
+}
+
+function showCompletion() {
+  stopAll();
+  const card = document.getElementById('stepCard');
+  card.innerHTML = `
+    <div class="completion-card">
+      <svg width="56" height="56" viewBox="0 0 56 56" fill="none" style="display:block;margin:0 auto 20px;">
+        <circle cx="28" cy="28" r="25" stroke="var(--comp-accent)" stroke-width="1.5" fill="rgba(232,134,90,0.08)"/>
+        <polyline points="17,28 25,36 39,19" stroke="var(--comp-accent2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="completion-title">Compression Module Complete!</div>
+      <p class="completion-sub">You now have a solid foundation in compression — from the basic parameters to parallel and sidechain techniques. The next step is putting your ears to work.</p>
+      <a class="completion-cta" href="/learn/">Explore other modules →</a>
+      <button class="completion-restart" onclick="restartModule()">← Restart this module</button>
+    </div>
+  `;
+  document.getElementById('stepNav').style.display = 'none';
+  document.getElementById('progressLabel').textContent = 'Complete!';
+  document.getElementById('progressDots').innerHTML = steps.map((_,i) =>
+    `<div class="progress-dot done" onclick="goToStep(${i})" title="Step ${i+1}"></div>`
+  ).join('');
+}
+
+function restartModule() {
+  document.getElementById('stepNav').style.display = '';
+  currentStep = 0;
+  renderStep(0);
+}
+
+// ── Init ─────────────────────────────────────────────────────
+renderStep(0);
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') navigate(1);
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   navigate(-1);
+  if (e.key === ' ') {
+    e.preventDefault();
+    const audio = steps[currentStep].audio;
+    if (audio.type === 'single')   toggleA(audio.comp, audio.showGR||false);
+    if (audio.type === 'ab')       toggleA(audio.compA, false);
+    if (audio.type === 'sidechain') toggleSidechain();
+  }
+});
+</script>
+</body>
+</html>
