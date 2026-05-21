@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Soundstage — SonicSandbox Learn</title>
+<title>Spatial Mixing — SonicSandbox Learn</title>
 <meta name="description" content="Learn how panning, volume, reverb, and frequency create a three-dimensional soundstage in your mix.">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
@@ -313,17 +313,17 @@
       <div class="tool-dot" style="color:var(--comp-accent)"></div>Compression
     </a>
     <button class="tool-btn active">
-      <div class="tool-dot" style="color:var(--stage-accent2)"></div>The Soundstage
+      <div class="tool-dot" style="color:var(--stage-accent2)"></div>Spatial Mixing
     </button>
-    <div class="tool-btn disabled">
-      <div class="tool-dot" style="color:var(--rev-accent)"></div>Reverb <span class="soon-badge">Soon</span>
-    </div>
-    <div class="tool-btn disabled">
-      <div class="tool-dot" style="color:var(--dist-accent)"></div>Saturation <span class="soon-badge">Soon</span>
-    </div>
-    <div class="tool-btn disabled">
-      <div class="tool-dot" style="color:var(--delay-accent)"></div>Delay <span class="soon-badge">Soon</span>
-    </div>
+    <a class="tool-btn" href="/learn/reverb/">
+      <div class="tool-dot" style="color:var(--rev-accent)"></div>Reverb
+    </a>
+    <a class="tool-btn" href="/learn/saturation/">
+      <div class="tool-dot" style="color:var(--dist-accent)"></div>Saturation
+    </a>
+    <a class="tool-btn" href="/learn/delay/">
+      <div class="tool-dot" style="color:var(--delay-accent)"></div>Delay
+    </a>
   </div>
 </div>
 
@@ -405,7 +405,7 @@ const steps = [
 
   // ── Step 1: Introduction ─────────────────────────────────
   {
-    title: "The Soundstage",
+    title: "Spatial Mixing",
     number: "Step 01 — Introduction",
     body: `Every mix occupies a three-dimensional space. Even though music plays through speakers or headphones, our ears can perceive <em>depth, width, and height</em> within a recording — and skilled engineers deliberately place each instrument somewhere in that space.
 
@@ -518,7 +518,7 @@ const steps = [
       { strong: "The middle distance", rest: " — rhythm instruments, supporting harmonies; moderate level" },
       { strong: "The back row", rest: " — pads, reverb tails, atmosphere; quiet and receding" },
     ],
-    audio: { type: 'depth', desc: "The same guitar riff played at different volume levels — hear how it appears closer or further away as the level changes." }
+    audio: { type: 'depth', desc: "The same pink noise tone played close (louder) and distant (quieter) — hear how volume alone shifts the sense of proximity." }
   },
 
   // ── Step 5: Up & Down ────────────────────────────────────
@@ -575,7 +575,7 @@ const steps = [
       { strong: "Wide stereo", rest: " — doubled guitars, chorus, wide synths; expansive feel" },
       { strong: "Mono compatibility", rest: " — always check your wide elements in mono to catch phase cancellation" },
     ],
-    audio: { type: 'width', desc: "A guitar riff in mono → narrow stereo → wide stereo. Notice how the image changes from a point to an expansive spread." }
+    audio: { type: 'width', desc: "A synth tone in mono vs. wide stereo — notice how the image shifts from a focused point to an expansive spread." }
   },
 
   // ── Step 7: Reverb as Depth ───────────────────────────────
@@ -868,23 +868,23 @@ function drawStage(instruments, step) {
              cx: proj.x, cy: proj.y };
   });
 
-  // ── Collision resolution — push overlapping chips apart (y-axis) ─
-  const MARGIN = 3;
-  for (let iter = 0; iter < 12; iter++) {
+  // ── Collision resolution — gentle nudge for label legibility ─
+  // Chips are allowed to visually overlap; we only nudge enough so labels
+  // are readable. Cap total y-drift so depth relationships stay honest.
+  chipItems.forEach(c => { c.origCy = c.cy; });
+  const MAX_DRIFT = 14; // px — enough to separate text, not enough to mislead depth
+
+  for (let iter = 0; iter < 5; iter++) {
     let moved = false;
     for (let i = 0; i < chipItems.length; i++) {
       for (let j = i + 1; j < chipItems.length; j++) {
         const a = chipItems[i], b = chipItems[j];
-        const ax1 = a.cx - a.chipW / 2 - MARGIN, ax2 = a.cx + a.chipW / 2 + MARGIN;
-        const ay1 = a.cy - a.chipH / 2 - MARGIN, ay2 = a.cy + a.chipH / 2 + MARGIN;
-        const bx1 = b.cx - b.chipW / 2 - MARGIN, bx2 = b.cx + b.chipW / 2 + MARGIN;
-        const by1 = b.cy - b.chipH / 2 - MARGIN, by2 = b.cy + b.chipH / 2 + MARGIN;
-        const overlapX = Math.min(ax2, bx2) - Math.max(ax1, bx1);
-        const overlapY = Math.min(ay2, by2) - Math.max(ay1, by1);
+        const overlapX = Math.min(a.cx + a.chipW/2, b.cx + b.chipW/2) - Math.max(a.cx - a.chipW/2, b.cx - b.chipW/2);
+        const overlapY = Math.min(a.cy + a.chipH/2, b.cy + b.chipH/2) - Math.max(a.cy - a.chipH/2, b.cy - b.chipH/2);
         if (overlapX > 0 && overlapY > 0) {
-          const push = overlapY / 2 + 1;
-          a.cy -= push;
-          b.cy += push;
+          const push = overlapY * 0.25;
+          a.cy = Math.max(a.origCy - MAX_DRIFT, Math.min(a.origCy + MAX_DRIFT, a.cy - push));
+          b.cy = Math.max(b.origCy - MAX_DRIFT, Math.min(b.origCy + MAX_DRIFT, b.cy + push));
           moved = true;
         }
       }
