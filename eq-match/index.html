@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EQ Match</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
@@ -59,12 +60,13 @@
     }
     .back-btn:hover { color: var(--text); border-color: var(--accent); }
 
-    .brand { display: flex; align-items: center; gap: 8px; }
-    .logo-mark { display: flex; align-items: flex-end; gap: 2px; height: 16px; }
-    .bar { width: 3px; background: var(--accent); border-radius: 1px; }
-    .bar-1 { height: 8px; }
-    .bar-2 { height: 16px; background: var(--accent2); }
-    .bar-3 { height: 12px; }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-icon {
+      width: 32px; height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
     .brand-name {
       font-size: 14px; font-weight: 700;
       letter-spacing: 0.1em; color: var(--text);
@@ -397,10 +399,11 @@
   <div class="header-left">
     <a href="../index.html" class="back-btn">← Back</a>
     <div class="brand">
-      <div class="logo-mark">
-        <div class="bar bar-1"></div>
-        <div class="bar bar-2"></div>
-        <div class="bar bar-3"></div>
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 26 26" fill="none">
+          <path d="M2 13 Q5 13 7 8 Q9 3 11 13 Q13 23 15 13 Q17 3 19 8 Q21 13 24 13"
+                stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
       </div>
       <span class="brand-name">EQ MATCH</span>
     </div>
