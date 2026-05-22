@@ -1076,12 +1076,13 @@ function playCurrentRound() {
 
   const chainInput = buildDelayChain(getChainParams(), outGain);
 
+  isPlaying = true;
+
   if (sourceType === 'oneShot' && oneShotBuffers.length > 0) {
     startOneShotLoop(chainInput);
   } else {
     playContinuousSource(chainInput);
   }
-  isPlaying = true;
 
   document.getElementById('playDot').className = 'pulse-dot';
   document.getElementById('btnPlay').classList.add('playing');
@@ -1228,9 +1229,26 @@ async function loadLoopSamples() {
   if (!loopManifestLoaded) { showToast('No loops found'); sourceType = 'pink'; updateSourceUI(); }
 }
 function setSource(type) {
-  if (type === 'oneShot' && !oneShotLoaded) { loadOneShotSamples().then(() => { if (oneShotLoaded) { sourceType = 'oneShot'; updateSourceUI(); } }); return; }
-  if (type === 'loop' && !loopManifestLoaded) { loadLoopSamples().then(() => { if (loopManifestLoaded) { sourceType = 'loop'; updateSourceUI(); } }); return; }
+  if (type === 'oneShot' && !oneShotLoaded) {
+    loadOneShotSamples().then(() => {
+      if (oneShotLoaded) {
+        sourceType = 'oneShot'; updateSourceUI();
+        if (roundActive) { stopPlayback(); playCurrentRound(); }
+      }
+    });
+    return;
+  }
+  if (type === 'loop' && !loopManifestLoaded) {
+    loadLoopSamples().then(() => {
+      if (loopManifestLoaded) {
+        sourceType = 'loop'; updateSourceUI();
+        if (roundActive) { stopPlayback(); playCurrentRound(); }
+      }
+    });
+    return;
+  }
   sourceType = type; updateSourceUI();
+  if (roundActive) { stopPlayback(); playCurrentRound(); }
 }
 function updateSourceUI() {
   document.getElementById('srcPink').classList.toggle('active',    sourceType === 'pink');
