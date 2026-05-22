@@ -1207,7 +1207,7 @@ function renderStep(idx) {
   document.getElementById('prevBtn').disabled = idx === 0;
   const nb = document.getElementById('nextBtn');
   nb.className = isLast ? 'nav-btn finish' : 'nav-btn primary';
-  nb.textContent = isLast ? 'Finish ✓' : 'Next →';
+  nb.textContent = isLast ? 'Complete ✓' : 'Next →';
   document.getElementById('stepCounter').textContent = `${idx + 1} / ${steps.length}`;
   document.getElementById('progressLabel').textContent = `Step ${idx + 1} of ${steps.length}`;
   updateDots(idx);

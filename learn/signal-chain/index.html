@@ -1136,7 +1136,7 @@ function renderNav() {
   prev.disabled = currentStep === 0;
   counter.textContent = `${currentStep + 1} / ${steps.length}`;
   if (currentStep === steps.length - 1) {
-    next.textContent = 'Finish ✓';
+    next.textContent = 'Complete ✓';
     next.classList.add('finish');
     next.classList.remove('primary');
     next.onclick = showCompletion;
