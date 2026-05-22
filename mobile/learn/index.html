@@ -635,6 +635,15 @@
     <div class="progress-label" id="progressLabel">Step 1 of 10</div>
   </div>
 
+  <div class="step-card" id="stepCard"><!-- Content injected by JS --></div>
+  <div class="step-nav" id="stepNav" style="margin-top:20px;">
+    <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>← Previous</button>
+    <span class="step-counter" id="stepCounter"></span>
+    <button class="nav-btn primary" id="nextBtn" onclick="navigate(1)">Next →</button>
+  </div>
+
+</div><!-- /module-wrap -->
+
 <!-- Footer nav -->
 <div class="footer-nav">
   <a href="/mobile/">Games</a>
