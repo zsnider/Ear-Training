@@ -171,11 +171,15 @@
   }
   .chart-wrap { position: relative; height: 240px; }
 
-  /* Mini sparkline inside game card */
-  .mini-chart-wrap { position: relative; height: 56px; margin-top: 14px; }
+  /* Mini chart inside game card */
+  .mini-chart-wrap { position: relative; height: 110px; margin-top: 4px; }
+  .mini-chart-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 14px; margin-bottom: 6px;
+  }
   .mini-chart-label {
     font-size: 10px; color: var(--muted); letter-spacing: 0.06em;
-    text-transform: uppercase; margin-bottom: 6px;
+    text-transform: uppercase;
     font-family: 'IBM Plex Mono', monospace;
   }
 
@@ -471,7 +475,12 @@ function onChartModeToggle(isScore) {
     const title = document.getElementById('overallChartTitle');
     if (title) title.textContent = isScore ? 'Score Over Time' : 'Accuracy Over Time';
     drawOverallChart(_allScores);
-    _sortedGames.forEach(g => drawGameChart(`chart-${g}`, _byGame[g], GAME_COLORS[g] || '#8892ff'));
+    _sortedGames.forEach(g => {
+      drawGameChart(`chart-${g}`, _byGame[g], GAME_COLORS[g] || '#8892ff');
+      // Sync the per-game chart mode label
+      const lbl = document.getElementById(`chart-mode-label-${g}`);
+      if (lbl) lbl.textContent = isScore ? 'Score Over Time' : 'Accuracy Over Time';
+    });
   }
 }
 
@@ -689,6 +698,56 @@ function drawOverallChart(scores) {
   });
 }
 
+// Compact chart options for per-game cards — shows axes but keeps them tidy.
+function miniChartOpts(color, mode) {
+  const isScore = mode === 'score';
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 400 },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#13151a',
+        borderColor: 'rgba(255,255,255,0.14)',
+        borderWidth: 1,
+        titleColor: '#6b7280',
+        bodyColor: '#dde2ee',
+        titleFont: { family: "'IBM Plex Mono', monospace", size: 9 },
+        bodyFont: { family: "'IBM Plex Mono', monospace", size: 11, weight: '600' },
+        callbacks: { label: ctx => isScore ? `${ctx.parsed.y} pts` : `${ctx.parsed.y}% accuracy` }
+      }
+    },
+    scales: {
+      x: {
+        display: true,
+        grid: { display: false },
+        border: { display: false },
+        ticks: {
+          color: '#6b7280',
+          font: { family: "'IBM Plex Mono', monospace", size: 9 },
+          maxTicksLimit: 4,
+          maxRotation: 0,
+        }
+      },
+      y: {
+        display: true,
+        min: 0,
+        ...(isScore ? {} : { max: 100 }),
+        grid: { color: 'rgba(255,255,255,0.04)' },
+        border: { display: false },
+        ticks: {
+          color: '#6b7280',
+          font: { family: "'IBM Plex Mono', monospace", size: 9 },
+          maxTicksLimit: 3,
+          callback: v => isScore ? v : v + '%',
+          ...(isScore ? {} : { stepSize: 50 }),
+        }
+      }
+    }
+  };
+}
+
 function drawGameChart(canvasId, rows, color) {
   const dayData = getDayData(rows);
   if (dayData.length < 2) return;
@@ -698,13 +757,16 @@ function drawGameChart(canvasId, rows, color) {
   const ctx = canvas.getContext('2d');
   destroyChart(canvasId);
 
+  // Show data points — more points = smaller radius so they don't crowd.
+  const pr = dayData.length <= 10 ? 3 : dayData.length <= 20 ? 2 : 1;
+
   chartRegistry[canvasId] = new Chart(ctx, {
     type: 'line',
     data: {
       labels: dayData.map(d => fmtDate(d.date)),
-      datasets: [makeDataset(ctx, dayData, color, 0.4, 0)],
+      datasets: [makeDataset(ctx, dayData, color, 0.4, pr)],
     },
-    options: baseChartOpts(color, false, chartMode),
+    options: miniChartOpts(color, chartMode),
   });
 }
 
@@ -913,6 +975,9 @@ function buildGameCard(game, rows) {
         <div class="acc-bar-fill" style="width:${accPct}%; background:${col};"></div>
       </div>
       ${hasChart ? `
+      <div class="mini-chart-header">
+        <div class="mini-chart-label" id="chart-mode-label-${game}">${chartMode === 'score' ? 'Score Over Time' : 'Accuracy Over Time'}</div>
+      </div>
       <div class="mini-chart-wrap">
         <canvas id="chart-${game}"></canvas>
       </div>` : ''}
