@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SonicSandbox">
+<title>EQ — SonicSandbox Learn</title>
+<style>
+
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg:       #0a0b0d;
+    --surface:  #13151a;
+    --surface2: #1a1d24;
+    --surface3: #21252f;
+    --border:   rgba(255,255,255,0.08);
+    --border2:  rgba(255,255,255,0.14);
+    --text:     #dde2ee;
+    --muted:    #6b7280;
+    --accent:   #5b6aff;
+    --accent2:  #8892ff;
+    --eq-accent:    #5b6aff;
+    --eq-accent2:   #8892ff;
+    --comp-accent:  #e8865a;
+    --rev-accent:   #5b3fd4;
+    --dist-accent:  #d44a2a;
+    --delay-accent: #f97316;
+    --pan-accent:   #7c5cfc;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+  }
+
+  /* ── Nav ───────────────────────────────────────────────── */
+  nav {
+    width: 100%; max-width: 1600px;
+    padding: 20px 28px;
+    display: flex; align-items: center;
+  }
+  .nav-logo-wrap { flex: 1; display: flex; align-items: center; }
+  .nav-logo {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 17px; font-weight: 600;
+    color: var(--text); text-decoration: none;
+    letter-spacing: -0.01em;
+  }
+  .nav-logo span { color: var(--accent2); }
+  .nav-center { display: flex; align-items: center; gap: 28px; flex-shrink: 0; }
+  .nav-link {
+    font-size: 13px; font-weight: 500; color: var(--muted);
+    text-decoration: none; transition: color 0.15s;
+  }
+  .nav-link:hover, .nav-link.active { color: var(--text); }
+  .nav-right {
+    flex: 1; display: flex; align-items: center;
+    justify-content: flex-end; gap: 12px;
+  }
+  .bmac-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: #FFDD00; color: #000;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px; font-weight: 600;
+    padding: 8px 16px; border-radius: 8px;
+    text-decoration: none;
+    transition: opacity 0.15s, transform 0.15s;
+    white-space: nowrap;
+  }
+  .bmac-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+  @media (max-width: 600px) {
+    nav { padding: 16px 20px; }
+    .nav-center { display: none; }
+    .bmac-btn { display: none; }
+    .nav-logo { font-size: 15px; }
+  }
+
+  /* ── Page header ───────────────────────────────────────── */
+  .page-header {
+    width: 100%; max-width: 900px;
+    padding: 52px 24px 36px;
+    text-align: center;
+  }
+  .page-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 18px;
+  }
+  .page-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(26px, 4vw, 44px);
+    font-weight: 600; letter-spacing: -0.03em; line-height: 1.15;
+    color: var(--text); margin-bottom: 14px;
+  }
+  .page-sub {
+    font-size: 15px; color: var(--muted); font-weight: 300;
+    max-width: 480px; margin: 0 auto; line-height: 1.7;
+  }
+
+  /* ── Tool Selector ─────────────────────────────────────── */
+  .tool-selector-wrap {
+    width: 100%; max-width: 900px;
+    padding: 0 24px 40px;
+  }
+  .tool-selector-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 14px;
+  }
+  .tool-selector {
+    display: flex; gap: 10px; flex-wrap: wrap;
+  }
+  .tool-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 18px; border-radius: 10px;
+    border: 1px solid var(--border2);
+    background: var(--surface2);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; font-weight: 600;
+    color: var(--muted);
+    cursor: pointer; text-decoration: none;
+    transition: border-color 0.18s, color 0.18s, background 0.18s, transform 0.18s;
+    position: relative;
+  }
+  .tool-btn.active {
+    border-color: var(--eq-accent);
+    color: var(--eq-accent2);
+    background: rgba(91,106,255,0.1);
+  }
+  .tool-btn.disabled {
+    opacity: 0.38; cursor: not-allowed; pointer-events: none;
+  }
+  .tool-btn:not(.disabled):not(.active):hover {
+    border-color: var(--border2);
+    color: var(--text);
+    background: var(--surface3);
+    transform: translateY(-1px);
+  }
+  .soon-badge {
+    font-size: 9px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    background: rgba(255,255,255,0.06); color: var(--muted);
+    padding: 2px 6px; border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .tool-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: currentColor; opacity: 0.7; flex-shrink: 0;
+  }
+
+  /* ── Module container ──────────────────────────────────── */
+  .module-wrap {
+    width: 100%; max-width: 860px;
+    padding: 0 24px 80px;
+  }
+
+  /* ── Step progress bar ─────────────────────────────────── */
+  .progress-bar-wrap {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 28px;
+  }
+  .progress-dots {
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .progress-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border2);
+    transition: background 0.2s, transform 0.2s;
+    cursor: pointer;
+  }
+  .progress-dot.done   { background: rgba(91,106,255,0.45); }
+  .progress-dot.active { background: var(--eq-accent2); transform: scale(1.3); }
+  .progress-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); margin-left: auto;
+  }
+
+  /* ── Step card ─────────────────────────────────────────── */
+  .step-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 36px 36px 32px;
+    position: relative; overflow: hidden;
+  }
+  .step-card::before {
+    content: ''; position: absolute; inset: 0; border-radius: 20px;
+    background: radial-gradient(ellipse at top left, rgba(91,106,255,0.09), transparent 60%);
+    pointer-events: none;
+  }
+
+  .step-number {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--eq-accent); margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .step-number::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  .step-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(20px, 3vw, 28px);
+    font-weight: 600; letter-spacing: -0.02em;
+    color: var(--text); margin-bottom: 18px;
+    line-height: 1.25;
+  }
+
+  .step-body {
+    font-size: 15px; color: var(--muted);
+    line-height: 1.75; font-weight: 300;
+    margin-bottom: 28px;
+  }
+  .step-body strong { color: var(--text); font-weight: 500; }
+  .step-body em { color: var(--eq-accent2); font-style: normal; font-weight: 500; }
+
+  /* ── Frequency spectrum viz ────────────────────────────── */
+  .spectrum-wrap {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 20px 12px;
+    margin-bottom: 24px;
+  }
+  .spectrum-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 12px;
+  }
+  .spectrum-svg { width: 100%; height: auto; display: block; }
+
+  /* ── Key points list ───────────────────────────────────── */
+  .key-points {
+    background: rgba(91,106,255,0.05);
+    border: 1px solid rgba(91,106,255,0.14);
+    border-radius: 12px; padding: 18px 20px;
+    margin-bottom: 24px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .key-points-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--eq-accent); margin-bottom: 4px;
+  }
+  .key-point {
+    display: flex; gap: 10px; align-items: flex-start;
+    font-size: 13px; color: var(--muted); line-height: 1.55;
+  }
+  .key-point::before {
+    content: '→';
+    color: var(--eq-accent2); font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; margin-top: 1px; flex-shrink: 0;
+  }
+  .key-point strong { color: var(--text); font-weight: 500; }
+
+  /* ── Audio demo ────────────────────────────────────────── */
+  .audio-demo {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 20px;
+    margin-bottom: 28px;
+    display: flex; align-items: center; gap: 16px;
+    flex-wrap: wrap;
+  }
+  .audio-demo-info { flex: 1; min-width: 200px; }
+  .audio-demo-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 4px;
+  }
+  .audio-demo-desc {
+    font-size: 13px; color: var(--muted); line-height: 1.5;
+  }
+  .demo-controls { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .play-btn {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--eq-accent); border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: transform 0.15s, opacity 0.15s;
+    flex-shrink: 0;
+  }
+  .play-btn:hover { transform: scale(1.08); opacity: 0.9; }
+  .play-btn svg { pointer-events: none; }
+  .play-btn.playing { background: rgba(91,106,255,0.3); border: 1.5px solid var(--eq-accent); }
+
+  /* Volume control */
+  .vol-wrap {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .vol-icon { color: var(--muted); font-size: 14px; }
+  input[type=range].vol-slider {
+    -webkit-appearance: none; appearance: none;
+    width: 72px; height: 3px;
+    border-radius: 2px;
+    background: var(--border2); outline: none; cursor: pointer;
+  }
+  input[type=range].vol-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 13px; height: 13px;
+    border-radius: 50%; background: var(--eq-accent2); cursor: pointer;
+  }
+
+  /* ── Step navigation ───────────────────────────────────── */
+  .step-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; margin-top: 4px;
+  }
+  .nav-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 11px 22px; border-radius: 10px;
+    border: 1px solid var(--border2); background: var(--surface2);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; font-weight: 600; color: var(--muted);
+    cursor: pointer; transition: border-color 0.15s, color 0.15s, transform 0.15s;
+    text-decoration: none;
+  }
+  .nav-btn:hover { border-color: var(--border2); color: var(--text); transform: translateY(-1px); }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+  .nav-btn.primary {
+    background: var(--eq-accent); border-color: var(--eq-accent); color: #fff;
+  }
+  .nav-btn.primary:hover { opacity: 0.88; }
+  .nav-btn.finish {
+    background: rgba(91,106,255,0.15); border-color: var(--eq-accent);
+    color: var(--eq-accent2);
+  }
+  .step-counter {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; color: var(--muted);
+  }
+
+  /* ── Footer ─────────────────────────────────────────────── */
+  footer {
+    margin-top: auto; width: 100%;
+    border-top: 1px solid var(--border);
+    padding: 28px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .footer-left { font-size: 13px; color: var(--muted); }
+  .footer-left a {
+    color: var(--muted); text-decoration: none;
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  }
+  .footer-left a:hover { color: var(--text); }
+
+  /* ── Completion card ────────────────────────────────────── */
+  .completion-card {
+    text-align: center; padding: 56px 36px;
+  }
+  .completion-icon {
+    font-size: 52px; margin-bottom: 20px;
+    display: block;
+  }
+  .completion-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 26px; font-weight: 600;
+    color: var(--text); margin-bottom: 12px;
+  }
+  .completion-sub {
+    font-size: 15px; color: var(--muted); line-height: 1.7;
+    max-width: 440px; margin: 0 auto 32px;
+  }
+  .completion-cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 28px; border-radius: 10px;
+    background: var(--eq-accent); color: #fff;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px; font-weight: 600;
+    text-decoration: none;
+    transition: opacity 0.15s, transform 0.15s;
+  }
+  .completion-cta:hover { opacity: 0.88; transform: translateY(-1px); }
+  .completion-restart {
+    display: block; margin: 18px auto 0;
+    background: none; border: none; color: var(--muted);
+    font-size: 13px; cursor: pointer; text-decoration: underline;
+    font-family: inherit;
+  }
+  .completion-restart:hover { color: var(--text); }
+
+  @media (max-width: 600px) {
+    .step-card { padding: 24px 20px 22px; }
+    .module-wrap { padding: 0 16px 60px; }
+    .tool-selector-wrap { padding: 0 16px 32px; }
+    .page-header { padding: 32px 16px 24px; }
+    .step-nav { flex-direction: column; }
+    .nav-btn { width: 100%; justify-content: center; }
+  }
+
+  .user-pill {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .set-username-link {
+    color: var(--eq-accent); background: none; border: none;
+    font-family: 'IBM Plex Mono', monospace; font-size: 13px;
+    cursor: pointer; padding: 0; text-decoration: none;
+  }
+  .set-username-link:hover { opacity: 0.8; }
+  .auth-btn {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 500;
+    padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border2);
+    background: var(--surface2); color: var(--text); cursor: pointer;
+  }
+
+
+  /* ── Mobile shell resets ─────────────────────────────── */
+  body {
+    align-items: stretch;
+    opacity: 0; transition: opacity 0.15s ease;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  body.visible { opacity: 1; }
+
+  /* ── Mobile header ───────────────────────────────────── */
+  .app-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px 0; flex-shrink: 0;
+  }
+  .brand-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 16px; font-weight: 700; letter-spacing: 0.03em;
+    text-decoration: none; color: var(--text);
+  }
+  .brand-name span { color: #8892ff; }
+
+  .profile-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--surface2); border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: border-color 0.15s; flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .profile-btn:active { border-color: #5b6aff; }
+  .profile-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: #5b6aff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; font-weight: 700; color: #fff;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .profile-avatar:active { opacity: 0.8; }
+
+  /* ── Page hero ───────────────────────────────────────── */
+  .page-header {
+    width: 100%; max-width: none;
+    padding: 24px 20px 16px; text-align: center;
+  }
+  .page-eyebrow { font-size: 10px; margin-bottom: 10px; }
+  .page-title { font-size: 22px !important; margin-bottom: 8px; }
+  .page-sub { font-size: 13px; max-width: 320px; }
+
+  /* ── Topic chips ─────────────────────────────────────── */
+  .topic-scroller {
+    display: flex; gap: 8px;
+    padding: 12px 20px 16px;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .topic-scroller::-webkit-scrollbar { display: none; }
+  .topic-chip {
+    display: inline-flex; align-items: center;
+    padding: 7px 14px; border-radius: 20px; white-space: nowrap;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+    border: 1px solid var(--border2);
+    background: var(--surface2); color: var(--muted);
+    text-decoration: none; flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .topic-chip.active {
+    background: color-mix(in srgb, var(--tc) 14%, transparent);
+    border-color: color-mix(in srgb, var(--tc) 50%, transparent);
+    color: var(--tc);
+  }
+  .topic-chip:not(.active):active { color: var(--text); }
+
+  /* ── Module wrap ─────────────────────────────────────── */
+  .module-wrap {
+    width: 100%; max-width: none;
+    padding: 0 14px 32px;
+  }
+
+  /* ── Step card ───────────────────────────────────────── */
+  .step-card { padding: 20px 18px 18px; border-radius: 16px; }
+
+  /* ── Step nav buttons ────────────────────────────────── */
+  .step-nav { flex-wrap: wrap; }
+  .nav-btn { flex: 1; min-width: 110px; justify-content: center; font-size: 12px; padding: 11px 12px; }
+  .step-counter { order: -1; width: 100%; text-align: center; padding-bottom: 8px; }
+
+  /* ── Audio demo ──────────────────────────────────────── */
+  .audio-demo { flex-wrap: wrap; }
+  .audio-demo-info { min-width: 0; }
+
+  /* ── Progress bar ────────────────────────────────────── */
+  .progress-bar-wrap { margin-bottom: 18px; flex-wrap: wrap; gap: 8px; }
+  .progress-dots { gap: 5px; }
+  .progress-dot { width: 7px; height: 7px; }
+
+  /* ── Footer nav ──────────────────────────────────────── */
+  .footer-nav {
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+    padding: 16px 20px 48px;
+    font-size: 12px; color: var(--muted);
+    border-top: 1px solid var(--border);
+  }
+  .footer-nav a { color: var(--muted); text-decoration: none; }
+  .footer-nav a.active { color: var(--text); }
+  .footer-nav a:active { color: var(--text); }
+  .footer-nav .sep { color: var(--border2); }
+
+  /* ── Auth bottom sheet ───────────────────────────────── */
+  .sheet-overlay {
+    display: none; position: fixed; inset: 0; z-index: 300;
+    background: rgba(0,0,0,0); transition: background 0.3s ease;
+  }
+  .sheet-overlay.open {
+    display: flex; flex-direction: column; justify-content: flex-end;
+    background: rgba(0,0,0,0.6);
+  }
+  .auth-sheet {
+    background: var(--surface); border-radius: 24px 24px 0 0;
+    border-top: 1px solid var(--border2);
+    padding: 0 0 env(safe-area-inset-bottom);
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    max-height: 92vh; overflow-y: auto;
+  }
+  .sheet-overlay.open .auth-sheet { transform: translateY(0); }
+  .sheet-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--border2); margin: 12px auto 0; }
+  .sheet-inner { padding: 20px 24px 32px; }
+  .sheet-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+  .sheet-tab {
+    flex: 1; padding: 10px; text-align: center;
+    font-size: 13px; font-weight: 500; background: none; border: none;
+    color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: color 0.15s, border-color 0.15s; -webkit-tap-highlight-color: transparent;
+  }
+  .sheet-tab.active { color: #8892ff; border-bottom-color: #8892ff; }
+  .sheet-label { display: block; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .sheet-input {
+    width: 100%; padding: 12px 14px; border-radius: 10px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    color: var(--text); font-size: 16px; font-family: 'IBM Plex Sans', sans-serif;
+    margin-bottom: 14px; outline: none; -webkit-appearance: none;
+    transition: border-color 0.15s;
+  }
+  .sheet-input:focus { border-color: #5b6aff; }
+  .sheet-submit {
+    width: 100%; padding: 14px; border-radius: 12px;
+    background: #5b6aff; color: #fff; font-size: 15px; font-weight: 600;
+    border: none; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif;
+    -webkit-tap-highlight-color: transparent; transition: opacity 0.15s; margin-top: 4px;
+  }
+  .sheet-submit:active { opacity: 0.8; }
+  .sheet-msg { margin-top: 12px; font-size: 13px; text-align: center; min-height: 18px; color: var(--muted); }
+  .sheet-msg.error { color: #f07070; }
+  .sheet-msg.success { color: #2dd4a0; }
+  .profile-view { display: flex; flex-direction: column; gap: 20px; }
+  .profile-user { display: flex; align-items: center; gap: 14px; }
+  .profile-avatar-lg {
+    width: 52px; height: 52px; border-radius: 50%; background: #5b6aff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .profile-username { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 700; color: var(--text); }
+  .profile-email-small { font-size: 11px; color: var(--muted); margin-top: 2px; word-break: break-all; }
+  .profile-since { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .profile-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-tile { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px; }
+  .stat-value { font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 700; color: var(--text); }
+  .stat-label { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+  .account-link { display: flex; align-items: center; justify-content: center; width: 100%; padding: 14px; border-radius: 12px; background: var(--surface2); border: 1px solid var(--border2); color: #8892ff; font-size: 14px; font-weight: 600; text-decoration: none; font-family: 'IBM Plex Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+  .account-link:active { opacity: 0.7; }
+
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="app-header">
+  <a class="brand-name" href="/mobile/">Sonic<span>Sandbox</span></a>
+  <div id="profileBtnWrap">
+    <button class="profile-btn" ontouchend="onProfileTap(event)" aria-label="Account">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="8" r="4" stroke="white" stroke-width="1.8"/>
+        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- Page header -->
+<div class="page-header">
+  <div class="page-eyebrow">SonicSandbox / Learning Center</div>
+  <h1 class="page-title">Learn the tools.</h1>
+  <p class="page-sub">Guided lessons on the audio processing tools that shape every mix. Read, listen, and understand — then go train your ears.</p>
+</div>
+
+<!-- Topic selector -->
+<div class="topic-scroller">
+  <span class="topic-chip active" style="--tc:#5b6aff;">EQ</span>
+  <a class="topic-chip" href="/mobile/learn/gain-staging/" style="--tc:#86efac;">Gain Staging</a>
+  <a class="topic-chip" href="/mobile/learn/compression/" style="--tc:#f0a882;">Compression</a>
+  <a class="topic-chip" href="/mobile/learn/saturation/" style="--tc:#fbbf24;">Saturation</a>
+  <a class="topic-chip" href="/mobile/learn/reverb/" style="--tc:#a78bfa;">Reverb</a>
+  <a class="topic-chip" href="/mobile/learn/delay/" style="--tc:#22d3ee;">Delay</a>
+  <a class="topic-chip" href="/mobile/learn/soundstage/" style="--tc:#38bdf8;">Spatial Mixing</a>
+</div>
+
+<!-- Module -->
+<div class="module-wrap" id="eqModule">
+
+  <!-- Progress -->
+  <div class="progress-bar-wrap">
+    <div class="progress-dots" id="progressDots"></div>
+    <div class="progress-label" id="progressLabel">Step 1 of 10</div>
+  </div>
+
+<!-- Footer nav -->
+<div class="footer-nav">
+  <a href="/mobile/">Games</a>
+  <span class="sep">·</span>
+  <a href="/mobile/about/">About</a>
+  <span class="sep">·</span>
+  <a href="/learn/" id="desktopLink">Desktop site →</a>
+</div>
+
+<!-- Auth bottom sheet -->
+<div class="sheet-overlay" id="sheetOverlay" ontouchend="onOverlayTap(event)">
+  <div class="auth-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-inner">
+      <div id="sheetLoggedOut">
+        <div class="sheet-tabs">
+          <button class="sheet-tab active" ontouchend="onSheetTab(event,'signin')">Sign in</button>
+          <button class="sheet-tab"        ontouchend="onSheetTab(event,'signup')">Create account</button>
+        </div>
+        <div id="sheetSignin">
+          <label class="sheet-label">Email</label>
+          <input class="sheet-input" type="email" id="siEmail" placeholder="you@example.com" autocomplete="email" autocapitalize="none">
+          <label class="sheet-label">Password</label>
+          <input class="sheet-input" type="password" id="siPassword" placeholder="••••••••" autocomplete="current-password">
+          <button class="sheet-submit" ontouchend="onSignIn(event)">Sign in</button>
+          <div class="sheet-msg" id="siMsg"></div>
+        </div>
+        <div id="sheetSignup" style="display:none;">
+          <label class="sheet-label">Email</label>
+          <input class="sheet-input" type="email" id="suEmail" placeholder="you@example.com" autocomplete="email" autocapitalize="none">
+          <label class="sheet-label">Password</label>
+          <input class="sheet-input" type="password" id="suPassword" placeholder="At least 6 characters" autocomplete="new-password">
+          <button class="sheet-submit" ontouchend="onSignUp(event)">Create account</button>
+          <div class="sheet-msg" id="suMsg"></div>
+        </div>
+      </div>
+      <div id="sheetLoggedIn" style="display:none;">
+        <div class="profile-view">
+          <div class="profile-user">
+            <div class="profile-avatar-lg" id="profileAvatarLg">?</div>
+            <div>
+              <div class="profile-username" id="profileUsername">—</div>
+              <div class="profile-email-small" id="profileEmail"></div>
+              <div class="profile-since" id="profileSince"></div>
+            </div>
+          </div>
+          <div class="profile-stats">
+            <div class="stat-tile"><div class="stat-value" id="statRounds">—</div><div class="stat-label">Rounds played</div></div>
+            <div class="stat-tile"><div class="stat-value" id="statAccuracy">—</div><div class="stat-label">Accuracy</div></div>
+          </div>
+          <a class="account-link" href="/mobile/account/">View Account →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../../supabase-client.js"></script>
+<script>
+// ─────────────────────────────────────────────────────────────
+//  STEP DATA
+// ─────────────────────────────────────────────────────────────
+
+const steps = [
+
+  // ── Step 1 ──────────────────────────────────────────────
+  {
+    title: "What is EQ?",
+    number: "Step 01 — Introduction",
+    body: `<strong>Equalization (EQ)</strong> is one of the most fundamental tools in audio production. It lets you adjust the <em>volume of specific frequency ranges</em> within a sound — boosting or cutting particular parts of the frequency spectrum.
+
+<br><br>Think of it like a very precise tone control. Instead of just turning up the "bass" or "treble" on a stereo, an EQ lets you pinpoint exactly which frequencies to adjust and by how much — with surgical precision or broad, musical curves.
+
+<br><br>EQ is used for two main purposes: <strong>corrective</strong> (fixing problems — removing harshness, reducing muddiness) and <strong>creative</strong> (shaping character — making something brighter, warmer, or more present).`,
+    keyPoints: [
+      { strong: "Boost", rest: " — raise the volume at a specific frequency range" },
+      { strong: "Cut", rest: " — reduce the volume at a specific frequency range" },
+      { strong: "Corrective EQ", rest: " — removing unwanted elements (hum, resonance, boxiness)" },
+      { strong: "Creative EQ", rest: " — shaping tone to serve the mix (adding brightness, warmth, presence)" },
+    ],
+    audio: {
+      desc: "Hear the difference — a raw sine tone, then the same tone with a high shelf boost adding 'air'",
+      type: "intro",
+    },
+    spectrum: { highlight: null, label: "Full audible range: 20 Hz – 20 kHz" }
+  },
+
+  // ── Step 2 ──────────────────────────────────────────────
+  {
+    title: "The Frequency Spectrum",
+    number: "Step 02 — Overview",
+    body: `Before mapping the spectrum, a note worth keeping in mind: <em>the exact boundaries between frequency regions are not universally defined.</em> Different engineers, textbooks, and audio tool manufacturers draw these lines differently. "Bass" might end at 200 Hz in one reference and 300 Hz in another. "Low mids" might begin at 200 Hz or 400 Hz depending on who you ask.
+
+<br><br>The chart below reflects how working engineers <em>commonly describe</em> what different frequency regions sound like — words you'll hear in studio conversations and mix feedback. Labels above the bar describe what a boost in that region adds; labels below describe what a cut sounds like.
+
+<br><br>For consistency throughout this module, we use the simplified six-band breakdown shown after it. What matters is developing a feel for what each zone sounds like — not memorizing exact cutoff numbers.`,
+    showRefChart: true,
+    keyPoints: [
+      { strong: "Sub Bass (20–60 Hz)", rest: " — felt more than heard; rumble, deep kick" },
+      { strong: "Bass (60–250 Hz)", rest: " — weight and warmth; bass guitar, kick body" },
+      { strong: "Low Mids (250–500 Hz)", rest: " — fullness or muddiness; body of most instruments" },
+      { strong: "Midrange (500 Hz–2 kHz)", rest: " — presence and character; vocals, guitars, piano" },
+      { strong: "High Mids (2–6 kHz)", rest: " — attack, clarity, or harshness" },
+      { strong: "Presence & Air (6–20 kHz)", rest: " — brightness, sparkle, sibilance" },
+    ],
+    audio: {
+      desc: "Sweep through the spectrum — listen as a band of noise sweeps from low to high",
+      type: "sweep",
+    },
+    spectrum: { highlight: "all", label: "Our simplified six-band breakdown (used throughout this module)" }
+  },
+
+  // ── Step 3 ──────────────────────────────────────────────
+  {
+    title: "Sub Bass — 20 to 60 Hz",
+    number: "Step 03 — Low End",
+    body: `This is the <em>lowest region</em> of the audible spectrum — frequencies you often <strong>feel</strong> through your chest, floor, or subwoofer more than hear through regular speakers. Sub bass is the foundation of electronic music, hip-hop, and modern pop production.
+
+<br><br>The fundamental pitches of sub bass synthesizers and 808s live here. So does the lowest rumble of a kick drum. On smaller speakers (laptops, earbuds, many studio monitors), this range is nearly inaudible — which is why checking your mix on multiple playback systems is critical.
+
+<br><br><strong>Boosting here</strong> adds power and physical impact, but too much creates a woofy, muddy mix that translates poorly. <strong>Cutting here</strong> with a high-pass filter (also called a low-cut) cleans up mic bleed, rumble, and unneeded low-end on elements like vocals or hi-hats.`,
+    keyPoints: [
+      { strong: "20–40 Hz", rest: " — infrasonic edge; felt on large systems, mostly inaudible" },
+      { strong: "40–60 Hz", rest: " — sub bass fundamentals; 808s, sine sub bass, deepest kick body" },
+      { strong: "Boost with care", rest: " — easy to overdo; check on full-range speakers" },
+      { strong: "High-pass filters", rest: " — essential on vocals, guitars, anything that doesn't need sub" },
+    ],
+    audio: {
+      desc: "Listen to a 40 Hz tone — pure sub bass. Use headphones or speakers with bass extension.",
+      type: "tone",
+      freq: 40,
+    },
+    spectrum: { highlight: [20, 60], label: "Sub Bass: 20–60 Hz" }
+  },
+
+  // ── Step 4 ──────────────────────────────────────────────
+  {
+    title: "Bass — 60 to 250 Hz",
+    number: "Step 04 — Low End",
+    body: `The bass region is where most music gets its <strong>weight, warmth, and power</strong>. This is the home of bass guitar fundamentals, the body of a kick drum, the lowest notes of a piano, and the chest resonance of male vocals.
+
+<br><br>This is also one of the <em>most competitive</em> regions of a mix — kick drums, bass guitars, and synthesizers all fight for space here. Smart EQ work (cutting one instrument to make room for another) is key to a tight, punchy low end.
+
+<br><br><strong>Boosting around 80–120 Hz</strong> adds warmth and fullness. <strong>Cutting around 150–250 Hz</strong> can reduce "boxiness" or muddiness — a common issue when instruments pile up in the low-mid transition area.`,
+    keyPoints: [
+      { strong: "60–100 Hz", rest: " — kick drum punch, bass guitar fundamental, warmth" },
+      { strong: "100–200 Hz", rest: " — body of bass instruments; can feel full or boomy" },
+      { strong: "200–250 Hz", rest: " — transition to low mids; can get muddy if overcrowded" },
+      { strong: "Sidechain compression", rest: " — often used alongside EQ to manage kick/bass competition" },
+    ],
+    audio: {
+      desc: "Listen to a 100 Hz tone — classic bass body region.",
+      type: "tone",
+      freq: 100,
+    },
+    spectrum: { highlight: [60, 250], label: "Bass: 60–250 Hz" }
+  },
+
+  // ── Step 5 ──────────────────────────────────────────────
+  {
+    title: "Low Mids — 250 to 500 Hz",
+    number: "Step 05 — Midrange",
+    body: `The low mids are one of the trickiest regions to manage. Too much energy here makes a mix sound <em>muddy, boxy, or congested</em>. Too little and things feel thin or hollow.
+
+<br><br>This range contains the <strong>fundamental frequencies of many midrange instruments</strong> — acoustic guitar body resonance, piano lower registers, snare warmth, and the fullness of vocals. It's often called the "mud zone" because it's where buildup and cloudiness tend to accumulate in dense mixes.
+
+<br><br>A common technique is a gentle cut in the 200–350 Hz range on multiple instruments to <strong>open up the mix</strong> without making anything sound thin. If something sounds boxy or nasal, this is often where to look.`,
+    keyPoints: [
+      { strong: "250–350 Hz", rest: " — boxiness, body resonance; common problem area" },
+      { strong: "350–500 Hz", rest: " — warmth; guitar body, vocals, piano lower registers" },
+      { strong: "Gentle cuts here", rest: " — one of the most common corrective moves in mixing" },
+      { strong: "Don't cut too much", rest: " — this range still provides essential body and warmth" },
+    ],
+    audio: {
+      desc: "Listen to a 300 Hz tone — the classic 'boxy' low-mid zone.",
+      type: "tone",
+      freq: 300,
+    },
+    spectrum: { highlight: [250, 500], label: "Low Mids: 250–500 Hz" }
+  },
+
+  // ── Step 6 ──────────────────────────────────────────────
+  {
+    title: "Midrange — 500 Hz to 2 kHz",
+    number: "Step 06 — Midrange",
+    body: `The midrange is the <em>most important region of the audio spectrum</em> for musical content. This is where the <strong>human ear is most sensitive</strong>, and where the vast majority of melodic and harmonic information lives.
+
+<br><br>Vocals, guitars, pianos, synth leads, horns, and strings all have their core character here. This is the range that makes instruments recognizable and voices feel intimate. A mix that's missing energy in the mids will feel distant and thin, even if the lows and highs are great.
+
+<br><br><strong>Boosting around 1–2 kHz</strong> can add presence and cut-through in a dense mix. Be careful — this region can also introduce nasality or harshness if overcooked. Cuts here are less common but useful for taming particularly aggressive resonances.`,
+    keyPoints: [
+      { strong: "500–800 Hz", rest: " — warmth and body; guitar character, vocal chest resonance" },
+      { strong: "800 Hz–1.5 kHz", rest: " — honky, nasal; key vocal clarity zone" },
+      { strong: "1.5–2 kHz", rest: " — attack and presence; instruments cutting through a mix" },
+      { strong: "Most sensitive", rest: " — the ear is most perceptive here; subtle moves go far" },
+    ],
+    audio: {
+      desc: "Listen to a 1 kHz tone — the reference frequency used to calibrate speakers and meters.",
+      type: "tone",
+      freq: 1000,
+    },
+    spectrum: { highlight: [500, 2000], label: "Midrange: 500 Hz–2 kHz" }
+  },
+
+  // ── Step 7 ──────────────────────────────────────────────
+  {
+    title: "High Mids — 2 to 6 kHz",
+    number: "Step 07 — High Mids",
+    body: `The high mids are where audio can start to get <em>exciting or fatiguing</em>. This region governs the <strong>attack transients</strong> of percussive elements, the articulation of speech, and the "presence" of instruments in a mix.
+
+<br><br>A boost around <strong>3–5 kHz</strong> makes vocals forward and intelligible — you can understand lyrics more clearly. It's a classic trick for cutting through a dense arrangement. However, too much of this region causes listener fatigue quickly. Extended listening to boosted high mids is genuinely tiring.
+
+<br><br>Harshness, brittleness, and that ice-pick quality in mixes? Almost always somewhere in the 2–6 kHz range. This is also where a lot of the "smack" on a snare drum lives, and where guitar picks click and string attack cuts through.`,
+    keyPoints: [
+      { strong: "2–3 kHz", rest: " — vocal presence; piano attack; ear sensitivity peak" },
+      { strong: "3–5 kHz", rest: " — guitar pick attack, snare crack, vocal intelligibility" },
+      { strong: "5–6 kHz", rest: " — harshness; edge of listener fatigue territory" },
+      { strong: "De-essing", rest: " — a cut around 5–8 kHz reduces harsh sibilance on vocals" },
+    ],
+    audio: {
+      desc: "Listen to a 3.5 kHz tone — the high-mid presence/harshness zone.",
+      type: "tone",
+      freq: 3500,
+    },
+    spectrum: { highlight: [2000, 6000], label: "High Mids: 2–6 kHz" }
+  },
+
+  // ── Step 8 ──────────────────────────────────────────────
+  {
+    title: "Presence & Air — 6 to 20 kHz",
+    number: "Step 08 — High Frequencies",
+    body: `The high frequency range gives audio its sense of <strong>brightness, detail, and air</strong>. This is where cymbal shimmer lives, where vocal "s" sounds (sibilance) happen, and where the breathiness and room ambience of recordings reside.
+
+<br><br>A gentle <em>high shelf boost</em> in the 10–16 kHz range is one of the most common "finishing" moves in mixing and mastering — adding an openness and spaciousness to the whole mix. It can make a track feel more modern and polished.
+
+<br><br>But too much brightness creates <strong>sibilance</strong> (harsh, hissing "s" and "t" sounds in vocals) and listening fatigue. The key is finding the sweet spot where the mix feels alive without being brittle.`,
+    keyPoints: [
+      { strong: "6–10 kHz", rest: " — sibilance, cymbal presence, top-end of most instruments" },
+      { strong: "10–16 kHz", rest: " — 'air'; the breathy, open quality of a well-recorded space" },
+      { strong: "16–20 kHz", rest: " — extreme highs; diminishing returns, often filtered in mastering" },
+      { strong: "High shelf boost", rest: " — a common mastering move; adds gloss and openness" },
+    ],
+    audio: {
+      desc: "Listen to a 10 kHz tone — the upper high-frequency 'air' zone.",
+      type: "tone",
+      freq: 10000,
+    },
+    spectrum: { highlight: [6000, 20000], label: "Presence & Air: 6–20 kHz" }
+  },
+
+  // ── Step 9 ──────────────────────────────────────────────
+  {
+    title: "EQ Filter Types",
+    number: "Step 09 — Filter Types",
+    body: `Not all EQ moves are the same shape. Different <strong>filter types</strong> cut or boost the frequency spectrum in different ways, and knowing when to use each is essential.
+
+<br><br>The <em>bell (peak)</em> filter is the most common — it boosts or cuts in a focused, symmetrical curve around a center frequency. The width of this bell is controlled by the <strong>Q</strong> parameter: a high Q is narrow and surgical; a low Q is wide and musical.
+
+<br><br><em>Shelf filters</em> affect everything above (high shelf) or below (low shelf) the cutoff point — great for broad tonal changes. <em>High-pass</em> and <em>low-pass</em> filters cut everything below or above the cutoff — essential for cleanup and creative effect. <em>Notch filters</em> are extremely narrow cuts used to remove a specific problem frequency, like a 60 Hz hum.`,
+    keyPoints: [
+      { strong: "Bell / Peak", rest: " — boost or cut around a center frequency; Q controls width" },
+      { strong: "High Shelf", rest: " — affects everything above the cutoff; adds brightness or warmth" },
+      { strong: "Low Shelf", rest: " — affects everything below the cutoff; adds body or removes rumble" },
+      { strong: "High-Pass (Low-Cut)", rest: " — removes everything below the cutoff; essential cleanup tool" },
+      { strong: "Low-Pass (High-Cut)", rest: " — removes everything above the cutoff; tames harshness or for effect" },
+      { strong: "Notch", rest: " — extremely narrow cut; surgical removal of resonances or hum" },
+    ],
+    audio: {
+      desc: "A high-pass filter in action — pink noise with the cutoff frequency sweeping upward.",
+      type: "highpass",
+    },
+    spectrum: { highlight: null, label: "Filter shapes overview" }
+  },
+
+  // ── Step 10 ──────────────────────────────────────────────
+  {
+    title: "Practical EQ Tips",
+    number: "Step 10 — Putting It Together",
+    body: `With the frequency map in mind, here are the principles that separate great EQ decisions from random guessing.
+
+<br><br><strong>Cut first, boost second.</strong> Most problems are caused by excess energy — look for what to remove before adding more. Subtractive EQ sounds more natural and leaves more headroom.
+
+<br><br><strong>EQ in context.</strong> Never EQ in solo for more than a moment. A sound can seem too bright in isolation but sit perfectly in the mix. Always reference against the full arrangement.
+
+<br><br><strong>Boost wide, cut narrow.</strong> Wide (low Q) boosts sound musical and smooth. Narrow (high Q) cuts remove specific problems without affecting the overall tone. This is a classic rule that holds up most of the time.
+
+<br><br><strong>Use high-pass filters everywhere.</strong> Almost every track benefits from a high-pass filter. Removing sub-sonic rumble and unnecessary low-end prevents buildup and clarifies the mix.`,
+    keyPoints: [
+      { strong: "Cut first", rest: " — subtractive EQ is more natural and maintains headroom" },
+      { strong: "EQ in context", rest: " — always check EQ decisions against the full mix" },
+      { strong: "Boost wide, cut narrow", rest: " — low Q boosts = musical; high Q cuts = surgical" },
+      { strong: "High-pass everything", rest: " — remove unwanted low-end from non-bass elements" },
+      { strong: "Trust your ears", rest: " — a/b compare your EQ on and off to check if it's helping" },
+    ],
+    audio: {
+      desc: "Compare: pink noise flat vs. with a typical 'mix EQ' — subtle cuts at 200 Hz and 3 kHz, shelf boost at 12 kHz.",
+      type: "mixeq",
+    },
+    spectrum: { highlight: "tips", label: "Common EQ moves — the mixing toolkit" }
+  },
+];
+
+// ─────────────────────────────────────────────────────────────
+//  SPECTRUM SVG BUILDER
+// ─────────────────────────────────────────────────────────────
+
+// Band boundaries computed on log10 scale from 20 Hz to 20 kHz:
+// x% = (log10(hz) - log10(20)) / (log10(20000) - log10(20)) * 100
+// 60 Hz → 15.90%  |  250 Hz → 36.56%  |  500 Hz → 46.60%
+// 2 kHz → 66.67%  |  6 kHz → 82.57%
+const BANDS = [
+  { label: "Sub",     range: "20–60",   x1: 0,     x2: 15.90, color: "#5b6aff" },
+  { label: "Bass",    range: "60–250",  x1: 15.90, x2: 36.56, color: "#818cf8" },
+  { label: "Low Mid", range: "250–500", x1: 36.56, x2: 46.60, color: "#7c5cfc" },
+  { label: "Mid",     range: "500–2k",  x1: 46.60, x2: 66.67, color: "#8892ff" },
+  { label: "Hi Mid",  range: "2–6k",    x1: 66.67, x2: 82.57, color: "#a5b4fc" },
+  { label: "Hi",      range: "6–20k",   x1: 82.57, x2: 100,   color: "#c7d2fe" },
+];
+
+// Map frequency in Hz to 0-100 percentage (log scale, 20Hz-20kHz)
+function freqToPercent(hz) {
+  const logMin = Math.log10(20);
+  const logMax = Math.log10(20000);
+  return ((Math.log10(hz) - logMin) / (logMax - logMin)) * 100;
+}
+
+// ─────────────────────────────────────────────────────────────
+//  REFERENCE CHART — shows how engineers describe freq regions
+// ─────────────────────────────────────────────────────────────
+
+function buildReferenceChartSVG() {
+  // Bar geometry
+  const W = 760, BX = 10, BW = 740, BY = 88, BH = 20;
+  const Lmin = Math.log10(20), Lr = 3.0;
+  const xp = hz => BX + (Math.log10(hz) - Lmin) / Lr * BW;
+
+  // ── Span label helper ────────────────────────────────────────
+  // Renders: TEXT followed by a dash line extending to hz2.
+  // Vertical dashed connector from left edge (hz1) down to bar (subtle).
+  // tw = approximate text pixel width at this font size
+  function spanLabel(text, hz1, hz2, ty, col, tw) {
+    const x1 = xp(hz1), x2 = xp(hz2);
+    const lineStart = x1 + tw + 3;        // line begins after text
+    const lineEnd   = Math.max(lineStart + 6, x2);
+    const lineY     = ty - 2.5;           // horizontally centered on cap height
+    // Subtle vertical connector from hz1 to bar
+    const conn = `<line x1="${x1.toFixed(1)}" y1="${ty+3}" x2="${x1.toFixed(1)}" y2="${(BY-1).toFixed(1)}"
+          stroke="${col}" stroke-width="0.4" stroke-dasharray="2,2" opacity="0.2"/>`;
+    const hline = lineEnd > lineStart + 4
+      ? `<line x1="${lineStart.toFixed(1)}" y1="${lineY.toFixed(1)}"
+              x2="${lineEnd.toFixed(1)}"   y2="${lineY.toFixed(1)}"
+              stroke="${col}" stroke-width="0.85" opacity="0.65"/>`
+      : '';
+    const label = `<text x="${x1.toFixed(1)}" y="${ty}"
+          font-family="IBM Plex Mono,monospace" font-size="9.5" font-weight="600"
+          letter-spacing="0.08em" fill="${col}" opacity="0.9">${text}</text>`;
+    return conn + hline + label;
+  }
+
+  // ── Centered span label helper (for below-bar labels) ────────
+  // Renders: left-dash ── TEXT ── right-dash, all centered between hz1/hz2
+  function centeredLabel(text, hz1, hz2, ty, col, tw) {
+    const x1 = xp(hz1), x2 = xp(hz2), xc = (x1 + x2) / 2;
+    const halfText = tw / 2 + 4;
+    const lx2 = xc - halfText, rx1 = xc + halfText;
+    const lineY = ty - 3;
+    return [
+      lx2 > x1 + 4 ? `<line x1="${x1.toFixed(1)}" y1="${lineY.toFixed(1)}" x2="${lx2.toFixed(1)}" y2="${lineY.toFixed(1)}" stroke="${col}" stroke-width="0.85" opacity="0.55"/>` : '',
+      `<text x="${xc.toFixed(1)}" y="${ty}" text-anchor="middle"
+          font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600"
+          letter-spacing="0.1em" fill="${col}" opacity="0.82">${text}</text>`,
+      rx1 < x2 - 4 ? `<line x1="${rx1.toFixed(1)}" y1="${lineY.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${lineY.toFixed(1)}" stroke="${col}" stroke-width="0.85" opacity="0.55"/>` : '',
+    ].join('');
+  }
+
+  // ── Above-bar spans ──────────────────────────────────────────
+  // Five rows, each non-overlapping within the row.
+  // Format: [text, hz_left, hz_right, row_y, color, approx_text_px_width]
+  //
+  // Verified x positions (BX=10, BW=740):
+  //   62Hz=131  125=206  200=257  250=281  300=300  400=331
+  //   500=354  700=391  800=404  1.5k=472  2k=503   2.5k=527
+  //   3k=547   3.5k=563  4k=578  5.5k=612  6k=621  7k=638
+  //   8k=652   10k=675  12k=694  16k=727
+  //
+  // Row 1 (y=11): PRESENCE only — very wide, anchored high
+  // Row 2 (y=23): BOOMY · HARSH · AIR
+  // Row 3 (y=35): MUDDY · SIBILANT
+  // Row 4 (y=47): WARM · NASAL · BRIGHT
+  // Row 5 (y=59): BASS · BOXY · EDGY
+  const aboveSpans = [
+    // Row 1
+    ['PRESENCE', 2000,  10000, 11, '#a5b4fc', 72],
+    // Row 2
+    ['BOOMY',    62,    250,   23, '#9ca3af', 50],
+    ['HARSH',    2500,  5500,  23, '#9ca3af', 46],
+    ['AIR',      10000, 16000, 23, '#dbeafe', 26],
+    // Row 3
+    ['MUDDY',    200,   500,   35, '#9ca3af', 50],
+    ['SIBILANT', 3500,  8000,  35, '#9ca3af', 65],
+    // Row 4
+    ['WARM',     150,   450,   47, '#8892ff', 44],
+    ['NASAL',    800,   1500,  47, '#9ca3af', 48],
+    ['BRIGHT',   6000,  12000, 47, '#c7d2fe', 54],
+    // Row 5
+    ['BASS',     62,    200,   59, '#818cf8', 37],
+    ['BOXY',     300,   700,   59, '#9ca3af', 40],
+    ['EDGY',     3000,  7000,  59, '#9ca3af', 36],
+  ];
+
+  const aboveSVG = aboveSpans.map(args => spanLabel(...args)).join('');
+
+  // ── Frequency tick marks ─────────────────────────────────────
+  const ticks = [
+    {hz:62,l:'62'},{hz:125,l:'125'},{hz:250,l:'250'},{hz:500,l:'500'},
+    {hz:1000,l:'1k'},{hz:2000,l:'2k'},{hz:4000,l:'4k'},{hz:8000,l:'8k'},{hz:16000,l:'16k'},
+  ];
+  const tickSVG = ticks.map(t => {
+    const x = xp(t.hz).toFixed(1);
+    return `<line x1="${x}" y1="${BY+BH}" x2="${x}" y2="${BY+BH+6}"
+              stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+            <text x="${x}" y="${BY+BH+17}" text-anchor="middle"
+              font-family="IBM Plex Mono,monospace" font-size="9"
+              fill="rgba(255,255,255,0.4)">${t.l}</text>`;
+  }).join('');
+
+  // Separator lines on bar at tick positions
+  const sepSVG = ticks.map(t => {
+    const x = xp(t.hz).toFixed(1);
+    return `<line x1="${x}" y1="${BY}" x2="${x}" y2="${BY+BH}"
+              stroke="rgba(0,0,0,0.28)" stroke-width="0.8"/>`;
+  }).join('');
+
+  // Region name labels below ticks (our simplified 6-band names)
+  const regionSVG = [
+    ['SUB',      35    ],
+    ['BASS',     122   ],
+    ['LOW MIDS', 354   ],
+    ['MIDS',     1000  ],
+    ['HI MIDS',  3464  ],
+    ['HIGHS',    10954 ],
+  ].map(([t, hz]) => {
+    const x = xp(hz).toFixed(1);
+    return `<text x="${x}" y="${BY+BH+31}" text-anchor="middle"
+        font-family="IBM Plex Mono,monospace" font-size="7.5"
+        letter-spacing="0.1em" fill="rgba(255,255,255,0.2)">${t}</text>`;
+  }).join('');
+
+  // ── Below-bar labels ─────────────────────────────────────────
+  // Three stacked rows. "— LABEL —" centered spans.
+  // THIN & DULL share row B1 (they occupy opposite ends so no overlap).
+  // WARM and SWEET each get their own row.
+  //
+  //   THIN  20–400 Hz  → center ≈ x170   DULL  6k–16k → center ≈ x674
+  //   WARM 800–6kHz    → center ≈ x513
+  //   SWEET 1.5k–8kHz  → center ≈ x563
+  const B1 = BY + BH + 48;
+  const B2 = B1 + 14;
+  const B3 = B2 + 14;
+  const col_b = 'rgba(255,255,255,0.3)';
+
+  const belowSVG = [
+    centeredLabel('THIN',  20,   400,   B1, col_b, 34),
+    centeredLabel('DULL',  6000, 16000, B1, col_b, 34),
+    centeredLabel('WARM',  800,  6000,  B2, col_b, 34),
+    centeredLabel('SWEET', 1500, 8000,  B3, col_b, 40),
+  ].join('');
+
+  const svgH = B3 + 12;  // ≈ 192
+
+  return `<svg class="spectrum-svg" viewBox="0 0 ${W} ${svgH}" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="refBarGrad" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0%"   stop-color="#1e1b4b"/>
+        <stop offset="18%"  stop-color="#3730a3"/>
+        <stop offset="40%"  stop-color="#4f46e5"/>
+        <stop offset="62%"  stop-color="#6366f1"/>
+        <stop offset="80%"  stop-color="#818cf8"/>
+        <stop offset="100%" stop-color="#bfdbfe"/>
+      </linearGradient>
+    </defs>
+    <rect x="${BX}" y="${BY}" width="${BW}" height="${BH}" fill="url(#refBarGrad)" rx="3"/>
+    <rect x="${BX}" y="${BY}" width="${BW}" height="${BH}" fill="none"
+          stroke="rgba(255,255,255,0.1)" stroke-width="0.5" rx="3"/>
+    ${sepSVG}
+    ${aboveSVG}
+    ${tickSVG}
+    ${regionSVG}
+    ${belowSVG}
+  </svg>`;
+}
+
+// ─────────────────────────────────────────────────────────────
+//  STEP SPECTRUM SVG BUILDER
+// ─────────────────────────────────────────────────────────────
+
+function buildSpectrumSVG(step) {
+  const hl = step.spectrum.highlight;
+  const label = step.spectrum.label;
+  const w = 760, h = 80, barH = 36, barY = 16;
+
+  let regionRects = '';
+  BANDS.forEach(b => {
+    let opacity = 0.12;
+    let strokeOp = 0.22;
+    let highlighted = false;
+
+    if (hl === 'all' || hl === 'tips') {
+      highlighted = true;
+    } else if (Array.isArray(hl)) {
+      // highlight bands that overlap the given Hz range
+      const hzMin = hl[0], hzMax = hl[1];
+      const bMin = b.x1 / 100 * (Math.log10(20000) - Math.log10(20)) + Math.log10(20);
+      const bMax = b.x2 / 100 * (Math.log10(20000) - Math.log10(20)) + Math.log10(20);
+      const hlMin = Math.log10(hzMin), hlMax = Math.log10(hzMax);
+      if (bMax >= hlMin && bMin <= hlMax) highlighted = true;
+    }
+
+    if (highlighted) { opacity = 0.38; strokeOp = 0.7; }
+
+    const rx = (b.x1 / 100) * w;
+    const rw = ((b.x2 - b.x1) / 100) * w;
+    regionRects += `
+      <rect x="${rx}" y="${barY}" width="${rw}" height="${barH}"
+            fill="${b.color}" fill-opacity="${opacity}"
+            stroke="${b.color}" stroke-opacity="${strokeOp}" stroke-width="0.5" rx="3"/>
+    `;
+  });
+
+  // Highlight overlay for exact hz range
+  let hlOverlay = '';
+  if (Array.isArray(hl)) {
+    const pMin = freqToPercent(hl[0]);
+    const pMax = freqToPercent(hl[1]);
+    const hlX = (pMin / 100) * w;
+    const hlW = ((pMax - pMin) / 100) * w;
+    hlOverlay = `
+      <rect x="${hlX}" y="${barY - 4}" width="${hlW}" height="${barH + 8}"
+            fill="none" stroke="var(--eq-accent2)" stroke-width="1.5"
+            stroke-dasharray="4,3" rx="4" opacity="0.7"/>
+    `;
+  }
+
+  // Frequency labels
+  const freqLabels = [20, 60, 100, 250, 500, 1000, 2000, 5000, 10000, 20000];
+  let labelEls = '';
+  freqLabels.forEach(f => {
+    const px = (freqToPercent(f) / 100) * w;
+    const txt = f >= 1000 ? (f / 1000) + 'k' : f;
+    labelEls += `
+      <line x1="${px}" y1="${barY + barH}" x2="${px}" y2="${barY + barH + 5}"
+            stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+      <text x="${px}" y="${barY + barH + 14}" text-anchor="middle"
+            font-family="IBM Plex Mono,monospace" font-size="8" fill="rgba(255,255,255,0.3)">${txt}</text>
+    `;
+  });
+
+  // Band region separators
+  let separators = '';
+  BANDS.slice(0, -1).forEach(b => {
+    const px = (b.x2 / 100) * w;
+    separators += `<line x1="${px}" y1="${barY}" x2="${px}" y2="${barY + barH}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`;
+  });
+
+  // Band name labels inside bars
+  let bandNames = '';
+  BANDS.forEach(b => {
+    const cx = ((b.x1 + b.x2) / 2 / 100) * w;
+    const isHighlighted = hl === 'all' || hl === 'tips' || (Array.isArray(hl) && (() => {
+      const hzMin = hl[0], hzMax = hl[1];
+      const bMin = b.x1 / 100 * (Math.log10(20000) - Math.log10(20)) + Math.log10(20);
+      const bMax = b.x2 / 100 * (Math.log10(20000) - Math.log10(20)) + Math.log10(20);
+      const hlMin = Math.log10(hzMin), hlMax = Math.log10(hzMax);
+      return bMax >= hlMin && bMin <= hlMax;
+    })());
+    const textOpacity = isHighlighted ? 0.9 : 0.3;
+    bandNames += `
+      <text x="${cx}" y="${barY + barH/2 + 4}" text-anchor="middle"
+            font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600"
+            fill="${b.color}" fill-opacity="${textOpacity}">${b.label}</text>
+    `;
+  });
+
+  return `
+    <svg class="spectrum-svg" viewBox="0 0 ${w} ${h + 10}" xmlns="http://www.w3.org/2000/svg">
+      ${regionRects}
+      ${separators}
+      ${hlOverlay}
+      ${bandNames}
+      ${labelEls}
+    </svg>
+  `;
+}
+
+// ─────────────────────────────────────────────────────────────
+//  STEP RENDERER
+// ─────────────────────────────────────────────────────────────
+
+let currentStep = 0;
+let audioCtx = null;
+let activeNodes = [];
+let isPlaying = false;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function stopAudio() {
+  activeNodes.forEach(n => { try { n.stop(); } catch(e){} });
+  activeNodes = [];
+  isPlaying = false;
+  const btn = document.querySelector('.play-btn');
+  if (btn) {
+    btn.classList.remove('playing');
+    btn.querySelector('.play-icon').style.display = '';
+    btn.querySelector('.stop-icon').style.display = 'none';
+  }
+}
+
+function playDemo(type, freq) {
+  const ctx = getAudioCtx();
+  const vol = parseFloat(document.querySelector('.vol-slider')?.value ?? 0.5);
+
+  stopAudio();
+
+  const gainNode = ctx.createGain();
+  gainNode.gain.value = vol * 0.4;
+  gainNode.connect(ctx.destination);
+
+  const duration = 4;
+
+  if (type === 'tone') {
+    // Pure sine tone at the specified frequency
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    const env = ctx.createGain();
+    env.gain.setValueAtTime(0, ctx.currentTime);
+    env.gain.linearRampToValueAtTime(1, ctx.currentTime + 0.08);
+    env.gain.setValueAtTime(1, ctx.currentTime + duration - 0.3);
+    env.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+    osc.connect(env); env.connect(gainNode);
+    osc.start(); osc.stop(ctx.currentTime + duration);
+    activeNodes = [osc];
+  }
+
+  else if (type === 'sweep') {
+    // Pink noise filtered with a sweeping bandpass
+    const bufferSize = ctx.sampleRate * 2;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      b0=0.99886*b0+white*0.0555179; b1=0.99332*b1+white*0.0750759;
+      b2=0.96900*b2+white*0.1538520; b3=0.86650*b3+white*0.3104856;
+      b4=0.55000*b4+white*0.5329522; b5=-0.7616*b5-white*0.0168980;
+      data[i]=(b0+b1+b2+b3+b4+b5+b6+white*0.5362)/7; b6=white*0.115926;
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buffer; src.loop = true;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass'; bp.Q.value = 4;
+    bp.frequency.setValueAtTime(40, ctx.currentTime);
+    bp.frequency.exponentialRampToValueAtTime(16000, ctx.currentTime + duration * 0.9);
+    src.connect(bp); bp.connect(gainNode);
+    src.start(); src.stop(ctx.currentTime + duration);
+    activeNodes = [src];
+  }
+
+  else if (type === 'intro') {
+    // Sine tone, then the same with a high shelf boost (simulated)
+    const osc1 = ctx.createOscillator();
+    osc1.type = 'triangle'; osc1.frequency.value = 440;
+    const env1 = ctx.createGain();
+    env1.gain.setValueAtTime(0, ctx.currentTime);
+    env1.gain.linearRampToValueAtTime(0.7, ctx.currentTime + 0.05);
+    env1.gain.setValueAtTime(0.7, ctx.currentTime + 1.6);
+    env1.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.8);
+    osc1.connect(env1); env1.connect(gainNode);
+    osc1.start(); osc1.stop(ctx.currentTime + 1.8);
+
+    // Second: same tone + high-frequency harmonics to simulate "air boost"
+    const osc2 = ctx.createOscillator();
+    osc2.type = 'triangle'; osc2.frequency.value = 440;
+    const shelf = ctx.createBiquadFilter();
+    shelf.type = 'highshelf'; shelf.frequency.value = 5000; shelf.gain.value = 9;
+    const env2 = ctx.createGain();
+    env2.gain.setValueAtTime(0, ctx.currentTime + 2.0);
+    env2.gain.linearRampToValueAtTime(0.7, ctx.currentTime + 2.1);
+    env2.gain.setValueAtTime(0.7, ctx.currentTime + duration - 0.3);
+    env2.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+    osc2.connect(shelf); shelf.connect(env2); env2.connect(gainNode);
+    osc2.start(ctx.currentTime + 2.0); osc2.stop(ctx.currentTime + duration);
+    activeNodes = [osc1, osc2];
+  }
+
+  else if (type === 'highpass') {
+    // Pink noise with high-pass sweep
+    const bufferSize = ctx.sampleRate * 2;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      b0=0.99886*b0+white*0.0555179; b1=0.99332*b1+white*0.0750759;
+      b2=0.96900*b2+white*0.1538520; b3=0.86650*b3+white*0.3104856;
+      b4=0.55000*b4+white*0.5329522; b5=-0.7616*b5-white*0.0168980;
+      data[i]=(b0+b1+b2+b3+b4+b5+b6+white*0.5362)/7; b6=white*0.115926;
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buffer; src.loop = true;
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass'; hp.Q.value = 0.7;
+    hp.frequency.setValueAtTime(20, ctx.currentTime);
+    hp.frequency.exponentialRampToValueAtTime(4000, ctx.currentTime + duration * 0.85);
+    src.connect(hp); hp.connect(gainNode);
+    src.start(); src.stop(ctx.currentTime + duration);
+    activeNodes = [src];
+  }
+
+  else if (type === 'mixeq') {
+    // Pink noise flat first 2s, then with mix EQ applied
+    const bufferSize = ctx.sampleRate * 2;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      b0=0.99886*b0+white*0.0555179; b1=0.99332*b1+white*0.0750759;
+      b2=0.96900*b2+white*0.1538520; b3=0.86650*b3+white*0.3104856;
+      b4=0.55000*b4+white*0.5329522; b5=-0.7616*b5-white*0.0168980;
+      data[i]=(b0+b1+b2+b3+b4+b5+b6+white*0.5362)/7; b6=white*0.115926;
+    }
+
+    // Flat version
+    const src1 = ctx.createBufferSource();
+    src1.buffer = buffer; src1.loop = true;
+    const env1 = ctx.createGain();
+    env1.gain.setValueAtTime(0, ctx.currentTime);
+    env1.gain.linearRampToValueAtTime(1, ctx.currentTime + 0.05);
+    env1.gain.setValueAtTime(1, ctx.currentTime + 1.7);
+    env1.gain.linearRampToValueAtTime(0, ctx.currentTime + 2.0);
+    src1.connect(env1); env1.connect(gainNode);
+    src1.start(); src1.stop(ctx.currentTime + 2.0);
+
+    // EQ'd version
+    const src2 = ctx.createBufferSource();
+    src2.buffer = buffer; src2.loop = true;
+    const cut200 = ctx.createBiquadFilter();
+    cut200.type = 'peaking'; cut200.frequency.value = 200; cut200.Q.value = 1.2; cut200.gain.value = -4;
+    const cut3k = ctx.createBiquadFilter();
+    cut3k.type = 'peaking'; cut3k.frequency.value = 3000; cut3k.Q.value = 1.0; cut3k.gain.value = -3;
+    const shelf12k = ctx.createBiquadFilter();
+    shelf12k.type = 'highshelf'; shelf12k.frequency.value = 12000; shelf12k.gain.value = 5;
+    const env2 = ctx.createGain();
+    env2.gain.setValueAtTime(0, ctx.currentTime + 2.2);
+    env2.gain.linearRampToValueAtTime(1, ctx.currentTime + 2.3);
+    env2.gain.setValueAtTime(1, ctx.currentTime + duration - 0.3);
+    env2.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+    src2.connect(cut200); cut200.connect(cut3k); cut3k.connect(shelf12k); shelf12k.connect(env2); env2.connect(gainNode);
+    src2.start(ctx.currentTime + 2.2); src2.stop(ctx.currentTime + duration);
+    activeNodes = [src1, src2];
+  }
+
+  isPlaying = true;
+
+  // Scheduled auto-stop
+  const stopTimeout = setTimeout(() => {
+    isPlaying = false;
+    const btn = document.querySelector('.play-btn');
+    if (btn) {
+      btn.classList.remove('playing');
+      btn.querySelector('.play-icon').style.display = '';
+      btn.querySelector('.stop-icon').style.display = 'none';
+    }
+  }, duration * 1000 + 100);
+
+  activeNodes._stopTimeout = stopTimeout;
+
+  const btn = document.querySelector('.play-btn');
+  if (btn) {
+    btn.classList.add('playing');
+    btn.querySelector('.play-icon').style.display = 'none';
+    btn.querySelector('.stop-icon').style.display = '';
+  }
+}
+
+function togglePlay(type, freq) {
+  if (isPlaying) { stopAudio(); return; }
+  playDemo(type, freq);
+}
+
+function renderStep(idx) {
+  stopAudio();
+  const step = steps[idx];
+  const card = document.getElementById('stepCard');
+  const total = steps.length;
+
+  // Key points HTML
+  const kpHTML = step.keyPoints.map(kp =>
+    `<div class="key-point"><strong>${kp.strong}</strong>${kp.rest}</div>`
+  ).join('');
+
+  // Audio type/freq
+  const aType = step.audio.type;
+  const aFreq = step.audio.freq || 440;
+
+  card.innerHTML = `
+    <div class="step-number">${step.number}</div>
+    <h2 class="step-title">${step.title}</h2>
+    <div class="step-body">${step.body}</div>
+
+    ${step.showRefChart ? `
+    <div class="spectrum-wrap" style="margin-bottom:16px;">
+      <div class="spectrum-title">Common frequency descriptors — how engineers talk about these regions</div>
+      ${buildReferenceChartSVG()}
+    </div>
+    <p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:20px;padding:0 2px;font-style:italic;">
+      The definitions above vary by source. Below is the simplified breakdown we use throughout this module.
+    </p>
+    ` : ''}
+
+    <div class="spectrum-wrap">
+      <div class="spectrum-title">Frequency Spectrum — ${step.spectrum.label}</div>
+      ${buildSpectrumSVG(step)}
+    </div>
+
+    <div class="key-points">
+      <div class="key-points-label">Key Takeaways</div>
+      ${kpHTML}
+    </div>
+
+    <div class="audio-demo">
+      <div class="audio-demo-info">
+        <div class="audio-demo-label">Listen</div>
+        <div class="audio-demo-desc">${step.audio.desc}</div>
+      </div>
+      <div class="demo-controls">
+        <div class="vol-wrap">
+          <svg class="vol-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" style="color:var(--muted)">
+            <polygon points="11,5 6,9 2,9 2,15 6,15 11,19" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" fill="none"/>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+          </svg>
+          <input type="range" class="vol-slider" min="0" max="1" step="0.02" value="0.55"
+                 title="Volume" oninput="updateVolume(this.value)">
+        </div>
+        <button class="play-btn" onclick="togglePlay('${aType}', ${aFreq})" title="Play / Stop">
+          <svg class="play-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <polygon points="6,4 20,12 6,20" fill="white"/>
+          </svg>
+          <svg class="stop-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" style="display:none">
+            <rect x="5" y="5" width="14" height="14" rx="2" fill="white"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  `;
+
+  // Update progress
+  const dots = document.getElementById('progressDots');
+  dots.innerHTML = steps.map((_, i) =>
+    `<div class="progress-dot ${i < idx ? 'done' : ''} ${i === idx ? 'active' : ''}"
+          onclick="goToStep(${i})" title="Step ${i+1}"></div>`
+  ).join('');
+
+  document.getElementById('progressLabel').textContent = `Step ${idx+1} of ${total}`;
+  document.getElementById('stepCounter').textContent = `${idx+1} / ${total}`;
+
+  // Buttons
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const nav = document.getElementById('stepNav');
+
+  prevBtn.disabled = idx === 0;
+  if (idx === total - 1) {
+    nextBtn.textContent = 'Complete ✓';
+    nextBtn.className = 'nav-btn finish';
+    nextBtn.onclick = showCompletion;
+  } else {
+    nextBtn.textContent = 'Next →';
+    nextBtn.className = 'nav-btn primary';
+    nextBtn.onclick = () => navigate(1);
+  }
+}
+
+function updateVolume(val) {
+  // Live volume update for active nodes (handled on next play)
+}
+
+function navigate(dir) {
+  const next = currentStep + dir;
+  if (next < 0 || next >= steps.length) return;
+  currentStep = next;
+  renderStep(currentStep);
+  window.scrollTo({ top: document.getElementById('stepCard').offsetTop - 100, behavior: 'smooth' });
+}
+
+function goToStep(idx) {
+  currentStep = idx;
+  renderStep(currentStep);
+}
+
+function showCompletion() {
+  stopAudio();
+  const card = document.getElementById('stepCard');
+  card.innerHTML = `
+    <div class="completion-card">
+      <svg width="56" height="56" viewBox="0 0 56 56" fill="none" style="display:block;margin:0 auto 20px;">
+        <circle cx="28" cy="28" r="25" stroke="var(--eq-accent)" stroke-width="1.5" fill="rgba(91,106,255,0.08)"/>
+        <polyline points="17,28 25,36 39,19" stroke="var(--eq-accent2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="completion-title">EQ Module Complete!</div>
+      <p class="completion-sub">You now have a map of the frequency spectrum and the tools to navigate it. The best way to cement this knowledge is to practice — go put your ears to work.</p>
+      <a class="completion-cta" href="/mobile/">Play the games →</a>
+      <button class="completion-restart" onclick="restartModule()">← Restart this module</button>
+    </div>
+  `;
+  document.getElementById('stepNav').style.display = 'none';
+  document.getElementById('progressLabel').textContent = 'Complete!';
+  const dots = document.getElementById('progressDots');
+  dots.innerHTML = steps.map((_, i) =>
+    `<div class="progress-dot done" onclick="goToStep(${i})" title="Step ${i+1}"></div>`
+  ).join('');
+}
+
+function restartModule() {
+  document.getElementById('stepNav').style.display = '';
+  currentStep = 0;
+  renderStep(0);
+}
+
+function selectTool(tool) {
+  // For now, only EQ is available — this is a placeholder for future expansion
+  if (tool !== 'eq') return;
+}
+
+// ── Init ─────────────────────────────────────────────────────
+renderStep(0);
+
+// Keyboard navigation
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') navigate(1);
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   navigate(-1);
+  if (e.key === ' ') {
+    e.preventDefault();
+    const step = steps[currentStep];
+    togglePlay(step.audio.type, step.audio.freq || 440);
+  }
+});
+</script>
+<script>
+// ── Fade in ───────────────────────────────────────────────
+requestAnimationFrame(() => document.body.classList.add('visible'));
+
+// ── Sheet open / close ────────────────────────────────────
+const sheetOverlay = document.getElementById('sheetOverlay');
+function openSheet() {
+  sheetOverlay.style.display = 'flex';
+  sheetOverlay.getBoundingClientRect();
+  sheetOverlay.classList.add('open');
+}
+function closeSheet() {
+  sheetOverlay.classList.remove('open');
+  setTimeout(() => { sheetOverlay.style.display = 'none'; }, 350);
+}
+function onProfileTap(e) { e.preventDefault(); openSheet(); }
+function onOverlayTap(e) { if (e.target === sheetOverlay) { e.preventDefault(); closeSheet(); } }
+
+function onSheetTab(e, tab) {
+  e.preventDefault();
+  document.querySelectorAll('.sheet-tab').forEach(t => t.classList.remove('active'));
+  e.currentTarget.classList.add('active');
+  document.getElementById('sheetSignin').style.display = tab === 'signin' ? '' : 'none';
+  document.getElementById('sheetSignup').style.display = tab === 'signup' ? '' : 'none';
+  document.getElementById('siMsg').textContent = '';
+  document.getElementById('suMsg').textContent = '';
+}
+
+async function onSignIn(e) {
+  e.preventDefault();
+  const msg = document.getElementById('siMsg');
+  msg.textContent = 'Signing in…'; msg.className = 'sheet-msg';
+  const { error } = await SonicSandbox.signIn(
+    document.getElementById('siEmail').value.trim(),
+    document.getElementById('siPassword').value
+  );
+  if (error) { msg.textContent = error.message; msg.className = 'sheet-msg error'; }
+  else { closeSheet(); }
+}
+
+async function onSignUp(e) {
+  e.preventDefault();
+  const msg = document.getElementById('suMsg');
+  msg.textContent = 'Creating account…'; msg.className = 'sheet-msg';
+  const { error } = await SonicSandbox.signUp(
+    document.getElementById('suEmail').value.trim(),
+    document.getElementById('suPassword').value
+  );
+  if (error) { msg.textContent = error.message; msg.className = 'sheet-msg error'; }
+  else { msg.textContent = 'Check your email to confirm your account.'; msg.className = 'sheet-msg success'; }
+}
+
+document.addEventListener('ss:authchange', async (e) => {
+  const user = e.detail;
+  const wrap = document.getElementById('profileBtnWrap');
+  if (user) {
+    const profile = await SonicSandbox.getProfile();
+    const username = profile?.username;
+    const initial = username ? username[0].toUpperCase() : (user.email || '?')[0].toUpperCase();
+    wrap.innerHTML = `<div class="profile-avatar" ontouchend="onProfileTap(event)">${initial}</div>`;
+    document.getElementById('sheetLoggedOut').style.display = 'none';
+    document.getElementById('sheetLoggedIn').style.display  = '';
+    document.getElementById('profileAvatarLg').textContent  = initial;
+    document.getElementById('profileUsername').textContent = username ? '@' + username : user.email;
+    document.getElementById('profileEmail').textContent    = username ? user.email : '';
+    const joined = user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '';
+    document.getElementById('profileSince').textContent = joined ? `Member since ${joined}` : '';
+    const stats = await SonicSandbox.getStats();
+    document.getElementById('statRounds').textContent   = stats.total;
+    document.getElementById('statAccuracy').textContent = stats.accuracy !== null ? `${stats.accuracy}%` : '—';
+  } else {
+    wrap.innerHTML = `<button class="profile-btn" ontouchend="onProfileTap(event)" aria-label="Account"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="white" stroke-width="1.8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg></button>`;
+    document.getElementById('sheetLoggedOut').style.display = '';
+    document.getElementById('sheetLoggedIn').style.display  = 'none';
+  }
+});
+</script>
+</body>
+</html>

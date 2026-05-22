@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SonicSandbox">
+<title>Gain Staging — SonicSandbox Learn</title>
+<style>
+
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #0a0b0d; --surface: #13151a; --surface2: #1a1d24; --surface3: #21252f;
+    --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+    --text: #dde2ee; --muted: #6b7280;
+    --eq-accent: #5b6aff; --comp-accent: #e8865a;
+    --rev-accent: #7c3aed; --rev-accent2: #a78bfa;
+    --sat-accent: #d97706; --sat-accent2: #fbbf24;
+    --delay-accent: #f97316;
+    --gs-accent: #22c55e; --gs-accent2: #86efac;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+
+  nav { width: 100%; max-width: 1600px; padding: 20px 28px; display: flex; align-items: center; }
+  .nav-logo-wrap { flex: 1; display: flex; align-items: center; }
+  .nav-logo { font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 600; color: var(--text); text-decoration: none; letter-spacing: -0.01em; }
+  .nav-logo span { color: var(--gs-accent2); }
+  .nav-center { display: flex; align-items: center; gap: 28px; flex-shrink: 0; }
+  .nav-link { font-size: 13px; font-weight: 500; color: var(--muted); text-decoration: none; transition: color 0.15s; }
+  .nav-link:hover, .nav-link.active { color: var(--text); }
+  .nav-right { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+  .bmac-btn { display: inline-flex; align-items: center; gap: 7px; background: #FFDD00; color: #000; font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 8px; text-decoration: none; transition: opacity 0.15s, transform 0.15s; white-space: nowrap; }
+  .bmac-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+  @media (max-width: 600px) { nav { padding: 16px 20px; } .nav-center { display: none; } .bmac-btn { display: none; } }
+
+  .user-pill { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+  .set-username-link { color: var(--gs-accent2); background: none; border: none; font-family: 'IBM Plex Mono', monospace; font-size: 13px; cursor: pointer; padding: 0; text-decoration: none; }
+  .set-username-link:hover { opacity: 0.8; }
+  .auth-btn { font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border2); background: var(--surface2); color: var(--text); cursor: pointer; text-decoration: none; }
+
+  .page-header { width: 100%; max-width: 900px; padding: 52px 24px 36px; text-align: center; }
+  .page-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 18px; }
+  .page-title { font-family: 'IBM Plex Mono', monospace; font-size: clamp(26px,4vw,44px); font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; color: var(--text); margin-bottom: 14px; }
+  .page-sub { font-size: 15px; color: var(--muted); font-weight: 300; max-width: 520px; margin: 0 auto; line-height: 1.7; }
+
+  .tool-selector-wrap { width: 100%; max-width: 900px; padding: 0 24px 40px; }
+  .tool-selector-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+  .tool-selector { display: flex; gap: 10px; flex-wrap: wrap; }
+  .tool-btn { display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; border: 1px solid var(--border2); background: var(--surface2); font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; text-decoration: none; transition: border-color 0.18s, color 0.18s, background 0.18s, transform 0.18s; }
+  .tool-btn.active { border-color: var(--gs-accent); color: var(--gs-accent2); background: rgba(34,197,94,0.10); }
+  .tool-btn.disabled { opacity: 0.38; cursor: not-allowed; pointer-events: none; }
+  .tool-btn:not(.disabled):not(.active):hover { color: var(--text); background: var(--surface3); transform: translateY(-1px); }
+  .tool-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: 0.7; flex-shrink: 0; }
+
+  .module-wrap { width: 100%; max-width: 860px; padding: 0 24px 80px; }
+  .progress-bar-wrap { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+  .progress-dots { display: flex; gap: 6px; flex-wrap: wrap; }
+  .progress-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border2); transition: background 0.2s, transform 0.2s; cursor: pointer; }
+  .progress-dot.done { background: rgba(34,197,94,0.45); }
+  .progress-dot.active { background: var(--gs-accent2); transform: scale(1.3); }
+  .progress-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-left: auto; }
+
+  .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 0 0 32px; position: relative; overflow: hidden; }
+  .step-card::before { content: ''; position: absolute; inset: 0; border-radius: 20px; background: radial-gradient(ellipse at top left, rgba(34,197,94,0.07), transparent 55%); pointer-events: none; }
+
+  .diagram-wrap { width: 100%; border-radius: 20px 20px 0 0; overflow: hidden; padding: 24px 28px 16px; background: rgba(34,197,94,0.03); border-bottom: 1px solid var(--border); }
+  .diagram-wrap svg { width: 100%; height: auto; display: block; }
+
+  .step-inner { padding: 28px 36px 0; }
+  .step-number { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gs-accent); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .step-number::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .step-title { font-family: 'IBM Plex Mono', monospace; font-size: clamp(18px,2.8vw,26px); font-weight: 600; letter-spacing: -0.02em; color: var(--text); margin-bottom: 16px; line-height: 1.25; }
+  .step-body { font-size: 15px; color: var(--muted); line-height: 1.75; font-weight: 300; margin-bottom: 24px; }
+  .step-body strong { color: var(--text); font-weight: 500; }
+  .step-body em { color: var(--gs-accent2); font-style: normal; font-weight: 500; }
+
+  .key-points { background: rgba(34,197,94,0.05); border: 1px solid rgba(34,197,94,0.18); border-radius: 12px; padding: 18px 20px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 10px; }
+  .key-points-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gs-accent); margin-bottom: 4px; }
+  .key-point { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--muted); line-height: 1.55; }
+  .key-point::before { content: '→'; color: var(--gs-accent2); font-family: 'IBM Plex Mono', monospace; font-size: 12px; margin-top: 1px; flex-shrink: 0; }
+  .key-point strong { color: var(--text); font-weight: 500; }
+
+  .audio-demo { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin-bottom: 4px; }
+  .audio-demo-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .audio-demo-desc { font-size: 13px; color: var(--muted); line-height: 1.55; margin-bottom: 14px; }
+  .demo-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  .play-btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border-radius: 8px; background: var(--gs-accent); border: none; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; color: #fff; cursor: pointer; transition: transform 0.15s, opacity 0.15s; flex-shrink: 0; }
+  .play-btn svg { pointer-events: none; }
+  .play-btn:hover { transform: scale(1.04); opacity: 0.9; }
+  .play-btn.playing { background: rgba(34,197,94,0.2); border: 1.5px solid var(--gs-accent); color: var(--gs-accent2); }
+
+  .vol-wrap { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  input[type=range].vol-slider { -webkit-appearance: none; appearance: none; width: 72px; height: 3px; border-radius: 2px; background: var(--border2); outline: none; cursor: pointer; }
+  input[type=range].vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%; background: var(--gs-accent2); cursor: pointer; }
+
+  .step-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; }
+  .nav-btn { display: flex; align-items: center; gap: 8px; padding: 11px 22px; border-radius: 10px; border: 1px solid var(--border2); background: var(--surface2); font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; transition: border-color 0.15s, color 0.15s, transform 0.15s; text-decoration: none; }
+  .nav-btn:hover { color: var(--text); transform: translateY(-1px); }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+  .nav-btn.primary { background: var(--gs-accent); border-color: var(--gs-accent); color: #fff; }
+  .nav-btn.primary:hover { opacity: 0.88; }
+  .nav-btn.finish { background: rgba(34,197,94,0.15); border-color: var(--gs-accent); color: var(--gs-accent2); }
+  .step-counter { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--muted); }
+
+  .completion-card { text-align: center; padding: 56px 36px; }
+  .completion-title { font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
+  .completion-sub { font-size: 15px; color: var(--muted); line-height: 1.7; max-width: 440px; margin: 0 auto 32px; }
+  .completion-cta { display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; border-radius: 10px; background: var(--gs-accent); color: #fff; font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600; text-decoration: none; transition: opacity 0.15s, transform 0.15s; }
+  .completion-cta:hover { opacity: 0.88; transform: translateY(-1px); }
+  .completion-restart { display: block; margin: 18px auto 0; background: none; border: none; color: var(--muted); font-size: 13px; cursor: pointer; text-decoration: underline; font-family: inherit; }
+  .completion-restart:hover { color: var(--text); }
+
+  footer { margin-top: auto; width: 100%; border-top: 1px solid var(--border); padding: 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .footer-left { font-size: 13px; color: var(--muted); }
+  .footer-left a { color: var(--muted); text-decoration: none; font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+  .footer-left a:hover { color: var(--text); }
+
+  @media (max-width: 600px) {
+    .step-inner { padding: 20px 20px 0; }
+    .diagram-wrap { padding: 18px 16px 12px; }
+    .module-wrap { padding: 0 16px 60px; }
+    .tool-selector-wrap { padding: 0 16px 32px; }
+    .page-header { padding: 32px 16px 24px; }
+    .step-nav { flex-direction: column; }
+    .nav-btn { width: 100%; justify-content: center; }
+  }
+
+
+  /* ── Mobile shell resets ─────────────────────────────── */
+  body {
+    align-items: stretch;
+    opacity: 0; transition: opacity 0.15s ease;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  body.visible { opacity: 1; }
+
+  /* ── Mobile header ───────────────────────────────────── */
+  .app-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px 0; flex-shrink: 0;
+  }
+  .brand-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 16px; font-weight: 700; letter-spacing: 0.03em;
+    text-decoration: none; color: var(--text);
+  }
+  .brand-name span { color: #86efac; }
+
+  .profile-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--surface2); border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: border-color 0.15s; flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .profile-btn:active { border-color: #22c55e; }
+  .profile-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: #22c55e;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; font-weight: 700; color: #fff;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .profile-avatar:active { opacity: 0.8; }
+
+  /* ── Page hero ───────────────────────────────────────── */
+  .page-header {
+    width: 100%; max-width: none;
+    padding: 24px 20px 16px; text-align: center;
+  }
+  .page-eyebrow { font-size: 10px; margin-bottom: 10px; }
+  .page-title { font-size: 22px !important; margin-bottom: 8px; }
+  .page-sub { font-size: 13px; max-width: 320px; }
+
+  /* ── Topic chips ─────────────────────────────────────── */
+  .topic-scroller {
+    display: flex; gap: 8px;
+    padding: 12px 20px 16px;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .topic-scroller::-webkit-scrollbar { display: none; }
+  .topic-chip {
+    display: inline-flex; align-items: center;
+    padding: 7px 14px; border-radius: 20px; white-space: nowrap;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+    border: 1px solid var(--border2);
+    background: var(--surface2); color: var(--muted);
+    text-decoration: none; flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .topic-chip.active {
+    background: color-mix(in srgb, var(--tc) 14%, transparent);
+    border-color: color-mix(in srgb, var(--tc) 50%, transparent);
+    color: var(--tc);
+  }
+  .topic-chip:not(.active):active { color: var(--text); }
+
+  /* ── Module wrap ─────────────────────────────────────── */
+  .module-wrap {
+    width: 100%; max-width: none;
+    padding: 0 14px 32px;
+  }
+
+  /* ── Step card ───────────────────────────────────────── */
+  .step-card { padding: 20px 18px 18px; border-radius: 16px; }
+
+  /* ── Step nav buttons ────────────────────────────────── */
+  .step-nav { flex-wrap: wrap; }
+  .nav-btn { flex: 1; min-width: 110px; justify-content: center; font-size: 12px; padding: 11px 12px; }
+  .step-counter { order: -1; width: 100%; text-align: center; padding-bottom: 8px; }
+
+  /* ── Audio demo ──────────────────────────────────────── */
+  .audio-demo { flex-wrap: wrap; }
+  .audio-demo-info { min-width: 0; }
+
+  /* ── Progress bar ────────────────────────────────────── */
+  .progress-bar-wrap { margin-bottom: 18px; flex-wrap: wrap; gap: 8px; }
+  .progress-dots { gap: 5px; }
+  .progress-dot { width: 7px; height: 7px; }
+
+  /* ── Footer nav ──────────────────────────────────────── */
+  .footer-nav {
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+    padding: 16px 20px 48px;
+    font-size: 12px; color: var(--muted);
+    border-top: 1px solid var(--border);
+  }
+  .footer-nav a { color: var(--muted); text-decoration: none; }
+  .footer-nav a.active { color: var(--text); }
+  .footer-nav a:active { color: var(--text); }
+  .footer-nav .sep { color: var(--border2); }
+
+  /* ── Auth bottom sheet ───────────────────────────────── */
+  .sheet-overlay {
+    display: none; position: fixed; inset: 0; z-index: 300;
+    background: rgba(0,0,0,0); transition: background 0.3s ease;
+  }
+  .sheet-overlay.open {
+    display: flex; flex-direction: column; justify-content: flex-end;
+    background: rgba(0,0,0,0.6);
+  }
+  .auth-sheet {
+    background: var(--surface); border-radius: 24px 24px 0 0;
+    border-top: 1px solid var(--border2);
+    padding: 0 0 env(safe-area-inset-bottom);
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    max-height: 92vh; overflow-y: auto;
+  }
+  .sheet-overlay.open .auth-sheet { transform: translateY(0); }
+  .sheet-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--border2); margin: 12px auto 0; }
+  .sheet-inner { padding: 20px 24px 32px; }
+  .sheet-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+  .sheet-tab {
+    flex: 1; padding: 10px; text-align: center;
+    font-size: 13px; font-weight: 500; background: none; border: none;
+    color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: color 0.15s, border-color 0.15s; -webkit-tap-highlight-color: transparent;
+  }
+  .sheet-tab.active { color: #86efac; border-bottom-color: #86efac; }
+  .sheet-label { display: block; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .sheet-input {
+    width: 100%; padding: 12px 14px; border-radius: 10px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    color: var(--text); font-size: 16px; font-family: 'IBM Plex Sans', sans-serif;
+    margin-bottom: 14px; outline: none; -webkit-appearance: none;
+    transition: border-color 0.15s;
+  }
+  .sheet-input:focus { border-color: #22c55e; }
+  .sheet-submit {
+    width: 100%; padding: 14px; border-radius: 12px;
+    background: #22c55e; color: #fff; font-size: 15px; font-weight: 600;
+    border: none; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif;
+    -webkit-tap-highlight-color: transparent; transition: opacity 0.15s; margin-top: 4px;
+  }
+  .sheet-submit:active { opacity: 0.8; }
+  .sheet-msg { margin-top: 12px; font-size: 13px; text-align: center; min-height: 18px; color: var(--muted); }
+  .sheet-msg.error { color: #f07070; }
+  .sheet-msg.success { color: #2dd4a0; }
+  .profile-view { display: flex; flex-direction: column; gap: 20px; }
+  .profile-user { display: flex; align-items: center; gap: 14px; }
+  .profile-avatar-lg {
+    width: 52px; height: 52px; border-radius: 50%; background: #22c55e;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .profile-username { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 700; color: var(--text); }
+  .profile-email-small { font-size: 11px; color: var(--muted); margin-top: 2px; word-break: break-all; }
+  .profile-since { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .profile-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-tile { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px; }
+  .stat-value { font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 700; color: var(--text); }
+  .stat-label { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+  .account-link { display: flex; align-items: center; justify-content: center; width: 100%; padding: 14px; border-radius: 12px; background: var(--surface2); border: 1px solid var(--border2); color: #86efac; font-size: 14px; font-weight: 600; text-decoration: none; font-family: 'IBM Plex Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+  .account-link:active { opacity: 0.7; }
+
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="app-header">
+  <a class="brand-name" href="/mobile/">Sonic<span>Sandbox</span></a>
+  <div id="profileBtnWrap">
+    <button class="profile-btn" ontouchend="onProfileTap(event)" aria-label="Account">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="8" r="4" stroke="white" stroke-width="1.8"/>
+        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- Page header -->
+<div class="page-header">
+  <div class="page-eyebrow">SonicSandbox / Learning Center</div>
+  <h1 class="page-title">Learn the tools.</h1>
+  <p class="page-sub">Guided lessons on the audio processing tools that shape every mix. Read, listen, and understand — then go train your ears.</p>
+</div>
+
+<!-- Topic selector -->
+<div class="topic-scroller">
+  <a class="topic-chip" href="/mobile/learn/" style="--tc:#8892ff;">EQ</a>
+  <span class="topic-chip active" style="--tc:#22c55e;">Gain Staging</span>
+  <a class="topic-chip" href="/mobile/learn/compression/" style="--tc:#f0a882;">Compression</a>
+  <a class="topic-chip" href="/mobile/learn/saturation/" style="--tc:#fbbf24;">Saturation</a>
+  <a class="topic-chip" href="/mobile/learn/reverb/" style="--tc:#a78bfa;">Reverb</a>
+  <a class="topic-chip" href="/mobile/learn/delay/" style="--tc:#22d3ee;">Delay</a>
+  <a class="topic-chip" href="/mobile/learn/soundstage/" style="--tc:#38bdf8;">Spatial Mixing</a>
+</div>
+
+<!-- Module -->
+<div class="module-wrap">
+  <div class="progress-bar-wrap">
+    <div class="progress-dots" id="progressDots"></div>
+    <div class="progress-label" id="progressLabel">Step 1 of 9</div>
+  </div>
+  <div class="step-card" id="stepCard"></div>
+  <div class="step-nav" id="stepNav" style="margin-top:20px;">
+    <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>← Previous</button>
+    <span class="step-counter" id="stepCounter"></span>
+    <button class="nav-btn primary" id="nextBtn" onclick="navigate(1)">Next →</button>
+  </div>
+</div>
+
+<!-- Footer nav -->
+<div class="footer-nav">
+  <a href="/mobile/">Games</a>
+  <span class="sep">·</span>
+  <a href="/mobile/about/">About</a>
+  <span class="sep">·</span>
+  <a href="/learn/gain-staging/" id="desktopLink">Desktop site →</a>
+</div>
+
+<!-- Auth bottom sheet -->
+<div class="sheet-overlay" id="sheetOverlay" ontouchend="onOverlayTap(event)">
+  <div class="auth-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-inner">
+      <div id="sheetLoggedOut">
+        <div class="sheet-tabs">
+          <button class="sheet-tab active" ontouchend="onSheetTab(event,'signin')">Sign in</button>
+          <button class="sheet-tab"        ontouchend="onSheetTab(event,'signup')">Create account</button>
+        </div>
+        <div id="sheetSignin">
+          <label class="sheet-label">Email</label>
+          <input class="sheet-input" type="email" id="siEmail" placeholder="you@example.com" autocomplete="email" autocapitalize="none">
+          <label class="sheet-label">Password</label>
+          <input class="sheet-input" type="password" id="siPassword" placeholder="••••••••" autocomplete="current-password">
+          <button class="sheet-submit" ontouchend="onSignIn(event)">Sign in</button>
+          <div class="sheet-msg" id="siMsg"></div>
+        </div>
+        <div id="sheetSignup" style="display:none;">
+          <label class="sheet-label">Email</label>
+          <input class="sheet-input" type="email" id="suEmail" placeholder="you@example.com" autocomplete="email" autocapitalize="none">
+          <label class="sheet-label">Password</label>
+          <input class="sheet-input" type="password" id="suPassword" placeholder="At least 6 characters" autocomplete="new-password">
+          <button class="sheet-submit" ontouchend="onSignUp(event)">Create account</button>
+          <div class="sheet-msg" id="suMsg"></div>
+        </div>
+      </div>
+      <div id="sheetLoggedIn" style="display:none;">
+        <div class="profile-view">
+          <div class="profile-user">
+            <div class="profile-avatar-lg" id="profileAvatarLg">?</div>
+            <div>
+              <div class="profile-username" id="profileUsername">—</div>
+              <div class="profile-email-small" id="profileEmail"></div>
+              <div class="profile-since" id="profileSince"></div>
+            </div>
+          </div>
+          <div class="profile-stats">
+            <div class="stat-tile"><div class="stat-value" id="statRounds">—</div><div class="stat-label">Rounds played</div></div>
+            <div class="stat-tile"><div class="stat-value" id="statAccuracy">—</div><div class="stat-label">Accuracy</div></div>
+          </div>
+          <a class="account-link" href="/mobile/account/">View Account →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../../../supabase-client.js"></script>
+<script>
+// ─────────────────────────────────────────────────────────────
+//  SVG DIAGRAM BUILDERS
+// ─────────────────────────────────────────────────────────────
+
+function buildDiagram_chain() {
+  const W = 640, H = 108;
+  const BW = 122, BH = 46, BY = 26;
+  const boxes = [
+    { x: 8,   label: 'SOURCE',  sub: 'input signal' },
+    { x: 162, label: 'PLUGINS', sub: 'eq · comp · fx' },
+    { x: 316, label: 'FADER',   sub: 'channel volume' },
+    { x: 470, label: 'OUTPUT',  sub: 'bus / master' },
+  ];
+  let rects = '', labels = '', arrows = '';
+  boxes.forEach((b, i) => {
+    const cx = b.x + BW / 2;
+    const cy = BY + BH / 2;
+    rects  += `<rect x="${b.x}" y="${BY}" width="${BW}" height="${BH}" rx="8" fill="rgba(34,197,94,0.08)" stroke="rgba(34,197,94,0.28)" stroke-width="1"/>`;
+    labels += `<text x="${cx}" y="${cy - 5}" text-anchor="middle" font-size="10" font-weight="600" letter-spacing="0.1em" fill="rgba(134,239,172,0.88)">${b.label}</text>`;
+    labels += `<text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="8.5" fill="rgba(107,114,128,0.85)">${b.sub}</text>`;
+    if (i < boxes.length - 1) {
+      const ax = b.x + BW + 3, nx = boxes[i+1].x - 3, ay = BY + BH / 2;
+      arrows += `<line x1="${ax}" y1="${ay}" x2="${nx - 7}" y2="${ay}" stroke="rgba(34,197,94,0.35)" stroke-width="1.5"/>`;
+      arrows += `<polygon points="${nx-7},${ay-4} ${nx},${ay} ${nx-7},${ay+4}" fill="rgba(34,197,94,0.45)"/>`;
+    }
+  });
+  const foot = `<text x="${W/2}" y="${H - 4}" text-anchor="middle" font-size="8.5" fill="rgba(107,114,128,0.55)" letter-spacing="0.07em">EVERY STAGE HAS A GAIN CONTROL — GAIN STAGING MEANS MANAGING ALL OF THEM</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">${rects}${arrows}${labels}${foot}</svg>`;
+}
+
+function buildDiagram_dbscale() {
+  const W = 640, H = 98;
+  const BX = 20, BY = 34, BW = 600, BH = 26;
+  const dbToX = db => BX + ((db + 60) / 60) * BW;
+
+  const zones = [
+    { db1: -60, db2: -24, fill: 'rgba(15,23,42,0.9)' },
+    { db1: -24, db2: -12, fill: 'rgba(20,83,45,0.75)' },
+    { db1: -12, db2: -6,  fill: 'rgba(113,63,18,0.8)' },
+    { db1: -6,  db2:   0, fill: 'rgba(127,29,29,0.85)' },
+  ];
+  let zoneRects = zones.map(z => {
+    const x1 = dbToX(z.db1), x2 = dbToX(z.db2);
+    return `<rect x="${x1.toFixed(1)}" y="${BY}" width="${(x2 - x1).toFixed(1)}" height="${BH}" fill="${z.fill}"/>`;
+  }).join('');
+  const zoneLabels = [
+    { text: 'TOO QUIET',   db1: -60, db2: -24, col: 'rgba(107,114,128,0.6)' },
+    { text: 'WORKING',     db1: -24, db2: -12, col: 'rgba(134,239,172,0.55)' },
+    { text: 'CAUTION',     db1: -12, db2: -6,  col: 'rgba(250,204,21,0.55)' },
+    { text: 'HOT',         db1: -6,  db2:   0, col: 'rgba(248,113,113,0.6)' },
+  ].map(z => {
+    const cx = (dbToX(z.db1) + dbToX(z.db2)) / 2;
+    return `<text x="${cx.toFixed(1)}" y="${BY + BH/2 + 4}" text-anchor="middle" font-size="8.5" fill="${z.col}" letter-spacing="0.07em">${z.text}</text>`;
+  }).join('');
+  const ticks = [-60, -48, -36, -24, -18, -12, -6, -3, 0];
+  const tickSVG = ticks.map(db => {
+    const x = dbToX(db).toFixed(1);
+    const imp = db === -18 || db === 0;
+    return `<line x1="${x}" y1="${BY+BH}" x2="${x}" y2="${BY+BH+6}" stroke="rgba(255,255,255,0.22)" stroke-width="1"/>
+            <text x="${x}" y="${BY+BH+17}" text-anchor="middle" font-size="${imp ? 9.5 : 8}" fill="rgba(255,255,255,${imp ? 0.65 : 0.28})" font-weight="${imp ? '600' : '400'}">${db}</text>`;
+  }).join('');
+  const m18x = dbToX(-18).toFixed(1);
+  const markerSVG = `
+    <line x1="${m18x}" y1="${BY - 5}" x2="${m18x}" y2="${BY + BH + 5}" stroke="#86efac" stroke-width="1.5" stroke-dasharray="3,2"/>
+    <text x="${m18x}" y="${BY - 10}" text-anchor="middle" font-size="8.5" font-weight="600" fill="#86efac" letter-spacing="0.08em">WORKING LEVEL</text>`;
+  const clip0x = dbToX(0).toFixed(1);
+  const clipSVG = `
+    <rect x="${parseFloat(clip0x) - 6}" y="${BY}" width="6" height="${BH}" fill="rgba(239,68,68,0.85)"/>
+    <text x="${parseFloat(clip0x) - 3}" y="${BY - 10}" text-anchor="middle" font-size="8.5" font-weight="600" fill="#f87171" letter-spacing="0.06em">CLIP</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
+    <defs><clipPath id="dbBarClip"><rect x="${BX}" y="${BY}" width="${BW}" height="${BH}" rx="4"/></clipPath></defs>
+    <g clip-path="url(#dbBarClip)">${zoneRects}</g>
+    <rect x="${BX}" y="${BY}" width="${BW}" height="${BH}" rx="4" fill="none" stroke="rgba(255,255,255,0.09)" stroke-width="0.75"/>
+    ${zoneLabels}${tickSVG}${markerSVG}${clipSVG}
+    <text x="${BX}" y="${H - 1}" font-size="8" fill="rgba(107,114,128,0.5)">−∞ dBFS</text>
+    <text x="${BX + BW}" y="${H - 1}" text-anchor="end" font-size="8" fill="rgba(107,114,128,0.5)">0 dBFS (digital maximum)</text>
+  </svg>`;
+}
+
+function buildDiagram_waveforms() {
+  const W = 640, H = 158;
+  const cy = 79, amp = 52, clipLvl = 31;
+  function wavePath(x1, x2, clipped) {
+    const pw = x2 - x1;
+    let pts = [];
+    for (let i = 0; i <= 220; i++) {
+      const t = i / 220;
+      const x = x1 + t * pw;
+      let y = cy - amp * Math.sin(t * Math.PI * 4); // 2 cycles
+      if (clipped) y = Math.max(cy - clipLvl, Math.min(cy + clipLvl, y));
+      pts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+    }
+    return pts.join(' ');
+  }
+  const cleanPts   = wavePath(28, 298, false);
+  const clippedPts = wavePath(342, 614, true);
+  const clipY1 = cy - clipLvl, clipY2 = cy + clipLvl;
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
+    <line x1="28"  y1="${cy}" x2="298" y2="${cy}" stroke="rgba(255,255,255,0.07)" stroke-width="1" stroke-dasharray="3,3"/>
+    <line x1="342" y1="${cy}" x2="614" y2="${cy}" stroke="rgba(255,255,255,0.07)" stroke-width="1" stroke-dasharray="3,3"/>
+    <polyline points="${cleanPts}"   fill="none" stroke="#86efac" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="${clippedPts}" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="342" y1="${clipY1}" x2="614" y2="${clipY1}" stroke="rgba(239,68,68,0.32)" stroke-width="1" stroke-dasharray="4,3"/>
+    <line x1="342" y1="${clipY2}" x2="614" y2="${clipY2}" stroke="rgba(239,68,68,0.32)" stroke-width="1" stroke-dasharray="4,3"/>
+    <text x="618" y="${clipY1 + 3}" font-size="8" fill="rgba(248,113,113,0.55)">0 dBFS</text>
+    <text x="618" y="${clipY2 + 3}" font-size="8" fill="rgba(248,113,113,0.55)">0 dBFS</text>
+    <line x1="320" y1="10" x2="320" y2="${H - 10}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+    <text x="163" y="15"       text-anchor="middle" font-size="9.5" font-weight="600" fill="rgba(134,239,172,0.78)" letter-spacing="0.1em">CLEAN SIGNAL</text>
+    <text x="478" y="15"       text-anchor="middle" font-size="9.5" font-weight="600" fill="rgba(248,113,113,0.78)" letter-spacing="0.1em">CLIPPED SIGNAL</text>
+    <text x="163" y="${H - 5}" text-anchor="middle" font-size="8" fill="rgba(107,114,128,0.65)">smooth, full dynamic range</text>
+    <text x="478" y="${H - 5}" text-anchor="middle" font-size="8" fill="rgba(248,113,113,0.5)">peaks flattened — harmonics added</text>
+  </svg>`;
+}
+
+function buildDiagram_headroom() {
+  const W = 640, H = 112;
+  const BX = 20, BY = 32, BW = 600, BH = 30;
+  const dbToX = db => BX + ((db + 60) / 60) * BW;
+  const signalX = dbToX(-18), warn6X = dbToX(-6), clip0X = dbToX(0);
+
+  const bgRect = `<rect x="${BX}" y="${BY}" width="${BW}" height="${BH}" rx="4" fill="rgba(8,10,14,0.9)" stroke="rgba(255,255,255,0.08)" stroke-width="0.75"/>`;
+  const signalFill  = `<rect x="${BX}" y="${BY}" width="${(signalX - BX).toFixed(1)}" height="${BH}" fill="rgba(34,197,94,0.28)" rx="4 0 0 4"/>`;
+  const headroomFill = `<rect x="${signalX.toFixed(1)}" y="${BY}" width="${(warn6X - signalX).toFixed(1)}" height="${BH}" fill="rgba(250,204,21,0.06)"/>`;
+  const dangerFill  = `<rect x="${warn6X.toFixed(1)}"  y="${BY}" width="${(clip0X - warn6X).toFixed(1)}"  height="${BH}" fill="rgba(239,68,68,0.07)"/>`;
+  const clipFill    = `<rect x="${(clip0X - 5).toFixed(1)}" y="${BY}" width="5" height="${BH}" fill="rgba(239,68,68,0.75)" rx="0 4 4 0"/>`;
+
+  const signalLine = `<line x1="${signalX.toFixed(1)}" y1="${BY - 3}" x2="${signalX.toFixed(1)}" y2="${BY + BH + 3}" stroke="#86efac" stroke-width="1.5"/>`;
+  const signalLbl  = `<text x="${signalX.toFixed(1)}" y="${BY - 8}" text-anchor="middle" font-size="9" font-weight="600" fill="#86efac">−18 dBFS — SIGNAL LEVEL</text>`;
+  const clipLbl    = `<text x="${clip0X.toFixed(1)}" y="${BY - 8}" text-anchor="end" font-size="9" font-weight="600" fill="#f87171">CLIP</text>`;
+
+  const bracketY = BY + BH + 20;
+  const midHR = ((signalX + clip0X) / 2).toFixed(1);
+  const bracket = `
+    <line x1="${(signalX + 2).toFixed(1)}" y1="${bracketY - 5}" x2="${(signalX + 2).toFixed(1)}" y2="${bracketY}" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+    <line x1="${(clip0X - 2).toFixed(1)}"  y1="${bracketY - 5}" x2="${(clip0X - 2).toFixed(1)}"  y2="${bracketY}" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+    <line x1="${(signalX + 2).toFixed(1)}" y1="${bracketY}"     x2="${(clip0X - 2).toFixed(1)}"  y2="${bracketY}" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+    <text x="${midHR}" y="${bracketY + 13}" text-anchor="middle" font-size="8.5" fill="rgba(255,255,255,0.32)" letter-spacing="0.07em">HEADROOM — space for peaks, transients, and processing</text>`;
+
+  const ticks = [-54, -42, -30, -18, -12, -6, -3, 0];
+  const tickSVG = ticks.map(db => {
+    const x = dbToX(db).toFixed(1);
+    return `<line x1="${x}" y1="${BY+BH}" x2="${x}" y2="${BY+BH+5}" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+            <text x="${x}" y="${BY+BH+14}" text-anchor="middle" font-size="7.5" fill="rgba(255,255,255,0.25)">${db}</text>`;
+  }).join('');
+
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
+    ${bgRect}${signalFill}${headroomFill}${dangerFill}${clipFill}
+    ${signalLine}${signalLbl}${clipLbl}${bracket}${tickSVG}
+  </svg>`;
+}
+
+function buildDiagram_accumulation() {
+  const W = 640, H = 132;
+  const stages = [
+    { label: 'INPUT',  gain: '+0 dB',  total: '0 dB',   fill: 0.15, col: '#86efac' },
+    { label: 'EQ',     gain: '+3 dB',  total: '+3 dB',  fill: 0.28, col: '#86efac' },
+    { label: 'COMP',   gain: '+4 dB',  total: '+7 dB',  fill: 0.46, col: '#fbbf24' },
+    { label: 'REVERB', gain: '+3 dB',  total: '+10 dB', fill: 0.66, col: '#fb923c' },
+    { label: 'OUTPUT', gain: '+3 dB',  total: '+13 dB', fill: 0.90, col: '#f87171' },
+  ];
+  const BW = 92, BH = 42, BY = 14, GAP = 18;
+  const totalW = stages.length * BW + (stages.length - 1) * GAP;
+  const startX = (W - totalW) / 2;
+
+  let rects = '', labels = '', meters = '', arrows = '';
+  stages.forEach((s, i) => {
+    const x = startX + i * (BW + GAP);
+    const cx = x + BW / 2;
+    rects  += `<rect x="${x.toFixed(1)}" y="${BY}" width="${BW}" height="${BH}" rx="7" fill="rgba(34,197,94,0.07)" stroke="${s.col}44" stroke-width="1"/>`;
+    labels += `<text x="${cx.toFixed(1)}" y="${BY + 14}" text-anchor="middle" font-size="9" font-weight="600" letter-spacing="0.08em" fill="${s.col}cc">${s.label}</text>`;
+    labels += `<text x="${cx.toFixed(1)}" y="${BY + 28}" text-anchor="middle" font-size="8.5" fill="rgba(255,255,255,0.45)">${s.gain}</text>`;
+    labels += `<text x="${cx.toFixed(1)}" y="${BY + 41}" text-anchor="middle" font-size="7.5" fill="rgba(255,255,255,0.25)">${s.total}</text>`;
+
+    // Mini level bar under each box
+    const barY = BY + BH + 12, barH = 10, barW = BW - 4;
+    const fillW = (barW * s.fill).toFixed(1);
+    meters += `<rect x="${(x + 2).toFixed(1)}" y="${barY}" width="${barW}" height="${barH}" rx="3" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>`;
+    meters += `<rect x="${(x + 2).toFixed(1)}" y="${barY}" width="${fillW}" height="${barH}" rx="3" fill="${s.col}55"/>`;
+
+    if (i < stages.length - 1) {
+      const ax = x + BW + 2, nx = x + BW + GAP - 2, ay = BY + BH / 2;
+      arrows += `<line x1="${ax.toFixed(1)}" y1="${ay}" x2="${(nx - 6).toFixed(1)}" y2="${ay}" stroke="rgba(255,255,255,0.12)" stroke-width="1.2"/>`;
+      arrows += `<polygon points="${(nx-6).toFixed(1)},${ay - 3} ${nx.toFixed(1)},${ay} ${(nx-6).toFixed(1)},${ay + 3}" fill="rgba(255,255,255,0.2)"/>`;
+    }
+  });
+
+  const foot = `<text x="${W/2}" y="${H - 2}" text-anchor="middle" font-size="8.5" fill="rgba(248,113,113,0.6)" letter-spacing="0.06em">UNCHECKED GAIN ACROSS 5 STAGES = +13 dB OVER TARGET — DISTORTION OR CLIPPING AHEAD</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
+    ${rects}${arrows}${labels}${meters}${foot}
+  </svg>`;
+}
+
+function buildDiagram_meters() {
+  const W = 640, H = 170;
+  const meters = [
+    { x: 80,  label: 'PEAK',  sub: 'instantaneous max',  fill: 0.92, col: '#f87171',  desc: 'reacts instantly' },
+    { x: 270, label: 'RMS',   sub: 'average energy',     fill: 0.55, col: '#86efac',  desc: 'smoothed average' },
+    { x: 460, label: 'LUFS',  sub: 'integrated loudness', fill: 0.44, col: '#a78bfa', desc: 'perceptual loudness' },
+  ];
+  const MH = 110, MW = 36, MX_OFFSET = 42, MY = 16;
+  let meterSVG = '';
+
+  meters.forEach(m => {
+    const barH = MH * m.fill;
+    const barY = MY + MH - barH;
+    const cx = m.x + MW / 2;
+
+    // Background track
+    meterSVG += `<rect x="${m.x}" y="${MY}" width="${MW}" height="${MH}" rx="4" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>`;
+    // Fill
+    meterSVG += `<rect x="${m.x}" y="${barY.toFixed(1)}" width="${MW}" height="${barH.toFixed(1)}" rx="0 0 4 4" fill="${m.col}55"/>`;
+    // Top indicator
+    meterSVG += `<rect x="${m.x}" y="${barY.toFixed(1)}" width="${MW}" height="3" rx="2" fill="${m.col}cc"/>`;
+    // 0 dBFS line
+    meterSVG += `<line x1="${m.x - 4}" y1="${MY}" x2="${m.x + MW + 4}" y2="${MY}" stroke="rgba(239,68,68,0.35)" stroke-width="1" stroke-dasharray="3,2"/>`;
+    // Labels
+    meterSVG += `<text x="${cx}" y="${MY + MH + 16}" text-anchor="middle" font-size="9.5" font-weight="600" fill="${m.col}cc" letter-spacing="0.1em">${m.label}</text>`;
+    meterSVG += `<text x="${cx}" y="${MY + MH + 28}" text-anchor="middle" font-size="8" fill="rgba(107,114,128,0.8)">${m.sub}</text>`;
+    meterSVG += `<text x="${cx}" y="${MY + MH + 40}" text-anchor="middle" font-size="7.5" fill="rgba(107,114,128,0.5)">${m.desc}</text>`;
+    // dB scale ticks on left of first meter only
+    if (m.label === 'PEAK') {
+      [-60,-48,-36,-24,-18,-12,-6,0].forEach(db => {
+        const ty = MY + MH * (1 - (db + 60) / 60);
+        meterSVG += `<line x1="${m.x - 8}" y1="${ty.toFixed(1)}" x2="${m.x}" y2="${ty.toFixed(1)}" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>`;
+        meterSVG += `<text x="${m.x - 10}" y="${(ty + 3).toFixed(1)}" text-anchor="end" font-size="7.5" fill="rgba(255,255,255,0.28)">${db}</text>`;
+      });
+    }
+  });
+
+  // 0 dBFS label top right
+  meterSVG += `<text x="${460 + MW + 8}" y="${MY + 4}" font-size="8" fill="rgba(239,68,68,0.5)">0 dBFS</text>`;
+
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">${meterSVG}</svg>`;
+}
+
+function buildDiagram_target() {
+  const W = 640, H = 118;
+  const BX = 20, BY = 30, BW = 600, BH = 30;
+  const dbToX = db => BX + ((db + 60) / 60) * BW;
+  const t18x = dbToX(-18), clip0X = dbToX(0);
+
+  const zones = [
+    { db1: -60, db2: -24, fill: 'rgba(15,23,42,0.9)' },
+    { db1: -24, db2: -12, fill: 'rgba(20,83,45,0.6)' },
+    { db1: -12, db2: -6,  fill: 'rgba(113,63,18,0.65)' },
+    { db1: -6,  db2:   0, fill: 'rgba(127,29,29,0.7)' },
+  ];
+  let zoneRects = `<rect x="${BX}" y="${BY}" width="${BW}" height="${BH}" rx="4" fill="rgba(8,10,14,0.9)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>`;
+  zones.forEach(z => {
+    const x1 = dbToX(z.db1), x2 = dbToX(z.db2);
+    zoneRects += `<rect x="${x1.toFixed(1)}" y="${BY}" width="${(x2-x1).toFixed(1)}" height="${BH}" fill="${z.fill}"/>`;
+  });
+
+  // Target zone highlight around -18
+  const hlX = dbToX(-24), hlW = dbToX(-12) - hlX;
+  const highlight = `<rect x="${hlX.toFixed(1)}" y="${BY}" width="${hlW.toFixed(1)}" height="${BH}" fill="rgba(34,197,94,0.18)"/>
+    <rect x="${hlX.toFixed(1)}" y="${BY}" width="${hlW.toFixed(1)}" height="${BH}" fill="none" stroke="rgba(134,239,172,0.4)" stroke-width="1" stroke-dasharray="4,3"/>`;
+
+  // -18 marker
+  const marker = `
+    <line x1="${t18x.toFixed(1)}" y1="${BY - 4}" x2="${t18x.toFixed(1)}" y2="${BY + BH + 4}" stroke="#86efac" stroke-width="2"/>
+    <text x="${t18x.toFixed(1)}" y="${BY - 10}" text-anchor="middle" font-size="9.5" font-weight="600" fill="#86efac" letter-spacing="0.08em">TARGET: −18 dBFS</text>
+    <text x="${t18x.toFixed(1)}" y="${BY + BH + 15}" text-anchor="middle" font-size="8" fill="rgba(134,239,172,0.55)">≈ 0 VU on an analog meter</text>`;
+
+  // Clip marker
+  const clipM = `<rect x="${(clip0X - 5).toFixed(1)}" y="${BY}" width="5" height="${BH}" fill="rgba(239,68,68,0.7)" rx="0 4 4 0"/>
+    <text x="${clip0X.toFixed(1)}" y="${BY - 10}" text-anchor="end" font-size="8.5" font-weight="600" fill="#f87171">CLIP</text>`;
+
+  const ticks = [-54, -42, -30, -24, -18, -12, -6, -3, 0];
+  const tickSVG = ticks.map(db => {
+    const x = dbToX(db).toFixed(1);
+    return `<line x1="${x}" y1="${BY+BH}" x2="${x}" y2="${BY+BH+5}" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+            <text x="${x}" y="${BY+BH+14}" text-anchor="middle" font-size="7.5" fill="rgba(255,255,255,0.28)">${db}</text>`;
+  }).join('');
+
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
+    <defs><clipPath id="tClip"><rect x="${BX}" y="${BY}" width="${BW}" height="${BH}" rx="4"/></clipPath></defs>
+    <g clip-path="url(#tClip)">${zoneRects}${highlight}</g>
+    <rect x="${BX}" y="${BY}" width="${BW}" height="${BH}" rx="4" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+    ${marker}${clipM}${tickSVG}
+  </svg>`;
+}
+
+function buildDiagram_plugingain() {
+  const W = 640, H = 120;
+  // Layout: [INPUT GAIN] → [PROCESSOR] → [OUTPUT GAIN]
+  const BY = 28, BH = 48;
+  const boxes = [
+    { x: 20,  w: 140, label: 'INPUT GAIN',  sub: 'how hard you hit it', col: '#86efac' },
+    { x: 240, w: 160, label: 'PROCESSOR',   sub: 'eq · comp · sat · etc', col: 'rgba(221,226,238,0.6)' },
+    { x: 480, w: 140, label: 'OUTPUT GAIN', sub: 'compensate the level', col: '#93c5fd' },
+  ];
+  let rects = '', labels = '', arrows = '';
+  boxes.forEach((b, i) => {
+    const cx = b.x + b.w / 2;
+    const cy = BY + BH / 2;
+    rects  += `<rect x="${b.x}" y="${BY}" width="${b.w}" height="${BH}" rx="8" fill="rgba(255,255,255,0.04)" stroke="${b.col}44" stroke-width="1"/>`;
+    labels += `<text x="${cx}" y="${cy - 6}" text-anchor="middle" font-size="9.5" font-weight="600" letter-spacing="0.09em" fill="${b.col}">${b.label}</text>`;
+    labels += `<text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="8" fill="rgba(107,114,128,0.8)">${b.sub}</text>`;
+    if (i < boxes.length - 1) {
+      const ax = b.x + b.w + 2, nx = boxes[i+1].x - 2, ay = BY + BH / 2;
+      arrows += `<line x1="${ax}" y1="${ay}" x2="${nx - 7}" y2="${ay}" stroke="rgba(255,255,255,0.18)" stroke-width="1.5"/>`;
+      arrows += `<polygon points="${nx-7},${ay-4} ${nx},${ay} ${nx-7},${ay+4}" fill="rgba(255,255,255,0.28)"/>`;
+    }
+  });
+
+  // Annotation below
+  const annotations = `
+    <text x="90" y="${BY + BH + 22}" text-anchor="middle" font-size="8" fill="rgba(134,239,172,0.6)">more input = more character</text>
+    <text x="320" y="${BY + BH + 22}" text-anchor="middle" font-size="8" fill="rgba(255,255,255,0.3)">the actual processing</text>
+    <text x="550" y="${BY + BH + 22}" text-anchor="middle" font-size="8" fill="rgba(147,197,253,0.6)">bring output back to target</text>`;
+
+  // Rule note at bottom
+  const note = `<text x="${W/2}" y="${H - 4}" text-anchor="middle" font-size="8.5" fill="rgba(107,114,128,0.5)" letter-spacing="0.06em">MATCH OUTPUT LEVEL TO INPUT — A/B COMPARE WITH BYPASS TO JUDGE THE PROCESSING HONESTLY</text>`;
+
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
+    ${rects}${arrows}${labels}${annotations}${note}
+  </svg>`;
+}
+
+function buildDiagram_mixbus() {
+  const W = 640, H = 160;
+  const tracks = [
+    { label: 'KICK',   col: '#f87171', lvl: 0.72 },
+    { label: 'BASS',   col: '#fb923c', lvl: 0.64 },
+    { label: 'SYNTH',  col: '#fbbf24', lvl: 0.58 },
+    { label: 'VOCALS', col: '#86efac', lvl: 0.68 },
+    { label: 'GUITARS',col: '#60a5fa', lvl: 0.50 },
+    { label: 'DRUMS',  col: '#c084fc', lvl: 0.61 },
+  ];
+  const trackH = 18, trackGap = 5;
+  const totalTracks = tracks.length;
+  const totalH = totalTracks * trackH + (totalTracks - 1) * trackGap;
+  const startY = (H - totalH) / 2;
+  const trackEndX = 340;
+  const busX = 430, busW = 36, busH = totalH;
+  const meterX = 490, meterW = 36, meterH = totalH;
+
+  let trackSVG = '', wires = '';
+  tracks.forEach((t, i) => {
+    const ty = startY + i * (trackH + trackGap);
+    const cy = ty + trackH / 2;
+    const barW = 140;
+    const fillW = barW * t.lvl;
+    // Track label
+    trackSVG += `<text x="8" y="${cy + 4}" font-size="8" font-weight="600" fill="${t.col}99" letter-spacing="0.07em">${t.label}</text>`;
+    // Track bar
+    trackSVG += `<rect x="72" y="${ty + 3}" width="${barW}" height="${trackH - 6}" rx="2" fill="rgba(255,255,255,0.04)" stroke="${t.col}30" stroke-width="0.5"/>`;
+    trackSVG += `<rect x="72" y="${ty + 3}" width="${fillW.toFixed(1)}" height="${trackH - 6}" rx="2" fill="${t.col}40"/>`;
+    // Wire from track end to bus
+    const wireY = cy;
+    const busTargetY = startY + busH / 2;
+    wires += `<path d="M ${trackEndX} ${wireY} C ${(trackEndX + busX)/2} ${wireY} ${(trackEndX + busX)/2} ${busTargetY} ${busX} ${busTargetY}" fill="none" stroke="${t.col}30" stroke-width="1"/>`;
+  });
+
+  // Bus
+  const busY = startY;
+  const busFill = 0.68;
+  const busFillH = busH * busFill;
+  trackSVG += `
+    <rect x="${busX}" y="${busY}" width="${busW}" height="${busH}" rx="3" fill="rgba(255,255,255,0.04)" stroke="rgba(134,239,172,0.25)" stroke-width="0.75"/>
+    <rect x="${busX}" y="${(busY + busH - busFillH).toFixed(1)}" width="${busW}" height="${busFillH.toFixed(1)}" rx="0 0 3 3" fill="rgba(134,239,172,0.22)"/>
+    <text x="${(busX + busW/2).toFixed(1)}" y="${busY + busH + 14}" text-anchor="middle" font-size="7.5" font-weight="600" fill="rgba(134,239,172,0.7)" letter-spacing="0.08em">STEREO BUS</text>`;
+
+  // Arrow to meter
+  trackSVG += `<line x1="${busX + busW + 2}" y1="${busY + busH/2}" x2="${meterX - 7}" y2="${busY + busH/2}" stroke="rgba(255,255,255,0.18)" stroke-width="1.2"/>
+    <polygon points="${meterX-7},${busY + busH/2 - 3} ${meterX},${busY + busH/2} ${meterX-7},${busY + busH/2 + 3}" fill="rgba(255,255,255,0.28)"/>`;
+
+  // Output meter
+  const meterY = busY;
+  const meterFill = 0.68;
+  const meterFillH = meterH * meterFill;
+  trackSVG += `
+    <rect x="${meterX}" y="${meterY}" width="${meterW}" height="${meterH}" rx="3" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>
+    <rect x="${meterX}" y="${(meterY + meterH - meterFillH).toFixed(1)}" width="${meterW}" height="${meterFillH.toFixed(1)}" rx="0 0 3 3" fill="rgba(134,239,172,0.28)"/>
+    <rect x="${meterX}" y="${(meterY + meterH - meterFillH).toFixed(1)}" width="${meterW}" height="3" rx="2" fill="rgba(134,239,172,0.8)"/>
+    <text x="${(meterX + meterW/2).toFixed(1)}" y="${meterY + meterH + 14}" text-anchor="middle" font-size="7.5" font-weight="600" fill="rgba(255,255,255,0.4)" letter-spacing="0.08em">MASTER</text>`;
+
+  // 0 dBFS line on output meter
+  trackSVG += `<line x1="${meterX - 3}" y1="${meterY}" x2="${meterX + meterW + 3}" y2="${meterY}" stroke="rgba(239,68,68,0.4)" stroke-width="1" stroke-dasharray="2,2"/>`;
+
+  const foot = `<text x="${W/2}" y="${H - 2}" text-anchor="middle" font-size="8.5" fill="rgba(107,114,128,0.5)" letter-spacing="0.06em">WELL-STAGED TRACKS SUM CLEANLY — THE BUS METER STAYS IN THE GREEN</text>`;
+
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
+    ${wires}${trackSVG}${foot}
+  </svg>`;
+}
+
+// ─────────────────────────────────────────────────────────────
+//  STEP DATA
+// ─────────────────────────────────────────────────────────────
+const steps = [
+
+  // ── Step 1 ──────────────────────────────────────────────────
+  {
+    diagram: buildDiagram_chain,
+    number: 'Step 01 — Introduction',
+    title: 'What Is Gain Staging?',
+    body: `<strong>Gain staging</strong> is the practice of managing the level of audio at every point in your signal chain — from the input of your first plugin to the output of your master bus.
+
+<br><br>Every piece of audio processing you add has some relationship with signal level. A compressor responds differently to a loud versus quiet input. Saturation distorts based on how hard a signal hits it. Even a reverb or delay sounds different depending on its input gain. <em>Getting levels right before each processor determines the quality of its output.</em>
+
+<br><br>Think of it this way: your signal chain is a pipeline with many valves. If you leave them all wide open and then try to fix things at the end, you'll be fighting clipping, distortion, and noise the entire time. Gain staging means setting each valve deliberately — so the audio arrives at each stage at the right level for that stage to do its job properly.
+
+<br><br>It sounds technical, but it's ultimately a discipline of <strong>attention</strong>: checking the level coming in and going out of each processor, and making small corrections before problems compound.`,
+    keyPoints: [
+      { strong: 'Gain staging', rest: ' — controlling signal level at each stage of the signal chain' },
+      { strong: 'Every plugin responds to level', rest: ' — compressors, saturators, and reverbs all behave differently depending on input gain' },
+      { strong: 'Problems compound', rest: ' — a small level issue at stage 1 becomes a big problem by stage 5' },
+      { strong: 'Not just mixing', rest: ' — gain staging applies to recording, tracking, plugin chains, and mastering' },
+    ],
+    audio: { desc: 'A clean signal at a well-staged reference level — smooth, controlled, no harshness.', type: 'reference' },
+  },
+
+  // ── Step 2 ──────────────────────────────────────────────────
+  {
+    diagram: buildDiagram_dbscale,
+    number: 'Step 02 — Fundamentals',
+    title: 'Decibels — The Language of Loudness',
+    body: `Almost everything in audio is measured in <strong>decibels (dB)</strong>. It's a logarithmic unit — which means equal jumps in dB don't feel equal to your ears.
+
+<br><br>In digital audio we use <em>dBFS</em> — "decibels relative to full scale." <strong>0 dBFS is the maximum</strong> a digital system can represent before clipping. Unlike analog, there is no "a little over" — the ceiling is absolute. Every value is negative: −6 dBFS, −18 dBFS, −48 dBFS. The lower the number, the quieter the signal.
+
+<br><br>The key relationships to internalize: a <strong>+6 dB boost doubles the amplitude</strong> of the waveform, and roughly a <strong>+10 dB increase sounds about twice as loud</strong> to a listener. These aren't the same thing — amplitude is physics, perceived loudness is psychoacoustics. Both matter.
+
+<br><br>When engineers talk about a "hot" recording, they mean signal levels that are dangerously close to 0 dBFS. When they say "leave headroom," they mean keeping levels low enough that peaks never approach that ceiling.`,
+    keyPoints: [
+      { strong: '0 dBFS', rest: ' — the absolute maximum; clipping occurs at or above this point' },
+      { strong: '+6 dB', rest: ' — doubles waveform amplitude; roughly as loud again to your ears' },
+      { strong: '+10 dB', rest: ' — perceived doubling of loudness (psychoacoustic rule of thumb)' },
+      { strong: 'Logarithmic scale', rest: ' — the scale matches how our ears perceive changes in level' },
+    ],
+    audio: { desc: 'Listen to the same tone at two different levels — first quiet (−24 dBFS), then loud (−6 dBFS). The jump is about 18 dB.', type: 'db_comparison' },
+  },
+
+  // ── Step 3 ──────────────────────────────────────────────────
+  {
+    diagram: buildDiagram_waveforms,
+    number: 'Step 03 — The Danger Zone',
+    title: 'Clipping — When Signal Goes Too Hot',
+    body: `When a digital audio signal exceeds 0 dBFS, <strong>digital clipping</strong> occurs. The waveform can't go any higher, so the peaks are literally cut off — flattened into a hard ceiling. This introduces harsh, buzzy harmonic distortion that sounds nothing like musical saturation.
+
+<br><br>In analog hardware, "soft" clipping can sound musical at moderate levels — tubes and tape saturate gently. <em>Digital hard clipping has no such grace.</em> It adds a specific kind of buzzing, gritty distortion that's immediately unpleasant and difficult to remove after the fact. Once a waveform is clipped in the digital domain, that data is gone.
+
+<br><br>The insidious part is that clipping can happen silently inside your DAW — you may not hear it until it's printed to audio. A meter reading green on your master doesn't mean nothing is clipping upstream. Individual plugins, plugin chains, and summing buses can all clip internally even when the output appears fine.
+
+<br><br><strong>This is why gain staging matters at every stage</strong>, not just at the final output.`,
+    keyPoints: [
+      { strong: 'Digital hard clipping', rest: ' — peaks are flattened at 0 dBFS, creating harsh distortion permanently' },
+      { strong: 'Analog saturation ≠ digital clipping', rest: ' — tape and tube clip softly; digital clipping is always unpleasant' },
+      { strong: 'Can happen silently', rest: ' — clipping inside plugin chains may not show on your master meter' },
+      { strong: 'Irreversible', rest: ' — once clipped and recorded, the original peak information is lost' },
+    ],
+    audio: { desc: 'Hear the difference — a clean sine tone for 2 seconds, then the same tone pushed into hard clipping. The buzzing character is unmistakable.', type: 'clip' },
+  },
+
+  // ── Step 4 ──────────────────────────────────────────────────
+  {
+    diagram: buildDiagram_headroom,
+    number: 'Step 04 — Headroom',
+    title: 'Headroom — Give Transients Room to Breathe',
+    body: `<strong>Headroom</strong> is the space between your average signal level and the 0 dBFS ceiling. It's the safety margin that allows peaks, transients, and loud moments to pass through without clipping.
+
+<br><br>Transients — the attack of a snare hit, the initial pluck of a guitar string, a loud consonant in a vocal — are <em>brief but intense</em>. They can easily be 10–15 dB louder than the average energy of the signal. If your average level is sitting at −3 dBFS, those transients will clip. If you're sitting at −18 dBFS, you have 18 dB of headroom to work with.
+
+<br><br>Headroom also matters for plugins. When you add processing — an EQ boost, a saturator, a plugin with internal makeup gain — the signal level can increase. If there's no headroom, that processing immediately clips. Leaving room before each plugin means each can operate in its <strong>intended gain range</strong>.
+
+<br><br>The diagram above shows a signal sitting at −18 dBFS (green fill), with 18 dB of headroom before the 0 dBFS clip ceiling. That space isn't wasted silence — it's working space.`,
+    keyPoints: [
+      { strong: 'Headroom = ceiling minus average level', rest: ' — the working buffer between your signal and 0 dBFS' },
+      { strong: 'Transients need room', rest: ' — peaks can easily be 10–15 dB above the average energy of a signal' },
+      { strong: 'Plugin processing adds gain', rest: ' — EQ boosts and saturators can push levels up; headroom absorbs this' },
+      { strong: '−18 dBFS average', rest: ' — leaves 18 dB of headroom, a widely-used practical target' },
+    ],
+    audio: { desc: 'A dynamic signal where transient peaks stay well within the available headroom — no clipping, natural dynamics intact.', type: 'dynamic' },
+  },
+
+  // ── Step 5 ──────────────────────────────────────────────────
+  {
+    diagram: buildDiagram_accumulation,
+    number: 'Step 05 — The Compound Problem',
+    title: 'How Gain Accumulates Through a Chain',
+    body: `Here's the practical problem gain staging solves: <em>gain compounds</em>. Add a small boost at each stage, and by the end of a long chain you can be significantly above your target level without realising it.
+
+<br><br>Imagine five plugins in a row. The EQ has a +3 dB shelf boost. The compressor's makeup gain adds another +4 dB. The reverb is loaded with a loud preset that hits the input hard — another +3 dB. A saturation plugin adds presence, another +3 dB. That's <strong>+13 dB above where you started</strong> — before you've even touched the channel fader.
+
+<br><br>The diagram above illustrates this exactly. Each stage seems fine in isolation, but the cumulative effect is a signal that's far too hot by the output. The result: the next plugin in the chain receives an over-driven signal and processes it incorrectly, and the channel fader ends up compensating for a problem that should have been caught earlier.
+
+<br><br>The fix is straightforward: <strong>check the output level of each plugin</strong>, not just the input. Most plugins have an output gain control. Use it to match the output level to the input level before moving on.`,
+    keyPoints: [
+      { strong: 'Gain adds up', rest: ' — five modest boosts can total +10 dB or more across a chain' },
+      { strong: 'Check output, not just input', rest: ' — a well-set input gain means nothing if the plugin adds gain on the way out' },
+      { strong: 'Use the output fader', rest: ' — most plugins have output gain or makeup gain — reduce it to compensate' },
+      { strong: 'Don\'t compensate at the channel fader', rest: ' — lowering the fader at the end doesn\'t fix upstream clipping' },
+    ],
+    audio: { desc: 'Listen as the same signal passes through simulated gain stages, getting progressively louder — subtle at first, then noticeably too hot by the end.', type: 'accumulation' },
+  },
+
+  // ── Step 6 ──────────────────────────────────────────────────
+  {
+    diagram: buildDiagram_meters,
+    number: 'Step 06 — Metering',
+    title: 'Reading Meters — Peak, RMS, and LUFS',
+    body: `Not all meters measure the same thing, and knowing which one to look at depends on what you're trying to control.
+
+<br><br>A <strong>peak meter</strong> reacts almost instantaneously and shows the highest amplitude reached in the signal. It's what your DAW's channel meters typically display. Peak meters are essential for catching clipping — if the peak meter touches 0 dBFS, you've clipped.
+
+<br><br><em>RMS</em> (root mean square) shows the average energy of the signal over a short window. A kick drum might peak at −3 dBFS but have an RMS of −18 dBFS because most of the signal is transient. RMS gives you a better sense of a signal's perceived loudness than peak alone.
+
+<br><br><strong>LUFS</strong> (loudness units relative to full scale) is an integrated loudness measurement based on how humans perceive loudness. It's the standard used for streaming platform normalization (Spotify targets −14 LUFS, Apple Music −16 LUFS). LUFS meters analyze a whole program and weight frequencies the way our ears do. For gain staging individual tracks, peak and RMS are more useful; LUFS matters most at the mastering stage.`,
+    keyPoints: [
+      { strong: 'Peak meters', rest: ' — instantaneous maximum; essential for catching clipping in real time' },
+      { strong: 'RMS meters', rest: ' — averaged energy; better reflects perceived loudness than peak' },
+      { strong: 'LUFS meters', rest: ' — integrated, perceptual loudness; used for streaming normalization standards' },
+      { strong: 'Use all three', rest: ' — peak for clipping, RMS for gain staging, LUFS for mastering and delivery' },
+    ],
+    audio: { desc: 'A steady reference tone — observe how peak and RMS readings would differ for a more dynamic signal versus a sustained one.', type: 'reference' },
+  },
+
+  // ── Step 7 ──────────────────────────────────────────────────
+  {
+    diagram: buildDiagram_target,
+    number: 'Step 07 — The Working Level',
+    title: 'The −18 dBFS Target',
+    body: `For decades, analog engineers worked with a standard reference level calibrated to <strong>0 VU</strong> on an analog VU meter. When analog gear was digitized, −18 dBFS was established as the equivalent — a signal sitting at −18 dBFS would read 0 VU on a calibrated analog meter.
+
+<br><br>That's where the <em>−18 dBFS guideline</em> comes from. It's not an arbitrary number — it's a legacy reference point that happens to also leave 18 dB of headroom in the digital domain, which is enough for healthy transients and plugin processing without running hot.
+
+<br><br>In practice: aim to have most of your individual track levels averaging around −18 to −14 dBFS. Some engineers target −18 for maximum headroom, others work at −14 or even −12. The exact number matters less than the habit — <strong>leave meaningful headroom, check it consistently, and don't let gain creep up unchecked through the chain.</strong>
+
+<br><br>This is a guideline, not a rule. Heavily compressed, sustained sounds (pads, drones) may naturally sit louder than −18 dBFS with no problems. Highly dynamic sources (orchestral recordings, drum overheads) may need to sit lower. The principle is the point, not the specific number.`,
+    keyPoints: [
+      { strong: '−18 dBFS ≈ 0 VU', rest: ' — the legacy reference level bridging the analog and digital worlds' },
+      { strong: 'Leaves 18 dB of headroom', rest: ' — room for transients, processing boosts, and unexpected peaks' },
+      { strong: 'A guideline, not a law', rest: ' — adapt based on the source; what matters is consistent headroom' },
+      { strong: 'Streaming targets', rest: ' — Spotify −14 LUFS, Apple Music −16 LUFS — leave room at the master for these targets' },
+    ],
+    audio: { desc: 'A tone at the −18 dBFS working level — present and clear, but leaving plenty of room above for peaks and processing.', type: 'trim' },
+  },
+
+  // ── Step 8 ──────────────────────────────────────────────────
+  {
+    diagram: buildDiagram_plugingain,
+    number: 'Step 08 — Plugin Gain Controls',
+    title: 'Input Gain, Output Gain, and Gain Compensation',
+    body: `Most professional plugins have separate <strong>input</strong> and <strong>output gain</strong> controls, and understanding why both exist is key to getting the most from your processing.
+
+<br><br>The <em>input gain</em> controls how hard the signal hits the plugin's processor. For saturators, tape emulations, and compressors, this changes the character of the processing — a hotter input means more drive, more saturation, more compression. You're not just making it louder; you're <strong>changing how the processor behaves</strong>.
+
+<br><br>The <em>output gain</em> lets you compensate the output level back to where it started, so you can evaluate the processing on its own merits without being fooled by loudness. Louder almost always sounds better to our ears in the short term — this is why A/B comparisons with proper gain compensation are so important.
+
+<br><br>The workflow is: set input gain to the level that gets you the processing character you want, then use output gain to bring the result back to match your input level. Then bypass the plugin and compare. If it still sounds better with bypass off, the processing is genuinely helping.`,
+    keyPoints: [
+      { strong: 'Input gain', rest: ' — sets how hard the signal hits the processor; affects saturation, compression character' },
+      { strong: 'Output gain', rest: ' — compensates the output level to prevent loudness bias in your judgment' },
+      { strong: 'Gain compensation', rest: ' — match bypassed and active levels before judging if a plugin is helping' },
+      { strong: 'Louder ≠ better', rest: ' — always level-match before evaluating any processing; it\'s easy to be fooled' },
+    ],
+    audio: { desc: 'A tone at reference level — the kind of signal you\'d want entering and leaving a plugin after proper gain compensation.', type: 'trim' },
+  },
+
+  // ── Step 9 ──────────────────────────────────────────────────
+  {
+    diagram: buildDiagram_mixbus,
+    number: 'Step 09 — The Full Picture',
+    title: 'Gain Staging the Mix Bus',
+    body: `Gain staging doesn't end at the individual track level — it extends to your buses and master chain. Well-staged individual tracks are the foundation, but the mix bus is where everything comes together, and it has its own gain considerations.
+
+<br><br>When many tracks play simultaneously, their levels <em>sum</em>. Even if every track is perfectly staged at −18 dBFS, six or eight tracks playing at once can add up to a dangerously hot mix bus. The bus needs its own headroom for the bus processing — bus compression, EQ, saturation — to work properly.
+
+<br><br>A common approach: <strong>use your channel faders to balance the mix</strong>, then pull down the master fader or add a trim plugin on the bus to bring the summed level into a good range before your bus processing. Aim for around −10 to −6 dBFS peaks before hitting your mastering limiter, so the limiter has something to work with.
+
+<br><br>The final mastering chain — and any limiting — also needs headroom. A limiter set to −1 dBFS true peak needs signal coming in below that. Start with healthy levels at every stage, and the whole chain works as designed.`,
+    keyPoints: [
+      { strong: 'Summing adds level', rest: ' — multiple well-staged tracks can still create a hot mix bus when summed' },
+      { strong: 'Stage the bus separately', rest: ' — apply a bus trim or lower the master fader before bus processing' },
+      { strong: 'Leave room for the limiter', rest: ' — aim for −6 to −10 dBFS peaks before the mastering limiter' },
+      { strong: 'The payoff', rest: ' — well-staged tracks sum cleanly, and every processor in the chain does its job correctly' },
+    ],
+    audio: { desc: 'Multiple tones layered together — simulating the way individual tracks sum to a stereo bus, each contributing to the overall level.', type: 'mixbus' },
+  },
+
+];
+
+// ─────────────────────────────────────────────────────────────
+//  AUDIO ENGINE
+// ─────────────────────────────────────────────────────────────
+let audioCtx = null, activeNodes = [], isPlaying = false;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function stopAudio() {
+  clearTimeout(activeNodes._stopTimeout);
+  activeNodes.forEach(n => { try { n.stop(); } catch(e){} });
+  activeNodes = [];
+  isPlaying = false;
+  updatePlayBtn(false);
+}
+
+function updatePlayBtn(playing) {
+  const btn = document.querySelector('.play-btn');
+  if (!btn) return;
+  btn.classList.toggle('playing', playing);
+  const pi = btn.querySelector('.play-icon'), si = btn.querySelector('.stop-icon');
+  if (pi) pi.style.display = playing ? 'none' : '';
+  if (si) si.style.display = playing ? '' : 'none';
+}
+
+function makePinkNoise(ctx, seconds) {
+  const bufSize = Math.ceil(ctx.sampleRate * seconds);
+  const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+  for (let i = 0; i < bufSize; i++) {
+    const w = Math.random() * 2 - 1;
+    b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
+    b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
+    b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
+    data[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)/7; b6=w*0.115926;
+  }
+  return buf;
+}
+
+function playDemo(type) {
+  const ctx = getAudioCtx();
+  const vol = parseFloat(document.querySelector('.vol-slider')?.value ?? 0.5);
+  stopAudio();
+  const master = ctx.createGain();
+  master.gain.value = vol * 0.38;
+  master.connect(ctx.destination);
+  const dur = 5;
+  const now = ctx.currentTime;
+
+  if (type === 'reference') {
+    // Clean triangle wave — smooth, controlled reference level
+    const osc = ctx.createOscillator();
+    osc.type = 'triangle'; osc.frequency.value = 220;
+    const env = ctx.createGain();
+    env.gain.setValueAtTime(0, now);
+    env.gain.linearRampToValueAtTime(0.55, now + 0.06);
+    env.gain.setValueAtTime(0.55, now + dur - 0.25);
+    env.gain.linearRampToValueAtTime(0, now + dur);
+    osc.connect(env); env.connect(master);
+    osc.start(); osc.stop(now + dur);
+    activeNodes = [osc];
+  }
+
+  else if (type === 'db_comparison') {
+    // Same tone, first quiet (−24 equiv), then loud (−6 equiv)
+    const osc1 = ctx.createOscillator();
+    osc1.type = 'triangle'; osc1.frequency.value = 330;
+    const g1 = ctx.createGain();
+    g1.gain.setValueAtTime(0, now);
+    g1.gain.linearRampToValueAtTime(0.12, now + 0.05);
+    g1.gain.setValueAtTime(0.12, now + 2.0);
+    g1.gain.linearRampToValueAtTime(0, now + 2.2);
+    osc1.connect(g1); g1.connect(master);
+    osc1.start(); osc1.stop(now + 2.2);
+
+    const osc2 = ctx.createOscillator();
+    osc2.type = 'triangle'; osc2.frequency.value = 330;
+    const g2 = ctx.createGain();
+    g2.gain.setValueAtTime(0, now + 2.5);
+    g2.gain.linearRampToValueAtTime(0.72, now + 2.55);
+    g2.gain.setValueAtTime(0.72, now + dur - 0.25);
+    g2.gain.linearRampToValueAtTime(0, now + dur);
+    osc2.connect(g2); g2.connect(master);
+    osc2.start(now + 2.5); osc2.stop(now + dur);
+    activeNodes = [osc1, osc2];
+  }
+
+  else if (type === 'clip') {
+    // Clean sine for 2s, then hard-clipped version
+    const osc1 = ctx.createOscillator();
+    osc1.type = 'sine'; osc1.frequency.value = 180;
+    const g1 = ctx.createGain();
+    g1.gain.setValueAtTime(0, now);
+    g1.gain.linearRampToValueAtTime(0.6, now + 0.05);
+    g1.gain.setValueAtTime(0.6, now + 2.1);
+    g1.gain.linearRampToValueAtTime(0, now + 2.3);
+    osc1.connect(g1); g1.connect(master);
+    osc1.start(); osc1.stop(now + 2.3);
+
+    const osc2 = ctx.createOscillator();
+    osc2.type = 'sine'; osc2.frequency.value = 180;
+    const boost = ctx.createGain();
+    boost.gain.value = 10;
+    const shaper = ctx.createWaveShaper();
+    const curve = new Float32Array(512);
+    for (let i = 0; i < 512; i++) {
+      const x = (i * 2) / 512 - 1;
+      curve[i] = Math.max(-1, Math.min(1, x * 4));
+    }
+    shaper.curve = curve;
+    const g2 = ctx.createGain();
+    g2.gain.setValueAtTime(0, now + 2.6);
+    g2.gain.linearRampToValueAtTime(0.55, now + 2.65);
+    g2.gain.setValueAtTime(0.55, now + dur - 0.25);
+    g2.gain.linearRampToValueAtTime(0, now + dur);
+    osc2.connect(boost); boost.connect(shaper); shaper.connect(g2); g2.connect(master);
+    osc2.start(now + 2.6); osc2.stop(now + dur);
+    activeNodes = [osc1, osc2];
+  }
+
+  else if (type === 'dynamic') {
+    // Percussive pink noise with dynamic envelope — transients staying within headroom
+    const src = ctx.createBufferSource();
+    src.buffer = makePinkNoise(ctx, 3); src.loop = true;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, now);
+    const hits = [0.05, 0.52, 0.98, 1.44, 1.90, 2.36, 2.82, 3.28, 3.74, 4.20, 4.65];
+    hits.forEach(t => {
+      g.gain.setValueAtTime(0.06, now + t);
+      g.gain.linearRampToValueAtTime(0.42, now + t + 0.04);
+      g.gain.exponentialRampToValueAtTime(0.055, now + t + 0.38);
+    });
+    g.gain.setValueAtTime(0, now + dur);
+    src.connect(g); g.connect(master);
+    src.start(); src.stop(now + dur);
+    activeNodes = [src];
+  }
+
+  else if (type === 'accumulation') {
+    // Tone growing progressively louder through stages, ending distorted
+    const osc = ctx.createOscillator();
+    osc.type = 'triangle'; osc.frequency.value = 220;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(0.07,  now + 0.4);  // stage 1
+    g.gain.setValueAtTime(0.07, now + 0.9);
+    g.gain.linearRampToValueAtTime(0.13,  now + 1.4);  // stage 2
+    g.gain.setValueAtTime(0.13, now + 1.9);
+    g.gain.linearRampToValueAtTime(0.24,  now + 2.4);  // stage 3
+    g.gain.setValueAtTime(0.24, now + 2.9);
+    g.gain.linearRampToValueAtTime(0.48,  now + 3.4);  // stage 4
+    g.gain.setValueAtTime(0.48, now + 3.9);
+    g.gain.linearRampToValueAtTime(0.90,  now + 4.4);  // stage 5 — too hot
+    g.gain.setValueAtTime(0.90, now + dur - 0.15);
+    g.gain.linearRampToValueAtTime(0, now + dur);
+    // Mild shaper so the "too hot" stage has audible edge
+    const shaper = ctx.createWaveShaper();
+    const curve = new Float32Array(512);
+    for (let i = 0; i < 512; i++) {
+      const x = (i * 2) / 512 - 1;
+      curve[i] = Math.tanh(x * 2.5) / Math.tanh(2.5);
+    }
+    shaper.curve = curve;
+    osc.connect(g); g.connect(shaper); shaper.connect(master);
+    osc.start(); osc.stop(now + dur);
+    activeNodes = [osc];
+  }
+
+  else if (type === 'trim') {
+    // Clean, steady tone at a well-compensated working level
+    const osc = ctx.createOscillator();
+    osc.type = 'triangle'; osc.frequency.value = 280;
+    const env = ctx.createGain();
+    env.gain.setValueAtTime(0, now);
+    env.gain.linearRampToValueAtTime(0.5, now + 0.06);
+    env.gain.setValueAtTime(0.5, now + dur - 0.25);
+    env.gain.linearRampToValueAtTime(0, now + dur);
+    osc.connect(env); env.connect(master);
+    osc.start(); osc.stop(now + dur);
+    activeNodes = [osc];
+  }
+
+  else if (type === 'mixbus') {
+    // Six layered tones — simulating a mix summing to a bus
+    const freqs  = [55, 110, 220, 330, 440, 660];
+    const types  = ['sawtooth', 'sawtooth', 'triangle', 'triangle', 'triangle', 'sine'];
+    const gains  = [0.14, 0.10, 0.08, 0.07, 0.06, 0.05];
+    const nodes  = freqs.map((f, i) => {
+      const osc = ctx.createOscillator();
+      osc.type = types[i]; osc.frequency.value = f;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(gains[i], now + 0.08 + i * 0.04);
+      g.gain.setValueAtTime(gains[i], now + dur - 0.3);
+      g.gain.linearRampToValueAtTime(0, now + dur);
+      osc.connect(g); g.connect(master);
+      osc.start(); osc.stop(now + dur);
+      return osc;
+    });
+    activeNodes = nodes;
+  }
+
+  isPlaying = true;
+  activeNodes._stopTimeout = setTimeout(() => {
+    isPlaying = false;
+    updatePlayBtn(false);
+  }, dur * 1000 + 200);
+  updatePlayBtn(true);
+}
+
+function togglePlay() {
+  if (isPlaying) { stopAudio(); return; }
+  playDemo(steps[currentStep].audio.type);
+}
+
+// ─────────────────────────────────────────────────────────────
+//  STEP RENDERER & NAVIGATION
+// ─────────────────────────────────────────────────────────────
+let currentStep = 0;
+
+function renderStep(idx) {
+  stopAudio();
+  const step = steps[idx];
+  const total = steps.length;
+  const card = document.getElementById('stepCard');
+
+  const kpHTML = step.keyPoints.map(kp =>
+    `<div class="key-point"><strong>${kp.strong}</strong>${kp.rest}</div>`
+  ).join('');
+
+  card.innerHTML = `
+    <div class="diagram-wrap">${step.diagram()}</div>
+    <div class="step-inner">
+      <div class="step-number">${step.number}</div>
+      <h2 class="step-title">${step.title}</h2>
+      <div class="step-body">${step.body}</div>
+      <div class="key-points">
+        <div class="key-points-label">Key Takeaways</div>
+        ${kpHTML}
+      </div>
+      <div class="audio-demo">
+        <div class="audio-demo-label">Listen</div>
+        <div class="audio-demo-desc">${step.audio.desc}</div>
+        <div class="demo-controls">
+          <button class="play-btn" onclick="togglePlay()">
+            <svg class="play-icon" width="14" height="14" viewBox="0 0 24 24" fill="none"><polygon points="5,3 19,12 5,21" fill="white"/></svg>
+            <svg class="stop-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" style="display:none"><rect x="4" y="4" width="16" height="16" rx="2" fill="white"/></svg>
+            <span class="play-icon">Play</span>
+            <span class="stop-icon" style="display:none">Stop</span>
+          </button>
+          <div class="vol-wrap">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="color:var(--muted);flex-shrink:0">
+              <polygon points="11,5 6,9 2,9 2,15 6,15 11,19" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" fill="none"/>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+            </svg>
+            <input type="range" class="vol-slider" min="0" max="1" step="0.02" value="0.6" title="Volume">
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  // Progress dots
+  const dots = document.getElementById('progressDots');
+  dots.innerHTML = steps.map((_, i) =>
+    `<div class="progress-dot ${i < idx ? 'done' : ''} ${i === idx ? 'active' : ''}" onclick="goToStep(${i})" title="Step ${i+1}"></div>`
+  ).join('');
+
+  document.getElementById('progressLabel').textContent = `Step ${idx + 1} of ${total}`;
+  document.getElementById('stepCounter').textContent = `${idx + 1} / ${total}`;
+
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  prevBtn.disabled = idx === 0;
+  if (idx === total - 1) {
+    nextBtn.textContent = 'Complete ✓';
+    nextBtn.className = 'nav-btn finish';
+    nextBtn.onclick = showCompletion;
+  } else {
+    nextBtn.textContent = 'Next →';
+    nextBtn.className = 'nav-btn primary';
+    nextBtn.onclick = () => navigate(1);
+  }
+}
+
+function navigate(dir) {
+  const next = currentStep + dir;
+  if (next < 0 || next >= steps.length) return;
+  currentStep = next;
+  renderStep(currentStep);
+  window.scrollTo({ top: document.getElementById('stepCard').offsetTop - 100, behavior: 'smooth' });
+}
+
+function goToStep(idx) {
+  currentStep = idx;
+  renderStep(currentStep);
+}
+
+function showCompletion() {
+  stopAudio();
+  const card = document.getElementById('stepCard');
+  card.innerHTML = `
+    <div class="completion-card">
+      <svg width="56" height="56" viewBox="0 0 56 56" fill="none" style="display:block;margin:0 auto 20px;">
+        <circle cx="28" cy="28" r="25" stroke="var(--gs-accent)" stroke-width="1.5" fill="rgba(34,197,94,0.08)"/>
+        <polyline points="17,28 25,36 39,19" stroke="var(--gs-accent2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="completion-title">Gain Staging Complete!</div>
+      <p class="completion-sub">You now understand why levels matter at every stage — from individual tracks to the mix bus. The best way to make this stick is to start checking your levels deliberately every session.</p>
+      <a class="completion-cta" href="/mobile/level-logic/">Try Level Logic →</a>
+      <button class="completion-restart" onclick="restartModule()">← Restart this module</button>
+    </div>`;
+  document.getElementById('stepNav').style.display = 'none';
+  document.getElementById('progressLabel').textContent = 'Complete!';
+  document.getElementById('progressDots').innerHTML = steps.map((_, i) =>
+    `<div class="progress-dot done" onclick="goToStep(${i})" title="Step ${i+1}"></div>`
+  ).join('');
+}
+
+function restartModule() {
+  document.getElementById('stepNav').style.display = '';
+  currentStep = 0;
+  renderStep(0);
+}
+
+// ── Init ─────────────────────────────────────────────────────
+renderStep(0);
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') navigate(1);
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   navigate(-1);
+  if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+});
+</script>
+<script>
+// ── Fade in ───────────────────────────────────────────────
+requestAnimationFrame(() => document.body.classList.add('visible'));
+
+// ── Sheet open / close ────────────────────────────────────
+const sheetOverlay = document.getElementById('sheetOverlay');
+function openSheet() {
+  sheetOverlay.style.display = 'flex';
+  sheetOverlay.getBoundingClientRect();
+  sheetOverlay.classList.add('open');
+}
+function closeSheet() {
+  sheetOverlay.classList.remove('open');
+  setTimeout(() => { sheetOverlay.style.display = 'none'; }, 350);
+}
+function onProfileTap(e) { e.preventDefault(); openSheet(); }
+function onOverlayTap(e) { if (e.target === sheetOverlay) { e.preventDefault(); closeSheet(); } }
+
+function onSheetTab(e, tab) {
+  e.preventDefault();
+  document.querySelectorAll('.sheet-tab').forEach(t => t.classList.remove('active'));
+  e.currentTarget.classList.add('active');
+  document.getElementById('sheetSignin').style.display = tab === 'signin' ? '' : 'none';
+  document.getElementById('sheetSignup').style.display = tab === 'signup' ? '' : 'none';
+  document.getElementById('siMsg').textContent = '';
+  document.getElementById('suMsg').textContent = '';
+}
+
+async function onSignIn(e) {
+  e.preventDefault();
+  const msg = document.getElementById('siMsg');
+  msg.textContent = 'Signing in…'; msg.className = 'sheet-msg';
+  const { error } = await SonicSandbox.signIn(
+    document.getElementById('siEmail').value.trim(),
+    document.getElementById('siPassword').value
+  );
+  if (error) { msg.textContent = error.message; msg.className = 'sheet-msg error'; }
+  else { closeSheet(); }
+}
+
+async function onSignUp(e) {
+  e.preventDefault();
+  const msg = document.getElementById('suMsg');
+  msg.textContent = 'Creating account…'; msg.className = 'sheet-msg';
+  const { error } = await SonicSandbox.signUp(
+    document.getElementById('suEmail').value.trim(),
+    document.getElementById('suPassword').value
+  );
+  if (error) { msg.textContent = error.message; msg.className = 'sheet-msg error'; }
+  else { msg.textContent = 'Check your email to confirm your account.'; msg.className = 'sheet-msg success'; }
+}
+
+document.addEventListener('ss:authchange', async (e) => {
+  const user = e.detail;
+  const wrap = document.getElementById('profileBtnWrap');
+  if (user) {
+    const profile = await SonicSandbox.getProfile();
+    const username = profile?.username;
+    const initial = username ? username[0].toUpperCase() : (user.email || '?')[0].toUpperCase();
+    wrap.innerHTML = `<div class="profile-avatar" ontouchend="onProfileTap(event)">${initial}</div>`;
+    document.getElementById('sheetLoggedOut').style.display = 'none';
+    document.getElementById('sheetLoggedIn').style.display  = '';
+    document.getElementById('profileAvatarLg').textContent  = initial;
+    document.getElementById('profileUsername').textContent = username ? '@' + username : user.email;
+    document.getElementById('profileEmail').textContent    = username ? user.email : '';
+    const joined = user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '';
+    document.getElementById('profileSince').textContent = joined ? `Member since ${joined}` : '';
+    const stats = await SonicSandbox.getStats();
+    document.getElementById('statRounds').textContent   = stats.total;
+    document.getElementById('statAccuracy').textContent = stats.accuracy !== null ? `${stats.accuracy}%` : '—';
+  } else {
+    wrap.innerHTML = `<button class="profile-btn" ontouchend="onProfileTap(event)" aria-label="Account"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="white" stroke-width="1.8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg></button>`;
+    document.getElementById('sheetLoggedOut').style.display = '';
+    document.getElementById('sheetLoggedIn').style.display  = 'none';
+  }
+});
+</script>
+</body>
+</html>

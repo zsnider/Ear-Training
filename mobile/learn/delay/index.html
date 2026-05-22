@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SonicSandbox">
+<title>Delay — SonicSandbox Learn</title>
+<style>
+
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #0a0b0d; --surface: #13151a; --surface2: #1a1d24; --surface3: #21252f;
+    --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+    --text: #dde2ee; --muted: #6b7280;
+    --eq-accent: #5b6aff; --comp-accent: #e8865a;
+    --stage-accent: #0ea5e9; --stage-accent2: #38bdf8;
+    --rev-accent: #7c3aed; --rev-accent2: #a78bfa;
+    --sat-accent: #d97706; --sat-accent2: #fbbf24;
+    --del-accent: #0891b2; --del-accent2: #22d3ee;
+    --delay-accent: #0891b2;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+
+  nav { width: 100%; max-width: 1600px; padding: 20px 28px; display: flex; align-items: center; }
+  .nav-logo-wrap { flex: 1; display: flex; align-items: center; }
+  .nav-logo { font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 600; color: var(--text); text-decoration: none; letter-spacing: -0.01em; }
+  .nav-logo span { color: var(--del-accent2); }
+  .nav-center { display: flex; align-items: center; gap: 28px; flex-shrink: 0; }
+  .nav-link { font-size: 13px; font-weight: 500; color: var(--muted); text-decoration: none; transition: color 0.15s; }
+  .nav-link:hover, .nav-link.active { color: var(--text); }
+  .nav-right { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+  .bmac-btn { display: inline-flex; align-items: center; gap: 7px; background: #FFDD00; color: #000; font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 8px; text-decoration: none; transition: opacity 0.15s, transform 0.15s; white-space: nowrap; }
+  .bmac-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+  @media (max-width: 600px) { nav { padding: 16px 20px; } .nav-center { display: none; } .bmac-btn { display: none; } }
+
+  .user-pill { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+  .set-username-link { color: var(--del-accent2); background: none; border: none; font-family: 'IBM Plex Mono', monospace; font-size: 13px; cursor: pointer; padding: 0; text-decoration: none; }
+  .set-username-link:hover { opacity: 0.8; }
+  .auth-btn { font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border2); background: var(--surface2); color: var(--text); cursor: pointer; text-decoration: none; }
+
+  .page-header { width: 100%; max-width: 900px; padding: 52px 24px 36px; text-align: center; }
+  .page-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 18px; }
+  .page-title { font-family: 'IBM Plex Mono', monospace; font-size: clamp(26px,4vw,44px); font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; color: var(--text); margin-bottom: 14px; }
+  .page-sub { font-size: 15px; color: var(--muted); font-weight: 300; max-width: 520px; margin: 0 auto; line-height: 1.7; }
+
+  .tool-selector-wrap { width: 100%; max-width: 900px; padding: 0 24px 40px; }
+  .tool-selector-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+  .tool-selector { display: flex; gap: 10px; flex-wrap: wrap; }
+  .tool-btn { display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; border: 1px solid var(--border2); background: var(--surface2); font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; text-decoration: none; transition: border-color 0.18s, color 0.18s, background 0.18s, transform 0.18s; }
+  .tool-btn.active { border-color: var(--del-accent); color: var(--del-accent2); background: rgba(8,145,178,0.10); }
+  .tool-btn.disabled { opacity: 0.38; cursor: not-allowed; pointer-events: none; }
+  .tool-btn:not(.disabled):not(.active):hover { color: var(--text); background: var(--surface3); transform: translateY(-1px); }
+  .soon-badge { font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; background: rgba(255,255,255,0.06); color: var(--muted); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.08); }
+  .tool-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: 0.7; flex-shrink: 0; }
+
+  .module-wrap { width: 100%; max-width: 860px; padding: 0 24px 80px; }
+  .progress-bar-wrap { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+  .progress-dots { display: flex; gap: 6px; flex-wrap: wrap; }
+  .progress-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border2); transition: background 0.2s, transform 0.2s; cursor: pointer; }
+  .progress-dot.done { background: rgba(8,145,178,0.45); }
+  .progress-dot.active { background: var(--del-accent2); transform: scale(1.3); }
+  .progress-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-left: auto; }
+
+  .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 0 0 32px; position: relative; overflow: hidden; }
+  .step-card::before { content: ''; position: absolute; inset: 0; border-radius: 20px; background: radial-gradient(ellipse at top left, rgba(8,145,178,0.07), transparent 55%); pointer-events: none; }
+
+  .diagram-wrap { width: 100%; border-radius: 20px 20px 0 0; overflow: hidden; padding: 28px 28px 18px; background: rgba(8,145,178,0.03); border-bottom: 1px solid var(--border); }
+  .diagram-wrap svg { width: 100%; height: auto; display: block; }
+
+  .step-inner { padding: 28px 36px 0; }
+  .step-number { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--del-accent); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .step-number::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .step-title { font-family: 'IBM Plex Mono', monospace; font-size: clamp(18px,2.8vw,26px); font-weight: 600; letter-spacing: -0.02em; color: var(--text); margin-bottom: 16px; line-height: 1.25; }
+  .step-body { font-size: 15px; color: var(--muted); line-height: 1.75; font-weight: 300; margin-bottom: 24px; }
+  .step-body strong { color: var(--text); font-weight: 500; }
+  .step-body em { color: var(--del-accent2); font-style: normal; font-weight: 500; }
+
+  .key-points { background: rgba(8,145,178,0.05); border: 1px solid rgba(8,145,178,0.18); border-radius: 12px; padding: 18px 20px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 10px; }
+  .key-points-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--del-accent); margin-bottom: 4px; }
+  .key-point { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--muted); line-height: 1.55; }
+  .key-point::before { content: '→'; color: var(--del-accent2); font-family: 'IBM Plex Mono', monospace; font-size: 12px; margin-top: 1px; flex-shrink: 0; }
+  .key-point strong { color: var(--text); font-weight: 500; }
+
+  .audio-demo { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin-bottom: 4px; }
+  .audio-demo-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .audio-demo-desc { font-size: 13px; color: var(--muted); line-height: 1.55; margin-bottom: 14px; }
+  .demo-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  .play-btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border-radius: 8px; background: var(--del-accent); border: none; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; color: #fff; cursor: pointer; transition: transform 0.15s, opacity 0.15s; flex-shrink: 0; }
+  .play-btn:hover { transform: scale(1.04); opacity: 0.9; }
+  .play-btn.playing { background: rgba(8,145,178,0.2); border: 1.5px solid var(--del-accent); color: var(--del-accent2); }
+  .play-btn.secondary { background: var(--surface3); border: 1px solid var(--border2); color: var(--muted); }
+  .play-btn.secondary:hover { color: var(--text); }
+  .play-btn.secondary.playing { background: rgba(8,145,178,0.1); border-color: var(--del-accent); color: var(--del-accent2); }
+
+  .vol-wrap { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  input[type=range].vol-slider { -webkit-appearance: none; appearance: none; width: 72px; height: 3px; border-radius: 2px; background: var(--border2); outline: none; cursor: pointer; }
+  input[type=range].vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%; background: var(--del-accent2); cursor: pointer; }
+
+  .step-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; }
+  .nav-btn { display: flex; align-items: center; gap: 8px; padding: 11px 22px; border-radius: 10px; border: 1px solid var(--border2); background: var(--surface2); font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; transition: border-color 0.15s, color 0.15s, transform 0.15s; text-decoration: none; }
+  .nav-btn:hover { color: var(--text); transform: translateY(-1px); }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+  .nav-btn.primary { background: var(--del-accent); border-color: var(--del-accent); color: #fff; }
+  .nav-btn.primary:hover { opacity: 0.88; }
+  .nav-btn.finish { background: rgba(8,145,178,0.15); border-color: var(--del-accent); color: var(--del-accent2); }
+  .step-counter { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--muted); }
+
+  .completion-card { text-align: center; padding: 56px 36px; }
+  .completion-title { font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
+  .completion-sub { font-size: 15px; color: var(--muted); line-height: 1.7; max-width: 440px; margin: 0 auto 32px; }
+  .completion-cta { display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; border-radius: 10px; background: var(--del-accent); color: #fff; font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600; text-decoration: none; transition: opacity 0.15s, transform 0.15s; }
+  .completion-cta:hover { opacity: 0.88; transform: translateY(-1px); }
+  .completion-restart { display: block; margin: 18px auto 0; background: none; border: none; color: var(--muted); font-size: 13px; cursor: pointer; text-decoration: underline; font-family: inherit; }
+  .completion-restart:hover { color: var(--text); }
+
+  footer { margin-top: auto; width: 100%; border-top: 1px solid var(--border); padding: 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .footer-left { font-size: 13px; color: var(--muted); }
+  .footer-left a { color: var(--muted); text-decoration: none; font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+  .footer-left a:hover { color: var(--text); }
+
+  @media (max-width: 600px) {
+    .step-inner { padding: 20px 20px 0; }
+    .module-wrap { padding: 0 16px 60px; }
+    .tool-selector-wrap { padding: 0 16px 32px; }
+    .page-header { padding: 32px 16px 24px; }
+    .step-nav { flex-direction: column; }
+    .nav-btn { width: 100%; justify-content: center; }
+  }
+
+
+  /* ── Mobile shell resets ─────────────────────────────── */
+  body {
+    align-items: stretch;
+    opacity: 0; transition: opacity 0.15s ease;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  body.visible { opacity: 1; }
+
+  /* ── Mobile header ───────────────────────────────────── */
+  .app-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px 0; flex-shrink: 0;
+  }
+  .brand-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 16px; font-weight: 700; letter-spacing: 0.03em;
+    text-decoration: none; color: var(--text);
+  }
+  .brand-name span { color: #22d3ee; }
+
+  .profile-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--surface2); border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: border-color 0.15s; flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .profile-btn:active { border-color: #0891b2; }
+  .profile-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: #0891b2;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; font-weight: 700; color: #fff;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .profile-avatar:active { opacity: 0.8; }
+
+  /* ── Page hero ───────────────────────────────────────── */
+  .page-header {
+    width: 100%; max-width: none;
+    padding: 24px 20px 16px; text-align: center;
+  }
+  .page-eyebrow { font-size: 10px; margin-bottom: 10px; }
+  .page-title { font-size: 22px !important; margin-bottom: 8px; }
+  .page-sub { font-size: 13px; max-width: 320px; }
+
+  /* ── Topic chips ─────────────────────────────────────── */
+  .topic-scroller {
+    display: flex; gap: 8px;
+    padding: 12px 20px 16px;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .topic-scroller::-webkit-scrollbar { display: none; }
+  .topic-chip {
+    display: inline-flex; align-items: center;
+    padding: 7px 14px; border-radius: 20px; white-space: nowrap;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+    border: 1px solid var(--border2);
+    background: var(--surface2); color: var(--muted);
+    text-decoration: none; flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .topic-chip.active {
+    background: color-mix(in srgb, var(--tc) 14%, transparent);
+    border-color: color-mix(in srgb, var(--tc) 50%, transparent);
+    color: var(--tc);
+  }
+  .topic-chip:not(.active):active { color: var(--text); }
+
+  /* ── Module wrap ─────────────────────────────────────── */
+  .module-wrap {
+    width: 100%; max-width: none;
+    padding: 0 14px 32px;
+  }
+
+  /* ── Step card ───────────────────────────────────────── */
+  .step-card { padding: 20px 18px 18px; border-radius: 16px; }
+
+  /* ── Step nav buttons ────────────────────────────────── */
+  .step-nav { flex-wrap: wrap; }
+  .nav-btn { flex: 1; min-width: 110px; justify-content: center; font-size: 12px; padding: 11px 12px; }
+  .step-counter { order: -1; width: 100%; text-align: center; padding-bottom: 8px; }
+
+  /* ── Audio demo ──────────────────────────────────────── */
+  .audio-demo { flex-wrap: wrap; }
+  .audio-demo-info { min-width: 0; }
+
+  /* ── Progress bar ────────────────────────────────────── */
+  .progress-bar-wrap { margin-bottom: 18px; flex-wrap: wrap; gap: 8px; }
+  .progress-dots { gap: 5px; }
+  .progress-dot { width: 7px; height: 7px; }
+
+  /* ── Footer nav ──────────────────────────────────────── */
+  .footer-nav {
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+    padding: 16px 20px 48px;
+    font-size: 12px; color: var(--muted);
+    border-top: 1px solid var(--border);
+  }
+  .footer-nav a { color: var(--muted); text-decoration: none; }
+  .footer-nav a.active { color: var(--text); }
+  .footer-nav a:active { color: var(--text); }
+  .footer-nav .sep { color: var(--border2); }
+
+  /* ── Auth bottom sheet ───────────────────────────────── */
+  .sheet-overlay {
+    display: none; position: fixed; inset: 0; z-index: 300;
+    background: rgba(0,0,0,0); transition: background 0.3s ease;
+  }
+  .sheet-overlay.open {
+    display: flex; flex-direction: column; justify-content: flex-end;
+    background: rgba(0,0,0,0.6);
+  }
+  .auth-sheet {
+    background: var(--surface); border-radius: 24px 24px 0 0;
+    border-top: 1px solid var(--border2);
+    padding: 0 0 env(safe-area-inset-bottom);
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    max-height: 92vh; overflow-y: auto;
+  }
+  .sheet-overlay.open .auth-sheet { transform: translateY(0); }
+  .sheet-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--border2); margin: 12px auto 0; }
+  .sheet-inner { padding: 20px 24px 32px; }
+  .sheet-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+  .sheet-tab {
+    flex: 1; padding: 10px; text-align: center;
+    font-size: 13px; font-weight: 500; background: none; border: none;
+    color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: color 0.15s, border-color 0.15s; -webkit-tap-highlight-color: transparent;
+  }
+  .sheet-tab.active { color: #22d3ee; border-bottom-color: #22d3ee; }
+  .sheet-label { display: block; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .sheet-input {
+    width: 100%; padding: 12px 14px; border-radius: 10px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    color: var(--text); font-size: 16px; font-family: 'IBM Plex Sans', sans-serif;
+    margin-bottom: 14px; outline: none; -webkit-appearance: none;
+    transition: border-color 0.15s;
+  }
+  .sheet-input:focus { border-color: #0891b2; }
+  .sheet-submit {
+    width: 100%; padding: 14px; border-radius: 12px;
+    background: #0891b2; color: #fff; font-size: 15px; font-weight: 600;
+    border: none; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif;
+    -webkit-tap-highlight-color: transparent; transition: opacity 0.15s; margin-top: 4px;
+  }
+  .sheet-submit:active { opacity: 0.8; }
+  .sheet-msg { margin-top: 12px; font-size: 13px; text-align: center; min-height: 18px; color: var(--muted); }
+  .sheet-msg.error { color: #f07070; }
+  .sheet-msg.success { color: #2dd4a0; }
+  .profile-view { display: flex; flex-direction: column; gap: 20px; }
+  .profile-user { display: flex; align-items: center; gap: 14px; }
+  .profile-avatar-lg {
+    width: 52px; height: 52px; border-radius: 50%; background: #0891b2;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .profile-username { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 700; color: var(--text); }
+  .profile-email-small { font-size: 11px; color: var(--muted); margin-top: 2px; word-break: break-all; }
+  .profile-since { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .profile-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-tile { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px; }
+  .stat-value { font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 700; color: var(--text); }
+  .stat-label { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+  .account-link { display: flex; align-items: center; justify-content: center; width: 100%; padding: 14px; border-radius: 12px; background: var(--surface2); border: 1px solid var(--border2); color: #22d3ee; font-size: 14px; font-weight: 600; text-decoration: none; font-family: 'IBM Plex Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+  .account-link:active { opacity: 0.7; }
+
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="app-header">
+  <a class="brand-name" href="/mobile/">Sonic<span>Sandbox</span></a>
+  <div id="profileBtnWrap">
+    <button class="profile-btn" ontouchend="onProfileTap(event)" aria-label="Account">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="8" r="4" stroke="white" stroke-width="1.8"/>
+        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- Page header -->
+<div class="page-header">
+  <div class="page-eyebrow">SonicSandbox / Learning Center</div>
+  <h1 class="page-title">Learn the tools.</h1>
+  <p class="page-sub">Guided lessons on the audio processing tools that shape every mix. Read, listen, and understand — then go train your ears.</p>
+</div>
+
+<!-- Topic selector -->
+<div class="topic-scroller">
+  <a class="topic-chip" href="/mobile/learn/" style="--tc:#8892ff;">EQ</a>
+  <a class="topic-chip" href="/mobile/learn/gain-staging/" style="--tc:#86efac;">Gain Staging</a>
+  <a class="topic-chip" href="/mobile/learn/compression/" style="--tc:#f0a882;">Compression</a>
+  <a class="topic-chip" href="/mobile/learn/saturation/" style="--tc:#fbbf24;">Saturation</a>
+  <a class="topic-chip" href="/mobile/learn/reverb/" style="--tc:#a78bfa;">Reverb</a>
+  <span class="topic-chip active" style="--tc:#0891b2;">Delay</span>
+  <a class="topic-chip" href="/mobile/learn/soundstage/" style="--tc:#38bdf8;">Spatial Mixing</a>
+</div>
+
+<!-- Module -->
+<div class="module-wrap">
+  <div class="progress-bar-wrap">
+    <div class="progress-dots" id="progressDots"></div>
+    <div class="progress-label" id="progressLabel">Step 1 of 10</div>
+  </div>
+  <div class="step-card" id="stepCard"></div>
+  <div class="step-nav" id="stepNav" style="margin-top:20px;">
+    <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>← Previous</button>
+    <span class="step-counter" id="stepCounter"></span>
+    <button class="nav-btn primary" id="nextBtn" onclick="navigate(1)">Next →</button>
+  </div>
+</div>
+
+<!-- Footer nav -->
+<div class="footer-nav">
+  <a href="/mobile/">Games</a>
+  <span class="sep">·</span>
+  <a href="/mobile/about/">About</a>
+  <span class="sep">·</span>
+  <a href="/learn/delay/" id="desktopLink">Desktop site →</a>
+</div>
+
+<!-- Auth bottom sheet -->
+<div class="sheet-overlay" id="sheetOverlay" ontouchend="onOverlayTap(event)">
+  <div class="auth-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-inner">
+      <div id="sheetLoggedOut">
+        <div class="sheet-tabs">
+          <button class="sheet-tab active" ontouchend="onSheetTab(event,'signin')">Sign in</button>
+          <button class="sheet-tab"        ontouchend="onSheetTab(event,'signup')">Create account</button>
+        </div>
+        <div id="sheetSignin">
+          <label class="sheet-label">Email</label>
+          <input class="sheet-input" type="email" id="siEmail" placeholder="you@example.com" autocomplete="email" autocapitalize="none">
+          <label class="sheet-label">Password</label>
+          <input class="sheet-input" type="password" id="siPassword" placeholder="••••••••" autocomplete="current-password">
+          <button class="sheet-submit" ontouchend="onSignIn(event)">Sign in</button>
+          <div class="sheet-msg" id="siMsg"></div>
+        </div>
+        <div id="sheetSignup" style="display:none;">
+          <label class="sheet-label">Email</label>
+          <input class="sheet-input" type="email" id="suEmail" placeholder="you@example.com" autocomplete="email" autocapitalize="none">
+          <label class="sheet-label">Password</label>
+          <input class="sheet-input" type="password" id="suPassword" placeholder="At least 6 characters" autocomplete="new-password">
+          <button class="sheet-submit" ontouchend="onSignUp(event)">Create account</button>
+          <div class="sheet-msg" id="suMsg"></div>
+        </div>
+      </div>
+      <div id="sheetLoggedIn" style="display:none;">
+        <div class="profile-view">
+          <div class="profile-user">
+            <div class="profile-avatar-lg" id="profileAvatarLg">?</div>
+            <div>
+              <div class="profile-username" id="profileUsername">—</div>
+              <div class="profile-email-small" id="profileEmail"></div>
+              <div class="profile-since" id="profileSince"></div>
+            </div>
+          </div>
+          <div class="profile-stats">
+            <div class="stat-tile"><div class="stat-value" id="statRounds">—</div><div class="stat-label">Rounds played</div></div>
+            <div class="stat-tile"><div class="stat-value" id="statAccuracy">—</div><div class="stat-label">Accuracy</div></div>
+          </div>
+          <a class="account-link" href="/mobile/account/">View Account →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../../../supabase-client.js"></script>
+<script>
+// ─────────────────────────────────────────────────────────────
+//  SVG DIAGRAM BUILDERS
+// ─────────────────────────────────────────────────────────────
+const SVG_W = 560;
+
+function buildEchoWaveform() {
+  const W = SVG_W, H = 172, rowH = 60, gap = 18;
+  const y1 = 10, y2 = y1 + rowH + gap;
+  const ox = 80, plotW = W - ox - 16;
+  const CYCLES = 3;
+
+  function sineWave(yMid, ampFn, col, strokeW) {
+    const steps = 360; let d = '';
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const x = ox + t * plotW;
+      const raw = Math.sin(t * Math.PI * 2 * CYCLES);
+      const y = yMid - ampFn(raw) * (rowH * 0.42);
+      d += (i === 0 ? 'M' : 'L') + `${x.toFixed(1)},${y.toFixed(1)} `;
+    }
+    return `<path d="${d}" fill="none" stroke="${col}" stroke-width="${strokeW}" stroke-linejoin="round"/>`;
+  }
+
+  // Echo: original + two fading copies offset in time
+  function echoWave(yMid, col) {
+    let s = '';
+    // Original
+    s += sineWave(yMid, x => x, 'rgba(255,255,255,0.65)', 1.5);
+    // Echo 1 — offset 1/3 of plotW, reduced amplitude
+    const steps = 360;
+    let d1 = '', d2 = '';
+    const offset1 = plotW * 0.38, offset2 = plotW * 0.68;
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const raw = Math.sin(t * Math.PI * 2 * CYCLES);
+      const x1 = ox + offset1 + t * (plotW - offset1);
+      const x2 = ox + offset2 + t * (plotW - offset2);
+      if (x1 <= ox + plotW) d1 += (i===0?'M':'L') + `${x1.toFixed(1)},${(yMid - raw*rowH*0.26).toFixed(1)} `;
+      if (x2 <= ox + plotW) d2 += (i===0?'M':'L') + `${x2.toFixed(1)},${(yMid - raw*rowH*0.13).toFixed(1)} `;
+    }
+    s += `<path d="${d1}" fill="none" stroke="${col}" stroke-width="1.5" opacity="0.80"/>`;
+    s += `<path d="${d2}" fill="none" stroke="${col}" stroke-width="1.3" opacity="0.45"/>`;
+    return s;
+  }
+
+  let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+  const rows = [
+    { label: 'Dry',        y: y1, content: () => sineWave(y1 + rowH/2, x => x, 'rgba(255,255,255,0.65)', 1.5) },
+    { label: 'With Delay', y: y2, content: () => echoWave(y2 + rowH/2, 'rgba(34,211,238,0.80)') },
+  ];
+
+  rows.forEach(r => {
+    const mid = r.y + rowH / 2;
+    s += `<rect x="${ox}" y="${r.y}" width="${plotW}" height="${rowH}" fill="rgba(255,255,255,0.02)" rx="4"/>`;
+    s += `<line x1="${ox}" y1="${mid}" x2="${ox+plotW}" y2="${mid}" stroke="rgba(255,255,255,0.07)" stroke-width="0.7"/>`;
+    s += r.content();
+    s += `<text x="${ox-8}" y="${mid+4}" text-anchor="end" font-size="10" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.40)" font-weight="600">${r.label}</text>`;
+  });
+
+  // Delay time annotation
+  const annoY = y2 + rowH + 10;
+  s += `<line x1="${ox}" y1="${annoY}" x2="${ox + plotW*0.38}" y2="${annoY}" stroke="rgba(34,211,238,0.45)" stroke-width="1" stroke-dasharray="4,3"/>`;
+  s += `<text x="${ox + plotW*0.19}" y="${annoY + 13}" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(34,211,238,0.55)">delay time</text>`;
+
+  s += `</svg>`;
+  return s;
+}
+
+function buildFeedbackDiagram() {
+  const W = SVG_W, H = 152;
+  let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+  const cy = 70;
+  const pulses = [
+    { x: 50,  h: 52, label: 'Original', col: 'rgba(255,255,255,0.70)', op: 1.0 },
+    { x: 155, h: 37, label: 'Echo 1',   col: 'rgba(34,211,238,0.85)', op: 0.9 },
+    { x: 260, h: 25, label: 'Echo 2',   col: 'rgba(34,211,238,0.75)', op: 0.75 },
+    { x: 365, h: 15, label: 'Echo 3',   col: 'rgba(34,211,238,0.60)', op: 0.55 },
+    { x: 460, h:  9, label: 'Echo 4',   col: 'rgba(34,211,238,0.50)', op: 0.35 },
+    { x: 530, h:  5, label: '',         col: 'rgba(34,211,238,0.40)', op: 0.18 },
+  ];
+
+  s += `<line x1="20" y1="${cy}" x2="${W-12}" y2="${cy}" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>`;
+
+  pulses.forEach(p => {
+    s += `<rect x="${p.x-12}" y="${cy-p.h}" width="24" height="${p.h*2}" rx="4" fill="${p.col}" opacity="${p.op}"/>`;
+    if (p.label) s += `<text x="${p.x}" y="${cy+p.h+15}" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.35)">${p.label}</text>`;
+  });
+
+  // Feedback arc
+  s += `<path d="M ${pulses[1].x} ${cy+65} Q ${(pulses[0].x+pulses[1].x)/2} ${cy+90} ${pulses[0].x} ${cy+65}" fill="none" stroke="rgba(8,145,178,0.55)" stroke-width="1.5" stroke-dasharray="5,3"/>`;
+  s += `<text x="${(pulses[0].x+pulses[1].x)/2}" y="${cy+106}" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(8,145,178,0.65)">feedback loop</text>`;
+
+  s += `<text x="14" y="18" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.28)" font-weight="600" letter-spacing="0.08em">EACH REPEAT FEEDS BACK — SLIGHTLY QUIETER</text>`;
+
+  s += `</svg>`;
+  return s;
+}
+
+function buildTempoSyncDiagram() {
+  const W = SVG_W, H = 172;
+  let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+  const lx = 120, rx = W - 16;
+  const totalW = rx - lx;
+  const beats = 4, beatW = totalW / beats;
+
+  for (let i = 0; i <= beats; i++) {
+    const x = lx + i * beatW;
+    s += `<line x1="${x.toFixed(1)}" y1="22" x2="${x.toFixed(1)}" y2="${H-14}" stroke="rgba(255,255,255,0.08)" stroke-width="${i===0||i===beats?1.2:0.6}"/>`;
+    if (i < beats) s += `<text x="${(x+beatW/2).toFixed(1)}" y="16" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.25)">beat ${i+1}</text>`;
+  }
+
+  const rows = [
+    { label: 'QUARTER NOTE',  interval: 1/4,    col: 'rgba(94,106,255,0.85)', ry: 58  },
+    { label: 'EIGHTH NOTE',   interval: 1/8,    col: 'rgba(52,211,153,0.85)', ry: 108 },
+    { label: 'DOTTED EIGHTH', interval: 3/16,   col: 'rgba(34,211,238,0.90)', ry: 158 },
+  ];
+
+  rows.forEach(row => {
+    s += `<text x="8" y="${row.ry+4}" font-size="8.5" font-family="'IBM Plex Mono',monospace" fill="${row.col}" font-weight="600">${row.label}</text>`;
+    s += `<line x1="${lx-6}" y1="${row.ry}" x2="${rx+4}" y2="${row.ry}" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>`;
+    // Origin pulse
+    s += `<rect x="${lx-8}" y="${row.ry-18}" width="16" height="36" rx="3" fill="rgba(255,255,255,0.75)"/>`;
+    // Echo pulses
+    for (let t = row.interval; t <= 1.001; t += row.interval) {
+      const x = lx + t * totalW;
+      if (x > rx + 10) break;
+      const decay = Math.max(0.1, 1 - t * 0.55);
+      const bh = 18 * decay;
+      s += `<rect x="${(x-8).toFixed(1)}" y="${(row.ry-bh).toFixed(1)}" width="16" height="${(bh*2).toFixed(1)}" rx="3" fill="${row.col}" opacity="${(0.25+decay*0.65).toFixed(2)}"/>`;
+    }
+  });
+
+  s += `</svg>`;
+  return s;
+}
+
+function buildTapeCharacterDiagram() {
+  const W = SVG_W, H = 162, col = (W-28)/2;
+  let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+  s += `<line x1="${col+14}" y1="0" x2="${col+14}" y2="${H}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>`;
+  s += `<text x="${(col+14)/2}" y="16" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(94,106,255,0.80)" font-weight="600">DIGITAL — IDENTICAL REPEATS</text>`;
+  s += `<text x="${col+14+(col)/2}" y="16" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(34,211,238,0.85)" font-weight="600">TAPE — DARKENS EACH REPEAT</text>`;
+
+  const cy = 88, oxs = [20, 82, 144, 206, 260];
+
+  // Digital panel
+  oxs.forEach((ox, i) => {
+    const decay = Math.pow(0.68, i);
+    const h = 44 * decay;
+    s += `<rect x="${ox-11}" y="${cy-h}" width="22" height="${h*2}" rx="3" fill="rgba(94,106,255,0.75)" opacity="${(0.25+decay*0.65).toFixed(2)}"/>`;
+    // Freq bars — all equal (full bandwidth)
+    [0,1,2,3].forEach(f => {
+      const bh = h * 0.70;
+      s += `<rect x="${ox-7+f*4}" y="${cy-bh}" width="3" height="${bh}" rx="1" fill="rgba(94,106,255,0.50)" opacity="${decay.toFixed(2)}"/>`;
+    });
+  });
+
+  // Tape panel
+  oxs.forEach((ox, i) => {
+    const decay = Math.pow(0.68, i);
+    const h = 44 * decay;
+    const freqFall = Math.pow(0.50, i);
+    const tx = col + 14 + ox;
+    s += `<rect x="${tx-11}" y="${cy-h}" width="22" height="${h*2}" rx="3" fill="rgba(34,211,238,0.75)" opacity="${(0.25+decay*0.65).toFixed(2)}"/>`;
+    [0,1,2,3].forEach(f => {
+      const fd = freqFall * Math.pow(0.50, f);
+      const bh = h * 0.70 * Math.max(0.04, fd);
+      s += `<rect x="${tx-7+f*4}" y="${cy-bh}" width="3" height="${bh}" rx="1" fill="rgba(8,145,178,0.60)" opacity="${decay.toFixed(2)}"/>`;
+    });
+  });
+
+  s += `<text x="${(col+14)/2}" y="${H-8}" text-anchor="middle" font-size="8.5" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.22)">full bandwidth preserved</text>`;
+  s += `<text x="${col+14+(col)/2}" y="${H-8}" text-anchor="middle" font-size="8.5" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.22)">high freqs roll off each repeat</text>`;
+
+  s += `</svg>`;
+  return s;
+}
+
+function buildPingPongDiagram() {
+  const W = SVG_W, H = 152, midY = H / 2;
+  let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+  const rowOff = 52;
+  s += `<text x="10" y="${midY-rowOff-8}" font-size="9" font-family="'IBM Plex Mono',monospace" font-weight="600" fill="rgba(34,211,238,0.80)">LEFT</text>`;
+  s += `<text x="10" y="${midY+rowOff+20}" font-size="9" font-family="'IBM Plex Mono',monospace" font-weight="600" fill="rgba(251,191,36,0.80)">RIGHT</text>`;
+  s += `<line x1="55" y1="${midY}" x2="${W-12}" y2="${midY}" stroke="rgba(255,255,255,0.07)" stroke-width="1" stroke-dasharray="5,4"/>`;
+  s += `<text x="${W/2}" y="${midY+5}" text-anchor="middle" font-size="8.5" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.20)">← alternating L / R →</text>`;
+
+  const startX = 75, spacing = 82, count = 6;
+  for (let i = 0; i < count; i++) {
+    const x = startX + i * spacing;
+    const isLeft = i % 2 === 0;
+    const decay = Math.pow(0.74, i);
+    const bh = 28 * decay;
+    const cy2 = isLeft ? midY - rowOff : midY + rowOff;
+    const col = isLeft ? 'rgba(34,211,238,0.85)' : 'rgba(251,191,36,0.85)';
+    s += `<rect x="${x-10}" y="${cy2-bh}" width="20" height="${bh*2}" rx="4" fill="${col}" opacity="${(0.30+decay*0.60).toFixed(2)}"/>`;
+    if (i === 0) s += `<text x="${x}" y="${cy2-bh-9}" text-anchor="middle" font-size="8.5" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.45)">source</text>`;
+  }
+
+  s += `</svg>`;
+  return s;
+}
+
+function buildModulationDiagram() {
+  const W = SVG_W, H = 162, col2 = (W-8)/2;
+  let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+  s += `<line x1="${col2+4}" y1="0" x2="${col2+4}" y2="${H}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>`;
+  s += `<text x="${col2/2+4}" y="16" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.35)" font-weight="600">NO MODULATION</text>`;
+  s += `<text x="${col2+4+(col2)/2}" y="16" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(34,211,238,0.85)" font-weight="600">WITH LFO MODULATION</text>`;
+
+  const cy3 = 82, oxs2 = [16, 76, 136, 196, 248];
+  const jitters = [0, 11, -9, 14, -6];
+
+  oxs2.forEach((ox, i) => {
+    const decay = Math.pow(0.68, i);
+    const bh = 34 * decay;
+    s += `<rect x="${ox-9}" y="${cy3-bh}" width="18" height="${bh*2}" rx="3" fill="rgba(255,255,255,0.45)" opacity="${(0.25+decay*0.55).toFixed(2)}"/>`;
+  });
+
+  oxs2.forEach((ox, i) => {
+    const decay = Math.pow(0.68, i);
+    const bh = 34 * decay;
+    const jx = col2 + 8 + ox + (jitters[i]||0);
+    s += `<rect x="${jx-9}" y="${cy3-bh}" width="18" height="${bh*2}" rx="3" fill="rgba(34,211,238,0.80)" opacity="${(0.25+decay*0.65).toFixed(2)}"/>`;
+  });
+
+  // LFO curve
+  const lfoY = H - 28, lfoAmp = 11;
+  let lp = `M ${col2+8} ${lfoY}`;
+  for (let i = 1; i <= 120; i++) {
+    const t = i/120;
+    const x = col2 + 8 + t * (W - col2 - 20);
+    const y = lfoY - Math.sin(t * Math.PI * 3.5) * lfoAmp;
+    lp += ` L ${x.toFixed(1)} ${y.toFixed(1)}`;
+  }
+  s += `<path d="${lp}" fill="none" stroke="rgba(8,145,178,0.55)" stroke-width="1.2"/>`;
+  s += `<text x="${col2+12}" y="${H-8}" font-size="8" font-family="'IBM Plex Mono',monospace" fill="rgba(8,145,178,0.55)">LFO modulating delay time</text>`;
+
+  s += `</svg>`;
+  return s;
+}
+
+function buildHaasDiagram() {
+  const W = SVG_W, H = 152, col3 = (W-8)/2;
+  let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+  s += `<line x1="${col3+4}" y1="0" x2="${col3+4}" y2="${H}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>`;
+  s += `<text x="${col3/2+2}" y="16" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.35)" font-weight="600">MONO</text>`;
+  s += `<text x="${col3+4+col3/2}" y="16" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(34,211,238,0.85)" font-weight="600">HAAS (5–25 ms)</text>`;
+
+  const cy4 = 88;
+  // Mono: single centered bar
+  s += `<rect x="${col3/2-14}" y="${cy4-44}" width="28" height="88" rx="5" fill="rgba(255,255,255,0.45)" opacity="0.65"/>`;
+  s += `<text x="${col3/2+2}" y="${cy4+62}" text-anchor="middle" font-size="8.5" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.25)">narrow — no width</text>`;
+
+  // Haas: L + slightly delayed R
+  const lx2 = col3 + 4 + 52, rx2 = col3 + 4 + 198;
+  s += `<rect x="${lx2-14}" y="${cy4-44}" width="28" height="88" rx="5" fill="rgba(34,211,238,0.85)" opacity="0.80"/>`;
+  s += `<text x="${lx2}" y="${cy4+62}" text-anchor="middle" font-size="8.5" font-family="'IBM Plex Mono',monospace" fill="rgba(34,211,238,0.55)">L — source</text>`;
+
+  s += `<rect x="${rx2-14}" y="${cy4-35}" width="28" height="70" rx="5" fill="rgba(8,145,178,0.75)" opacity="0.62"/>`;
+  s += `<text x="${rx2}" y="${cy4+62}" text-anchor="middle" font-size="8.5" font-family="'IBM Plex Mono',monospace" fill="rgba(8,145,178,0.65)">R +15 ms</text>`;
+
+  // Width arrow
+  const arrowY = cy4 - 58;
+  s += `<line x1="${lx2+15}" y1="${arrowY}" x2="${rx2-15}" y2="${arrowY}" stroke="rgba(34,211,238,0.40)" stroke-width="1"/>`;
+  s += `<polygon points="${lx2+8},${arrowY-4} ${lx2+16},${arrowY} ${lx2+8},${arrowY+4}" fill="rgba(34,211,238,0.45)"/>`;
+  s += `<polygon points="${rx2-8},${arrowY-4} ${rx2-16},${arrowY} ${rx2-8},${arrowY+4}" fill="rgba(34,211,238,0.45)"/>`;
+  s += `<text x="${(lx2+rx2)/2}" y="${arrowY-8}" text-anchor="middle" font-size="8.5" font-family="'IBM Plex Mono',monospace" fill="rgba(34,211,238,0.55)">perceived stereo width</text>`;
+
+  s += `</svg>`;
+  return s;
+}
+
+const svgBuilders = {
+  buildEchoWaveform,
+  buildFeedbackDiagram,
+  buildTempoSyncDiagram,
+  buildTapeCharacterDiagram,
+  buildPingPongDiagram,
+  buildModulationDiagram,
+  buildHaasDiagram,
+};
+
+// ─────────────────────────────────────────────────────────────
+//  AUDIO ENGINE
+// ─────────────────────────────────────────────────────────────
+
+let audioCtx = null, activeNodes = [], stopTimeout = null;
+let isPlayingA = false, isPlayingB = false, isPlayingC = false;
+
+function vol() {
+  const s = document.querySelector('.vol-slider');
+  return s ? parseFloat(s.value) : 0.55;
+}
+
+function getCtx() {
+  if (!audioCtx || audioCtx.state === 'closed') {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function stopAll() {
+  clearTimeout(stopTimeout);
+  activeNodes.forEach(n => { try { n.stop?.(); n.disconnect?.(); } catch(e){} });
+  activeNodes = [];
+  isPlayingA = isPlayingB = isPlayingC = false;
+  document.querySelectorAll('.play-btn').forEach(b => b.classList.remove('playing'));
+}
+
+function updateBtnState(side, on) {
+  const btn = document.getElementById(`playBtn${side}`);
+  if (btn) btn.classList.toggle('playing', on);
+}
+
+function playIco() {
+  return `<svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="display:inline-block;vertical-align:middle;margin-right:3px"><polygon points="2,1.5 10,5.5 2,9.5" fill="currentColor"/></svg>`;
+}
+
+// Pluck tone
+function makeStab(ctx, dest, nodes, freq, time, v) {
+  v = v ?? 0.42;
+  const osc = ctx.createOscillator(), env = ctx.createGain(), filt = ctx.createBiquadFilter();
+  osc.type = 'sawtooth'; osc.frequency.value = freq;
+  filt.type = 'lowpass';
+  filt.frequency.setValueAtTime(5000, ctx.currentTime + time);
+  filt.frequency.exponentialRampToValueAtTime(900, ctx.currentTime + time + 0.32);
+  env.gain.setValueAtTime(0, ctx.currentTime + time);
+  env.gain.linearRampToValueAtTime(v, ctx.currentTime + time + 0.01);
+  env.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + time + 0.65);
+  osc.connect(filt); filt.connect(env); env.connect(dest);
+  osc.start(ctx.currentTime + time); osc.stop(ctx.currentTime + time + 0.75);
+  nodes.push(osc, filt, env);
+}
+
+function makeDelay(ctx, delayTime, feedback, wetVol, dest, nodes) {
+  const delay = ctx.createDelay(5.0); delay.delayTime.value = delayTime;
+  const fb = ctx.createGain(); fb.gain.value = feedback;
+  const wet = ctx.createGain(); wet.gain.value = wetVol;
+  delay.connect(fb); fb.connect(delay);
+  delay.connect(wet); wet.connect(dest);
+  nodes.push(delay, fb, wet);
+  return delay;
+}
+
+function makeTapeDelay(ctx, delayTime, feedback, dest, nodes) {
+  const delay = ctx.createDelay(5.0); delay.delayTime.value = delayTime;
+  const filt = ctx.createBiquadFilter(); filt.type = 'lowpass'; filt.frequency.value = 3000; filt.Q.value = 0.5;
+  const fb = ctx.createGain(); fb.gain.value = feedback;
+  const wet = ctx.createGain(); wet.gain.value = 0.72;
+  delay.connect(filt); filt.connect(fb); fb.connect(delay);
+  filt.connect(wet); wet.connect(dest);
+  nodes.push(delay, filt, fb, wet);
+  return delay;
+}
+
+function makeAnalogDelay(ctx, delayTime, feedback, dest, nodes) {
+  const delay = ctx.createDelay(5.0); delay.delayTime.value = delayTime;
+  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 5500;
+  const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 90;
+  const fb = ctx.createGain(); fb.gain.value = feedback;
+  const wet = ctx.createGain(); wet.gain.value = 0.66;
+  delay.connect(lp); lp.connect(hp); hp.connect(fb); fb.connect(delay);
+  hp.connect(wet); wet.connect(dest);
+  nodes.push(delay, lp, hp, fb, wet);
+  return delay;
+}
+
+function makePingPong(ctx, delayTime, feedback, dest, nodes) {
+  const merger = ctx.createChannelMerger(2); merger.connect(dest);
+  const delL = ctx.createDelay(5.0); delL.delayTime.value = delayTime;
+  const delR = ctx.createDelay(5.0); delR.delayTime.value = delayTime;
+  const fbL = ctx.createGain(); fbL.gain.value = feedback;
+  const fbR = ctx.createGain(); fbR.gain.value = feedback;
+  const wL = ctx.createGain(); wL.gain.value = 0.8;
+  const wR = ctx.createGain(); wR.gain.value = 0.8;
+  delL.connect(wL); wL.connect(merger, 0, 0);
+  delR.connect(wR); wR.connect(merger, 0, 1);
+  delL.connect(fbR); fbR.connect(delR);
+  delR.connect(fbL); fbL.connect(delL);
+  nodes.push(merger, delL, delR, fbL, fbR, wL, wR);
+  const input = ctx.createGain(); input.connect(delL); nodes.push(input);
+  return input;
+}
+
+function makeModDelay(ctx, baseDelay, modDepth, modRate, feedback, dest, nodes) {
+  const delay = ctx.createDelay(1.0); delay.delayTime.value = baseDelay;
+  const lfo = ctx.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = modRate;
+  const lfoGain = ctx.createGain(); lfoGain.gain.value = modDepth;
+  lfo.connect(lfoGain); lfoGain.connect(delay.delayTime); lfo.start();
+  const fb = ctx.createGain(); fb.gain.value = feedback;
+  const wet = ctx.createGain(); wet.gain.value = 0.72;
+  delay.connect(fb); fb.connect(delay);
+  delay.connect(wet); wet.connect(dest);
+  nodes.push(delay, lfo, lfoGain, fb, wet);
+  return delay;
+}
+
+// ── Play functions ────────────────────────────────────────────
+
+function playCleanDelay(side) {
+  if (side==='A'&&isPlayingA) { stopAll(); return; }
+  if (side==='B'&&isPlayingB) { stopAll(); return; }
+  stopAll();
+  const ctx = getCtx(), nodes = [];
+  const master = ctx.createGain(); master.gain.value = vol() * 0.65; master.connect(ctx.destination); nodes.push(master);
+  if (side === 'A') {
+    makeStab(ctx, master, nodes, 261.63, 0); makeStab(ctx, master, nodes, 329.63, 0.65);
+    isPlayingA = true; updateBtnState('A', true); stopTimeout = setTimeout(stopAll, 3500);
+  } else {
+    const dry = ctx.createGain(); dry.gain.value = 0.8; dry.connect(master); nodes.push(dry);
+    const del = makeDelay(ctx, 0.42, 0.52, 0.8, master, nodes);
+    makeStab(ctx, dry, nodes, 261.63, 0); makeStab(ctx, dry, nodes, 329.63, 0.65);
+    makeStab(ctx, del, nodes, 261.63, 0); makeStab(ctx, del, nodes, 329.63, 0.65);
+    isPlayingB = true; updateBtnState('B', true); stopTimeout = setTimeout(stopAll, 5500);
+  }
+  activeNodes = nodes;
+}
+
+function playFeedback(side) {
+  if (side==='A'&&isPlayingA) { stopAll(); return; }
+  if (side==='B'&&isPlayingB) { stopAll(); return; }
+  stopAll();
+  const ctx = getCtx(), nodes = [];
+  const master = ctx.createGain(); master.gain.value = vol() * 0.55; master.connect(ctx.destination); nodes.push(master);
+  const dry = ctx.createGain(); dry.gain.value = 0.7; dry.connect(master); nodes.push(dry);
+  const fb = side === 'A' ? 0.22 : 0.74;
+  const del = makeDelay(ctx, 0.38, fb, 0.78, master, nodes);
+  makeStab(ctx, dry, nodes, 261.63, 0, 0.42); makeStab(ctx, del, nodes, 261.63, 0, 0.42);
+  if (side==='A') { isPlayingA=true; updateBtnState('A',true); stopTimeout=setTimeout(stopAll,3800); }
+  else            { isPlayingB=true; updateBtnState('B',true); stopTimeout=setTimeout(stopAll,6500); }
+  activeNodes = nodes;
+}
+
+function playTempoSync(side) {
+  if (side==='A'&&isPlayingA) { stopAll(); return; }
+  if (side==='B'&&isPlayingB) { stopAll(); return; }
+  if (side==='C'&&isPlayingC) { stopAll(); return; }
+  stopAll();
+  const ctx = getCtx(), nodes = [];
+  const master = ctx.createGain(); master.gain.value = vol() * 0.55; master.connect(ctx.destination); nodes.push(master);
+  const dry = ctx.createGain(); dry.gain.value = 0.7; dry.connect(master); nodes.push(dry);
+  const dtMap = { A: 0.60, B: 0.30, C: 0.45 };
+  const del = makeDelay(ctx, dtMap[side], 0.55, 0.76, master, nodes);
+  makeStab(ctx, dry, nodes, 261.63, 0, 0.4); makeStab(ctx, del, nodes, 261.63, 0, 0.4);
+  if (side==='A') { isPlayingA=true; updateBtnState('A',true); }
+  else if (side==='B') { isPlayingB=true; updateBtnState('B',true); }
+  else { isPlayingC=true; updateBtnState('C',true); }
+  stopTimeout = setTimeout(stopAll, 5500);
+  activeNodes = nodes;
+}
+
+function playTape(side) {
+  if (side==='A'&&isPlayingA) { stopAll(); return; }
+  stopAll();
+  const ctx = getCtx(), nodes = [];
+  const master = ctx.createGain(); master.gain.value = vol() * 0.55; master.connect(ctx.destination); nodes.push(master);
+  const dry = ctx.createGain(); dry.gain.value = 0.7; dry.connect(master); nodes.push(dry);
+  const del = makeTapeDelay(ctx, 0.44, 0.58, master, nodes);
+  makeStab(ctx, dry, nodes, 261.63, 0, 0.4); makeStab(ctx, del, nodes, 261.63, 0, 0.4);
+  isPlayingA = true; updateBtnState('A', true);
+  stopTimeout = setTimeout(stopAll, 5800); activeNodes = nodes;
+}
+
+function playAnalog(side) {
+  if (side==='A'&&isPlayingA) { stopAll(); return; }
+  stopAll();
+  const ctx = getCtx(), nodes = [];
+  const master = ctx.createGain(); master.gain.value = vol() * 0.55; master.connect(ctx.destination); nodes.push(master);
+  const dry = ctx.createGain(); dry.gain.value = 0.7; dry.connect(master); nodes.push(dry);
+  const del = makeAnalogDelay(ctx, 0.40, 0.55, master, nodes);
+  makeStab(ctx, dry, nodes, 261.63, 0, 0.4); makeStab(ctx, del, nodes, 261.63, 0, 0.4);
+  isPlayingA = true; updateBtnState('A', true);
+  stopTimeout = setTimeout(stopAll, 5500); activeNodes = nodes;
+}
+
+function playDigital(side) {
+  if (side==='A'&&isPlayingA) { stopAll(); return; }
+  if (side==='B'&&isPlayingB) { stopAll(); return; }
+  stopAll();
+  const ctx = getCtx(), nodes = [];
+  const master = ctx.createGain(); master.gain.value = vol() * 0.55; master.connect(ctx.destination); nodes.push(master);
+  const dry = ctx.createGain(); dry.gain.value = 0.7; dry.connect(master); nodes.push(dry);
+  if (side === 'A') {
+    const del = makeDelay(ctx, 0.38, 0.50, 0.76, master, nodes);
+    makeStab(ctx, dry, nodes, 261.63, 0, 0.4); makeStab(ctx, del, nodes, 261.63, 0, 0.4);
+    isPlayingA = true; updateBtnState('A', true);
+  } else {
+    const del = makePingPong(ctx, 0.38, 0.56, master, nodes);
+    makeStab(ctx, dry, nodes, 261.63, 0, 0.36); makeStab(ctx, del, nodes, 261.63, 0, 0.36);
+    isPlayingB = true; updateBtnState('B', true);
+  }
+  stopTimeout = setTimeout(stopAll, 5800); activeNodes = nodes;
+}
+
+function playModulation(side) {
+  if (side==='A'&&isPlayingA) { stopAll(); return; }
+  if (side==='B'&&isPlayingB) { stopAll(); return; }
+  stopAll();
+  const ctx = getCtx(), nodes = [];
+  const master = ctx.createGain(); master.gain.value = vol() * 0.55; master.connect(ctx.destination); nodes.push(master);
+  const dry = ctx.createGain(); dry.gain.value = 0.65; dry.connect(master); nodes.push(dry);
+  if (side === 'A') {
+    const del = makeModDelay(ctx, 0.014, 0.007, 0.45, 0.0, master, nodes);
+    makeStab(ctx, dry, nodes, 261.63, 0, 0.42); makeStab(ctx, del, nodes, 261.63, 0, 0.42);
+    isPlayingA = true; updateBtnState('A', true);
+  } else {
+    const del = makeModDelay(ctx, 0.36, 0.013, 0.28, 0.52, master, nodes);
+    makeStab(ctx, dry, nodes, 261.63, 0, 0.4); makeStab(ctx, del, nodes, 261.63, 0, 0.4);
+    isPlayingB = true; updateBtnState('B', true);
+  }
+  stopTimeout = setTimeout(stopAll, 5800); activeNodes = nodes;
+}
+
+function playHaas(side) {
+  if (side==='A'&&isPlayingA) { stopAll(); return; }
+  if (side==='B'&&isPlayingB) { stopAll(); return; }
+  stopAll();
+  const ctx = getCtx(), nodes = [];
+  const master = ctx.createGain(); master.gain.value = vol() * 0.55; master.connect(ctx.destination); nodes.push(master);
+  if (side === 'A') {
+    makeStab(ctx, master, nodes, 261.63, 0, 0.50);
+    isPlayingA = true; updateBtnState('A', true);
+  } else {
+    const g = ctx.createGain(); g.gain.value = 0.7; g.connect(master); nodes.push(g);
+    const del = makeDelay(ctx, 0.017, 0, 0.88, master, nodes);
+    makeStab(ctx, g, nodes, 261.63, 0, 0.5); makeStab(ctx, del, nodes, 261.63, 0, 0.5);
+    isPlayingB = true; updateBtnState('B', true);
+  }
+  stopTimeout = setTimeout(stopAll, 3800); activeNodes = nodes;
+}
+
+function playMix(side) {
+  if (side==='A'&&isPlayingA) { stopAll(); return; }
+  stopAll();
+  const ctx = getCtx(), nodes = [];
+  const master = ctx.createGain(); master.gain.value = vol() * 0.50; master.connect(ctx.destination); nodes.push(master);
+  const dry = ctx.createGain(); dry.gain.value = 0.65; dry.connect(master); nodes.push(dry);
+  const del = makeTapeDelay(ctx, 0.45, 0.50, master, nodes);
+  const freqs = [261.63, 329.63, 392.00, 329.63, 261.63];
+  freqs.forEach((f, i) => {
+    makeStab(ctx, dry, nodes, f, i * 0.5, 0.38);
+    makeStab(ctx, del, nodes, f, i * 0.5, 0.38);
+  });
+  isPlayingA = true; updateBtnState('A', true);
+  stopTimeout = setTimeout(stopAll, 7500); activeNodes = nodes;
+}
+
+// ─────────────────────────────────────────────────────────────
+//  STEP DATA
+// ─────────────────────────────────────────────────────────────
+
+const steps = [
+
+  {
+    title: "What is Delay?",
+    number: "Step 01 — Introduction",
+    svg: 'buildEchoWaveform',
+    body: `Delay is a <em>time-based effect</em> that captures a copy of a signal and plays it back after a set amount of time. The result is an echo — you hear the original sound, then a ghost of it a fraction of a second later.
+
+<br><br>At its core, delay is just a memory buffer. The delay <strong>time</strong> (measured in milliseconds) determines the gap between the original and its copy. This single parameter creates radically different effects at different settings: very short times (under 30ms) create doubling and stereo width; medium times (100–400ms) create rhythmic echoes that lock to a groove; long times (500ms+) create dramatic, audible repeats that define a song's mood.
+
+<br><br>Delay is one of the oldest audio effects. Before digital processors, engineers used tape loops — a record head wrote audio to tape, and a playback head mounted further along read it back. The distance between heads set the delay time. Every delay plugin and hardware unit today descends from that original principle.`,
+    keyPoints: [
+      { strong: "Time-based effect", rest: " — plays a copy of the signal back after a set delay time" },
+      { strong: "Short times (under 30ms)", rest: " — create doubling and perceived stereo width" },
+      { strong: "Medium times (100–400ms)", rest: " — create rhythmic echoes that lock to the groove" },
+      { strong: "Long times (500ms+)", rest: " — create dramatic, audible repeats and spatial depth" },
+    ],
+    audio: { type: 'clean-delay', desc: "A clean pluck tone, then the same with a single delay added. Notice how the echo adds depth and space without changing the original sound." },
+  },
+
+  {
+    title: "Feedback & Repeats",
+    number: "Step 02 — Core Controls",
+    svg: 'buildFeedbackDiagram',
+    body: `A single echo is useful, but <em>feedback</em> is what gives delay its depth. The feedback control takes the output of the delay and routes it back into the delay's own input. That first echo gets delayed again, creating a second echo — which gets fed back to produce a third, and so on. Each pass slightly reduces the level, so the echoes decay naturally.
+
+<br><br><strong>Low feedback (15–30%)</strong> gives 2–3 repeats that trail off quickly. This adds space without cluttering a mix — great for vocals, guitar stabs, and synth leads.
+
+<br><br><strong>High feedback (65–80%)</strong> produces many cascading echoes that linger and fill space. Used on ambient pads and guitar, high feedback creates a sense of infinite depth.
+
+<br><br><strong>Maximum feedback (near 100%)</strong> causes self-oscillation — the echoes sustain indefinitely and can build into a swelling wash of sound. On tape and analog units this is a celebrated technique. Digital delays typically hard-limit this.`,
+    keyPoints: [
+      { strong: "Feedback loop", rest: " — delay output is fed back into its own input, creating multiple echoes" },
+      { strong: "Low feedback", rest: " — 2–3 quick repeats; add space without mud" },
+      { strong: "High feedback", rest: " — many cascading echoes; fills space with texture" },
+      { strong: "Self-oscillation", rest: " — near 100% feedback sustains infinitely; a feature on tape and analog units" },
+    ],
+    audio: { type: 'feedback', desc: "Low feedback (2–3 repeats) vs. high feedback (cascading echoes). Notice how quickly the mix can fill up with high feedback." },
+  },
+
+  {
+    title: "Delay Time & Tempo Sync",
+    number: "Step 03 — Core Controls",
+    svg: 'buildTempoSyncDiagram',
+    body: `Delay time is measured in milliseconds or as a fraction of the song's tempo. Tempo-synced delay is one of the most powerful tools in production — when echoes land on the beat, they reinforce rhythm rather than fighting it.
+
+<br><br><strong>Quarter note delay</strong> places echoes on every beat. The result is steady and emphatic — good for doubling a melody or adding vocal presence.
+
+<br><br><strong>Eighth note delay</strong> places echoes twice per beat, creating a busier, more driving pattern. Works well on staccato rhythmic parts.
+
+<br><br><strong>Dotted eighth note delay</strong> equals 3/16 of a bar, landing off the beat in a way that creates syncopation and a floating, tumbling quality. It remains one of the most evocative delay settings in any genre.
+
+<br><br>Formula: <strong>60,000 ÷ BPM = quarter note in ms</strong>. At 120 BPM: quarter = 500ms, eighth = 250ms, dotted eighth = 375ms.`,
+    keyPoints: [
+      { strong: "Quarter note", rest: " — echoes on every beat; steady and rhythmic" },
+      { strong: "Eighth note", rest: " — twice per beat; busier and more driving" },
+      { strong: "Dotted eighth", rest: " — syncopated off-beat feel; floating and tumbling, works across genres" },
+      { strong: "60,000 ÷ BPM", rest: " — the formula to calculate quarter note delay time in milliseconds" },
+    ],
+    audio: { type: 'tempo-sync', desc: "Three delay times at 100 BPM: quarter note (600ms), eighth note (300ms), and dotted eighth (450ms). The dotted eighth creates a distinctly floating, syncopated quality." },
+  },
+
+  {
+    title: "Tape Delay",
+    number: "Step 04 — Delay Types",
+    svg: 'buildTapeCharacterDiagram',
+    body: `<strong>Tape delay</strong> is the original, and to many engineers the most musical. Audio is recorded onto a magnetic tape loop; a playback head mounted further along the tape reads it back as an echo. Moving the playback head or varying tape speed changes the delay time.
+
+<br><br>The character comes from physics. <strong>High frequencies roll off</strong> with each pass through the magnetic medium — each repeat sounds progressively darker and warmer. This natural filtering is flattering: echoes blend into the mix rather than piling on top, because they occupy less of the high-frequency space where they'd fight the dry signal for clarity.
+
+<br><br><strong>Wow and flutter</strong> — slight, organic variations in tape speed — add subtle pitch modulation to each repeat. The instability is small enough to feel alive rather than wrong. Each echo breathes slightly differently.
+
+<br><br>Tape delays defined recorded music for decades. Sam Phillips used tape slap echo at Sun Studio to give Elvis and Johnny Cash their electric urgency. Dub reggae producers weaponized it as a compositional tool. The Roland RE-201 Space Echo and Maestro Echoplex remain sought-after today.`,
+    keyPoints: [
+      { strong: "HF rolloff", rest: " — each repeat gets progressively darker and warmer as high frequencies are lost" },
+      { strong: "Wow and flutter", rest: " — subtle tape speed variations add organic pitch modulation to each echo" },
+      { strong: "Self-oscillation", rest: " — pushing feedback to max creates a building, self-sustaining wash of sound" },
+      { strong: "Historical significance", rest: " — the defining effect of recordings from the 1950s through 1970s" },
+    ],
+    audio: { type: 'tape', desc: "Tape delay with a low-pass filter in the feedback path. Listen to how each repeat gets progressively darker — the high frequencies roll off with every pass." },
+  },
+
+  {
+    title: "Analog Delay",
+    number: "Step 05 — Delay Types",
+    body: `<strong>Analog delay</strong> emerged in the 1970s when engineers replaced the tape loop with <em>bucket-brigade device (BBD) chips</em> — strings of capacitors that pass a sampled electrical charge from one stage to the next, like water passed bucket to bucket down a line. When the charge reaches the end, you hear the delayed signal.
+
+<br><br>BBD chips introduce their own character: a slight <strong>high-frequency rolloff</strong> similar to tape, a gentle noise floor, and a warmth in the midrange. Analog delay sounds slightly smoky and dense — warmer than digital, crisper than tape, with a solidity that works beautifully on electric guitar, bass, and vocals.
+
+<br><br>The limitations of BBD technology pushed musicians toward creativity. Maximum delay times were typically under 1000ms, and longer times reduced audio quality. This discipline produced some of the most inventive delay use in music history — shorter settings, moderate feedback, and a focus on rhythm rather than reverb-like wash.
+
+<br><br>Iconic units include the Roland RE-201 Space Echo, the Electro-Harmonix Memory Man, and the MXR Carbon Copy. Modern plugins emulate every aspect of the BBD chain — the noise, the filtering, and the way repeats gradually lose definition and merge into texture.`,
+    keyPoints: [
+      { strong: "BBD chips", rest: " — bucket-brigade devices pass audio through a chain of capacitors" },
+      { strong: "Slight HF rolloff", rest: " — warmer than digital, crisper and cleaner than tape" },
+      { strong: "Limited delay time", rest: " — typically under 1000ms; pushed musicians toward creative solutions" },
+      { strong: "Famous units", rest: " — Roland RE-201, Electro-Harmonix Memory Man, MXR Carbon Copy" },
+    ],
+    audio: { type: 'analog', desc: "Analog delay character: slightly filtered repeats with a warm, dense quality. Compare with the digital delay in the next step to hear the difference in clarity." },
+  },
+
+  {
+    title: "Digital Delay & Ping-Pong",
+    number: "Step 06 — Delay Types",
+    svg: 'buildPingPongDiagram',
+    body: `<strong>Digital delay</strong> stores audio in RAM and plays it back with perfect fidelity. Every repeat is an exact copy of the original — no HF loss, no noise, no pitch drift. This precision can be an asset (ambient textures, rhythmically precise effects) or a limitation (can feel sterile for warm, organic sounds).
+
+<br><br>Digital delay made possible techniques that were impractical on tape or BBD hardware:
+
+<br><br><strong>Multi-tap delay</strong> places multiple playback points along the buffer, each with its own delay time, level, and pan. You can create polyrhythmic echo patterns and spatial effects from a single input.
+
+<br><br><strong>Ping-pong delay</strong> alternates each repeat between left and right channels. Echo 1 appears in the left channel, echo 2 in the right, echo 3 in the left again. The result is a sweeping, side-to-side movement that fills stereo space without crowding the center of the mix. Use headphones to fully appreciate the effect — the spatial alternation is the point.`,
+    keyPoints: [
+      { strong: "Perfect fidelity", rest: " — every repeat is identical; no degradation across echoes" },
+      { strong: "Multi-tap", rest: " — multiple playback points with individual timing, level, and pan positions" },
+      { strong: "Ping-pong", rest: " — echoes alternate left and right channels for wide stereo movement" },
+      { strong: "Use headphones", rest: " — the L/R alternation of ping-pong is the effect; it's built for stereo listening" },
+    ],
+    audio: { type: 'digital', desc: "Clean digital delay vs. ping-pong. Notice how ping-pong alternates the echoes between left and right — use headphones for the full effect." },
+  },
+
+  {
+    title: "Modulation in Delay",
+    number: "Step 07 — Delay Modulation",
+    svg: 'buildModulationDiagram',
+    body: `Delay time doesn't have to be fixed. When a <em>low-frequency oscillator (LFO)</em> gently varies the delay time, it changes the pitch and timing of each repeat slightly. This gives delays a shimmering, animated quality — each echo is subtly different from the last, which sounds warm and organic rather than mechanically identical.
+
+<br><br>The same modulated delay principle produces different effects at different base delay times:
+
+<br><br><strong>Very short delay (1–15ms) + modulation = chorus.</strong> The pitch wobble at short times creates the effect of multiple instruments in slight unison — the lush, wide "chorus" sound that defined the 1980s.
+
+<br><br><strong>Very short delay (0.5–8ms) + heavy modulation = flanging.</strong> Mixing a heavily modulated short delay with the dry signal creates comb filtering — the sweeping, metallic "jet plane" sound.
+
+<br><br><strong>Medium/long delay + subtle modulation = shimmer.</strong> Small amounts of modulation on regular delay make repeats feel organic. This is why analog and tape delay emulations always include modulation — it stops the sound from feeling static.`,
+    keyPoints: [
+      { strong: "LFO modulates delay time", rest: " — creates subtle pitch and timing variation in each repeat" },
+      { strong: "1–15ms + modulation = chorus", rest: " — multiple instruments in slight unison" },
+      { strong: "0.5–8ms + heavy mod = flanging", rest: " — sweeping comb filter, the classic jet-plane sound" },
+      { strong: "Longer delay + subtle mod = shimmer", rest: " — keeps repeats feeling alive rather than mechanical" },
+    ],
+    audio: { type: 'modulation', desc: "A very short modulated delay (chorus) vs. a longer shimmering delay. The chorus uses sub-20ms delay — the modulation creates the pitch variation rather than an audible echo." },
+  },
+
+  {
+    title: "The Haas Effect",
+    number: "Step 08 — Psychoacoustics",
+    svg: 'buildHaasDiagram',
+    body: `The <em>Haas effect</em> — formally called the precedence effect — describes one of the most important quirks of human hearing. When a sound arrives at both ears within approximately 30 milliseconds, the brain fuses the two arrivals into a single event and locates the source based on which arrival came first.
+
+<br><br>Applied in mixing: take a mono signal, pan it hard left, and send an identical copy delayed by 5–25ms to the right channel. The listener hears <em>one</em> sound — but the timing difference creates a powerful sense of <strong>stereo width and space</strong>. The brain integrates both arrivals into a single wide image.
+
+<br><br>This is remarkably effective for:
+<br>• <strong>Lead vocals</strong> — instant width without the obvious artifice of two separate performances
+<br>• <strong>Acoustic guitar</strong> — a sense of physical presence and size
+<br>• <strong>Synth pads</strong> — width without the phase problems of stereo wideners
+
+<br><br>Keep delay under 30ms — beyond that, the brain separates events and you hear an echo rather than width. 10–18ms is the sweet spot. Check mono compatibility: Haas signals can partially cancel when summed.`,
+    keyPoints: [
+      { strong: "Under 30ms", rest: " — brain fuses both arrivals into one event; above 30ms you hear an echo" },
+      { strong: "Perceived width", rest: " — timing difference creates stereo without the listener hearing a second sound" },
+      { strong: "Best applications", rest: " — lead vocals, acoustic guitar, synth pads" },
+      { strong: "Check mono", rest: " — Haas-wide signals can partially cancel when summed to mono" },
+    ],
+    audio: { type: 'haas', desc: "The same tone in mono vs. with a 17ms Haas delay. The Haas version sounds wider without an audible echo — the brain integrates both arrivals as one event." },
+  },
+
+  {
+    title: "Where to Use Delay",
+    number: "Step 09 — Delay in the Mix",
+    body: `Unlike reverb — which creates room ambience — delay is <em>rhythmic and intentional</em>. It places copies of your signal at specific musical points in time. Used well, it adds depth, movement, and groove. Used carelessly, it creates mud.
+
+<br><br><strong>Vocals:</strong> A dotted eighth note delay on a lead vocal is one of the most common mix techniques in pop and rock. Set it so only one or two repeats are audible, sitting in the gaps between lyric lines. The vocal sounds fuller and more present without any obvious echo.
+
+<br><br><strong>Electric guitar:</strong> Tape or analog delay with 30–45% feedback creates the classic rock and alternative guitar sound. Repeats fill space between riffs and give solo lines dimension.
+
+<br><br><strong>Drums:</strong> Short delay (30–80ms) on individual hits — particularly slapback on snare — adds controlled ambience without reverb's diffusion. It's a defining characteristic of rockabilly, country, and early rock and roll.
+
+<br><br><strong>Synths and pads:</strong> Long digital or modulated delay with high feedback transforms a simple stab into a slowly evolving ambient texture. Great for intros and breakdowns.
+
+<br><br><strong>Sends vs inserts:</strong> Route delay to a send channel rather than inserting it directly. This lets you blend dry and wet independently and share one delay unit across multiple tracks.`,
+    keyPoints: [
+      { strong: "Vocals", rest: " — dotted eighth in the gaps between phrases; adds depth invisibly" },
+      { strong: "Guitar", rest: " — tape/analog delay fills space between riffs and gives solos dimension" },
+      { strong: "Drums", rest: " — slapback (30–80ms) adds ambience without reverb blur" },
+      { strong: "Always use a send", rest: " — blend dry/wet from the fader and share one delay across multiple tracks" },
+    ],
+    audio: { type: 'mix', desc: "A short musical phrase with tape delay in a mix context. The echoes fill the space between notes without cluttering the downbeats." },
+  },
+
+  {
+    title: "Practical Workflow",
+    number: "Step 10 — Using Delay Effectively",
+    body: `Delay is easy to overuse and hard to hide when overdone. Here is a practical approach that works in any mix.
+
+<br><br><strong>1. Tempo-sync first.</strong> Unless you specifically want an arrhythmic, free-floating quality, sync delay time to the BPM from the start. Un-synced delay creates rhythmic clashes that compound quickly across a full mix.
+
+<br><br><strong>2. Filter the feedback path.</strong> Place a high-pass filter (80–200Hz) and a low-pass filter (5–8kHz) inside the feedback loop. The HPF keeps bass out of each repeat, preventing low-end buildup. The LPF progressively darkens each echo, making repeats blend rather than grate. Many delays have these as "tone" or "damp" controls.
+
+<br><br><strong>3. Use a send, not a direct insert.</strong> An aux send lets you control wet level from the mixer fader and share the delay across multiple tracks. Insert only when you need the signal fully processed — a 100% wet shimmer effect or a Haas doubler.
+
+<br><br><strong>4. Automate the feedback.</strong> Push feedback up during instrumental sections or pre-chorus builds. Pull it back when vocals enter. You can also side-chain the delay return so repeats only emerge in the gaps between notes.
+
+<br><br><strong>5. Mix delay low, then A/B.</strong> If you clearly hear the delay, it is probably too loud. Delay should support the performance, not compete with it. Bring it up until you hear it — then bring it back 20%.`,
+    keyPoints: [
+      { strong: "Tempo-sync first", rest: " — un-synced delay creates rhythmic chaos in the mix" },
+      { strong: "Filter the feedback", rest: " — HPF + LPF keeps repeats clean and blend-friendly" },
+      { strong: "Use a send channel", rest: " — share one delay across tracks; blend level from the mixer" },
+      { strong: "Mix low, then A/B", rest: " — if you hear it clearly, it's too loud; aim for the level you notice when it's gone" },
+    ],
+    audio: { type: 'mix', desc: "A full mix demo showing delay used as a compositional tool — tempo-synced tape delay, filtered feedback, and appropriate blend level." },
+  },
+
+];
+
+// ─────────────────────────────────────────────────────────────
+//  RENDER & NAVIGATION
+// ─────────────────────────────────────────────────────────────
+
+let currentStep = 0;
+
+function buildAudioDemo(step) {
+  const a = step.audio;
+  if (!a) return '';
+  const v = `<div class="vol-wrap"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted);flex-shrink:0"><polygon points="11,5 6,9 2,9 2,15 6,15 11,19 11,5"/><path d="M19.07,4.93a10,10,0,0,1,0,14.14"/><path d="M15.54,8.46a5,5,0,0,1,0,7.07"/></svg><input type="range" class="vol-slider" min="0.05" max="1" step="0.01" value="0.55"></div>`;
+  const pi = playIco();
+  const demos = {
+    'clean-delay': `<button class="play-btn" id="playBtnA" onclick="playCleanDelay('A')">${pi}Dry</button><button class="play-btn secondary" id="playBtnB" onclick="playCleanDelay('B')">${pi}With Delay</button>${v}`,
+    'feedback':    `<button class="play-btn" id="playBtnA" onclick="playFeedback('A')">${pi}Low Feedback</button><button class="play-btn secondary" id="playBtnB" onclick="playFeedback('B')">${pi}High Feedback</button>${v}`,
+    'tempo-sync':  `<button class="play-btn" id="playBtnA" onclick="playTempoSync('A')">${pi}Quarter Note</button><button class="play-btn secondary" id="playBtnB" onclick="playTempoSync('B')">${pi}Eighth Note</button><button class="play-btn secondary" id="playBtnC" onclick="playTempoSync('C')">${pi}Dotted Eighth</button>${v}`,
+    'tape':        `<button class="play-btn" id="playBtnA" onclick="playTape('A')">${pi}Tape Delay</button>${v}`,
+    'analog':      `<button class="play-btn" id="playBtnA" onclick="playAnalog('A')">${pi}Analog Delay</button>${v}`,
+    'digital':     `<button class="play-btn" id="playBtnA" onclick="playDigital('A')">${pi}Digital Delay</button><button class="play-btn secondary" id="playBtnB" onclick="playDigital('B')">${pi}Ping-Pong</button>${v}`,
+    'modulation':  `<button class="play-btn" id="playBtnA" onclick="playModulation('A')">${pi}Chorus (short)</button><button class="play-btn secondary" id="playBtnB" onclick="playModulation('B')">${pi}Shimmering Delay</button>${v}`,
+    'haas':        `<button class="play-btn" id="playBtnA" onclick="playHaas('A')">${pi}Mono</button><button class="play-btn secondary" id="playBtnB" onclick="playHaas('B')">${pi}Haas Effect</button>${v}`,
+    'mix':         `<button class="play-btn" id="playBtnA" onclick="playMix('A')">${pi}Play Demo</button>${v}`,
+  };
+  return `<div class="audio-demo">
+    <div class="audio-demo-label">Audio Demo</div>
+    <div class="audio-demo-desc">${a.desc}</div>
+    <div class="demo-controls">${demos[a.type] || ''}</div>
+  </div>`;
+}
+
+function renderStep(idx) {
+  stopAll();
+  const step = steps[idx];
+  const card = document.getElementById('stepCard');
+
+  if (idx >= steps.length) {
+    card.innerHTML = `<div class="completion-card">
+      <div class="completion-title">Module complete.</div>
+      <div class="completion-sub">You've covered delay from first principles to practical workflow. Start adding rhythmic depth and space to your next mix — your ears will quickly tell you how much is enough.</div>
+      <a class="completion-cta" href="/mobile/learn/">Explore more modules →</a>
+      <button class="completion-restart" onclick="goToStep(0)">Restart module</button>
+    </div>`;
+    document.getElementById('prevBtn').disabled = false;
+    document.getElementById('nextBtn').style.display = 'none';
+    document.getElementById('stepCounter').textContent = '';
+    updateDots(idx);
+    document.getElementById('progressLabel').textContent = 'Complete';
+    return;
+  }
+
+  document.getElementById('nextBtn').style.display = '';
+  const svgHtml = step.svg && svgBuilders[step.svg]
+    ? `<div class="diagram-wrap">${svgBuilders[step.svg]()}</div>` : '';
+  const kpHtml = step.keyPoints?.length
+    ? `<div class="key-points"><div class="key-points-label">Key Points</div>${step.keyPoints.map(k => `<div class="key-point"><strong>${k.strong}</strong>${k.rest}</div>`).join('')}</div>` : '';
+  const isLast = idx === steps.length - 1;
+
+  card.innerHTML = `${svgHtml}
+    <div class="step-inner">
+      <div class="step-number">${step.number}</div>
+      <div class="step-title">${step.title}</div>
+      <div class="step-body">${step.body}</div>
+      ${kpHtml}${buildAudioDemo(step)}
+    </div>`;
+
+  document.getElementById('prevBtn').disabled = idx === 0;
+  const nb = document.getElementById('nextBtn');
+  nb.className = isLast ? 'nav-btn finish' : 'nav-btn primary';
+  nb.textContent = isLast ? 'Finish ✓' : 'Next →';
+  document.getElementById('stepCounter').textContent = `${idx + 1} / ${steps.length}`;
+  document.getElementById('progressLabel').textContent = `Step ${idx + 1} of ${steps.length}`;
+  updateDots(idx);
+  card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function updateDots(idx) {
+  document.querySelectorAll('.progress-dot').forEach((d, i) => {
+    d.className = 'progress-dot' + (i < idx ? ' done' : i === idx ? ' active' : '');
+  });
+}
+
+function goToStep(idx) { currentStep = idx; renderStep(currentStep); }
+function navigate(dir) {
+  currentStep = Math.min(Math.max(0, currentStep + dir), steps.length);
+  renderStep(currentStep);
+}
+
+(function initDots() {
+  const container = document.getElementById('progressDots');
+  steps.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'progress-dot'; d.title = `Step ${i + 1}`;
+    d.addEventListener('click', () => goToStep(i));
+    container.appendChild(d);
+  });
+  renderStep(0);
+})();
+</script>
+<script>
+// ── Fade in ───────────────────────────────────────────────
+requestAnimationFrame(() => document.body.classList.add('visible'));
+
+// ── Sheet open / close ────────────────────────────────────
+const sheetOverlay = document.getElementById('sheetOverlay');
+function openSheet() {
+  sheetOverlay.style.display = 'flex';
+  sheetOverlay.getBoundingClientRect();
+  sheetOverlay.classList.add('open');
+}
+function closeSheet() {
+  sheetOverlay.classList.remove('open');
+  setTimeout(() => { sheetOverlay.style.display = 'none'; }, 350);
+}
+function onProfileTap(e) { e.preventDefault(); openSheet(); }
+function onOverlayTap(e) { if (e.target === sheetOverlay) { e.preventDefault(); closeSheet(); } }
+
+function onSheetTab(e, tab) {
+  e.preventDefault();
+  document.querySelectorAll('.sheet-tab').forEach(t => t.classList.remove('active'));
+  e.currentTarget.classList.add('active');
+  document.getElementById('sheetSignin').style.display = tab === 'signin' ? '' : 'none';
+  document.getElementById('sheetSignup').style.display = tab === 'signup' ? '' : 'none';
+  document.getElementById('siMsg').textContent = '';
+  document.getElementById('suMsg').textContent = '';
+}
+
+async function onSignIn(e) {
+  e.preventDefault();
+  const msg = document.getElementById('siMsg');
+  msg.textContent = 'Signing in…'; msg.className = 'sheet-msg';
+  const { error } = await SonicSandbox.signIn(
+    document.getElementById('siEmail').value.trim(),
+    document.getElementById('siPassword').value
+  );
+  if (error) { msg.textContent = error.message; msg.className = 'sheet-msg error'; }
+  else { closeSheet(); }
+}
+
+async function onSignUp(e) {
+  e.preventDefault();
+  const msg = document.getElementById('suMsg');
+  msg.textContent = 'Creating account…'; msg.className = 'sheet-msg';
+  const { error } = await SonicSandbox.signUp(
+    document.getElementById('suEmail').value.trim(),
+    document.getElementById('suPassword').value
+  );
+  if (error) { msg.textContent = error.message; msg.className = 'sheet-msg error'; }
+  else { msg.textContent = 'Check your email to confirm your account.'; msg.className = 'sheet-msg success'; }
+}
+
+document.addEventListener('ss:authchange', async (e) => {
+  const user = e.detail;
+  const wrap = document.getElementById('profileBtnWrap');
+  if (user) {
+    const profile = await SonicSandbox.getProfile();
+    const username = profile?.username;
+    const initial = username ? username[0].toUpperCase() : (user.email || '?')[0].toUpperCase();
+    wrap.innerHTML = `<div class="profile-avatar" ontouchend="onProfileTap(event)">${initial}</div>`;
+    document.getElementById('sheetLoggedOut').style.display = 'none';
+    document.getElementById('sheetLoggedIn').style.display  = '';
+    document.getElementById('profileAvatarLg').textContent  = initial;
+    document.getElementById('profileUsername').textContent = username ? '@' + username : user.email;
+    document.getElementById('profileEmail').textContent    = username ? user.email : '';
+    const joined = user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '';
+    document.getElementById('profileSince').textContent = joined ? `Member since ${joined}` : '';
+    const stats = await SonicSandbox.getStats();
+    document.getElementById('statRounds').textContent   = stats.total;
+    document.getElementById('statAccuracy').textContent = stats.accuracy !== null ? `${stats.accuracy}%` : '—';
+  } else {
+    wrap.innerHTML = `<button class="profile-btn" ontouchend="onProfileTap(event)" aria-label="Account"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="white" stroke-width="1.8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg></button>`;
+    document.getElementById('sheetLoggedOut').style.display = '';
+    document.getElementById('sheetLoggedIn').style.display  = 'none';
+  }
+});
+</script>
+</body>
+</html>
