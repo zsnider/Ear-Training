@@ -1102,7 +1102,8 @@ function submitAnswer(clickedFreq) {
 
   document.getElementById('promptCard').classList.add(isCorrect ? 'correct-flash' : 'wrong-flash');
   const ri = document.getElementById('resultInline');
-  ri.textContent = isCorrect ? '✓ Correct!' : `✗ ${fmtFreq(targetFreq)}`;
+  const _multLbl = window.ScoringEngine ? ScoringEngine.label('freq-quiz', { gainAmount }) : '×1.0';
+  ri.textContent = isCorrect ? `✓ Correct!   +${pts} pts  ${_multLbl}` : `✗ ${fmtFreq(targetFreq)}`;
   ri.className = `result-msg-inline ${isCorrect ? 'show-correct' : 'show-wrong'}`;
 
   addHistory(isCorrect);

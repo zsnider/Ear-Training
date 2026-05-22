@@ -647,9 +647,10 @@ function submitGuess() {
   targetY = freqToY(targetFreq, H);
 
   const err = getError();
-  const pts = Math.round(Math.max(0, 100 - err * 1.8));
-
-  totalScore += pts;
+  const pts         = Math.round(Math.max(0, 100 - err * 1.8));
+  const mult        = window.ScoringEngine ? ScoringEngine.multiplier('freq-hunter-ios', { mode: gameMode, qFactor: bpQ }) : 1;
+  const weightedPts = Math.round(pts * mult);
+  totalScore += weightedPts;
   totalError  = totalRounds <= 1 ? err : (totalError * (totalRounds - 1) + err) / totalRounds;
   if (pts >= 70) streak++; else streak = 0;
 
@@ -658,8 +659,7 @@ function submitGuess() {
   document.getElementById('errorVal').textContent  = Math.round(totalError) + '%';
 
   if (window.SonicSandbox) {
-    const mult = window.ScoringEngine ? ScoringEngine.multiplier('freq-hunter', { mode: gameMode }) : 1;
-    SonicSandbox.saveScore({ game: 'freq-hunter', correct: pts >= 70, roundScore: Math.round(pts * mult), rawScore: pts });
+    SonicSandbox.saveScore({ game: 'freq-hunter-ios', correct: pts >= 70, roundScore: weightedPts, rawScore: pts });
   }
 
   const tier      = pts >= 85 ? 'perfect' : pts >= 60 ? 'good' : pts >= 35 ? 'ok' : 'bad';
@@ -667,7 +667,7 @@ function submitGuess() {
 
   document.getElementById('promptCard').classList.add(pts >= 60 ? 'correct-flash' : 'wrong-flash');
   const sd = document.getElementById('scoreDelta');
-  sd.textContent = `+${pts}`;
+  sd.textContent = `+${weightedPts} pts  ×${mult.toFixed(1)}`;
   sd.className   = `score-delta show ${pts >= 60 ? 'good' : pts >= 35 ? 'ok' : 'bad'}`;
 
   const tFreqLabel = targetFreq >= 1000 ? (targetFreq / 1000) + 'kHz' : targetFreq + 'Hz';

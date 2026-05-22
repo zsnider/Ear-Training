@@ -724,10 +724,12 @@ function submitAnswer(clickedDb) {
   const isCorrect = (parseFloat(clickedDb) === parseFloat(targetDb));
   if (isCorrect) { score++; streak++; correctCount++; } else { streak = 0; }
 
+  const maxPts  = window.ScoringEngine ? ScoringEngine.points('level-logic-ios', { difficulty }) : 100;
+  const multLbl = window.ScoringEngine ? ScoringEngine.label('level-logic-ios', { difficulty }) : '×1.0';
+
   if (window.SonicSandbox) {
     const rawScore = isCorrect ? 100 : 0;
-    const maxPts   = window.ScoringEngine ? ScoringEngine.points('level-logic', { difficulty }) : 100;
-    SonicSandbox.saveScore({ game: 'level-logic', correct: isCorrect, roundScore: isCorrect ? maxPts : 0, rawScore });
+    SonicSandbox.saveScore({ game: 'level-logic-ios', correct: isCorrect, roundScore: isCorrect ? maxPts : 0, rawScore });
   }
 
   document.getElementById('scoreVal').textContent    = score;
@@ -754,7 +756,7 @@ function submitAnswer(clickedDb) {
 
   // Prompt card flash
   document.getElementById('promptCard').classList.add(isCorrect ? 'correct-flash' : 'wrong-flash');
-  rb.textContent = isCorrect ? '✓' : `✗ ${fmtDb(targetDb)} dB`;
+  rb.textContent = isCorrect ? `✓  +${maxPts} pts  ${multLbl}` : `✗ ${fmtDb(targetDb)} dB`;
   rb.className   = `result-badge ${isCorrect ? 'show-correct' : 'show-wrong'}`;
 
   // Reveal meter

@@ -686,9 +686,10 @@ function submitAnswer() {
 
   const err    = Math.abs(userPan - targetPan);
   const errPct = (err / (gameMode === 'width' ? 1 : 2)) * 100;
-  const pts    = Math.round(Math.max(0, 100 - errPct * 1.6));
-
-  totalScore += pts;
+  const pts         = Math.round(Math.max(0, 100 - errPct * 1.6));
+  const mult        = window.ScoringEngine ? ScoringEngine.multiplier('spatial-specialist-ios', { mode: gameMode }) : 1;
+  const weightedPts = Math.round(pts * mult);
+  totalScore += weightedPts;
   totalErr    = totalErr === 0 ? errPct : (totalErr * (totalRounds - 1) + errPct) / totalRounds;
   if (pts >= 70) streak++; else streak = 0;
 
@@ -719,7 +720,7 @@ function submitAnswer() {
   const pc = document.getElementById('promptCard');
   pc.classList.add(pts >= 65 ? 'correct-flash' : 'wrong-flash');
   const rb = document.getElementById('resultBadge');
-  rb.textContent = `+${pts}`;
+  rb.textContent = `+${weightedPts} pts  ×${mult.toFixed(1)}`;
   rb.className   = `result-badge ${pts >= 65 ? 'good' : pts >= 40 ? 'ok' : 'bad'}`;
 
   document.getElementById('promptText').innerHTML =
@@ -748,8 +749,7 @@ function submitAnswer() {
   setTimeout(() => { ef.style.width = Math.min(100, errPct * 1.5) + '%'; }, 60);
 
   if (window.SonicSandbox) {
-    const mult = window.ScoringEngine ? ScoringEngine.multiplier('spatial-specialist', { mode: gameMode }) : 1;
-    SonicSandbox.saveScore({ game: 'spatial-specialist', correct: pts >= 70, roundScore: Math.round(pts * mult), rawScore: pts });
+    SonicSandbox.saveScore({ game: 'spatial-specialist-ios', correct: pts >= 70, roundScore: weightedPts, rawScore: pts });
   }
 
   addHistory(tier);

@@ -731,8 +731,10 @@ function selectAnswer(side) {
   if (!roundActive || answered) return;
   answered = true;
 
-  const correct = (side === compressedSide);
-  if (correct) { totalScore += 10; streak++; correctCount++; }
+  const correct  = (side === compressedSide);
+  const maxPts   = window.ScoringEngine ? ScoringEngine.points('quick-compress-ios', { tier: currentTier }) : 100;
+  const multLbl  = window.ScoringEngine ? ScoringEngine.label('quick-compress-ios', { tier: currentTier }) : '×1.0';
+  if (correct) { totalScore += maxPts; streak++; correctCount++; }
   else streak = 0;
 
   document.getElementById('scoreVal').textContent    = totalScore;
@@ -767,7 +769,7 @@ function selectAnswer(side) {
   const pc = document.getElementById('promptCard');
   pc.classList.add(correct ? 'correct-flash' : 'wrong-flash');
   const rb = document.getElementById('resultBadge');
-  rb.textContent = correct ? '✓ Correct!' : `✗ It was ${compressedSide}`;
+  rb.textContent = correct ? `✓  +${maxPts} pts  ${multLbl}` : `✗ It was ${compressedSide}`;
   rb.className   = `result-badge ${correct ? 'good' : 'bad'}`;
   document.getElementById('promptText').innerHTML = correct
     ? `🎯 <span>${compressedSide}</span> was compressed — ${TIER_LABELS[currentTier]} — tap anywhere to continue`
@@ -787,8 +789,7 @@ function selectAnswer(side) {
 
   if (window.SonicSandbox) {
     const rawScore = correct ? 100 : 0;
-    const maxPts   = window.ScoringEngine ? ScoringEngine.points('quick-compress', { tier: currentTier }) : 100;
-    SonicSandbox.saveScore({ game: 'quick-compress', correct, roundScore: correct ? maxPts : 0, rawScore });
+    SonicSandbox.saveScore({ game: 'quick-compress-ios', correct, roundScore: correct ? maxPts : 0, rawScore });
   }
 
   addHistory(correct);

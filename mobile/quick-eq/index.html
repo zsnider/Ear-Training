@@ -849,8 +849,10 @@ function submitAnswer(choice) {
   answered = true;
   stopPlayback();
 
-  const correct = choice === correctChoice;
-  if (correct) { totalScore += 10; streak++; correctCount++; }
+  const correct  = choice === correctChoice;
+  const maxPts   = window.ScoringEngine ? ScoringEngine.points('quick-eq-ios', { difficulty, numBands }) : 100;
+  const multLbl  = window.ScoringEngine ? ScoringEngine.label('quick-eq-ios', { difficulty, numBands }) : '×1.0';
+  if (correct) { totalScore += maxPts; streak++; correctCount++; }
   else streak = 0;
 
   document.getElementById('scoreVal').textContent    = totalScore;
@@ -893,7 +895,7 @@ function submitAnswer(choice) {
   const pc = document.getElementById('promptCard');
   pc.classList.add(correct ? 'correct-flash' : 'wrong-flash');
   const rb = document.getElementById('resultBadge');
-  rb.textContent = correct ? '✓ Correct!' : `✗ It was ${correctChoice}`;
+  rb.textContent = correct ? `✓  +${maxPts} pts  ${multLbl}` : `✗ It was ${correctChoice}`;
   rb.className   = `result-badge ${correct ? 'good' : 'bad'}`;
   document.getElementById('promptText').innerHTML = correct
     ? `🎯 Correct — <span>EQ ${correctChoice}</span> was the target — tap anywhere to continue`
@@ -905,8 +907,7 @@ function submitAnswer(choice) {
 
   if (window.SonicSandbox) {
     const rawScore = correct ? 100 : 0;
-    const maxPts   = window.ScoringEngine ? ScoringEngine.points('quick-eq', { difficulty, numBands }) : 100;
-    SonicSandbox.saveScore({ game: 'quick-eq', correct, roundScore: correct ? maxPts : 0, rawScore });
+    SonicSandbox.saveScore({ game: 'quick-eq-ios', correct, roundScore: correct ? maxPts : 0, rawScore });
   }
 
   addHistory(correct);

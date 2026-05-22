@@ -33,23 +33,24 @@ window.ScoringEngine = (() => {
   const QUICK_EQ_DIFF  = { easy: 1.0, medium: 1.5, hard: 2.2 };
   const QUICK_EQ_BANDS = { 1: 1.0, 2: 1.3, 3: 1.6 };
 
-  // Spatial Specialist — uniform across game modes
-  const SPATIAL = { panning: 1.0, width: 1.0 };
+  // Spatial Specialist — Width is less intuitive than panning
+  const SPATIAL = { panning: 1.0, width: 1.3 };
 
-  // Freq Hunter — uniform across game modes
-  const FREQ_HUNTER = { freq: 1.0, pan: 1.0, freqpan: 1.0 };
+  // Freq Hunter — Freq+Pan requires locating two axes simultaneously
+  const FREQ_HUNTER = { freq: 1.0, pan: 1.2, freqpan: 1.8 };
 
-  // Compressor — preset difficulties keyed by name; custom mode = 0.3 × numParams
-  // (threshold, ratio, attack, release, knee, makeup → up to 6 params → max ×1.8 in custom)
+  // Compressor — preset difficulties keyed by name; custom mode = 1.0 + 0.3 × numParams
+  // (threshold, ratio, attack, release, knee, makeup → up to 6 params → max ×2.8 in custom)
   const COMPRESSOR = { easy: 1.0, medium: 1.4, hard: 1.8, pro: 2.2 };
 
   // EQ Match — two axes: gainThreshold (training tier) × numBands (filter count)
-  // All tier (gainThreshold=-1) ranges the full 0–12 dB window → base difficulty
-  const EQ_MATCH_TIER  = { 10: 1.0, 8: 1.2, 6: 1.5, 4: 2.0, 2: 2.8, 0: 4.0, '-1': 1.0 };
+  // All tier (gainThreshold=-1) spans full 0–12 dB, mixing easy and hard rounds → ×2.0
+  const EQ_MATCH_TIER  = { 10: 1.0, 8: 1.2, 6: 1.5, 4: 2.0, 2: 2.8, 0: 4.0, '-1': 2.0 };
   const EQ_MATCH_BANDS = { 1: 1.0, 2: 1.3, 3: 1.6 };
 
   // Reverb Master — keyed by difficulty (Pro = roomSize+decay+wet+preDelay)
-  const REVERB = { easy: 1.0, medium: 1.4, hard: 1.8, pro: 2.2, custom: 2.5 };
+  // Custom mode uses 1.0 + 0.3 × numParams formula (handled in rawMultiplier below)
+  const REVERB = { easy: 1.0, medium: 1.4, hard: 1.8, pro: 2.2 };
 
   // Delay Master — base keyed by difficulty, plus per-param-count bonus
   // 1 param: +0  |  2 params: +0.3  |  3 params: +0.6
@@ -57,11 +58,25 @@ window.ScoringEngine = (() => {
   const DELAY_PARAMS = { 1: 0, 2: 0.3, 3: 0.6 };
 
   // Distortion Master — keyed by difficulty (Pro = drive+mix+type+tone)
-  const DISTORTION = { easy: 1.0, medium: 1.4, hard: 1.8, pro: 2.2, custom: 2.5 };
+  // Custom mode uses 1.0 + 0.3 × numParams formula (handled in rawMultiplier below)
+  const DISTORTION = { easy: 1.0, medium: 1.4, hard: 1.8, pro: 2.2 };
 
   // Signal Chain Architect — two axes: difficulty × chainLength
   const SCA_DIFF  = { easy: 1.0, medium: 1.5, hard: 2.2 };
   const SCA_CHAIN = { 2: 1.0, 3: 1.3, 4: 1.6 };
+
+  // ── Mobile iOS game tables ────────────────────────────────────────────────────
+
+  // freq-quiz-ios — 3 levels only (Easy ±12, Medium ±6, Hard ±3)
+  const FREQ_QUIZ_IOS = { 12: 1.0, 6: 1.5, 3: 2.5 };
+
+  // freq-hunter-ios — same mode axis as desktop, plus bandpass Q as a second axis
+  // Narrower Q = more isolated frequency window = harder to localize in spectral context
+  const FREQ_HUNTER_IOS_MODE = { freq: 1.0, pan: 1.2, freqpan: 1.8 };
+  const FREQ_HUNTER_IOS_Q    = { 1: 1.0, 2: 1.3, 4: 1.6 };  // Wide=1, Medium=2, Narrow=4
+
+  // level-logic-ios / quick-compress-ios / quick-eq-ios / spatial-specialist-ios
+  // — identical difficulty sets to desktop; reuse the same tables above.
 
   // ── Weighted toggle ──────────────────────────────────────────────────────────
 
@@ -133,6 +148,32 @@ window.ScoringEngine = (() => {
         const cm = SCA_CHAIN[settings.chainLength] ?? 1.0;
         return dm * cm;
       }
+
+      // ── Mobile iOS games ──────────────────────────────────────────────────────
+
+      case 'freq-quiz-ios':
+        return FREQ_QUIZ_IOS[settings.gainAmount] ?? 1.0;
+
+      case 'freq-hunter-ios': {
+        const mm = FREQ_HUNTER_IOS_MODE[settings.mode]    ?? 1.0;
+        const qm = FREQ_HUNTER_IOS_Q[settings.qFactor]    ?? 1.0;
+        return mm * qm;
+      }
+
+      case 'level-logic-ios':
+        return LEVEL_LOGIC[settings.difficulty] ?? 1.0;
+
+      case 'quick-compress-ios':
+        return QUICK_COMPRESS[settings.tier] ?? 1.0;
+
+      case 'quick-eq-ios': {
+        const dm = QUICK_EQ_DIFF[settings.difficulty] ?? 1.0;
+        const bm = QUICK_EQ_BANDS[settings.numBands]  ?? 1.0;
+        return dm * bm;
+      }
+
+      case 'spatial-specialist-ios':
+        return SPATIAL[settings.mode] ?? 1.0;
 
       default:
         return 1.0;

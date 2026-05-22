@@ -289,6 +289,9 @@ kbd {
 .hist-dot { width:10px; height:10px; border-radius:50%; }
 .hist-dot.c { background:var(--correct); }
 .hist-dot.w { background:var(--wrong); }
+.score-delta { font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; opacity:0; transition:opacity 0.25s; height:16px; text-align:right; }
+.score-delta.good { opacity:1; color:var(--correct); }
+.score-delta.bad  { opacity:1; color:var(--wrong); }
 
 /* Toast */
 .toast {
@@ -385,6 +388,7 @@ kbd {
     <div class="stat"><div class="stat-val" id="accuracyVal">—</div><div class="stat-label">Accuracy</div></div>
   </div>
   <div id="multBadge" style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:0.04em;margin-top:2px;text-align:right;opacity:0.7;">×1.0</div>
+<div class="score-delta" id="scoreDelta"></div>
 </div>
 </header>
 
@@ -1026,6 +1030,7 @@ function renderGame() {
     const r = document.getElementById(id);
     r.className = 'panel-result'; r.textContent = '';
   });
+  const _sdreset = document.getElementById('scoreDelta'); if (_sdreset) _sdreset.className = 'score-delta';
 
   // Overlays
   updateOverlays();
@@ -1421,6 +1426,9 @@ function submitAnswer(choice) {
 
   updateScoreDisplay();
   addHistory(isCorrect);
+  const _sd = document.getElementById('scoreDelta');
+  const _ml = window.ScoringEngine ? ScoringEngine.label('quick-eq', { difficulty, numBands }) : '×1.0';
+  if (_sd) { _sd.textContent = isCorrect ? `+${pts} pts  ${_ml}` : _ml; _sd.className = `score-delta ${isCorrect ? 'good' : 'bad'}`; }
 
   // Visual reveal
   const correctPanel = correctChoice === 'A' ? 'panelA' : 'panelB';

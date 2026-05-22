@@ -1016,14 +1016,14 @@ function submitAnswer() {
   const errPct = (err / 2) * 100;
   const pts  = Math.round(Math.max(0, 100 - errPct * 1.6));
 
-  totalScore += pts;
+  const weightedPts = window.ScoringEngine ? Math.round(pts * ScoringEngine.multiplier('spatial-specialist', { mode: gameMode })) : pts;
+  totalScore += weightedPts;
   totalErr    = totalErr === 0 ? errPct : (totalErr * (totalRounds-1) + errPct) / totalRounds;
   if (pts >= 70) streak++; else streak = 0;
 
   document.getElementById('scoreVal').textContent  = totalScore;
   document.getElementById('streakVal').textContent = streak;
   document.getElementById('avgErrVal').textContent  = Math.round(totalErr) + '%';
-  const weightedPts = window.ScoringEngine ? Math.round(pts * ScoringEngine.multiplier('spatial-specialist', { mode: gameMode })) : pts;
   if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'spatial-specialist', correct: pts >= 70, roundScore: weightedPts });
 
   // Reveal target handle
@@ -1048,7 +1048,8 @@ function submitAnswer() {
 
   document.getElementById('promptBar').classList.add(pts >= 65 ? 'correct-flash' : 'wrong-flash');
   const ri = document.getElementById('resultInline');
-  ri.textContent = `+${pts}`;
+  const _ssMult = window.ScoringEngine ? ScoringEngine.label('spatial-specialist', { mode: gameMode }) : '×1.0';
+  ri.textContent = `+${weightedPts} pts  ${_ssMult}`;
   ri.className   = `result-inline ${pts>=65?'show-good':pts>=40?'show-ok':'show-bad'}`;
 
   let diffStr;

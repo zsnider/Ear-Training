@@ -572,6 +572,7 @@ input[type=range]:disabled::-webkit-slider-thumb { background: var(--muted); box
     <div class="round-result" id="roundResult">
       <div class="round-score-big" id="roundScoreBig"></div>
       <div class="round-score-label">round score</div>
+      <div id="resultPts" style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--accent2);margin-top:2px;opacity:0.9;"></div>
     </div>
 
     <!-- Submit -->
@@ -790,6 +791,7 @@ function renderGame() {
   document.getElementById('idleCard').style.display  = 'none';
   document.getElementById('nextBarWrap').style.display = 'none';
   document.getElementById('roundResult').classList.remove('show');
+    const _rpreset = document.getElementById('resultPts'); if (_rpreset) _rpreset.textContent = '';
   document.getElementById('roundScoreDisplay').classList.remove('show');
 
   // Prompt
@@ -1342,6 +1344,7 @@ function submitAnswer() {
   document.getElementById('roundScoreBig').style.color =
     roundScore >= 80 ? '#3ecf8e' : roundScore >= 50 ? '#fb923c' : '#f45b69';
   document.getElementById('roundResult').classList.add('show');
+  { const _rp = document.getElementById('resultPts'); if (_rp) _rp.textContent = `+${weightedScore} pts  ×${mult.toFixed(1)}`; }
 
   document.getElementById('submitBtn').disabled = true;
 

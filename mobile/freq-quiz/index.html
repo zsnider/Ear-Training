@@ -841,10 +841,12 @@ function submitAnswer(clickedFreq) {
   const isCorrect = (clickedFreq === targetFreq);
   if (isCorrect) { score++; streak++; correctCount++; } else { streak = 0; }
 
+  const maxPts  = window.ScoringEngine ? ScoringEngine.points('freq-quiz-ios', { gainAmount }) : 100;
+  const multLbl = window.ScoringEngine ? ScoringEngine.label('freq-quiz-ios', { gainAmount }) : '×1.0';
+
   if (window.SonicSandbox) {
     const rawScore = isCorrect ? 100 : 0;
-    const maxPts   = window.ScoringEngine ? ScoringEngine.points('freq-quiz', { gainAmount }) : 100;
-    SonicSandbox.saveScore({ game: 'freq-quiz', correct: isCorrect, roundScore: isCorrect ? maxPts : 0, rawScore });
+    SonicSandbox.saveScore({ game: 'freq-quiz-ios', correct: isCorrect, roundScore: isCorrect ? maxPts : 0, rawScore });
   }
 
   document.getElementById('scoreVal').textContent    = score;
@@ -868,7 +870,7 @@ function submitAnswer(clickedFreq) {
   document.getElementById('promptCard').classList.add(isCorrect ? 'correct-flash' : 'wrong-flash');
 
   const rb = document.getElementById('resultBadge');
-  rb.textContent = isCorrect ? '✓' : `✗ ${FREQ_LABELS[targetFreq]}${FREQ_UNITS[targetFreq]}`;
+  rb.textContent = isCorrect ? `✓  +${maxPts} pts  ${multLbl}` : `✗ ${FREQ_LABELS[targetFreq]}${FREQ_UNITS[targetFreq]}`;
   rb.className = `result-badge ${isCorrect ? 'show-correct' : 'show-wrong'}`;
 
   // Update prompt to signal tap-to-continue

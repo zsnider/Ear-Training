@@ -674,7 +674,8 @@ function selectAnswer(side) {
 
   document.getElementById('promptBar').classList.add(correct ? 'correct-flash' : 'wrong-flash');
   const ri = document.getElementById('resultInline');
-  ri.textContent = correct ? '✓ Correct!' : `✗ It was ${compressedSide}`;
+  const _multLbl = window.ScoringEngine ? ScoringEngine.label('quick-compress', { tier: currentTier }) : '×1.0';
+  ri.textContent = correct ? `✓ Correct!   +${pts} pts  ${_multLbl}` : `✗ It was ${compressedSide}`;
   ri.className   = `result-inline ${correct ? 'good' : 'bad'}`;
 
   document.getElementById('promptText').innerHTML = correct

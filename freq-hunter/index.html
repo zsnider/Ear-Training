@@ -835,7 +835,8 @@ function submitGuess() {
   const err = getError();
   const pts  = Math.round(Math.max(0, 100 - err * 1.8));
 
-  totalScore += pts;
+  const weightedPts = window.ScoringEngine ? Math.round(pts * ScoringEngine.multiplier('freq-hunter', { mode: gameMode })) : pts;
+  totalScore += weightedPts;
   totalError  = totalError === 0 ? err : (totalError * (totalRounds-1) + err) / totalRounds;
   if (pts >= 70) streak++;
   else streak = 0;
@@ -843,7 +844,6 @@ function submitGuess() {
   document.getElementById('scoreVal').textContent    = totalScore;
   document.getElementById('streakVal').textContent   = streak;
   document.getElementById('accuracyVal').textContent = Math.round(totalError) + '%';
-  const weightedPts = window.ScoringEngine ? Math.round(pts * ScoringEngine.multiplier('freq-hunter', { mode: gameMode })) : pts;
   if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'freq-hunter', correct: pts >= 70, roundScore: weightedPts });
 
   const tier = pts >= 85 ? 'perfect' : pts >= 60 ? 'good' : pts >= 35 ? 'ok' : 'bad';
@@ -851,7 +851,8 @@ function submitGuess() {
 
   document.getElementById('promptBar').classList.add(pts >= 60 ? 'correct-flash' : 'wrong-flash');
   const sd = document.getElementById('scoreDelta');
-  sd.textContent = `+${pts}`;
+  const _fhMult = window.ScoringEngine ? ScoringEngine.label('freq-hunter', { mode: gameMode }) : '×1.0';
+  sd.textContent = `+${weightedPts} pts  ${_fhMult}`;
   sd.className   = `score-delta show ${tier === 'perfect' || tier === 'good' ? 'good' : tier === 'ok' ? 'ok' : 'bad'}`;
 
   document.getElementById('promptText').innerHTML =

@@ -358,6 +358,7 @@
     .result-score { display: flex; align-items: baseline; gap: 6px; }
     .result-big { font-size: 44px; font-weight: 700; line-height: 1; }
     .result-denom { color: var(--muted); font-size: 16px; }
+    .result-pts { font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; color:var(--accent2); margin-top:4px; opacity:0.9; }
     .result-msg { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
     .acc-track { height: 5px; background: var(--border2); border-radius: 3px; overflow: hidden; flex: 1; min-width: 200px; }
     .acc-fill { height: 100%; border-radius: 3px; width: 0; transition: width 0.9s cubic-bezier(0.16,1,0.3,1); }
@@ -490,6 +491,7 @@
       <div class="result-score">
         <div class="result-big" id="resultBig">—</div>
         <div class="result-denom">/ 100</div>
+      <div class="result-pts" id="resultPts"></div>
       </div>
       <div style="flex:1; min-width:200px;">
         <div class="result-msg" id="resultMsg"></div>
@@ -1535,6 +1537,7 @@ function newRound() {
 
   roundActive=true;
   document.getElementById('resultBar').classList.remove('visible');
+    const _rpreset = document.getElementById('resultPts'); if (_rpreset) _rpreset.textContent = '';
   document.getElementById('btnCheck').disabled   = false;
   document.getElementById('btnTarget').disabled  = false;
   document.getElementById('btnMine').disabled    = false;
@@ -1649,6 +1652,7 @@ function checkAnswer() {
   document.getElementById('resultBar').classList.add('visible');
   const rb = document.getElementById('resultBig');
   rb.textContent = score; rb.style.color = finalCol;
+  { const _rp = document.getElementById('resultPts'); if (_rp) _rp.textContent = `+${weightedScore} pts  ×${mult.toFixed(1)}`; }
   document.getElementById('resultMsg').textContent = finalMsg;
   const fill = document.getElementById('accFill');
   fill.style.background = finalCol;
