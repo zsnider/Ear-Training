@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 — Page Not Found · SonicSandbox</title>
+<meta name="robots" content="noindex">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
+<style>
+.eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 24px;
+  }
+
+  .code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(72px, 14vw, 120px);
+    font-weight: 600; letter-spacing: -0.04em;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--accent2), #00d4ff);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 24px;
+  }
+
+  h1 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(18px, 3vw, 26px);
+    font-weight: 600; letter-spacing: -0.02em;
+    color: var(--text); margin-bottom: 14px;
+  }
+
+  p {
+    font-size: 15px; color: var(--muted);
+    font-weight: 300; line-height: 1.7;
+    max-width: 400px; margin: 0 auto 36px;
+  }
+
+  .btn-group {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    align-items: center; justify-content: center;
+  }
+
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent); color: #fff;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px; font-weight: 600;
+    padding: 11px 22px; border-radius: 10px;
+    text-decoration: none;
+    transition: opacity 0.15s, transform 0.15s;
+  }
+  .btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+
+  .btn-ghost {
+    display: inline-flex; align-items: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; color: var(--muted);
+    text-decoration: none;
+    padding: 11px 20px; border-radius: 10px;
+    border: 1px solid var(--border2);
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.3); }
+.footer-logo {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; font-weight: 600;
+    color: var(--muted); text-decoration: none;
+  }
+  .footer-logo span { color: var(--accent2); }
+  .footer-logo:hover { color: var(--text); }
+</style>
+</head>
+<body>
+
+  <p class="eyebrow">SonicSandbox</p>
+
+  <div class="code">404</div>
+
+  <h1>Page not found</h1>
+  <p>That URL doesn't seem to exist. Maybe it was moved, or you followed a broken link.</p>
+
+  <div class="btn-group">
+    <a class="btn-primary" href="/">← Back to the games</a>
+    <a class="btn-ghost" href="/learn/">Browse Learn</a>
+  </div>
+
+  <footer>
+    <a class="footer-logo" href="/"><span>Sonic</span>Sandbox</a>
+  </footer>
+
+</body>
+</html>

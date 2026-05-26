@@ -5,112 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SonicSandbox — Ear Training Games for Music Producers</title>
 <meta name="description" content="Interactive games to sharpen your listening skills — EQ, compression, reverb, distortion, delay, and spatial perception. Built for producers, engineers, and musicians.">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
-
-  :root {
-    --bg:       #0a0b0d;
-    --surface:  #13151a;
-    --surface2: #1a1d24;
-    --border:   rgba(255,255,255,0.08);
-    --border2:  rgba(255,255,255,0.14);
-    --text:     #dde2ee;
-    --muted:    #6b7280;
-    --accent:   #5b6aff;
-    --accent2:  #8892ff;
-    --eq-accent:    #5b6aff;
-    --eq-accent2:   #8892ff;
-    --comp-accent:  #e8865a;
-    --comp-accent2: #f0a882;
-    --rev-accent:   #5b3fd4;
-    --rev-accent2:  #8b6fff;
-    --dist-accent:  #d44a2a;
-    --dist-accent2: #f07050;
-    --fq-accent:    #00d4ff;
-    --fq-accent2:   #60e8ff;
-    --fh-accent:    #00e5cc;
-    --fh-accent2:   #50f0d8;
-    --pan-accent:   #7c5cfc;
-    --pan-accent2:  #a58aff;
-    --qc-accent:     #2dd4a0;
-    --qc-accent2:    #5eefc0;
-    --delay-accent:  #f97316;
-    --delay-accent2: #fb923c;
-    --ll-accent:    #f0b429;
-    --ll-accent2:   #ffd166;
-    --qeq-accent:   #818cf8;
-    --qeq-accent2:  #a5b4fc;
-    --sca-accent:   #39d353;
-    --sca-accent2:  #7ce88f;
-  }
-
-  * { margin:0; padding:0; box-sizing:border-box; }
-
-  body {
-    font-family: 'IBM Plex Sans', sans-serif;
-    background: var(--bg); color: var(--text);
-    min-height: 100vh;
-    display: flex; flex-direction: column; align-items: center;
-  }
-
-  /* ── Nav ─────────────────────────────────────────────── */
   nav {
     width: 100%; max-width: 1600px;
     padding: 20px 28px;
     display: flex; align-items: center;
   }
 
-  /* Each side takes equal flex-1 so the center is always true-center */
-  .nav-logo-wrap {
-    flex: 1; display: flex; align-items: center;
-  }
-
-  .nav-logo {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 17px; font-weight: 600;
-    color: var(--text); text-decoration: none;
-    letter-spacing: -0.01em;
-  }
-  .nav-logo span { color: var(--accent2); }
-
-  .nav-center {
-    display: flex; align-items: center; gap: 28px;
-    flex-shrink: 0;
-  }
-
-  .nav-link {
-    font-size: 13px; font-weight: 500; color: var(--muted);
-    text-decoration: none; transition: color 0.15s;
-  }
-  .nav-link:hover, .nav-link.active { color: var(--text); }
-
-  .nav-right {
-    flex: 1; display: flex; align-items: center;
-    justify-content: flex-end; gap: 12px;
-  }
-
-  /* Mobile nav — hide center links and bmac text, keep logo + sign in */
   @media (max-width: 600px) {
     nav { padding: 16px 20px; }
-    .nav-center { display: none; }
-    .bmac-btn { display: none; }
-    .nav-logo { font-size: 15px; }
-  }
-
-  .bmac-btn {
-    display: inline-flex; align-items: center; gap: 7px;
-    background: #FFDD00; color: #000;
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 13px; font-weight: 600;
-    padding: 8px 16px; border-radius: 8px;
-    text-decoration: none;
-    transition: opacity 0.15s, transform 0.15s;
-    white-space: nowrap;
-  }
-  .bmac-btn:hover { opacity: 0.88; transform: translateY(-1px); }
-  .bmac-btn svg { flex-shrink: 0; }
-
-  /* ── Hero ─────────────────────────────────────────────── */
+}
+/* ── Hero ─────────────────────────────────────────────── */
   header {
     width: 100%; max-width: 900px;
     padding: 60px 24px 20px;
@@ -120,8 +29,7 @@
     header { padding: 32px 20px 12px; }
     .site-sub { margin-bottom: 36px; font-size: 14px; }
   }
-
-  .site-eyebrow {
+.site-eyebrow {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 11px; font-weight: 600;
     letter-spacing: 0.18em; text-transform: uppercase;
@@ -171,7 +79,7 @@
     gap: 18px;
   }
   @media (max-width: 600px)  { .grid { grid-template-columns: 1fr; } }
-  @media (min-width: 601px) and (max-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 601px) and (max-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
   @media (min-width: 901px) { .grid { grid-template-columns: repeat(4, 1fr); } }
 
   .card {
@@ -307,161 +215,6 @@
     font-size: 13px; color: var(--muted); line-height: 1.6; font-weight: 300;
   }
 
-  /* ── Footer ──────────────────────────────────────────── */
-  footer {
-    margin-top: auto;
-    width: 100%; border-top: 1px solid var(--border);
-    padding: 28px 28px;
-    display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; gap: 12px;
-  }
-  .footer-left {
-    font-size: 13px; color: var(--muted);
-  }
-  .footer-left a {
-    color: var(--muted); text-decoration: none;
-    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
-  }
-  .footer-left a:hover { color: var(--text); }
-  .footer-right {
-    font-size: 12px; color: var(--muted);
-    font-family: 'IBM Plex Mono', monospace;
-  }
-
-  /* ── Auth modal ──────────────────────────────────────── */
-  .auth-btn {
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 13px; font-weight: 500;
-    padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border2);
-    background: var(--surface2); color: var(--text);
-    cursor: pointer; transition: border-color 0.15s, background 0.15s;
-    white-space: nowrap;
-  }
-  .auth-btn:hover { border-color: var(--accent); background: var(--surface); }
-
-  .user-pill {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 13px; color: var(--muted);
-    font-family: 'IBM Plex Mono', monospace;
-  }
-  .user-pill span { color: var(--text); }
-  .signout-btn {
-    font-size: 12px; color: var(--muted); background: none;
-    border: none; cursor: pointer; font-family: inherit;
-    padding: 0; text-decoration: underline;
-  }
-  .signout-btn:hover { color: var(--text); }
-
-  .modal-overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,0.7); z-index: 100;
-    align-items: center; justify-content: center;
-  }
-  .modal-overlay.open { display: flex; }
-
-  .modal {
-    background: var(--surface); border: 1px solid var(--border2);
-    border-radius: 20px; padding: 36px 32px; width: 100%; max-width: 400px;
-    position: relative;
-  }
-  .modal-close {
-    position: absolute; top: 16px; right: 20px;
-    background: none; border: none; color: var(--muted);
-    font-size: 22px; cursor: pointer; line-height: 1;
-  }
-  .modal-close:hover { color: var(--text); }
-
-  .modal-tabs { display: flex; gap: 0; margin-bottom: 28px; border-bottom: 1px solid var(--border); }
-  .modal-tab {
-    flex: 1; padding: 10px; text-align: center;
-    font-size: 13px; font-weight: 500; cursor: pointer;
-    background: none; border: none; color: var(--muted);
-    border-bottom: 2px solid transparent; margin-bottom: -1px;
-    transition: color 0.15s, border-color 0.15s;
-  }
-  .modal-tab.active { color: var(--accent2); border-bottom-color: var(--accent2); }
-
-  .modal label {
-    display: block; font-size: 11px; font-weight: 500;
-    letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--muted); margin-bottom: 6px;
-  }
-  .modal input {
-    width: 100%; padding: 10px 14px; border-radius: 8px;
-    background: var(--surface2); border: 1px solid var(--border2);
-    color: var(--text); font-size: 14px; font-family: inherit;
-    margin-bottom: 16px; outline: none;
-    transition: border-color 0.15s;
-  }
-  .modal input:focus { border-color: var(--accent); }
-
-  .modal-submit {
-    width: 100%; padding: 11px; border-radius: 8px;
-    background: var(--accent); color: #fff; font-size: 14px;
-    font-weight: 600; border: none; cursor: pointer;
-    font-family: inherit; transition: opacity 0.15s;
-  }
-  .modal-submit:hover { opacity: 0.85; }
-
-  .modal-msg {
-    margin-top: 14px; font-size: 13px; text-align: center;
-    min-height: 20px; color: var(--muted);
-  }
-  .modal-msg.error { color: #f07070; }
-  .modal-msg.success { color: var(--qc-accent2); }
-
-  /* ── Username modal extras ───────────────────────────── */
-  .username-hint {
-    font-size: 12px; color: var(--muted); margin-top: -10px;
-    margin-bottom: 18px; line-height: 1.5;
-  }
-  .username-check {
-    font-size: 12px; min-height: 18px;
-    margin-top: -10px; margin-bottom: 14px;
-    transition: color 0.15s;
-  }
-  .username-check.available { color: var(--qc-accent2); }
-  .username-check.taken     { color: #f07070; }
-  .forgot-pw-link {
-    display: block; width: 100%; text-align: center;
-    margin-top: 12px; font-size: 12px; color: var(--muted);
-    background: none; border: none; cursor: pointer;
-    font-family: inherit; text-decoration: underline; padding: 0;
-  }
-  .forgot-pw-link:hover { color: var(--text); }
-
-  .username-skip {
-    display: block; text-align: center; margin-top: 14px;
-    font-size: 12px; color: var(--muted); cursor: pointer;
-    background: none; border: none; font-family: inherit;
-    text-decoration: underline; width: 100%;
-  }
-  .username-skip:hover { color: var(--text); }
-  .set-username-link {
-    color: var(--accent2); background: none; border: none;
-    font-family: 'IBM Plex Mono', monospace; font-size: 13px;
-    cursor: pointer; padding: 0; text-decoration: underline;
-  }
-  .set-username-link:hover { opacity: 0.8; }
-
-  /* ── Mobile banner ─────────────────────────────────────── */
-  #mobileBanner {
-    display: none;
-    width: 100%; background: rgba(91,106,255,0.07);
-    border-bottom: 1px solid rgba(91,106,255,0.18);
-    padding: 10px 24px;
-    align-items: center; justify-content: center; gap: 10px;
-    font-size: 13px; color: var(--muted);
-  }
-  #mobileBanner a {
-    color: var(--accent2); text-decoration: none; font-weight: 500;
-  }
-  #mobileBanner a:hover { text-decoration: underline; }
-  .banner-dismiss {
-    background: none; border: none; color: var(--muted);
-    font-size: 16px; cursor: pointer; padding: 0 0 0 4px; line-height: 1;
-  }
-  .banner-dismiss:hover { color: var(--text); }
 </style>
 
   <!-- Open Graph / Social -->
@@ -863,6 +616,7 @@
   <div class="footer-left">
     <a href="/">SonicSandbox</a>
     &nbsp;·&nbsp; Ear training for sound engineers, producers, & musicians  &nbsp;·&nbsp; Open in Chrome or Safari for best audio support
+    &nbsp;·&nbsp; <a href="/privacy/">Privacy Policy</a>
   </div>
   <div class="footer-right">
     <a class="bmac-btn" href="https://www.buymeacoffee.com/sonicsandbox" target="_blank" rel="noopener" style="font-size:12px; padding:6px 13px;">
