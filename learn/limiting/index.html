@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Limiting — SonicSandbox Learn</title>
+<meta name="description" content="Learn how limiters work — ceiling, threshold, brickwall vs. dynamics limiting, release time, LUFS metering, streaming normalization, and True Peak.">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #0a0b0d; --surface: #13151a; --surface2: #1a1d24; --surface3: #21252f;
+    --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+    --text: #dde2ee; --muted: #6b7280;
+    --eq-accent: #5b6aff; --comp-accent: #e8865a;
+    --stage-accent: #0ea5e9; --stage-accent2: #38bdf8;
+    --rev-accent: #7c3aed; --rev-accent2: #a78bfa;
+    --sat-accent: #d97706; --sat-accent2: #fbbf24;
+    --del-accent: #0891b2; --del-accent2: #22d3ee;
+    --mod-accent: #059669; --mod-accent2: #34d399;
+    --lim-accent: #e11d48; --lim-accent2: #fda4af;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+
+  nav { width: 100%; max-width: 1600px; padding: 20px 28px; display: flex; align-items: center; }
+  .nav-logo-wrap { flex: 1; display: flex; align-items: center; }
+  .nav-logo { font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 600; color: var(--text); text-decoration: none; letter-spacing: -0.01em; }
+  .nav-logo span { color: var(--lim-accent2); }
+  .nav-center { display: flex; align-items: center; gap: 28px; flex-shrink: 0; }
+  .nav-link { font-size: 13px; font-weight: 500; color: var(--muted); text-decoration: none; transition: color 0.15s; }
+  .nav-link:hover, .nav-link.active { color: var(--text); }
+  .nav-right { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+  .bmac-btn { display: inline-flex; align-items: center; gap: 7px; background: #FFDD00; color: #000; font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 8px; text-decoration: none; transition: opacity 0.15s, transform 0.15s; white-space: nowrap; }
+  .bmac-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+  @media (max-width: 600px) { nav { padding: 16px 20px; } .nav-center { display: none; } .bmac-btn { display: none; } }
+
+  .user-pill { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+  .set-username-link { color: var(--lim-accent2); background: none; border: none; font-family: 'IBM Plex Mono', monospace; font-size: 13px; cursor: pointer; padding: 0; text-decoration: none; }
+  .set-username-link:hover { opacity: 0.8; }
+  .auth-btn { font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border2); background: var(--surface2); color: var(--text); cursor: pointer; text-decoration: none; }
+
+  .page-header { width: 100%; max-width: 900px; padding: 52px 24px 36px; text-align: center; }
+  .page-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 18px; }
+  .page-title { font-family: 'IBM Plex Mono', monospace; font-size: clamp(26px,4vw,44px); font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; color: var(--text); margin-bottom: 14px; }
+  .page-sub { font-size: 15px; color: var(--muted); font-weight: 300; max-width: 520px; margin: 0 auto; line-height: 1.7; }
+
+  .tool-selector-wrap { width: 100%; max-width: 900px; padding: 0 24px 40px; }
+  .tool-selector-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+  .tool-selector { display: flex; gap: 10px; flex-wrap: wrap; }
+  .tool-btn { display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; border: 1px solid var(--border2); background: var(--surface2); font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; text-decoration: none; transition: border-color 0.18s, color 0.18s, background 0.18s, transform 0.18s; }
+  .tool-btn.active { border-color: var(--lim-accent); color: var(--lim-accent2); background: rgba(225,29,72,0.10); }
+  .tool-btn.disabled { opacity: 0.38; cursor: not-allowed; pointer-events: none; }
+  .tool-btn:not(.disabled):not(.active):hover { color: var(--text); background: var(--surface3); transform: translateY(-1px); }
+  .tool-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: 0.7; flex-shrink: 0; }
+
+  .module-wrap { width: 100%; max-width: 860px; padding: 0 24px 80px; }
+  .progress-bar-wrap { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+  .progress-dots { display: flex; gap: 6px; flex-wrap: wrap; }
+  .progress-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border2); transition: background 0.2s, transform 0.2s; cursor: pointer; }
+  .progress-dot.done { background: rgba(225,29,72,0.45); }
+  .progress-dot.active { background: var(--lim-accent2); transform: scale(1.3); }
+  .progress-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-left: auto; }
+
+  .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 0 0 32px; position: relative; overflow: hidden; }
+  .step-card::before { content: ''; position: absolute; inset: 0; border-radius: 20px; background: radial-gradient(ellipse at top left, rgba(225,29,72,0.07), transparent 55%); pointer-events: none; }
+
+  .diagram-wrap { width: 100%; border-radius: 20px 20px 0 0; overflow: hidden; padding: 28px 28px 18px; background: rgba(225,29,72,0.03); border-bottom: 1px solid var(--border); }
+  .diagram-wrap svg { width: 100%; height: auto; display: block; }
+
+  .step-inner { padding: 28px 36px 0; }
+  .step-number { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--lim-accent); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .step-number::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .step-title { font-family: 'IBM Plex Mono', monospace; font-size: clamp(18px,2.8vw,26px); font-weight: 600; letter-spacing: -0.02em; color: var(--text); margin-bottom: 16px; line-height: 1.25; }
+  .step-body { font-size: 15px; color: var(--muted); line-height: 1.75; font-weight: 300; margin-bottom: 24px; }
+  .step-body strong { color: var(--text); font-weight: 500; }
+  .step-body em { color: var(--lim-accent2); font-style: normal; font-weight: 500; }
+
+  .key-points { background: rgba(225,29,72,0.05); border: 1px solid rgba(225,29,72,0.18); border-radius: 12px; padding: 18px 20px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 10px; }
+  .key-points-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--lim-accent); margin-bottom: 4px; }
+  .key-point { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--muted); line-height: 1.55; }
+  .key-point::before { content: '→'; color: var(--lim-accent2); font-family: 'IBM Plex Mono', monospace; font-size: 12px; margin-top: 1px; flex-shrink: 0; }
+  .key-point strong { color: var(--text); font-weight: 500; }
+
+  .audio-demo { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin-bottom: 4px; }
+  .audio-demo-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .audio-demo-desc { font-size: 13px; color: var(--muted); line-height: 1.55; margin-bottom: 14px; }
+  .demo-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  .play-btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border-radius: 8px; background: var(--lim-accent); border: none; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; color: #fff; cursor: pointer; transition: transform 0.15s, opacity 0.15s; flex-shrink: 0; }
+  .play-btn:hover { transform: scale(1.04); opacity: 0.9; }
+  .play-btn.playing { background: rgba(225,29,72,0.2); border: 1.5px solid var(--lim-accent); color: var(--lim-accent2); }
+  .play-btn.secondary { background: var(--surface3); border: 1px solid var(--border2); color: var(--muted); }
+  .play-btn.secondary:hover { color: var(--text); }
+  .play-btn.secondary.playing { background: rgba(225,29,72,0.1); border-color: var(--lim-accent); color: var(--lim-accent2); }
+
+  .vol-wrap { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  input[type=range].vol-slider { -webkit-appearance: none; appearance: none; width: 72px; height: 3px; border-radius: 2px; background: var(--border2); outline: none; cursor: pointer; }
+  input[type=range].vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%; background: var(--lim-accent2); cursor: pointer; }
+
+  .step-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; }
+  .nav-btn { display: flex; align-items: center; gap: 8px; padding: 11px 22px; border-radius: 10px; border: 1px solid var(--border2); background: var(--surface2); font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; transition: border-color 0.15s, color 0.15s, transform 0.15s; text-decoration: none; }
+  .nav-btn:hover { color: var(--text); transform: translateY(-1px); }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+  .nav-btn.primary { background: var(--lim-accent); border-color: var(--lim-accent); color: #fff; }
+  .nav-btn.primary:hover { opacity: 0.88; }
+  .nav-btn.finish { background: rgba(225,29,72,0.15); border-color: var(--lim-accent); color: var(--lim-accent2); }
+  .step-counter { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--muted); }
+
+  .completion-card { text-align: center; padding: 56px 36px; }
+  .completion-title { font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
+  .completion-sub { font-size: 15px; color: var(--muted); line-height: 1.7; max-width: 440px; margin: 0 auto 32px; }
+  .completion-cta { display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; border-radius: 10px; background: var(--lim-accent); color: #fff; font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600; text-decoration: none; transition: opacity 0.15s, transform 0.15s; }
+  .completion-cta:hover { opacity: 0.88; transform: translateY(-1px); }
+  .completion-restart { display: block; margin: 18px auto 0; background: none; border: none; color: var(--muted); font-size: 13px; cursor: pointer; text-decoration: underline; font-family: inherit; }
+  .completion-restart:hover { color: var(--text); }
+
+  footer { margin-top: auto; width: 100%; border-top: 1px solid var(--border); padding: 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .footer-left { font-size: 13px; color: var(--muted); }
+  .footer-left a { color: var(--muted); text-decoration: none; font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+  .footer-left a:hover { color: var(--text); }
+
+  @media (max-width: 600px) {
+    .step-inner { padding: 20px 20px 0; }
+    .module-wrap { padding: 0 16px 60px; }
+    .tool-selector-wrap { padding: 0 16px 32px; }
+    .page-header { padding: 32px 16px 24px; }
+    .step-nav { flex-direction: column; }
+    .nav-btn { width: 100%; justify-content: center; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo-wrap">
+    <a class="nav-logo" href="/">Sonic<span>Sandbox</span></a>
+  </div>
+  <div class="nav-center">
+    <a class="nav-link" href="/">Games</a>
+    <a class="nav-link active" href="/learn/">Learn</a>
+    <a class="nav-link" href="/about/">About</a>
+    <a class="nav-link" href="/stats/">Stats</a>
+  </div>
+  <div class="nav-right">
+    <div id="authArea"></div>
+    <a class="bmac-btn" href="https://www.buymeacoffee.com/sonicsandbox" target="_blank" rel="noopener">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M18 8h1a4 4 0 0 1 0 8h-1" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <line x1="6" y1="1" x2="6" y2="4" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+        <line x1="10" y1="1" x2="10" y2="4" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+        <line x1="14" y1="1" x2="14" y2="4" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      Buy me a coffee
+    </a>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="page-eyebrow">SonicSandbox / Learning Center</div>
+  <h1 class="page-title">Learn the tools.</h1>
+  <p class="page-sub">Guided lessons on the audio processing tools that shape every mix. Read, listen, and understand — then go train your ears.</p>
+</div>
+
+<div class="tool-selector-wrap">
+  <div class="tool-selector-label">Choose a topic</div>
+  <div class="tool-selector">
+    <a class="tool-btn" href="/learn/"><div class="tool-dot" style="color:#8892ff"></div>EQ</a>
+    <a class="tool-btn" href="/learn/gain-staging/"><div class="tool-dot" style="color:#86efac"></div>Gain Staging</a>
+    <a class="tool-btn" href="/learn/compression/"><div class="tool-dot" style="color:#e8865a"></div>Compression</a>
+    <a class="tool-btn" href="/learn/saturation/"><div class="tool-dot" style="color:#fbbf24"></div>Saturation</a>
+    <a class="tool-btn" href="/learn/reverb/"><div class="tool-dot" style="color:#a78bfa"></div>Reverb</a>
+    <a class="tool-btn" href="/learn/delay/"><div class="tool-dot" style="color:#22d3ee"></div>Delay</a>
+    <a class="tool-btn" href="/learn/soundstage/"><div class="tool-dot" style="color:#38bdf8"></div>Spatial Mixing</a>
+    <a class="tool-btn" href="/learn/signal-chain/"><div class="tool-dot" style="color:#22d3ee"></div>Signal Chain</a>
+    <a class="tool-btn" href="/learn/modulation/"><div class="tool-dot" style="color:#34d399"></div>Modulation</a>
+    <button class="tool-btn active"><div class="tool-dot" style="color:var(--lim-accent2)"></div>Limiting</button>
+  </div>
+</div>
+
+<div class="module-wrap">
+  <div class="progress-bar-wrap">
+    <div class="progress-dots" id="progressDots"></div>
+    <div class="progress-label" id="progressLabel">Step 1 of 8</div>
+  </div>
+  <div class="step-card" id="stepCard"></div>
+  <div class="step-nav" id="stepNav" style="margin-top:20px;">
+    <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>← Previous</button>
+    <span class="step-counter" id="stepCounter"></span>
+    <button class="nav-btn primary" id="nextBtn" onclick="navigate(1)">Next →</button>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-left">
+    <a href="/">SonicSandbox</a> &nbsp;·&nbsp; Ear training for sound engineers, producers, &amp; musicians
+  </div>
+  <div class="footer-right">
+    <a class="bmac-btn" href="https://www.buymeacoffee.com/sonicsandbox" target="_blank" rel="noopener" style="font-size:12px;padding:6px 13px;">Support the project</a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../../supabase-client.js"></script>
+<script>
+(function() {
+  const authArea = document.getElementById('authArea');
+  document.addEventListener('ss:authchange', async e => {
+    const user = e.detail;
+    if (user) {
+      authArea.innerHTML = `<div class="user-pill"><span class="username-display" style="color:var(--muted);font-size:12px;">${user.email}</span></div>`;
+      const profile = await SonicSandbox.getProfile();
+      const el = authArea.querySelector('.username-display');
+      if (!el) return;
+      if (profile?.username) {
+        el.outerHTML = `<a class="set-username-link" href="/account/">@${profile.username}</a>`;
+      } else {
+        el.outerHTML = `<a class="set-username-link" href="/account/">Set username</a>`;
+      }
+    } else {
+      authArea.innerHTML = `<a class="auth-btn" href="/">Sign in</a>`;
+    }
+  });
+})();
+</script>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+//  SVG DIAGRAM BUILDERS
+// ─────────────────────────────────────────────────────────────
+const SVG_W = 560;
+
+function buildTransferCurve() {
+  // Transfer curve: input dBFS vs output dBFS for compressor vs. limiter
+  const W = SVG_W, H = 210;
+  const ml = 52, mr = 16, mt = 20, mb = 38;
+  const pw = W - ml - mr, ph = H - mt - mb;
+  const minDB = -36, maxDB = 0;
+  function toX(db) { return ml + ((db - minDB) / (maxDB - minDB)) * pw; }
+  function toY(db) { return mt + ph - ((db - minDB) / (maxDB - minDB)) * ph; }
+
+  // Compressor: threshold -12, ratio 4:1
+  const cThr = -12;
+  function compOut(i) { return i < cThr ? i : cThr + (i - cThr) / 4; }
+
+  // Limiter: ceiling -1, ∞:1 ratio (very steep slope approaches ceiling)
+  const lCeil = -1;
+  function limOut(i) {
+    const knee = lCeil - 10;
+    if (i <= knee) return i;
+    // Soft knee approaching ceiling
+    const over = i - knee;
+    return knee + over / 18;
+  }
+
+  let compPath = '', limPath = '';
+  const pts = 120;
+  for (let k = 0; k <= pts; k++) {
+    const db = minDB + (k / pts) * (maxDB - minDB);
+    const cx = toX(db).toFixed(1), cy = toY(compOut(db)).toFixed(1);
+    const lx = toX(db).toFixed(1), ly = toY(limOut(db)).toFixed(1);
+    compPath += (k === 0 ? 'M' : 'L') + `${cx},${cy} `;
+    limPath  += (k === 0 ? 'M' : 'L') + `${lx},${ly} `;
+  }
+  const unityPath = `M${toX(minDB).toFixed(1)},${toY(minDB).toFixed(1)} L${toX(maxDB).toFixed(1)},${toY(maxDB).toFixed(1)}`;
+
+  let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+  // Grid lines
+  [-36,-24,-12,0].forEach(db => {
+    const x = toX(db), y = toY(db);
+    s += `<line x1="${x.toFixed(1)}" y1="${mt}" x2="${x.toFixed(1)}" y2="${mt+ph}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+    s += `<line x1="${ml}" y1="${y.toFixed(1)}" x2="${ml+pw}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+    s += `<text x="${x.toFixed(1)}" y="${mt+ph+14}" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.28)">${db}</text>`;
+    s += `<text x="${ml-5}" y="${(y+3).toFixed(1)}" text-anchor="end" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.28)">${db}</text>`;
+  });
+
+  // Axis labels
+  s += `<text x="${ml+pw/2}" y="${H-4}" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.32)">Input (dBFS)</text>`;
+  s += `<text x="10" y="${mt+ph/2}" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.32)" transform="rotate(-90,10,${mt+ph/2})">Output (dBFS)</text>`;
+
+  // Unity gain reference
+  s += `<path d="${unityPath}" fill="none" stroke="rgba(255,255,255,0.11)" stroke-width="1" stroke-dasharray="4,3"/>`;
+
+  // Compressor curve + annotations
+  s += `<path d="${compPath}" fill="none" stroke="rgba(232,134,90,0.75)" stroke-width="2"/>`;
+  const ctX = toX(cThr), ctY = toY(cThr);
+  s += `<line x1="${ctX.toFixed(1)}" y1="${mt}" x2="${ctX.toFixed(1)}" y2="${(mt+ph).toFixed(1)}" stroke="rgba(232,134,90,0.25)" stroke-width="1" stroke-dasharray="3,3"/>`;
+  s += `<text x="${(ctX+4).toFixed(1)}" y="${(mt+13).toFixed(1)}" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(232,134,90,0.80)">compressor</text>`;
+  s += `<text x="${(ctX+4).toFixed(1)}" y="${(mt+24).toFixed(1)}" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(232,134,90,0.50)">4:1 ratio</text>`;
+
+  // Limiter curve + annotations
+  s += `<path d="${limPath}" fill="none" stroke="rgba(253,164,175,0.90)" stroke-width="2.2"/>`;
+  const lcX = toX(lCeil), lcY = toY(lCeil);
+  s += `<line x1="${ml}" y1="${lcY.toFixed(1)}" x2="${(ml+pw).toFixed(1)}" y2="${lcY.toFixed(1)}" stroke="rgba(225,29,72,0.30)" stroke-width="1" stroke-dasharray="3,3"/>`;
+  s += `<text x="${(lcX-4).toFixed(1)}" y="${(mt+13).toFixed(1)}" text-anchor="end" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(253,164,175,0.90)">limiter</text>`;
+  s += `<text x="${(lcX-4).toFixed(1)}" y="${(mt+24).toFixed(1)}" text-anchor="end" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(253,164,175,0.55)">∞:1 ratio</text>`;
+  s += `<text x="${(ml+pw-4).toFixed(1)}" y="${(lcY-4).toFixed(1)}" text-anchor="end" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(225,29,72,0.65)">ceiling</text>`;
+
+  s += `</svg>`;
+  return s;
+}
+
+function buildCeilingDiagram() {
+  // Waveform hitting a limiter ceiling with gain reduction zone
+  const W = SVG_W, H = 190;
+  const ox = 24, plotW = W - ox - 24;
+  const rowH = 76, y0 = 14, y1 = y0 + rowH + 20;
+  const CYCLES = 3;
+
+  function sineWave(yMid, ampScale, col, sw) {
+    const N = 400; let d = '';
+    for (let i = 0; i <= N; i++) {
+      const t = i / N;
+      const x = ox + t * plotW;
+      const raw = Math.sin(t * Math.PI * 2 * CYCLES);
+      const y = yMid - raw * ampScale;
+      d += (i === 0 ? 'M' : 'L') + `${x.toFixed(1)},${y.toFixed(1)} `;
+    }
+    return `<path d="${d}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linejoin="round"/>`;
+  }
+
+  function limitedWave(yMid, ampScale, ceil, col, sw) {
+    const N = 400; let d = '';
+    for (let i = 0; i <= N; i++) {
+      const t = i / N;
+      const x = ox + t * plotW;
+      const raw = Math.sin(t * Math.PI * 2 * CYCLES);
+      const v = Math.max(-ceil, Math.min(ceil, raw * ampScale / rowH * 2)) * rowH / 2;
+      const y = yMid - v;
+      d += (i === 0 ? 'M' : 'L') + `${x.toFixed(1)},${y.toFixed(1)} `;
+    }
+    return `<path d="${d}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linejoin="round"/>`;
+  }
+
+  const CEIL_FRAC = 0.62; // ceiling as fraction of half rowH
+  const ceilOff = rowH * 0.5 * CEIL_FRAC; // pixel offset from mid to ceiling line
+  const AMP_IN = rowH * 0.48; // input amplitude (exceeds ceiling)
+  const AMP_OUT = rowH * 0.5 * CEIL_FRAC; // output capped at ceiling
+
+  let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+  // Row backgrounds and center lines
+  [y0, y1].forEach(y => {
+    const mid = y + rowH / 2;
+    s += `<rect x="${ox}" y="${y}" width="${plotW}" height="${rowH}" fill="rgba(255,255,255,0.02)" rx="4"/>`;
+    s += `<line x1="${ox}" y1="${mid}" x2="${ox+plotW}" y2="${mid}" stroke="rgba(255,255,255,0.07)" stroke-width="0.7"/>`;
+  });
+
+  // Input row label & waveform
+  s += `<text x="${ox-2}" y="${y0+rowH/2+4}" text-anchor="end" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.35)" font-weight="600">Input</text>`;
+  s += sineWave(y0 + rowH / 2, AMP_IN, 'rgba(255,255,255,0.55)', 1.5);
+
+  // Output row label & limited waveform
+  s += `<text x="${ox-2}" y="${y1+rowH/2+4}" text-anchor="end" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(253,164,175,0.75)" font-weight="600">Output</text>`;
+  s += limitedWave(y1 + rowH / 2, AMP_IN, CEIL_FRAC, 'rgba(253,164,175,0.88)', 1.8);
+
+  // Ceiling lines on both rows
+  [y0, y1].forEach(y => {
+    const mid = y + rowH / 2;
+    const cTop = mid - ceilOff, cBot = mid + ceilOff;
+    s += `<line x1="${ox}" y1="${cTop.toFixed(1)}" x2="${ox+plotW}" y2="${cTop.toFixed(1)}" stroke="rgba(225,29,72,0.55)" stroke-width="1.2" stroke-dasharray="5,3"/>`;
+    s += `<line x1="${ox}" y1="${cBot.toFixed(1)}" x2="${ox+plotW}" y2="${cBot.toFixed(1)}" stroke="rgba(225,29,72,0.55)" stroke-width="1.2" stroke-dasharray="5,3"/>`;
+  });
+
+  // Ceiling label
+  s += `<text x="${ox+plotW+4}" y="${(y0 + rowH/2 - ceilOff + 3).toFixed(1)}" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(225,29,72,0.75)" font-weight="600">ceiling</text>`;
+
+  // Gain reduction zone annotation on output row — shaded area where signal was clipped
+  const grTop = y1 + rowH / 2 - AMP_IN;
+  const grBot = y1 + rowH / 2 - ceilOff;
+  if (grBot > grTop) {
+    s += `<rect x="${ox+plotW*0.08}" y="${grTop.toFixed(1)}" width="${(plotW*0.84).toFixed(1)}" height="${(grBot - grTop).toFixed(1)}" fill="rgba(225,29,72,0.10)" rx="2"/>`;
+    s += `<text x="${(ox + plotW*0.5).toFixed(1)}" y="${(grTop + (grBot-grTop)/2 + 3).toFixed(1)}" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(225,29,72,0.60)">gain reduction applied here</text>`;
+  }
+
+  // Input gain label
+  s += `<text x="${ox+plotW/2}" y="${H-2}" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.22)">Drive input gain to push more signal above the ceiling — the limiter catches it all</text>`;
+
+  s += `</svg>`;
+  return s;
+}
+
+function buildBrickwallDiagram() {
+  // Three waveform rows: Input (loud), Brickwall (flat tops), Dynamics (slightly rounded)
+  const W = SVG_W, H = 205;
+  const rowH = 50, gap = 8, ox = 80, plotW = W - ox - 16;
+  const CYCLES = 3;
+  const y0 = 10, y1 = y0 + rowH + gap, y2 = y1 + rowH + gap;
+  const CEIL = 0.68; // ceiling fraction of rowH half
+
+  function buildPath(yMid, fn, col, sw) {
+    const N = 400; let d = '';
+    for (let i = 0; i <= N; i++) {
+      const t = i / N;
+      const x = ox + t * plotW;
+      const raw = Math.sin(t * Math.PI * 2 * CYCLES);
+      const v = fn(raw);
+      const y = yMid - v * rowH * 0.48;
+      d += (i === 0 ? 'M' : 'L') + `${x.toFixed(1)},${y.toFixed(1)} `;
+    }
+    return `<path d="${d}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linejoin="round"/>`;
+  }
+
+  let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+  const rows = [
+    { label: 'Input',     y: y0, col: 'rgba(255,255,255,0.55)', fn: v => v * 1.38 },
+    { label: 'Brickwall', y: y1, col: 'rgba(253,164,175,0.88)', fn: v => Math.max(-CEIL, Math.min(CEIL, v * 1.38)) },
+    { label: 'Dynamics',  y: y2, col: 'rgba(250,204,21,0.75)',  fn: v => {
+      const a = v * 1.38;
+      if (Math.abs(a) <= CEIL) return a;
+      const s2 = a > 0 ? 1 : -1;
+      return s2 * (CEIL + (Math.abs(a) - CEIL) * 0.10);
+    }},
+  ];
+
+  rows.forEach(r => {
+    const mid = r.y + rowH / 2;
+    s += `<rect x="${ox}" y="${r.y}" width="${plotW}" height="${rowH}" fill="rgba(255,255,255,0.02)" rx="4"/>`;
+    s += `<line x1="${ox}" y1="${mid}" x2="${ox+plotW}" y2="${mid}" stroke="rgba(255,255,255,0.07)" stroke-width="0.7"/>`;
+    // Ceiling dashes
+    const cTop = mid - CEIL * rowH * 0.48, cBot = mid + CEIL * rowH * 0.48;
+    s += `<line x1="${ox}" y1="${cTop.toFixed(1)}" x2="${ox+plotW}" y2="${cTop.toFixed(1)}" stroke="rgba(225,29,72,0.35)" stroke-width="0.8" stroke-dasharray="3,3"/>`;
+    s += `<line x1="${ox}" y1="${cBot.toFixed(1)}" x2="${ox+plotW}" y2="${cBot.toFixed(1)}" stroke="rgba(225,29,72,0.35)" stroke-width="0.8" stroke-dasharray="3,3"/>`;
+    s += buildPath(mid, r.fn, r.col, 1.6);
+    s += `<text x="${ox-8}" y="${(mid+4).toFixed(1)}" text-anchor="end" font-size="10" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.38)" font-weight="600">${r.label}</text>`;
+  });
+
+  // Annotations
+  const flatY = y1 + rowH / 2 - CEIL * rowH * 0.48 - 5;
+  s += `<text x="${(ox+plotW*0.55).toFixed(1)}" y="${flatY.toFixed(1)}" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(253,164,175,0.65)">flat top — hard stop at ceiling</text>`;
+  const softY = y2 + rowH / 2 - (CEIL + 0.04) * rowH * 0.48 - 5;
+  s += `<text x="${(ox+plotW*0.55).toFixed(1)}" y="${softY.toFixed(1)}" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(250,204,21,0.60)">slight rounding — soft character</text>`;
+  const ceilLabelY = y0 + rowH / 2 - CEIL * rowH * 0.48 - 3;
+  s += `<text x="${(ox+plotW+4).toFixed(1)}" y="${ceilLabelY.toFixed(1)}" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(225,29,72,0.65)">ceiling</text>`;
+
+  // Bottom label
+  s += `<text x="${ox+plotW/2}" y="${H-2}" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.22)">Same input signal — different limiting character above the ceiling</text>`;
+
+  s += `</svg>`;
+  return s;
+}
+
+function buildReleaseDiagram() {
+  // Gain reduction over time for three release speeds after a transient
+  const W = SVG_W, H = 175;
+  const ox = 52, oy = 18, plotW = W - ox - 20, plotH = H - oy - 42;
+  const maxGR = 9; // max dB of gain reduction shown
+
+  function grY(gr) { return oy + (Math.abs(gr) / maxGR) * plotH; }
+
+  let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+  // Grid
+  [0,-3,-6,-9].forEach(gr => {
+    const y = grY(gr);
+    s += `<line x1="${ox}" y1="${y.toFixed(1)}" x2="${ox+plotW}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+    s += `<text x="${ox-5}" y="${(y+3).toFixed(1)}" text-anchor="end" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.28)">${gr}</text>`;
+  });
+  s += `<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${oy+plotH}" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>`;
+  s += `<line x1="${ox}" y1="${oy+plotH}" x2="${ox+plotW}" y2="${oy+plotH}" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>`;
+  s += `<text x="${ox-5}" y="${oy-4}" text-anchor="end" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.28)">GR dB</text>`;
+  s += `<text x="${ox+plotW/2}" y="${oy+plotH+20}" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.28)">time →</text>`;
+
+  const hitFrac = 0.14; // transient hits at 14% of x axis
+  const hitX = ox + hitFrac * plotW;
+  s += `<line x1="${hitX.toFixed(1)}" y1="${oy}" x2="${hitX.toFixed(1)}" y2="${oy+plotH}" stroke="rgba(255,255,255,0.18)" stroke-width="1" stroke-dasharray="3,3"/>`;
+  s += `<text x="${(hitX+3).toFixed(1)}" y="${oy+11}" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.35)">transient</text>`;
+
+  const N = 220;
+  function buildCurve(releaseSpeed, artifactFn) {
+    let pts = '';
+    for (let i = 0; i <= N; i++) {
+      const t = i / N;
+      const x = ox + t * plotW;
+      let gr = 0;
+      if (t >= hitFrac) {
+        const sinceHit = (t - hitFrac) / (1 - hitFrac);
+        gr = -maxGR * Math.exp(-sinceHit * releaseSpeed);
+        if (artifactFn) gr += artifactFn(sinceHit);
+      }
+      gr = Math.max(-maxGR, Math.min(0, gr));
+      const y = grY(gr);
+      pts += (i === 0 ? 'M' : 'L') + `${x.toFixed(1)},${y.toFixed(1)} `;
+    }
+    return pts;
+  }
+
+  // Slow release: releases very slowly — gain stays suppressed (pumping)
+  const slowCurve = buildCurve(2.2);
+  // Fast release: releases quickly but with distortion artifacts (noise/ripple)
+  const fastCurve = buildCurve(30, sinceHit => {
+    if (sinceHit > 0.12) return 0;
+    return Math.sin(sinceHit * 200) * 0.9 * Math.exp(-sinceHit * 20);
+  });
+  // Auto: balanced, smooth recovery
+  const autoCurve = buildCurve(9);
+
+  s += `<path d="${slowCurve}" fill="none" stroke="rgba(250,204,21,0.70)" stroke-width="1.8"/>`;
+  s += `<path d="${fastCurve}" fill="none" stroke="rgba(239,68,68,0.72)" stroke-width="1.8"/>`;
+  s += `<path d="${autoCurve}" fill="none" stroke="rgba(253,164,175,0.92)" stroke-width="2.2"/>`;
+
+  // Legend
+  const legY = oy + plotH + 34;
+  s += `<line x1="${ox}" y1="${legY}" x2="${ox+18}" y2="${legY}" stroke="rgba(250,204,21,0.70)" stroke-width="1.8"/>`;
+  s += `<text x="${ox+22}" y="${legY+4}" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(250,204,21,0.70)">slow — pumping</text>`;
+  s += `<line x1="${ox+135}" y1="${legY}" x2="${ox+153}" y2="${legY}" stroke="rgba(239,68,68,0.72)" stroke-width="1.8"/>`;
+  s += `<text x="${ox+157}" y="${legY+4}" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(239,68,68,0.72)">fast — distortion</text>`;
+  s += `<line x1="${ox+282}" y1="${legY}" x2="${ox+300}" y2="${legY}" stroke="rgba(253,164,175,0.92)" stroke-width="2.2"/>`;
+  s += `<text x="${ox+304}" y="${legY+4}" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(253,164,175,0.92)">auto — balanced</text>`;
+
+  s += `</svg>`;
+  return s;
+}
+
+function buildLUFSDiagram() {
+  // Three LUFS measurement windows on a time axis
+  const W = SVG_W, H = 190;
+  const ox = 48, oy = 16, plotW = W - ox - 20, plotH = H - oy - 52;
+
+  // Y: 0 LUFS at top, -28 at bottom
+  function toY(lufs) { return oy + ((lufs - 0) / (-28)) * plotH; }
+
+  const T = 220;
+  const momentary = [];
+  // Generate realistic varying loudness
+  for (let i = 0; i < T; i++) {
+    const t = i / T;
+    const base = -13 + Math.sin(t * Math.PI * 5.5) * 4.5 + Math.sin(t * Math.PI * 1.8) * 2.5;
+    momentary.push(base + (Math.random() - 0.5) * 5);
+  }
+
+  // Short-term: smooth over ~18 samples
+  const shortTerm = [];
+  for (let i = 0; i < T; i++) {
+    let sum = 0, cnt = 0;
+    for (let j = Math.max(0, i - 18); j <= i; j++) { sum += momentary[j]; cnt++; }
+    shortTerm.push(sum / cnt);
+  }
+
+  // Integrated: running mean
+  let runSum = 0;
+  const integrated = [];
+  for (let i = 0; i < T; i++) {
+    runSum += momentary[i];
+    integrated.push(runSum / (i + 1));
+  }
+
+  function buildPath(data, col, sw) {
+    return `<path d="${data.map((v, i) => {
+      const x = ox + (i / (T - 1)) * plotW;
+      const y = Math.max(oy, Math.min(oy + plotH, toY(v)));
+      return (i === 0 ? 'M' : 'L') + `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ')}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linejoin="round"/>`;
+  }
+
+  let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+  // Grid
+  [-28,-21,-14,-7,0].forEach(lufs => {
+    const y = toY(lufs);
+    s += `<line x1="${ox}" y1="${y.toFixed(1)}" x2="${ox+plotW}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+    s += `<text x="${ox-5}" y="${(y+3).toFixed(1)}" text-anchor="end" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.28)">${lufs}</text>`;
+  });
+  s += `<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${oy+plotH}" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>`;
+  s += `<line x1="${ox}" y1="${oy+plotH}" x2="${ox+plotW}" y2="${oy+plotH}" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>`;
+  s += `<text x="10" y="${oy+plotH/2}" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.28)" transform="rotate(-90,10,${oy+plotH/2})">LUFS</text>`;
+  s += `<text x="${ox+plotW/2}" y="${H-22}" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.28)">time (song playback)</text>`;
+
+  // -14 LUFS target
+  const tY = toY(-14);
+  s += `<line x1="${ox}" y1="${tY.toFixed(1)}" x2="${ox+plotW}" y2="${tY.toFixed(1)}" stroke="rgba(225,29,72,0.35)" stroke-width="1.2" stroke-dasharray="5,3"/>`;
+  s += `<text x="${ox+plotW-2}" y="${(tY-3).toFixed(1)}" text-anchor="end" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(225,29,72,0.65)">−14 LUFS target</text>`;
+
+  s += buildPath(momentary, 'rgba(255,255,255,0.22)', 1.1);
+  s += buildPath(shortTerm, 'rgba(250,204,21,0.65)', 1.7);
+  s += buildPath(integrated, 'rgba(253,164,175,0.95)', 2.2);
+
+  // Legend
+  const legY = oy + plotH + 34;
+  s += `<line x1="${ox}" y1="${legY}" x2="${ox+18}" y2="${legY}" stroke="rgba(255,255,255,0.22)" stroke-width="1.1"/>`;
+  s += `<text x="${ox+22}" y="${legY+4}" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.45)">momentary (400ms)</text>`;
+  s += `<line x1="${ox+148}" y1="${legY}" x2="${ox+166}" y2="${legY}" stroke="rgba(250,204,21,0.65)" stroke-width="1.7"/>`;
+  s += `<text x="${ox+170}" y="${legY+4}" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(250,204,21,0.65)">short-term (3s)</text>`;
+  s += `<line x1="${ox+280}" y1="${legY}" x2="${ox+298}" y2="${legY}" stroke="rgba(253,164,175,0.95)" stroke-width="2.2"/>`;
+  s += `<text x="${ox+302}" y="${legY+4}" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(253,164,175,0.95)">integrated</text>`;
+
+  s += `</svg>`;
+  return s;
+}
+
+function buildNormalizationDiagram() {
+  // Two columns: loud master turned down, quiet master turned up — both land at −14 LUFS
+  const W = SVG_W, H = 195;
+  const barW = 56, barH = 120, barY = 30;
+  // Column centers
+  const c1 = 110, c2 = 340;
+  const maxLUFS = 24; // −24 to 0
+
+  function lufsToBarH(lufs) { return (Math.abs(lufs) / maxLUFS) * barH; }
+  function lufsToBarY(lufs) { return barY + barH - lufsToBarH(lufs); }
+
+  let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+  function drawScenario(cx, origLUFS, title, arrowLabel, arrowColor) {
+    const bx = cx - barW / 2;
+    const bAfterX = cx + barW / 2 + 30;
+
+    // Original bar
+    s += `<text x="${cx}" y="${barY-10}" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.50)" font-weight="600">${title}</text>`;
+    s += `<rect x="${bx}" y="${barY}" width="${barW}" height="${barH}" rx="4" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>`;
+    const oh = lufsToBarH(origLUFS);
+    const oy2 = lufsToBarY(origLUFS);
+    const origFill = Math.abs(origLUFS) < 12 ? 'rgba(239,68,68,0.60)' : 'rgba(34,197,94,0.55)';
+    s += `<rect x="${bx+2}" y="${oy2.toFixed(1)}" width="${barW-4}" height="${oh.toFixed(1)}" rx="2" fill="${origFill}"/>`;
+    s += `<text x="${cx}" y="${(oy2-5).toFixed(1)}" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.65)" font-weight="600">${origLUFS} LUFS</text>`;
+
+    // Arrow
+    s += `<text x="${bAfterX-8}" y="${barY+barH/2-4}" font-size="18" fill="rgba(255,255,255,0.20)">→</text>`;
+    s += `<text x="${bAfterX-8}" y="${barY+barH/2+12}" font-size="9" font-family="'IBM Plex Mono',monospace" fill="${arrowColor}" font-weight="600">${arrowLabel}</text>`;
+
+    // After bar (−14 LUFS)
+    const bx2 = bAfterX + 10;
+    s += `<rect x="${bx2}" y="${barY}" width="${barW-8}" height="${barH}" rx="4" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>`;
+    const ah = lufsToBarH(14);
+    const ay2 = lufsToBarY(14);
+    s += `<rect x="${bx2+2}" y="${ay2.toFixed(1)}" width="${barW-12}" height="${ah.toFixed(1)}" rx="2" fill="rgba(34,197,94,0.62)"/>`;
+    s += `<text x="${bx2+(barW-8)/2}" y="${(ay2-5).toFixed(1)}" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.65)" font-weight="600">−14</text>`;
+  }
+
+  drawScenario(c1, -8,  'Loud master (−8 LUFS)',  '▼ turned down', 'rgba(239,68,68,0.80)');
+  drawScenario(c2, -20, 'Quiet master (−20 LUFS)', '▲ turned up',   'rgba(34,197,94,0.80)');
+
+  // Shared −14 LUFS target line across both
+  const targetY = lufsToBarY(14);
+  s += `<line x1="24" y1="${targetY.toFixed(1)}" x2="${W-12}" y2="${targetY.toFixed(1)}" stroke="rgba(225,29,72,0.30)" stroke-width="1" stroke-dasharray="4,3"/>`;
+  s += `<text x="${W-10}" y="${(targetY-3).toFixed(1)}" text-anchor="end" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(225,29,72,0.60)">−14 LUFS</text>`;
+
+  s += `<text x="${W/2}" y="${H-4}" text-anchor="middle" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.22)">Both masters land at the same playback loudness — pushing harder gets you nowhere</text>`;
+
+  s += `</svg>`;
+  return s;
+}
+
+function buildTruePeakDiagram() {
+  // Digital samples (dots) + reconstructed waveform showing intersample peak above 0 dBFS
+  const W = SVG_W, H = 185;
+  const ox = 30, oy = 18, plotW = W - ox - 60, plotH = H - oy - 48;
+
+  function toY(amp) { return oy + plotH / 2 - amp * plotH * 0.43; }
+
+  let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+  // Reference lines
+  const zeroY = toY(1.0);
+  const tpY   = toY(0.891); // −1 dBTP
+  const negY  = toY(-1.0);
+  s += `<line x1="${ox}" y1="${zeroY.toFixed(1)}" x2="${ox+plotW}" y2="${zeroY.toFixed(1)}" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>`;
+  s += `<text x="${ox+plotW+5}" y="${(zeroY+3).toFixed(1)}" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.45)">0 dBFS</text>`;
+  s += `<line x1="${ox}" y1="${tpY.toFixed(1)}" x2="${ox+plotW}" y2="${tpY.toFixed(1)}" stroke="rgba(225,29,72,0.60)" stroke-width="1.2" stroke-dasharray="5,3"/>`;
+  s += `<text x="${ox+plotW+5}" y="${(tpY+3).toFixed(1)}" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(225,29,72,0.80)">−1 dBTP</text>`;
+  s += `<line x1="${ox}" y1="${negY.toFixed(1)}" x2="${ox+plotW}" y2="${negY.toFixed(1)}" stroke="rgba(255,255,255,0.08)" stroke-width="0.7"/>`;
+  s += `<line x1="${ox}" y1="${(oy+plotH/2).toFixed(1)}" x2="${ox+plotW}" y2="${(oy+plotH/2).toFixed(1)}" stroke="rgba(255,255,255,0.06)" stroke-width="0.7"/>`;
+
+  // Reconstructed waveform — a sine near its peak, with intersample overshoot
+  let wavePath = '';
+  const PERIOD_FRAC = 0.52; // fraction of window for a half cycle
+  for (let i = 0; i <= 360; i++) {
+    const t = i / 360;
+    const phase = t * Math.PI / PERIOD_FRAC;
+    let amp = Math.sin(phase) * 0.91;
+    // Add gentle bump creating intersample peak between two low samples near peak
+    const bump = Math.exp(-Math.pow((t - 0.44) * 22, 2)) * 0.16;
+    amp += bump;
+    const x = ox + t * plotW;
+    const y = toY(amp);
+    wavePath += (i === 0 ? 'M' : 'L') + `${x.toFixed(1)},${y.toFixed(1)} `;
+  }
+  s += `<path d="${wavePath}" fill="none" stroke="rgba(255,255,255,0.50)" stroke-width="1.8"/>`;
+
+  // Digital sample dots — spaced every ~20px at roughly 13-14 sample positions
+  const numSamples = 14;
+  const sampleData = [];
+  for (let i = 0; i < numSamples; i++) {
+    const t = i / (numSamples - 1);
+    const phase = t * Math.PI / PERIOD_FRAC;
+    const amp = Math.sin(phase) * 0.91;
+    sampleData.push({ x: ox + t * plotW, amp });
+  }
+  sampleData.forEach(({ x, amp }) => {
+    const y = toY(amp);
+    s += `<line x1="${x.toFixed(1)}" y1="${y.toFixed(1)}" x2="${x.toFixed(1)}" y2="${(oy+plotH/2).toFixed(1)}" stroke="rgba(253,164,175,0.20)" stroke-width="0.8"/>`;
+    s += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="rgba(253,164,175,0.92)" stroke="rgba(225,29,72,0.60)" stroke-width="1.2"/>`;
+  });
+
+  // True peak marker — the intersample peak exceeds 0 dBFS
+  const tpPeakX = ox + plotW * 0.455;
+  const tpPeakAmp = 1.075;
+  const tpPeakY = toY(tpPeakAmp);
+  s += `<circle cx="${tpPeakX.toFixed(1)}" cy="${tpPeakY.toFixed(1)}" r="5.5" fill="rgba(239,68,68,0.88)" stroke="rgba(255,120,120,0.80)" stroke-width="1.5"/>`;
+  s += `<line x1="${tpPeakX.toFixed(1)}" y1="${tpPeakY.toFixed(1)}" x2="${tpPeakX.toFixed(1)}" y2="${zeroY.toFixed(1)}" stroke="rgba(239,68,68,0.50)" stroke-width="1" stroke-dasharray="3,2"/>`;
+  s += `<text x="${(tpPeakX+9).toFixed(1)}" y="${(tpPeakY-2).toFixed(1)}" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(239,68,68,0.95)" font-weight="600">true peak</text>`;
+  s += `<text x="${(tpPeakX+9).toFixed(1)}" y="${(tpPeakY+10).toFixed(1)}" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(239,68,68,0.65)">exceeds 0 dBFS</text>`;
+
+  // Sample note label
+  s += `<text x="${ox}" y="${oy+plotH+16}" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(253,164,175,0.55)">● samples (all below 0 dBFS)</text>`;
+  s += `<text x="${ox}" y="${oy+plotH+28}" font-size="9" font-family="'IBM Plex Mono',monospace" fill="rgba(255,255,255,0.30)">— reconstructed waveform (intersample peaks can exceed 0 dBFS after DAC)</text>`;
+
+  s += `</svg>`;
+  return s;
+}
+
+const svgBuilders = {
+  buildTransferCurve,
+  buildCeilingDiagram,
+  buildBrickwallDiagram,
+  buildReleaseDiagram,
+  buildLUFSDiagram,
+  buildNormalizationDiagram,
+  buildTruePeakDiagram,
+};
+
+// ─────────────────────────────────────────────────────────────
+//  AUDIO ENGINE
+// ─────────────────────────────────────────────────────────────
+let audioCtx = null;
+let activeNodes = [];
+let stopTimeout = null;
+let isPlayingA = false, isPlayingB = false, isPlayingC = false;
+
+function getCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function vol() {
+  const s = document.querySelector('.vol-slider');
+  return s ? parseFloat(s.value) : 0.55;
+}
+
+function stopAll() {
+  if (stopTimeout) { clearTimeout(stopTimeout); stopTimeout = null; }
+  activeNodes.forEach(n => { try { n.stop?.(); n.disconnect?.(); } catch(e){} });
+  activeNodes = [];
+  isPlayingA = false; isPlayingB = false; isPlayingC = false;
+  document.querySelectorAll('.play-btn').forEach(b => b.classList.remove('playing'));
+}
+
+function playIco() {
+  return `<svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><polygon points="2,1 11,6 2,11"/></svg>`;
+}
+
+function updateBtnState(side, on) {
+  const map = { A: 'playBtnA', B: 'playBtnB', C: 'playBtnC' };
+  const btn = document.getElementById(map[side]);
+  if (btn) btn.classList.toggle('playing', on);
+}
+
+function makeOsc(ctx, dest, nodes, freq, type, startTime, dur, gain, attack, release) {
+  const at = attack ?? 0.015, rel = release ?? 0.12;
+  const osc = ctx.createOscillator();
+  const env = ctx.createGain();
+  osc.type = type; osc.frequency.value = freq;
+  env.gain.setValueAtTime(0, startTime);
+  env.gain.linearRampToValueAtTime(gain, startTime + at);
+  env.gain.setValueAtTime(gain, startTime + dur - rel);
+  env.gain.linearRampToValueAtTime(0, startTime + dur);
+  osc.connect(env); env.connect(dest);
+  osc.start(startTime); osc.stop(startTime + dur + 0.05);
+  nodes.push(osc, env);
+}
+
+// Rich sawtooth stab with harmonics (loud signal for limiter demos)
+function makeStab(ctx, dest, nodes, freq, startTime, gain) {
+  makeOsc(ctx, dest, nodes, freq,       'sawtooth', startTime, 0.50, gain * 1.0,  0.003, 0.10);
+  makeOsc(ctx, dest, nodes, freq * 2,   'sawtooth', startTime, 0.48, gain * 0.38, 0.003, 0.10);
+  makeOsc(ctx, dest, nodes, freq * 3,   'sine',     startTime, 0.45, gain * 0.18, 0.003, 0.10);
+}
+
+function makeLimiter(ctx, thresh, ratio, knee, attack, release) {
+  const lim = ctx.createDynamicsCompressor();
+  lim.threshold.value = thresh;
+  lim.ratio.value     = ratio;
+  lim.knee.value      = knee;
+  lim.attack.value    = attack;
+  lim.release.value   = release;
+  return lim;
+}
+
+// Step 1 — unlimited vs. limited
+function playLimiter(side) {
+  if (side === 'A' && isPlayingA) { stopAll(); return; }
+  if (side === 'B' && isPlayingB) { stopAll(); return; }
+  stopAll();
+  const ctx = getCtx(), nodes = [];
+  const master = ctx.createGain(); master.gain.value = vol() * 0.58; master.connect(ctx.destination); nodes.push(master);
+
+  let dest = master;
+  if (side === 'B') {
+    const lim = makeLimiter(ctx, -2, 20, 0, 0.001, 0.10);
+    lim.connect(master); nodes.push(lim);
+    dest = lim;
+  }
+  const sig = ctx.createGain(); sig.gain.value = 1.85; sig.connect(dest); nodes.push(sig);
+  [0, 0.58, 1.16, 1.74].forEach(t => makeStab(ctx, sig, nodes, 220, t, 0.50));
+
+  if (side === 'A') { isPlayingA = true; updateBtnState('A', true); }
+  else              { isPlayingB = true; updateBtnState('B', true); }
+  stopTimeout = setTimeout(stopAll, 3400);
+  activeNodes = nodes;
+}
+
+// Step 2 — input gain: quiet vs. driven
+function playInputGain(side) {
+  if (side === 'A' && isPlayingA) { stopAll(); return; }
+  if (side === 'B' && isPlayingB) { stopAll(); return; }
+  stopAll();
+  const ctx = getCtx(), nodes = [];
+  const master = ctx.createGain(); master.gain.value = vol() * 0.58; master.connect(ctx.destination); nodes.push(master);
+  const lim = makeLimiter(ctx, -2, 20, 0, 0.001, 0.10);
+  lim.connect(master); nodes.push(lim);
+  const inputGain = side === 'A' ? 0.55 : 1.90;
+  const sig = ctx.createGain(); sig.gain.value = inputGain; sig.connect(lim); nodes.push(sig);
+  [0, 0.55, 1.10, 1.65].forEach(t => makeStab(ctx, sig, nodes, 196, t, 0.52));
+
+  if (side === 'A') { isPlayingA = true; updateBtnState('A', true); }
+  else              { isPlayingB = true; updateBtnState('B', true); }
+  stopTimeout = setTimeout(stopAll, 3200);
+  activeNodes = nodes;
+}
+
+// Step 3 — brickwall vs. dynamics character
+function playBrickwall(side) {
+  if (side === 'A' && isPlayingA) { stopAll(); return; }
+  if (side === 'B' && isPlayingB) { stopAll(); return; }
+  stopAll();
+  const ctx = getCtx(), nodes = [];
+  const master = ctx.createGain(); master.gain.value = vol() * 0.55; master.connect(ctx.destination); nodes.push(master);
+  const lim = side === 'A'
+    ? makeLimiter(ctx, -2, 20, 0, 0.0005, 0.08)     // brickwall: hard knee, instant attack
+    : makeLimiter(ctx, -4,  7, 4, 0.004,  0.18);    // dynamics: soft knee, moderate ratio
+  lim.connect(master); nodes.push(lim);
+  const sig = ctx.createGain(); sig.gain.value = 1.80; sig.connect(lim); nodes.push(sig);
+  [0, 0.55, 1.10, 1.65, 2.20].forEach(t => makeStab(ctx, sig, nodes, 233, t, 0.50));
+
+  if (side === 'A') { isPlayingA = true; updateBtnState('A', true); }
+  else              { isPlayingB = true; updateBtnState('B', true); }
+  stopTimeout = setTimeout(stopAll, 3800);
+  activeNodes = nodes;
+}
+
+// Step 4 — release time: fast, slow, balanced
+function playRelease(side) {
+  if (side === 'A' && isPlayingA) { stopAll(); return; }
+  if (side === 'B' && isPlayingB) { stopAll(); return; }
+  if (side === 'C' && isPlayingC) { stopAll(); return; }
+  stopAll();
+  const ctx = getCtx(), nodes = [];
+  const master = ctx.createGain(); master.gain.value = vol() * 0.55; master.connect(ctx.destination); nodes.push(master);
+  const rel = side === 'A' ? 0.012 : side === 'B' ? 1.30 : 0.14;
+  const lim = makeLimiter(ctx, -3, 20, 0, 0.001, rel);
+  lim.connect(master); nodes.push(lim);
+  const sig = ctx.createGain(); sig.gain.value = 1.85; sig.connect(lim); nodes.push(sig);
+  // Repeating transients to expose release behavior
+  [0, 0.40, 0.80, 1.20, 1.60, 2.00, 2.40].forEach(t => {
+    makeOsc(ctx, sig, nodes, 110, 'sawtooth', t, 0.26, 0.62, 0.001, 0.08);
+  });
+
+  if (side === 'A') { isPlayingA = true; updateBtnState('A', true); }
+  else if (side === 'B') { isPlayingB = true; updateBtnState('B', true); }
+  else { isPlayingC = true; updateBtnState('C', true); }
+  stopTimeout = setTimeout(stopAll, 3500);
+  activeNodes = nodes;
+}
+
+// Step 8 — practical workflow demo
+function playWorkflow() {
+  if (isPlayingA) { stopAll(); return; }
+  stopAll();
+  const ctx = getCtx(), nodes = [];
+  const master = ctx.createGain(); master.gain.value = vol() * 0.55; master.connect(ctx.destination); nodes.push(master);
+  const lim = makeLimiter(ctx, -1, 20, 0, 0.001, 0.12);
+  lim.connect(master); nodes.push(lim);
+  const sig = ctx.createGain(); sig.gain.value = 1.25; sig.connect(lim); nodes.push(sig);
+  // Short musical phrase
+  const melody = [196.00, 220.00, 261.63, 220.00, 246.94, 196.00, 174.61];
+  melody.forEach((f, i) => {
+    makeOsc(ctx, sig, nodes, f,     'sine',     i * 0.50, 0.46, 0.55, 0.010, 0.12);
+    makeOsc(ctx, sig, nodes, f * 2, 'sine',     i * 0.50, 0.44, 0.20, 0.010, 0.12);
+    makeOsc(ctx, sig, nodes, f * 3, 'triangle', i * 0.50, 0.40, 0.08, 0.010, 0.12);
+  });
+  isPlayingA = true; updateBtnState('A', true);
+  stopTimeout = setTimeout(stopAll, 4800);
+  activeNodes = nodes;
+}
+
+// ─────────────────────────────────────────────────────────────
+//  STEP DATA
+// ─────────────────────────────────────────────────────────────
+
+const steps = [
+
+  {
+    title: "What is a Limiter?",
+    number: "Step 01 — Introduction",
+    svg: 'buildTransferCurve',
+    body: `A limiter is a compressor with one specific job: <em>nothing gets through above a set level</em>. Where a compressor applies a gentle ratio — 3:1, 4:1, 8:1 — a limiter applies an essentially infinite ratio. Signal below the threshold passes unchanged. Signal above it is stopped cold.
+
+<br><br>Look at the transfer curve above. The compressor line bends gently past its threshold, still sloping upward — louder input still produces louder output, just less so. The limiter line becomes nearly horizontal. More input produces almost no more output. The ceiling is absolute.
+
+<br><br>This distinction matters for how you use each tool. <strong>Compression shapes dynamics</strong> — it controls the relationship between loud and quiet, manages energy over time, and adds character. <strong>Limiting protects a ceiling</strong> — it prevents peaks from exceeding a hard maximum. Compressors live on individual channels and buses throughout a mix. The <em>mastering limiter</em> is the very last processor in the entire signal chain, sitting just before the audio is written to a file.
+
+<br><br>Every commercial release goes through a mastering limiter. It is the final gatekeeper between your mix and the outside world.`,
+    keyPoints: [
+      { strong: "Infinite ratio", rest: " — a limiter is a compressor where nothing passes above the ceiling, ever" },
+      { strong: "Ceiling protection, not dynamic shaping", rest: " — compressors sculpt; limiters stop" },
+      { strong: "Last in the chain", rest: " — the mastering limiter is the final processor before file export" },
+      { strong: "Transfer curve", rest: " — the output line goes flat at the ceiling regardless of how loud the input gets" },
+    ],
+    audio: { type: 'limiter-intro', desc: "The same signal played twice — once unlimited and once through a brickwall limiter. The unlimited version clips and distorts; the limited version hits a hard ceiling and stays clean." },
+  },
+
+  {
+    title: "Ceiling, Threshold & Input Gain",
+    number: "Step 02 — Core Controls",
+    svg: 'buildCeilingDiagram',
+    body: `Limiters have three primary controls, and confusing them leads to bad results. They are related but distinct.
+
+<br><br>The <em>ceiling</em> is the absolute maximum output level. Nothing the limiter produces will exceed this value. The standard mastering ceiling is <strong>−1 dBTP</strong> (one decibel below digital full scale, measured as a True Peak). Set this first and leave it there.
+
+<br><br>The <strong>threshold</strong> is the input level at which the limiter starts working. When input exceeds the threshold, gain reduction begins. On most modern limiters the threshold and ceiling are linked: raise the ceiling and the threshold follows. On hardware-style limiters they can be set independently.
+
+<br><br>The <em>input gain</em> (sometimes called "drive" or "output gain") is how you control how loud your master actually gets. You push input gain up, driving more signal above the threshold. The limiter catches everything above the ceiling. More input gain = more gain reduction = louder perceived loudness = more limiting character. The ceiling stays fixed; the loudness is determined by how hard you push into it.
+
+<br><br>The diagram above shows what happens. When the input exceeds the ceiling, the limiter applies gain reduction to bring the output back down to the ceiling. The shaded zone is where gain reduction is active.`,
+    keyPoints: [
+      { strong: "Ceiling", rest: " — absolute output maximum; set to −1 dBTP and don't touch it" },
+      { strong: "Threshold", rest: " — input level where limiting begins; often linked to ceiling on modern plugins" },
+      { strong: "Input gain", rest: " — drives signal into the limiter; this is the loudness knob" },
+      { strong: "More drive = more GR = louder master", rest: " — but also more limiting coloration and potential artifacts" },
+    ],
+    audio: { type: 'input-gain', desc: "The same signal through the same limiter — once with low input gain (barely touching the ceiling) and once with high input gain (heavy gain reduction). Hear how the character changes as you push harder." },
+  },
+
+  {
+    title: "Brickwall vs. Dynamics Limiters",
+    number: "Step 03 — Limiter Types",
+    svg: 'buildBrickwallDiagram',
+    body: `Not all limiters stop signal the same way. The two dominant categories produce audibly different results.
+
+<br><br>A <em>brickwall limiter</em> applies an absolutely hard ceiling. The attack is near-instantaneous — the limiter responds within a sample or two. The ratio is truly infinite. Peaks that hit the ceiling produce a perfectly flat top on the waveform: the audio is cleanly clipped at exactly the set level. Modern digital brickwall limiters like FabFilter Pro-L, Youlean Loudness Meter's reference mode, and Waves L2 operate this way. They produce zero overshoot — the file will never contain a sample above the ceiling. This is what streaming platforms and broadcast standards require.
+
+<br><br>A <strong>dynamics limiter</strong> behaves more like a very fast compressor with a very high ratio. The knee is soft rather than hard. The attack is fast but not sample-accurate. Peaks may momentarily exceed the threshold before the limiter fully catches them. This slight overshoot produces a warmer, more organic sound — less surgical, more musical. Hardware units like the SSL G-Bus and Neve 33609 operate in this range. Their character is prized precisely because they don't sound clinical.
+
+<br><br>For <strong>mastering and delivery</strong>, you need a brickwall limiter — streaming platforms' normalization and true-peak compliance require it. For <strong>in-mix limiting</strong> (bus glue, drum control, mix bus character), a dynamics-style limiter often sounds more natural.`,
+    keyPoints: [
+      { strong: "Brickwall", rest: " — sample-accurate, zero overshoot; required for streaming delivery and true-peak compliance" },
+      { strong: "Dynamics", rest: " — soft knee, slight overshoot; sounds warmer and more musical, used for in-mix bus work" },
+      { strong: "Flat tops", rest: " — the signature of brickwall limiting: a waveform with perfectly clipped crests" },
+      { strong: "Use brickwall for mastering", rest: " — streaming platforms check true peak; dynamics limiters can allow overshoot" },
+    ],
+    audio: { type: 'brickwall', desc: "Brickwall limiting vs. dynamics-style limiting on the same loud signal. The brickwall sounds more precise and controlled; the dynamics limiter sounds slightly warmer and more open." },
+  },
+
+  {
+    title: "Release Time & Artifacts",
+    number: "Step 04 — Core Controls",
+    svg: 'buildReleaseDiagram',
+    body: `Once a limiter catches a peak and applies gain reduction, it has to let go. The <em>release time</em> controls how quickly the gain returns to normal after the peak passes. It is one of the most important and most abused controls on a limiter.
+
+<br><br><strong>Release too fast:</strong> The gain comes back up almost immediately after each peak. This causes the limiter to apply and release gain reduction at audio frequencies, which generates harmonic distortion — a gritty, buzzing artifact. At very high limiting levels, fast release creates intermodulation distortion that is audible even at moderate listening volumes.
+
+<br><br><strong>Release too slow:</strong> The gain stays down long after the peak has passed. The quiet parts of the signal — breaths, reverb tails, spaces between notes — get suppressed along with the peaks. The result is a pumping, breathing quality, and an overall dulling of the mix's dynamics. The track loses life.
+
+<br><br><em>Auto-release</em> adapts to the incoming signal. The limiter analyzes the spectral and temporal content and chooses a release time that minimizes both artifacts. Most modern limiters offer auto-release, and it is usually the right choice for mastering. Reserve manual release for deliberate effect — intentional pumping on a bus, or a specific character you're chasing.`,
+    keyPoints: [
+      { strong: "Fast release", rest: " — gain oscillates at audio frequencies → harmonic distortion and grit" },
+      { strong: "Slow release", rest: " — gain stays suppressed between peaks → pumping, loss of dynamic life" },
+      { strong: "Auto-release", rest: " — adapts to the signal; the safest starting point for mastering" },
+      { strong: "Distortion check", rest: " — if the limiter sounds harsh or buzzy, slow down the release" },
+    ],
+    audio: { type: 'release', desc: "Three release settings on repeating transients: fast (hear the gritty distortion artifacts), slow (hear the pumping and suppression), and auto/balanced. The difference is clear even at moderate gain reduction levels." },
+  },
+
+  {
+    title: "LUFS in Depth",
+    number: "Step 05 — Loudness Metering",
+    svg: 'buildLUFSDiagram',
+    body: `You have already seen LUFS introduced in the Gain Staging module — it stands for Loudness Units relative to Full Scale and measures perceived loudness rather than raw amplitude. Here we go deeper, because the three measurement windows behave very differently and each tells you something specific.
+
+<br><br><em>Momentary LUFS</em> uses a 400-millisecond window. It fluctuates rapidly with the content — up during loud transients, down during pauses. This is the fastest measurement and gives you a sense of the loudness of any given instant. It is too reactive to use for delivery targets.
+
+<br><br><em>Short-term LUFS</em> uses a 3-second window. It smooths out the momentary fluctuations and shows the loudness of the current passage — a verse, a chorus, a breakdown. Useful for balancing sections against each other.
+
+<br><br><strong>Integrated LUFS</strong> is a time-averaged measurement across the entire track (from first audio to last). This is the number streaming platforms care about. Spotify targets −14 LUFS integrated, Apple Music targets −16 LUFS. Your mastering limiter workflow is about landing at the right integrated LUFS without over-limiting.
+
+<br><br>Notice in the diagram how the three values relate: momentary fluctuates widely, short-term follows the shape of the music, and integrated converges to a stable value over time. A well-mastered track has an integrated LUFS close to the streaming target — not because you crushed it there, but because the arrangement and limiting worked together naturally.`,
+    keyPoints: [
+      { strong: "Momentary (400ms)", rest: " — reacts to every transient; too fast for delivery targets" },
+      { strong: "Short-term (3s)", rest: " — shows passage loudness; useful for section-by-section balance" },
+      { strong: "Integrated", rest: " — whole-track average; the number Spotify, Apple Music, and YouTube use" },
+      { strong: "Target by genre", rest: " — dense electronic music: −9 to −12 LUFS; singer-songwriter: −16 to −18 LUFS" },
+    ],
+  },
+
+  {
+    title: "Streaming Normalization",
+    number: "Step 06 — The Modern Loudness Landscape",
+    svg: 'buildNormalizationDiagram',
+    body: `Streaming platforms do not play your file at the level you export it. They <em>normalize</em> every track to a common loudness target. The result is that a very loud master and a very quiet master are both turned to the same playback volume for the listener.
+
+<br><br>Here is what actually happens: Spotify measures the integrated LUFS of your track. If it is louder than −14 LUFS, Spotify turns the playback gain down to −14 LUFS. If it is quieter than −14 LUFS, Spotify turns it up. The listener hears every track at the same perceived loudness, regardless of how hot you mastered it.
+
+<br><br>This is why the loudness war — decades of engineers crushing masters louder and louder — is effectively over. <strong>Making your master louder does not make it sound louder to the listener.</strong> It gets turned down to match everything else. The only thing you achieve with an extremely loud master is heavier limiting, which degrades transients, reduces dynamic punch, and introduces distortion.
+
+<br><br>The practical conclusion: master to the right integrated LUFS for your genre and the character of the music, not as loud as you can possibly push. For most music, that is somewhere between <strong>−9 and −16 LUFS</strong>. Reference tracks, check your integrated LUFS against theirs, and aim to be in the same range — not to beat them.
+
+<br><br>Platform targets: <strong>Spotify −14 LUFS</strong>, <strong>Apple Music −16 LUFS</strong>, <strong>YouTube −14 LUFS</strong>, <strong>Tidal −14 LUFS</strong>, <strong>Amazon Music −14 LUFS</strong>.`,
+    keyPoints: [
+      { strong: "Normalization", rest: " — platforms turn loud masters DOWN and quiet masters UP to hit their target" },
+      { strong: "Louder ≠ better", rest: " — your master gets turned down; you only lose transients and dynamics" },
+      { strong: "Spotify −14, Apple −16", rest: " — master to the genre-appropriate target, not the absolute maximum" },
+      { strong: "Loudness war is over", rest: " — normalization removed the competitive incentive to crush masters" },
+    ],
+  },
+
+  {
+    title: "True Peak",
+    number: "Step 07 — Intersample Peaks",
+    svg: 'buildTruePeakDiagram',
+    body: `Digital audio is stored as discrete samples — individual amplitude measurements spaced evenly in time. A standard meter reads these samples and reports the highest one. But there is a problem: when a digital file is converted back to an analog signal by a DAC (digital-to-analog converter), the converter reconstructs the waveform <em>between</em> the stored samples using sinc interpolation. This reconstructed waveform can peak above 0 dBFS even when every individual sample in the file is below 0 dBFS.
+
+<br><br>These are called <em>intersample peaks</em>, and they are the reason we set limiters to −1 dBTP rather than 0 dBFS. The "TP" stands for True Peak — a measurement mode that oversamples the audio (typically 4× or higher) before measuring, so it catches the reconstructed peaks between samples, not just the samples themselves.
+
+<br><br>The practical consequence: if you set your limiter ceiling to 0 dBFS (sample peak), some intersample peaks in the converted analog signal will actually exceed 0 dBFS. This causes clipping distortion in the DAC, and can also cause clipping in the encoding stage when Spotify, Apple, or YouTube converts your file to a lossy codec like AAC or MP3 — the lossy encoder can introduce its own level changes.
+
+<br><br>The industry standard is <strong>−1 dBTP</strong>. Set your mastering limiter ceiling here. Some engineers use <strong>−1.5 dBTP</strong> or even <strong>−2 dBTP</strong> for extra headroom before lossy encoding. Most modern limiters have a True Peak mode — make sure it is enabled.`,
+    keyPoints: [
+      { strong: "Intersample peaks", rest: " — the DAC reconstructs waveform between samples; peaks can exceed 0 dBFS" },
+      { strong: "−1 dBTP standard", rest: " — the industry-wide ceiling for streaming, broadcast, and AAC/MP3 encoding" },
+      { strong: "True Peak mode", rest: " — oversampled measurement that catches intersample peaks; enable it in your limiter" },
+      { strong: "Lossy encoding risk", rest: " — MP3/AAC conversion can push intersample peaks even higher; −1 dBTP gives headroom" },
+    ],
+  },
+
+  {
+    title: "Practical Workflow",
+    number: "Step 08 — Using a Limiter Effectively",
+    body: `The mastering limiter is the simplest processor to set up correctly. Here is the workflow that works every time.
+
+<br><br><strong>1. Set the ceiling first.</strong> Put it at −1 dBTP and do not move it. Enable True Peak mode. This is not creative — it is a compliance setting. Do it before anything else so the rest of your decisions are made with the correct headroom.
+
+<br><br><strong>2. Use integrated LUFS, not gain reduction, as your guide.</strong> Open a LUFS meter alongside your limiter. Raise input gain slowly until your integrated LUFS reading approaches the streaming target for your genre. The amount of gain reduction on the GR meter is a symptom, not a target — 1–2 dB is gentle, 4–6 dB is moderate, over 8 dB is likely too much for most material.
+
+<br><br><strong>3. A/B constantly.</strong> Bypass the limiter and compare. The limited version should sound louder but equally clear and punchy. If bypassing the limiter makes the mix suddenly sound more dynamic, open, or alive — you are over-limiting. Back off the input gain.
+
+<br><br><strong>4. Check on multiple playback systems.</strong> Limiting artifacts — distortion, pumping, dullness — are more audible on earbuds and laptop speakers than studio monitors. If it sounds fine in your studio but harsh on headphones, ease off.
+
+<br><br><strong>5. Reference.</strong> A/B against a commercial release in the same genre. Aim to match its integrated LUFS within 1–2 LU. Your goal is competitive loudness, not maximum loudness.`,
+    keyPoints: [
+      { strong: "Ceiling first", rest: " — set −1 dBTP and enable True Peak mode before making any other decisions" },
+      { strong: "Target integrated LUFS", rest: " — raise input gain to hit the streaming target for your genre" },
+      { strong: "A/B against bypass", rest: " — if bypass sounds more alive, you're over-limiting; back off" },
+      { strong: "Reference tracks", rest: " — match integrated LUFS of a commercial release in the same genre" },
+    ],
+    audio: { type: 'workflow', desc: "A musical phrase processed through a limiter at a well-calibrated mastering setting: −1 dBTP ceiling, input gain set for −14 LUFS integrated, auto release. Clean, controlled, and transparent." },
+  },
+
+];
+
+// ─────────────────────────────────────────────────────────────
+//  AUDIO DEMO BUILDER
+// ─────────────────────────────────────────────────────────────
+
+function buildAudioDemo(step) {
+  const a = step.audio;
+  if (!a) return '';
+  const v = `<div class="vol-wrap"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted);flex-shrink:0"><polygon points="11,5 6,9 2,9 2,15 6,15 11,19 11,5"/><path d="M19.07,4.93a10,10,0,0,1,0,14.14"/><path d="M15.54,8.46a5,5,0,0,1,0,7.07"/></svg><input type="range" class="vol-slider" min="0.05" max="1" step="0.01" value="0.55"></div>`;
+  const pi = playIco();
+  const demos = {
+    'limiter-intro': `<button class="play-btn" id="playBtnA" onclick="playLimiter('A')">${pi}Unlimited</button><button class="play-btn secondary" id="playBtnB" onclick="playLimiter('B')">${pi}Limited</button>${v}`,
+    'input-gain':    `<button class="play-btn" id="playBtnA" onclick="playInputGain('A')">${pi}Low Input Gain</button><button class="play-btn secondary" id="playBtnB" onclick="playInputGain('B')">${pi}High Input Gain</button>${v}`,
+    'brickwall':     `<button class="play-btn" id="playBtnA" onclick="playBrickwall('A')">${pi}Brickwall</button><button class="play-btn secondary" id="playBtnB" onclick="playBrickwall('B')">${pi}Dynamics</button>${v}`,
+    'release':       `<button class="play-btn" id="playBtnA" onclick="playRelease('A')">${pi}Fast Release</button><button class="play-btn secondary" id="playBtnB" onclick="playRelease('B')">${pi}Slow Release</button><button class="play-btn secondary" id="playBtnC" onclick="playRelease('C')">${pi}Auto</button>${v}`,
+    'workflow':      `<button class="play-btn" id="playBtnA" onclick="playWorkflow()">${pi}Play Demo</button>${v}`,
+  };
+  return `<div class="audio-demo">
+    <div class="audio-demo-label">Audio Demo</div>
+    <div class="audio-demo-desc">${a.desc}</div>
+    <div class="demo-controls">${demos[a.type] || ''}</div>
+  </div>`;
+}
+
+// ─────────────────────────────────────────────────────────────
+//  RENDER & NAVIGATION
+// ─────────────────────────────────────────────────────────────
+
+let currentStep = 0;
+
+function renderStep(idx) {
+  stopAll();
+  const step = steps[idx];
+  const card = document.getElementById('stepCard');
+
+  if (idx >= steps.length) {
+    card.innerHTML = `<div class="completion-card">
+      <div class="completion-title">Module complete.</div>
+      <div class="completion-sub">You now understand limiters from first principles to practical workflow — ceiling, True Peak, LUFS, streaming normalization, and when to back off. Go apply it to a master.</div>
+      <a class="completion-cta" href="/">Explore the Games →</a>
+      <button class="completion-restart" onclick="goToStep(0)">Restart module</button>
+    </div>`;
+    document.getElementById('prevBtn').disabled = false;
+    document.getElementById('nextBtn').style.display = 'none';
+    document.getElementById('stepCounter').textContent = '';
+    updateDots(idx);
+    document.getElementById('progressLabel').textContent = 'Complete';
+    return;
+  }
+
+  document.getElementById('nextBtn').style.display = '';
+  const svgHtml = step.svg && svgBuilders[step.svg]
+    ? `<div class="diagram-wrap">${svgBuilders[step.svg]()}</div>` : '';
+  const kpHtml = step.keyPoints?.length
+    ? `<div class="key-points"><div class="key-points-label">Key Points</div>${step.keyPoints.map(k => `<div class="key-point"><strong>${k.strong}</strong>${k.rest}</div>`).join('')}</div>` : '';
+  const isLast = idx === steps.length - 1;
+
+  card.innerHTML = `${svgHtml}
+    <div class="step-inner">
+      <div class="step-number">${step.number}</div>
+      <div class="step-title">${step.title}</div>
+      <div class="step-body">${step.body}</div>
+      ${kpHtml}${buildAudioDemo(step)}
+    </div>`;
+
+  document.getElementById('prevBtn').disabled = idx === 0;
+  const nb = document.getElementById('nextBtn');
+  nb.className = isLast ? 'nav-btn finish' : 'nav-btn primary';
+  nb.textContent = isLast ? 'Complete ✓' : 'Next →';
+  document.getElementById('stepCounter').textContent = `${idx + 1} / ${steps.length}`;
+  document.getElementById('progressLabel').textContent = `Step ${idx + 1} of ${steps.length}`;
+  updateDots(idx);
+  card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function updateDots(idx) {
+  document.querySelectorAll('.progress-dot').forEach((d, i) => {
+    d.className = 'progress-dot' + (i < idx ? ' done' : i === idx ? ' active' : '');
+  });
+}
+
+function goToStep(idx) { currentStep = idx; renderStep(currentStep); }
+function navigate(dir) {
+  currentStep = Math.min(Math.max(0, currentStep + dir), steps.length);
+  renderStep(currentStep);
+}
+
+(function initDots() {
+  const container = document.getElementById('progressDots');
+  steps.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'progress-dot'; d.title = `Step ${i + 1}`;
+    d.addEventListener('click', () => goToStep(i));
+    container.appendChild(d);
+  });
+  renderStep(0);
+})();
+</script>
+</body>
+</html>
