@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://aolaxmmrmvovbzumlybe.supabase.co wss://aolaxmmrmvovbzumlybe.supabase.co; img-src 'self' data:; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
 <meta name="description" content="Track your ear training progress across all SonicSandbox games.">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Stats — SonicSandbox</title>
@@ -10,24 +11,46 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
 <style>
-  nav {
-    max-width: 1100px; margin: 0 auto;
-    padding: 20px 28px;
-    display: flex; align-items: center; gap: 16px;
+  /* ── Critical fallback (duplicates style.css; ensures dark theme
+     even when /style.css fails to load, e.g. file:// preview) ── */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg:      #0a0b0d;
+    --surface: #13151a;
+    --surface2:#1a1d24;
+    --surface3:#21252f;
+    --border:  rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text:    #dde2ee;
+    --muted:   #6b7280;
+    --accent:  #5b6aff;
+    --accent2: #8892ff;
+    --green: #3ecf8e; --amber: #f59e0b; --red: #f45b69;
+    --eq-accent:    #5b6aff;  --eq-accent2:    #8892ff;
+    --comp-accent:  #e8865a;  --comp-accent2:  #f0a882;
+    --rev-accent:   #5b3fd4;  --rev-accent2:   #8b6fff;
+    --dist-accent:  #d44a2a;  --dist-accent2:  #f07050;
+    --fq-accent:    #00d4ff;  --fq-accent2:    #60e8ff;
+    --fh-accent:    #00e5cc;  --fh-accent2:    #50f0d8;
+    --pan-accent:   #7c5cfc;  --pan-accent2:   #a58aff;
+    --qc-accent:    #2dd4a0;  --qc-accent2:    #5eefc0;
+    --delay-accent: #f97316;  --delay-accent2: #fb923c;
+    --ll-accent:    #f0b429;  --ll-accent2:    #ffd166;
+    --qeq-accent:   #818cf8;  --qeq-accent2:   #a5b4fc;
+    --sca-accent:   #39d353;  --sca-accent2:   #7ce88f;
   }
-.nav-sep { color: var(--border2); }
-  .nav-page { font-size: 14px; color: var(--muted); }
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+  }
 
-  .back-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    font-size: 13px; color: var(--muted); text-decoration: none;
-    font-family: 'IBM Plex Mono', monospace;
-    padding: 6px 12px; border-radius: 8px;
-    border: 1px solid var(--border); background: var(--surface);
-    transition: color 0.15s, border-color 0.15s;
-    margin-left: auto;
+  nav {
+    width: 100%; max-width: 1600px;
+    padding: 20px 28px;
+    display: flex; align-items: center;
   }
-  .back-btn:hover { color: var(--text); border-color: var(--border2); }
 
   .reset-btn {
     font-size: 11px; color: var(--muted);
@@ -305,10 +328,28 @@
 <body>
 
 <nav>
-  <a class="nav-logo" href="../">Sonic<span>Sandbox</span></a>
-  <span class="nav-sep">/</span>
-  <span class="nav-page">My Stats</span>
-  <a class="back-btn" href="../">← Back</a>
+  <div class="nav-logo-wrap">
+    <a class="nav-logo" href="/">Sonic<span>Sandbox</span></a>
+  </div>
+  <div class="nav-center">
+    <a class="nav-link" href="/">Games</a>
+    <a class="nav-link" href="/learn/">Learn</a>
+    <a class="nav-link" href="/about/">About</a>
+    <a class="nav-link active" href="/stats/">Stats</a>
+  </div>
+  <div class="nav-right">
+    <div id="navAuthArea"></div>
+    <a class="bmac-btn" href="https://www.buymeacoffee.com/sonicsandbox" target="_blank" rel="noopener">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M18 8h1a4 4 0 0 1 0 8h-1" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <line x1="6" y1="1" x2="6" y2="4" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+        <line x1="10" y1="1" x2="10" y2="4" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+        <line x1="14" y1="1" x2="14" y2="4" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      Buy me a coffee
+    </a>
+  </div>
 </nav>
 
 <div class="page">
@@ -1004,6 +1045,27 @@ document.addEventListener('ss:authchange', e => {
     document.getElementById('subheader').textContent  = 'Sign in to view your stats';
   }
 });
+
+// ── Nav auth display ──────────────────────────────────────────────
+(function() {
+  const navAuthArea = document.getElementById('navAuthArea');
+  document.addEventListener('ss:authchange', async e => {
+    const user = e.detail;
+    if (user) {
+      navAuthArea.innerHTML = `<div class="user-pill"><span class="username-display" style="color:var(--muted);font-size:12px;">${user.email}</span></div>`;
+      const profile = await SonicSandbox.getProfile();
+      const el = navAuthArea.querySelector('.username-display');
+      if (!el) return;
+      if (profile?.username) {
+        el.outerHTML = `<a class="set-username-link" href="/account/">@${profile.username}</a>`;
+      } else {
+        el.outerHTML = `<a class="set-username-link" href="/account/">Set username</a>`;
+      }
+    } else {
+      navAuthArea.innerHTML = `<a class="auth-btn" href="/">Sign in</a>`;
+    }
+  });
+})();
 </script>
 </body>
 </html>
