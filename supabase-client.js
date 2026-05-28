@@ -50,19 +50,36 @@ window.SonicSandbox = {
   // roundScore: weighted score (0–100 × difficulty multiplier) — stored in round_score
   // rawScore:   unweighted base score (0–100) — stored in raw_score for record-keeping
   //
-  // To enable raw_score storage, run once in Supabase SQL Editor:
-  //   ALTER TABLE scores ADD COLUMN IF NOT EXISTS raw_score INTEGER;
+  // Scores are validated and saved server-side via the save-score Edge Function.
+  // The Edge Function verifies the JWT, checks score ranges, enforces rate limits,
+  // and inserts using the service role key (so client INSERT is blocked by RLS).
   async saveScore({ game, correct, roundScore = null, rawScore = null }) {
     if (!_currentUser) return; // not logged in — skip silently
-    const row = {
-      user_id: _currentUser.id,
-      game,
-      correct,
-      round_score: roundScore,
-    };
-    if (rawScore !== null) row.raw_score = rawScore;
-    const { error } = await _sb.from('scores').insert(row);
-    if (error) console.warn('[SonicSandbox] score save failed:', error.message);
+
+    const { data: { session } } = await _sb.auth.getSession();
+    if (!session) return;
+
+    const body = { game, correct, roundScore, rawScore };
+
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/functions/v1/save-score`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify(body),
+        }
+      );
+      if (!res.ok) {
+        const { error } = await res.json().catch(() => ({ error: res.statusText }));
+        console.warn('[SonicSandbox] score save failed:', error);
+      }
+    } catch (err) {
+      console.warn('[SonicSandbox] score save network error:', err);
+    }
   },
 
   // Fetch score history for the current user, optionally filtered by game
