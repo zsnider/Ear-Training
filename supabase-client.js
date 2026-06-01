@@ -158,6 +158,43 @@ window.SonicSandbox = {
     return { error };
   },
 
+  // Dashboard stats: today's rounds, this-week rounds, day streak.
+  // Queries only created_at from the last 90 days for efficiency.
+  async getDashboardStats() {
+    if (!_currentUser) return null;
+    const since = new Date();
+    since.setDate(since.getDate() - 90);
+    const { data, error } = await _sb
+      .from('scores')
+      .select('created_at')
+      .eq('user_id', _currentUser.id)
+      .gte('created_at', since.toISOString())
+      .order('created_at', { ascending: false });
+    if (error || !data) return { today: 0, week: 0, streak: 0 };
+
+    const toLocal = d => new Date(d).toLocaleDateString('en-CA'); // YYYY-MM-DD
+    const todayStr = toLocal(new Date());
+    const weekAgo  = new Date(Date.now() - 7 * 86400000);
+    let today = 0, week = 0;
+    const daySet = new Set();
+    for (const s of data) {
+      const d = new Date(s.created_at);
+      const ds = toLocal(d);
+      if (ds === todayStr) today++;
+      if (d >= weekAgo) week++;
+      daySet.add(ds);
+    }
+    // Streak: consecutive days ending today (or yesterday if nothing yet today)
+    let streak = 0;
+    const check = new Date();
+    if (!daySet.has(todayStr)) check.setDate(check.getDate() - 1);
+    while (daySet.has(toLocal(check))) {
+      streak++;
+      check.setDate(check.getDate() - 1);
+    }
+    return { today, week, streak };
+  },
+
   // Delete the current user's account and all associated data.
   // Requires the `delete_user` SQL function in Supabase (run once in SQL Editor):
   //
