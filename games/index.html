@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cloud.umami.is 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://aolaxmmrmvovbzumlybe.supabase.co wss://aolaxmmrmvovbzumlybe.supabase.co https://cloud.umami.is; img-src 'self' data:; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Games — SonicSandbox</title>
@@ -91,18 +92,25 @@
 
   .game-row {
     display: flex; align-items: center; gap: 20px;
-    padding: 20px 0;
+    padding: 18px 16px;
+    margin: 0 -16px;
     border-bottom: 1px solid var(--border);
+    border-radius: 12px;
     text-decoration: none; color: inherit;
-    transition: background 0.15s;
+    transition: background 0.18s;
+    opacity: 0; transform: translateY(16px);
+    transition: background 0.18s, opacity 0.4s ease, transform 0.4s ease;
   }
+  .game-row.visible { opacity: 1; transform: translateY(0); }
   .game-row:last-child { border-bottom: none; }
+  .game-row:hover { background: rgba(255,255,255,0.03); }
 
   .game-icon {
-    width: 48px; height: 48px; border-radius: 12px;
+    width: 64px; height: 64px; border-radius: 14px;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
+  .game-icon svg { width: 32px; height: 32px; }
 
   .game-body { flex: 1; min-width: 0; }
   .game-name-row {
@@ -487,6 +495,20 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="../supabase-client.js"></script>
 <script>
+  // ── Scroll fade-in ────────────────────────────────────────
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.game-row').forEach((row, i) => {
+    row.style.transitionDelay = `${i * 40}ms`;
+    observer.observe(row);
+  });
+
   // ── Category filter ───────────────────────────────────────
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -496,6 +518,7 @@
       document.querySelectorAll('.game-row').forEach(row => {
         if (filter === 'all' || row.dataset.categories.includes(filter)) {
           row.removeAttribute('hidden');
+          row.classList.add('visible');
         } else {
           row.setAttribute('hidden', '');
         }

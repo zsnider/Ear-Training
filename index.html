@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cloud.umami.is 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://aolaxmmrmvovbzumlybe.supabase.co wss://aolaxmmrmvovbzumlybe.supabase.co https://cloud.umami.is; img-src 'self' data:; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SonicSandbox — Ear Training Games for Music Producers</title>
@@ -46,6 +47,7 @@
     grid-template-columns: 1fr 1fr;
     border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
+    position: relative;
   }
   @media (max-width: 780px) {
     .hero { grid-template-columns: 1fr; }
@@ -56,6 +58,9 @@
     padding: 56px 40px 56px 28px;
     display: flex; flex-direction: column; justify-content: center;
     border-right: 1px solid var(--border);
+    position: relative;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px);
+    background-size: 28px 28px;
   }
   @media (max-width: 780px) { .hero-left { border-right: none; padding: 40px 20px; } }
 
@@ -158,8 +163,10 @@
     border-radius: 14px; padding: 20px;
     display: flex; flex-direction: column; gap: 10px;
     text-decoration: none; color: inherit;
-    transition: border-color 0.15s, transform 0.15s;
+    opacity: 0; transform: translateY(18px);
+    transition: border-color 0.15s, transform 0.45s ease, opacity 0.45s ease;
   }
+  .rec-card.visible { opacity: 1; transform: translateY(0); }
   .rec-card:hover { transform: translateY(-2px); }
 
   .rec-card-top { display: flex; align-items: center; gap: 10px; }
@@ -645,6 +652,20 @@
       });
     }
   })();
+
+  // ── Rec-card scroll fade-in ───────────────────────────────
+  const cardObserver = new IntersectionObserver(entries => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        cardObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.rec-card').forEach((card, i) => {
+    card.style.transitionDelay = `${i * 80}ms`;
+    cardObserver.observe(card);
+  });
 
   // ── Auth state → update nav ───────────────────────────────
   document.addEventListener('ss:authchange', async e => {
