@@ -8,6 +8,7 @@
 <meta name="description" content="Two signals play — one compressed, one dry. Identify the compressed audio by ear in quick A/B rounds.">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quick Compress — SonicSandbox</title>
+  <link rel="stylesheet" href="/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
@@ -51,20 +52,6 @@
   }
 
   .header-left { display:flex; align-items:center; gap:14px; }
-
-  .back-btn {
-    font-family:'IBM Plex Mono',monospace;
-    font-size:12px; font-weight:500;
-    color:var(--muted);
-    text-decoration:none;
-    padding:6px 12px;
-    border:1px solid var(--border2);
-    border-radius:8px;
-    transition:all 0.15s;
-    white-space:nowrap;
-    letter-spacing:0.03em;
-  }
-  .back-btn:hover { color:var(--text); border-color:var(--accent); }
 
   .brand { display:flex; align-items:center; gap:10px; }
   .brand-icon {
@@ -343,6 +330,28 @@
 .help-section p strong { color: var(--text); font-weight: 500; }
 .help-block { display: flex; flex-direction: column; gap: 8px; }
 .help-divider { border: none; border-top: 1px solid var(--border); }
+
+  /* ── Site nav (injected) ── */
+  nav.site-nav {
+    width: 100%;
+    padding: 16px 24px;
+    display: flex; align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .game-bar {
+    width: 100%; max-width: 780px;
+    padding: 10px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+  }
+
+  .forgot-pw-link {
+    display: block; width: 100%; text-align: center;
+    margin-top: 12px; font-size: 12px; color: var(--muted);
+    background: none; border: none; cursor: pointer; font-family: inherit;
+  }
+  .forgot-pw-link:hover { color: var(--text); }
+
 </style>
   <script src="../scoring.js"></script>
 
@@ -361,9 +370,24 @@
 </head>
 <body>
 
-<header>
-  <div class="header-left">
-    <a href="../index.html" class="back-btn">← Back</a>
+<nav class="site-nav">
+  <div class="nav-logo-wrap">
+    <a class="nav-logo" href="/">Sonic<span>Sandbox</span></a>
+  </div>
+  <div class="nav-center">
+    <a class="nav-link" href="/">Home</a>
+    <a class="nav-link active" href="/games/">Games</a>
+    <a class="nav-link" href="/learn/">Learn</a>
+    <a class="nav-link" href="/stats/">Stats</a>
+  </div>
+  <div class="nav-right">
+    <div id="authArea">
+      <button class="auth-btn" id="openAuthBtn">Sign in</button>
+    </div>
+  </div>
+</nav>
+<div class="game-bar">
+  <div class="game-bar-left">
     <div class="brand">
       <div class="brand-icon">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -372,34 +396,14 @@
           <line x1="11" y1="12" x2="13" y2="12" stroke="white" stroke-width="1.8" stroke-linecap="round" opacity="0.6"/>
         </svg>
       </div>
-      <span class="brand-name">Quick Compress</span>
-    </div>
   </div>
-  <div style="display:flex;flex-direction:column;align-items:flex-end;">
+  <div class="game-bar-right">
+    <div style="display:flex;flex-direction:column;align-items:flex-end;">
   <div class="score-row">
     <div class="stat">
       <div class="stat-val" id="scoreVal">0</div>
-      <div class="stat-label">Score</div>
-    </div>
-    <div class="vdiv"></div>
-    <div class="stat">
-      <div class="stat-val" id="streakVal">0</div>
-      <div class="stat-label">Streak</div>
-    </div>
-    <div class="vdiv"></div>
-    <div class="stat">
-      <div class="stat-val" id="accuracyVal">—</div>
-      <div class="stat-label">Accuracy</div>
-    </div>
-    <div class="vdiv"></div>
-    <div class="stat">
-      <div class="stat-val" id="roundVal">0</div>
-      <div class="stat-label">Round</div>
-    </div>
   </div>
-  <div id="multBadge" style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:0.04em;margin-top:2px;text-align:right;opacity:0.7;">×1.0</div>
 </div>
-</header>
 
 <div class="main">
 
@@ -1239,5 +1243,136 @@ if ('serviceWorker' in navigator) {
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="../supabase-client.js"></script>
+<!-- Auth modal -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" id="closeAuthBtn">&times;</button>
+    <div class="modal-tabs">
+      <button class="modal-tab active" data-tab="signin">Sign in</button>
+      <button class="modal-tab" data-tab="signup">Create account</button>
+    </div>
+    <div id="tabSignin">
+      <label>Email</label>
+      <input type="email" id="siEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label>
+      <input type="password" id="siPassword" placeholder="••••••••" autocomplete="current-password">
+      <button class="modal-submit" id="siSubmit">Sign in</button>
+      <div class="modal-msg" id="siMsg"></div>
+      <button class="forgot-pw-link" id="forgotPwBtn" type="button">Forgot password?</button>
+    </div>
+    <div id="tabForgot" style="display:none;">
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:18px;">Enter your email and we'll send you a reset link.</p>
+      <label>Email</label>
+      <input type="email" id="fpEmail" placeholder="you@example.com" autocomplete="email">
+      <button class="modal-submit" id="fpSubmit">Send reset link</button>
+      <div class="modal-msg" id="fpMsg"></div>
+      <button class="forgot-pw-link" id="backToSigninBtn" type="button">← Back to sign in</button>
+    </div>
+    <div id="tabSignup" style="display:none;">
+      <label>Email</label>
+      <input type="email" id="suEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label>
+      <input type="password" id="suPassword" placeholder="At least 6 characters" autocomplete="new-password">
+      <button class="modal-submit" id="suSubmit">Create account</button>
+      <div class="modal-msg" id="suMsg"></div>
+    </div>
+  </div>
+</div>
+<!-- Footer -->
+<footer>
+  <div class="footer-left">
+    <a href="/">SonicSandbox</a>
+    &nbsp;·&nbsp; Ear training for producers, engineers, &amp; musicians
+    &nbsp;·&nbsp; <a href="/privacy/">Privacy Policy</a>
+    &nbsp;·&nbsp; <a href="/support/">Support</a>
+  </div>
+  <div class="footer-right">
+    <span>© 2025 Zach Snider</span>
+  </div>
+</footer>
+<script>
+  // ── Auth modal ────────────────────────────────────────────
+  const authModal = document.getElementById('authModal');
+  const authArea  = document.getElementById('authArea');
+  const openBtn   = document.getElementById('openAuthBtn');
+  const closeBtn  = document.getElementById('closeAuthBtn');
+  const tabs      = document.querySelectorAll('.modal-tab');
+  const tabSignin = document.getElementById('tabSignin');
+  const tabSignup = document.getElementById('tabSignup');
+  const tabForgot = document.getElementById('tabForgot');
+
+  if (openBtn) openBtn.addEventListener('click', () => authModal.classList.add('open'));
+  closeBtn.addEventListener('click', () => { authModal.classList.remove('open'); showSigninPanel(); });
+  authModal.addEventListener('click', e => { if (e.target === authModal) { authModal.classList.remove('open'); showSigninPanel(); } });
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      tabSignin.style.display = tab.dataset.tab === 'signin' ? '' : 'none';
+      tabSignup.style.display = tab.dataset.tab === 'signup' ? '' : 'none';
+      tabForgot.style.display = 'none';
+    });
+  });
+
+  function showSigninPanel() { tabForgot.style.display = 'none'; tabSignin.style.display = ''; }
+  function showForgotPanel() {
+    tabSignin.style.display = 'none'; tabForgot.style.display = '';
+    const e = document.getElementById('siEmail').value.trim();
+    if (e) document.getElementById('fpEmail').value = e;
+    document.getElementById('fpMsg').textContent = '';
+  }
+
+  document.getElementById('forgotPwBtn').addEventListener('click', showForgotPanel);
+  document.getElementById('backToSigninBtn').addEventListener('click', showSigninPanel);
+
+  document.getElementById('siSubmit').addEventListener('click', async () => {
+    const msg = document.getElementById('siMsg');
+    msg.textContent = 'Signing in…'; msg.className = 'modal-msg';
+    const { error } = await SonicSandbox.signIn(
+      document.getElementById('siEmail').value.trim(),
+      document.getElementById('siPassword').value
+    );
+    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+    else { authModal.classList.remove('open'); }
+  });
+
+  document.getElementById('fpSubmit').addEventListener('click', async () => {
+    const email = document.getElementById('fpEmail').value.trim();
+    const msg = document.getElementById('fpMsg');
+    if (!email) { msg.textContent = 'Please enter your email.'; msg.className = 'modal-msg error'; return; }
+    msg.textContent = 'Sending…'; msg.className = 'modal-msg';
+    const { error } = await SonicSandbox.resetPasswordForEmail(email);
+    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+    else { msg.textContent = 'Reset link sent! Check your inbox.'; msg.className = 'modal-msg success'; document.getElementById('fpSubmit').disabled = true; }
+  });
+
+  document.getElementById('suSubmit').addEventListener('click', async () => {
+    const msg = document.getElementById('suMsg');
+    msg.textContent = 'Creating account…'; msg.className = 'modal-msg';
+    const { error } = await SonicSandbox.signUp(
+      document.getElementById('suEmail').value.trim(),
+      document.getElementById('suPassword').value
+    );
+    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+    else { msg.textContent = 'Check your email to confirm your account.'; msg.className = 'modal-msg success'; }
+  });
+
+  // ── Auth state ────────────────────────────────────────────
+  document.addEventListener('ss:authchange', async e => {
+    const user = e.detail;
+    if (user) {
+      authArea.innerHTML = `<div class="user-pill"><span class="username-display" style="color:var(--muted);font-size:12px;">${user.email}</span></div>`;
+      const profile = await SonicSandbox.getProfile();
+      if (profile?.username) {
+        const el = document.querySelector('.username-display');
+        if (el) el.outerHTML = `<a class="set-username-link" href="/account/">@${profile.username}</a>`;
+      }
+    } else {
+      authArea.innerHTML = `<button class="auth-btn" id="openAuthBtn">Sign in</button>`;
+      document.getElementById('openAuthBtn').addEventListener('click', () => authModal.classList.add('open'));
+    }
+  });
+</script>
 </body>
 </html>
