@@ -10,6 +10,11 @@
 
   <!-- Core pages -->
   <url>
+    <loc>https://sonicsandbox.app/games/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://sonicsandbox.app/support/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
