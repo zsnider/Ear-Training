@@ -64,9 +64,17 @@
   .reset-btn:disabled { opacity: 0.4; cursor: default; }
 
   /* ── Page layout ─────────────────────────────────────── */
-  .page { max-width: 1100px; margin: 0 auto; padding: 0 28px 80px; }
+  .page { max-width: 1100px; margin: 0 auto; padding: 32px 28px 80px; }
 
-  .page-header { margin-bottom: 40px; }
+  .page-header {
+    width: 100%; max-width: 1280px;
+    padding: 36px 28px 32px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px);
+    background-size: 28px 28px;
+    margin-bottom: 0;
+  }
   .page-header h1 {
     font-family: 'IBM Plex Mono', monospace;
     font-size: clamp(22px, 3vw, 34px);
@@ -344,12 +352,12 @@
   </div>
 </nav>
 
-<div class="page">
+<div class="page-header">
+  <h1>Your Progress</h1>
+  <p id="subheader">Loading your stats…</p>
+</div>
 
-  <div class="page-header">
-    <h1>Your Progress</h1>
-    <p id="subheader">Loading your stats…</p>
-  </div>
+<div class="page">
 
   <!-- Settings -->
   <div class="settings-card">
