@@ -10,6 +10,11 @@
 
   <!-- Core pages -->
   <url>
+    <loc>https://sonicsandbox.app/support/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://sonicsandbox.app/privacy/</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
@@ -24,12 +29,6 @@
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
-  <url>
-    <loc>https://sonicsandbox.app/account/</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-
   <!-- Games -->
   <url>
     <loc>https://sonicsandbox.app/eq-match/</loc>
