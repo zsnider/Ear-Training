@@ -92,14 +92,78 @@
   /* ── Settings bar ── */
   .settings-bar {
     display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 0;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 12px;
+    padding: 0;
+    overflow: hidden;
+  }
+  .settings-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
     padding: 10px 14px;
   }
+  .settings-row-divider {
+    width: 100%; height: 1px;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+
+  /* ── Param ranges panel ── */
+  .ranges-toggle-btn {
+    display: flex; align-items: center; gap: 7px;
+    background: none; border: 1px solid var(--border);
+    border-radius: 10px; color: var(--muted);
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 7px 14px; cursor: pointer; transition: all 0.15s;
+    width: fit-content;
+  }
+  .ranges-toggle-btn:hover { border-color: var(--border2); color: var(--text); }
+  .ranges-toggle-btn .rt-arrow { font-size: 9px; transition: transform 0.2s; }
+  .ranges-toggle-btn.open .rt-arrow { transform: rotate(90deg); }
+
+  .ranges-panel {
+    display: none; flex-direction: column; gap: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .ranges-panel.open { display: flex; }
+
+  .range-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .range-row:last-child { border-bottom: none; }
+  .range-param-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--muted); width: 58px; flex-shrink: 0;
+  }
+  .range-input {
+    width: 60px; background: var(--surface2); color: var(--text);
+    border: 1px solid var(--border2); border-radius: 6px;
+    padding: 4px 7px; font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+    outline: none;
+  }
+  .range-input:focus { border-color: var(--accent); }
+  .range-sep { font-size: 11px; color: var(--muted); }
+  .range-unit { font-size: 11px; color: var(--muted); min-width: 20px; }
+  .range-reset {
+    margin-left: auto; font-size: 10px; color: var(--muted);
+    background: none; border: none; cursor: pointer; padding: 0;
+    font-family: inherit; text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .range-reset:hover { color: var(--text); }
 
   .label {
     font-size: 11px; font-weight: 600;
@@ -682,32 +746,40 @@
 
 <div class="main">
 
-  <!-- Difficulty bar -->
-  <div class="settings-bar" id="difficultyBar">
-    <span class="label">Difficulty</span>
-    <div class="pill active" onclick="setDifficulty('easy',this)">Easy</div>
-    <div class="pill" onclick="setDifficulty('medium',this)">Medium</div>
-    <div class="pill" onclick="setDifficulty('hard',this)">Hard</div>
-    <div class="pill" onclick="setDifficulty('pro',this)">Pro</div>
-    <div class="pill" onclick="setDifficulty('custom',this)">Custom</div>
-    <div style="margin-left:auto; position:relative;" class="shortcuts-wrap">
-      <button class="shortcuts-btn" onclick="toggleShortcuts(event)">⌨ Shortcuts</button>
-      <div class="shortcuts-popover" id="shortcutsPopover">
-        <div class="shortcut-row"><span>Toggle A/B</span><div class="shortcut-keys"><kbd>Space</kbd></div></div>
-        <div class="shortcut-row"><span>Dry signal</span><div class="shortcut-keys"><kbd>D</kbd></div></div>
-        <div class="shortcut-row"><span>Pause</span><div class="shortcut-keys"><kbd>P</kbd></div></div>
-        <div class="shortcut-row"><span>Restart</span><div class="shortcut-keys"><kbd>F</kbd></div></div>
-        <div class="shortcut-row"><span>Skip track</span><div class="shortcut-keys"><kbd>↑</kbd><kbd>↓</kbd></div></div>
-        <div class="shortcut-row"><span>Seek</span><div class="shortcut-keys"><kbd>←</kbd><kbd>→</kbd></div></div>
-        <div class="shortcut-row"><span>Check answer</span><div class="shortcut-keys"><kbd>↵</kbd></div></div>
+  <!-- Settings bar: Difficulty + Active Params -->
+  <div class="settings-bar">
+    <!-- Row 1: Difficulty -->
+    <div class="settings-row" id="difficultyBar">
+      <span class="label">Difficulty</span>
+      <div class="pill active" onclick="setDifficulty('easy',this)">Easy</div>
+      <div class="pill" onclick="setDifficulty('medium',this)">Medium</div>
+      <div class="pill" onclick="setDifficulty('hard',this)">Hard</div>
+      <div class="pill" onclick="setDifficulty('pro',this)">Pro</div>
+      <div class="pill" onclick="setDifficulty('custom',this)">Custom</div>
+      <div style="margin-left:auto; position:relative;" class="shortcuts-wrap">
+        <button class="shortcuts-btn" onclick="toggleShortcuts(event)">⌨ Shortcuts</button>
+        <div class="shortcuts-popover" id="shortcutsPopover">
+          <div class="shortcut-row"><span>Toggle A/B</span><div class="shortcut-keys"><kbd>Space</kbd></div></div>
+          <div class="shortcut-row"><span>Dry signal</span><div class="shortcut-keys"><kbd>D</kbd></div></div>
+          <div class="shortcut-row"><span>Pause</span><div class="shortcut-keys"><kbd>P</kbd></div></div>
+          <div class="shortcut-row"><span>Restart</span><div class="shortcut-keys"><kbd>F</kbd></div></div>
+          <div class="shortcut-row"><span>Skip track</span><div class="shortcut-keys"><kbd>↑</kbd><kbd>↓</kbd></div></div>
+          <div class="shortcut-row"><span>Seek</span><div class="shortcut-keys"><kbd>←</kbd><kbd>→</kbd></div></div>
+          <div class="shortcut-row"><span>Check answer</span><div class="shortcut-keys"><kbd>↵</kbd></div></div>
+        </div>
       </div>
     </div>
-  </div>
-
-  <!-- Active Params bar -->
-  <div class="settings-bar">
-    <span class="label">Active Params</span>
-    <div id="paramPills" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;"></div>
+    <div class="settings-row-divider"></div>
+    <!-- Row 2: Active Params -->
+    <div class="settings-row">
+      <span class="label">Active Params</span>
+      <div id="paramPills" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;"></div>
+      <div style="margin-left:auto; display:flex; align-items:center; gap:8px; flex-shrink:0;">
+        <span class="label">Locked</span>
+        <div class="pill" id="fixLockedBtn" onclick="toggleFixLocked()"
+             title="Locked params vary each round">Vary Each Round</div>
+      </div>
+    </div>
   </div>
 
   <!-- Workspace -->
@@ -806,6 +878,14 @@
         <button class="btn-secondary" onclick="newRound()"                               style="flex:1;">New Round</button>
         <button class="btn-primary"   id="btnCheck"   onclick="checkAnswer()"   disabled style="flex:1;">Check</button>
       </div>
+
+      <!-- Param ranges toggle -->
+      <button class="ranges-toggle-btn" id="rangesToggleBtn" onclick="toggleRangesPanel()">
+        <span class="rt-arrow">▶</span> Settings
+      </button>
+
+      <!-- Param ranges panel -->
+      <div class="ranges-panel" id="rangesPanel"></div>
 
       <!-- Result -->
       <div class="result-bar" id="resultBar">
@@ -909,9 +989,21 @@ const DIFFICULTY = {
   // 'custom' is handled dynamically
 };
 
+// ── Param ranges (for randomization) ─────────────────────────────────────────
+const RATIO_VALUES = [1.5, 2, 3, 4, 6, 8, 10, 20];
+const paramRanges = {
+  threshold: { min: -60, max: 0,   defaultMin: -60, defaultMax: 0   },
+  ratio:     { min: 1.5, max: 20,  defaultMin: 1.5, defaultMax: 20  },
+  attack:    { min: 0.1, max: 200, defaultMin: 0.1, defaultMax: 200 },
+  release:   { min: 5,   max: 800, defaultMin: 5,   defaultMax: 800 },
+  knee:      { min: 0,   max: 24,  defaultMin: 0,   defaultMax: 24  },
+  makeup:    { min: 0,   max: 12,  defaultMin: 0,   defaultMax: 12  },
+};
+
 // ── State ─────────────────────────────────────────────────────────────────────
-let difficulty   = 'easy';
-let activeParams = [...DIFFICULTY.easy.params];
+let difficulty      = 'easy';
+let activeParams    = [...DIFFICULTY.easy.params];
+let fixLockedParams = false; // when false, inactive params are randomized on the target
 let targetSettings = {};
 let userSettings   = {};
 let roundActive  = false;
@@ -1001,6 +1093,109 @@ function toggleCustomParam(key) {
     renderKnobs('user', userSettings, false);
     drawTransfer('user', document.getElementById('userTransfer'));
   }
+}
+
+// ── Ranges panel ─────────────────────────────────────────────────────────────
+function toggleRangesPanel() {
+  const panel = document.getElementById('rangesPanel');
+  const btn   = document.getElementById('rangesToggleBtn');
+  const open  = panel.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  if (open && !panel.hasChildNodes()) buildRangesPanel();
+}
+
+function buildRangesPanel() {
+  const panel = document.getElementById('rangesPanel');
+  panel.innerHTML = '';
+
+  const paramConfig = [
+    { key: 'threshold', label: 'Threshold', unit: 'dB',  isLog: false, step: 1,   min: -60, max: 0   },
+    { key: 'ratio',     label: 'Ratio',     unit: ':1',  isLog: false, step: null, min: 1.5, max: 20  },
+    { key: 'attack',    label: 'Attack',    unit: 'ms',  isLog: true,  step: 1,   min: 0.1, max: 200  },
+    { key: 'release',   label: 'Release',   unit: 'ms',  isLog: true,  step: 1,   min: 5,   max: 800  },
+    { key: 'knee',      label: 'Knee',      unit: 'dB',  isLog: false, step: 0.5, min: 0,   max: 24   },
+  ];
+
+  paramConfig.forEach(({ key, label, unit, step, min: absMin, max: absMax }) => {
+    const r = paramRanges[key];
+
+    const row = document.createElement('div');
+    row.className = 'range-row';
+
+    const isRatio = key === 'ratio';
+    // For ratio: show a select for min and max from RATIO_VALUES
+    let minControl, maxControl;
+
+    if (isRatio) {
+      minControl = buildRatioSelect(`range-min-${key}`, r.min, r.max, false, key);
+      maxControl = buildRatioSelect(`range-max-${key}`, r.min, r.max, true,  key);
+    } else {
+      minControl = `<input class="range-input" type="number" id="range-min-${key}"
+        value="${key === 'attack' || key === 'release' ? Math.round(r.min * 10)/10 : r.min}"
+        min="${absMin}" max="${absMax}" step="${step}"
+        onchange="updateRange('${key}','min',this.value)">`;
+      maxControl = `<input class="range-input" type="number" id="range-max-${key}"
+        value="${key === 'attack' || key === 'release' ? Math.round(r.max * 10)/10 : r.max}"
+        min="${absMin}" max="${absMax}" step="${step}"
+        onchange="updateRange('${key}','max',this.value)">`;
+    }
+
+    row.innerHTML = `
+      <span class="range-param-label">${label}</span>
+      ${isRatio ? minControl : minControl}
+      <span class="range-sep">–</span>
+      ${isRatio ? maxControl : maxControl}
+      <span class="range-unit">${unit}</span>
+      <button class="range-reset" onclick="resetRange('${key}')">reset</button>
+    `;
+
+    panel.appendChild(row);
+  });
+}
+
+function buildRatioSelect(id, currentMin, currentMax, isMax, key) {
+  const val = isMax ? paramRanges[key].max : paramRanges[key].min;
+  const opts = RATIO_VALUES.map(v =>
+    `<option value="${v}" ${v === val ? 'selected' : ''}>${v}:1</option>`
+  ).join('');
+  return `<select class="range-input" id="${id}" style="width:68px;"
+    onchange="updateRange('${key}','${isMax ? 'max' : 'min'}',this.value)">${opts}</select>`;
+}
+
+function updateRange(key, which, rawVal) {
+  const r   = paramRanges[key];
+  const val = parseFloat(rawVal);
+  if (isNaN(val)) return;
+  r[which] = val;
+  // Clamp so min <= max
+  if (r.min > r.max) {
+    if (which === 'min') r.max = r.min;
+    else                 r.min = r.max;
+    // Refresh the other input
+    const otherId = which === 'min' ? `range-max-${key}` : `range-min-${key}`;
+    const other   = document.getElementById(otherId);
+    if (other) other.value = which === 'min' ? r.max : r.min;
+  }
+}
+
+function resetRange(key) {
+  const r = paramRanges[key];
+  r.min = r.defaultMin;
+  r.max = r.defaultMax;
+  // Rebuild panel to reflect reset values
+  document.getElementById('rangesPanel').innerHTML = '';
+  buildRangesPanel();
+}
+
+function toggleFixLocked() {
+  fixLockedParams = !fixLockedParams;
+  const btn = document.getElementById('fixLockedBtn');
+  btn.classList.toggle('active', !fixLockedParams);
+  btn.textContent = fixLockedParams ? 'Fixed to Defaults' : 'Vary Each Round';
+  btn.title = fixLockedParams
+    ? 'Locked params are fixed to their defaults — click to vary them each round'
+    : 'Locked params vary each round — click to fix them to defaults';
+  if (roundActive) newRound();
 }
 
 function renderParamPills() {
@@ -1671,12 +1866,20 @@ async function loadLoopSamples() {
 
 // ── Round ─────────────────────────────────────────────────────────────────────
 function randomSetting(key) {
-  const p = PARAMS[key];
-  if (key === 'makeup') return Math.round(Math.random() * 12 * 2) / 2; // 0–12 dB
-  if (key === 'attack' || key === 'release')
-    return Math.exp(Math.log(p.min) + Math.random() * (Math.log(p.max) - Math.log(p.min)));
-  if (key === 'ratio') return [1.5,2,3,4,6,8,10,20][Math.floor(Math.random()*8)];
-  return p.min + Math.random() * (p.max - p.min);
+  const r = paramRanges[key];
+  if (key === 'makeup') {
+    const steps = Math.round((r.max - r.min) * 2);
+    return r.min + Math.round(Math.random() * steps) / 2;
+  }
+  if (key === 'attack' || key === 'release') {
+    const lo = Math.log(Math.max(0.001, r.min)), hi = Math.log(Math.max(0.001, r.max));
+    return Math.exp(lo + Math.random() * (hi - lo));
+  }
+  if (key === 'ratio') {
+    const avail = RATIO_VALUES.filter(v => v >= r.min && v <= r.max);
+    return avail.length ? avail[Math.floor(Math.random() * avail.length)] : 4;
+  }
+  return r.min + Math.random() * (r.max - r.min);
 }
 
 function newRound() {
@@ -1692,14 +1895,14 @@ function newRound() {
     const p = PARAMS[key];
     const isMakeupActive = key === 'makeup' && (difficulty !== 'custom' || activeParams.includes('makeup'));
     if (key === 'makeup') {
-      // In custom mode with makeup active, randomize it. Otherwise compute from GR.
-      targetSettings[key] = (difficulty === 'custom' && activeParams.includes('makeup'))
-        ? randomSetting('makeup')
-        : 0; // will be overwritten below for non-custom
+      // makeup is handled after this loop
+      targetSettings[key] = 0;
     } else if (activeParams.includes(key)) {
+      // Active param — randomize on target, user starts at default
       targetSettings[key] = randomSetting(key);
     } else {
-      targetSettings[key] = p.default;
+      // Inactive/locked param — randomize on target unless fixLockedParams is on
+      targetSettings[key] = fixLockedParams ? p.default : randomSetting(key);
     }
     userSettings[key] = p.default;
   });
@@ -1758,13 +1961,22 @@ function checkAnswer() {
   drawTransfer('compare', document.getElementById('userTransfer'));
   document.getElementById('transferCompare').classList.add('revealed');
 
-  // Score: compare transfer curves at 50 input points
+  // Score: compare transfer curves at 50 input points.
+  // For locked/inactive params, use the target's values so the user isn't penalized
+  // for something they couldn't control.
+  const isMakeupActive = difficulty !== 'custom' || activeParams.includes('makeup');
+  const scoreUser = {};
+  Object.keys(PARAMS).forEach(key => {
+    const isActive = activeParams.includes(key) || (key === 'makeup' && isMakeupActive);
+    scoreUser[key] = isActive ? userSettings[key] : targetSettings[key];
+  });
+
   const points = 50;
   let totalErr = 0;
   for (let i = 0; i <= points; i++) {
     const inputDb   = -60 + (i / points) * 60;
     const targetOut = computeTransferPoint(inputDb, targetSettings.threshold, targetSettings.ratio, targetSettings.knee);
-    const userOut   = computeTransferPoint(inputDb, userSettings.threshold,   userSettings.ratio,   userSettings.knee);
+    const userOut   = computeTransferPoint(inputDb, scoreUser.threshold,      scoreUser.ratio,      scoreUser.knee);
     totalErr += Math.abs(targetOut - userOut);
   }
   const avgErr = totalErr / (points + 1);
@@ -1861,6 +2073,8 @@ function showToast(msg) {
 // ── Init ──────────────────────────────────────────────────────────────────────
 renderParamPills();
 updateMultBadge();
+// Reflect default fixLockedParams state on the pill
+document.getElementById('fixLockedBtn').classList.toggle('active', !fixLockedParams);
 drawTransfer('target', document.getElementById('targetTransfer'));
 drawTransfer('user',   document.getElementById('userTransfer'));
 window.addEventListener('resize', () => {
