@@ -375,18 +375,58 @@ input[type=range]:disabled::-webkit-slider-thumb { background: var(--muted); box
   .new-round-btn { margin-left:0; width:100%; }
 }
 
-  /* ── Site nav (injected) ── */
+    /* ── Game bar (site context + score row) ─────────────── */
   nav.site-nav {
     width: 100%;
-    padding: 16px 24px;
+    padding: 14px 24px;
     display: flex; align-items: center;
     border-bottom: 1px solid var(--border);
   }
   .game-bar {
-    width: 100%; max-width: 960px;
+    width: 100%;
     padding: 10px 24px;
     display: flex; align-items: center; justify-content: space-between;
     gap: 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .game-bar-left { display: flex; align-items: center; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-icon {
+    width: 28px; height: 28px; border-radius: 7px;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .brand-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; font-weight: 600;
+    color: var(--text); letter-spacing: -0.01em;
+  }
+  .game-bar-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+  .score-row { display: flex; align-items: center; gap: 16px; }
+  .stat { text-align: center; }
+  .stat-val {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 18px; font-weight: 700;
+    color: var(--accent2); line-height: 1;
+  }
+  .stat-label {
+    font-size: 9px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin-top: 2px;
+  }
+  .vdiv { width: 1px; height: 20px; background: var(--border2); }
+  .mult-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 8px; color: var(--muted);
+    letter-spacing: 0.04em; opacity: 0.7;
+  }
+  @media (max-width: 600px) {
+    nav.site-nav { padding: 12px 16px; }
+    .game-bar { padding: 8px 16px; }
+    .stat-val { font-size: 15px; }
+    .score-row { gap: 10px; }
   }
 
   .forgot-pw-link {
@@ -434,19 +474,40 @@ input[type=range]:disabled::-webkit-slider-thumb { background: var(--muted); box
   <div class="game-bar-left">
     <div class="brand">
       <div class="brand-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <rect x="1"  y="6"  width="4" height="11" rx="2"    fill="white"/>
-          <rect x="7"  y="9"  width="3" height="8"  rx="1.5"  fill="rgba(255,255,255,0.72)"/>
-          <rect x="12" y="11" width="2.5" height="6" rx="1.25" fill="rgba(255,255,255,0.46)"/>
-          <rect x="16.5" y="12.5" width="2" height="4.5" rx="1" fill="rgba(255,255,255,0.26)"/>
-          <rect x="20" y="13.5" width="1.5" height="3.5" rx="0.75" fill="rgba(255,255,255,0.14)"/>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <rect x="1"    y="6"    width="4"   height="11"  rx="2"    fill="white"/>
+          <rect x="7"    y="9"    width="3"   height="8"   rx="1.5"  fill="rgba(255,255,255,0.72)"/>
+          <rect x="12"   y="11"   width="2.5" height="6"   rx="1.25" fill="rgba(255,255,255,0.46)"/>
+          <rect x="16.5" y="12.5" width="2"   height="4.5" rx="1"    fill="rgba(255,255,255,0.26)"/>
+          <rect x="20"   y="13.5" width="1.5" height="3.5" rx="0.75" fill="rgba(255,255,255,0.14)"/>
         </svg>
       </div>
+      <span class="brand-name">Delay Master</span>
+    </div>
   </div>
   <div class="game-bar-right">
-    <div style="display:flex;flex-direction:column;align-items:flex-end;">
-  <div class="score-row">
-    <div class="stat"><div class="stat-val" id="roundVal">0</div>
+    <div class="score-row">
+    <div class="stat">
+      <div class="stat-val" id="scoreVal">—</div>
+      <div class="stat-label">Score</div>
+    </div>
+    <div class="vdiv"></div>
+    <div class="stat">
+      <div class="stat-val" id="streakVal">—</div>
+      <div class="stat-label">Streak</div>
+    </div>
+    <div class="vdiv"></div>
+    <div class="stat">
+      <div class="stat-val" id="avgVal">—</div>
+      <div class="stat-label">Avg Score</div>
+    </div>
+    <div class="vdiv"></div>
+    <div class="stat">
+      <div class="stat-val" id="roundVal">—</div>
+      <div class="stat-label">Round</div>
+    </div>
+    </div>
+    <div id="multBadge" class="mult-badge">×1.0</div>
   </div>
 </div>
 
