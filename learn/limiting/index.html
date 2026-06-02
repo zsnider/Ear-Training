@@ -713,12 +713,18 @@ const svgBuilders = {
 };
 
 // ─────────────────────────────────────────────────────────────
-//  AUDIO ENGINE
+//  AUDIO ENGINE — Loop-based demos
 // ─────────────────────────────────────────────────────────────
 let audioCtx = null;
 let activeNodes = [];
 let stopTimeout = null;
 let isPlayingA = false, isPlayingB = false, isPlayingC = false;
+let demoBuffer = null;
+let bufferLoadPromise = null;
+
+// Hip-hop beat with clear kick/snare transients — ideal for limiting demos
+const DEMO_LOOP = '/samples/loops/ohpalmusic-passive-hip-hop-beat-90bpm-d-minor-177334.mp3';
+const DEMO_DURATION = 5000; // ms
 
 function getCtx() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -749,25 +755,21 @@ function updateBtnState(side, on) {
   if (btn) btn.classList.toggle('playing', on);
 }
 
-function makeOsc(ctx, dest, nodes, freq, type, startTime, dur, gain, attack, release) {
-  const at = attack ?? 0.015, rel = release ?? 0.12;
-  const osc = ctx.createOscillator();
-  const env = ctx.createGain();
-  osc.type = type; osc.frequency.value = freq;
-  env.gain.setValueAtTime(0, startTime);
-  env.gain.linearRampToValueAtTime(gain, startTime + at);
-  env.gain.setValueAtTime(gain, startTime + dur - rel);
-  env.gain.linearRampToValueAtTime(0, startTime + dur);
-  osc.connect(env); env.connect(dest);
-  osc.start(startTime); osc.stop(startTime + dur + 0.05);
-  nodes.push(osc, env);
-}
-
-// Rich sawtooth stab with harmonics (loud signal for limiter demos)
-function makeStab(ctx, dest, nodes, freq, startTime, gain) {
-  makeOsc(ctx, dest, nodes, freq,       'sawtooth', startTime, 0.50, gain * 1.0,  0.003, 0.10);
-  makeOsc(ctx, dest, nodes, freq * 2,   'sawtooth', startTime, 0.48, gain * 0.38, 0.003, 0.10);
-  makeOsc(ctx, dest, nodes, freq * 3,   'sine',     startTime, 0.45, gain * 0.18, 0.003, 0.10);
+// Load the demo loop once; all play functions await this
+function loadDemoBuffer() {
+  if (bufferLoadPromise) return bufferLoadPromise;
+  bufferLoadPromise = (async () => {
+    try {
+      const ctx = getCtx();
+      const resp = await fetch(DEMO_LOOP);
+      const ab = await resp.arrayBuffer();
+      demoBuffer = await ctx.decodeAudioData(ab);
+    } catch(e) {
+      console.error('Demo loop failed to load:', e);
+    }
+    return demoBuffer;
+  })();
+  return bufferLoadPromise;
 }
 
 function makeLimiter(ctx, thresh, ratio, knee, attack, release) {
@@ -780,111 +782,120 @@ function makeLimiter(ctx, thresh, ratio, knee, attack, release) {
   return lim;
 }
 
-// Step 1 — unlimited vs. limited
-function playLimiter(side) {
-  if (side === 'A' && isPlayingA) { stopAll(); return; }
-  if (side === 'B' && isPlayingB) { stopAll(); return; }
-  stopAll();
-  const ctx = getCtx(), nodes = [];
-  const master = ctx.createGain(); master.gain.value = vol() * 0.58; master.connect(ctx.destination); nodes.push(master);
+// Core playback: loop → inputGainNode → [optional limiter] → masterGain → destination
+// inputGainValue: how hard to push into the limiter (or destination if no limiter)
+function startLoop(ctx, inputGainValue, limiterNode, side, durationMs) {
+  if (!demoBuffer) return;
+  const nodes = [];
 
-  let dest = master;
-  if (side === 'B') {
-    const lim = makeLimiter(ctx, -2, 20, 0, 0.001, 0.10);
-    lim.connect(master); nodes.push(lim);
-    dest = lim;
+  const master = ctx.createGain();
+  master.gain.value = vol();
+  master.connect(ctx.destination);
+  nodes.push(master);
+
+  const inputGain = ctx.createGain();
+  inputGain.gain.value = inputGainValue;
+
+  if (limiterNode) {
+    inputGain.connect(limiterNode);
+    limiterNode.connect(master);
+    nodes.push(inputGain, limiterNode);
+  } else {
+    // No limiter — will clip at destination when inputGainValue pushes peaks above 1.0
+    inputGain.connect(master);
+    nodes.push(inputGain);
   }
-  const sig = ctx.createGain(); sig.gain.value = 1.85; sig.connect(dest); nodes.push(sig);
-  [0, 0.58, 1.16, 1.74].forEach(t => makeStab(ctx, sig, nodes, 220, t, 0.50));
+
+  const src = ctx.createBufferSource();
+  src.buffer = demoBuffer;
+  src.loop = true;
+  src.connect(inputGain);
+  src.start();
+  nodes.push(src);
+
+  activeNodes = nodes;
+  stopTimeout = setTimeout(stopAll, durationMs || DEMO_DURATION);
 
   if (side === 'A') { isPlayingA = true; updateBtnState('A', true); }
-  else              { isPlayingB = true; updateBtnState('B', true); }
-  stopTimeout = setTimeout(stopAll, 3400);
-  activeNodes = nodes;
+  else if (side === 'B') { isPlayingB = true; updateBtnState('B', true); }
+  else if (side === 'C') { isPlayingC = true; updateBtnState('C', true); }
 }
 
-// Step 2 — input gain: quiet vs. driven
-function playInputGain(side) {
+// Step 1 — unlimited (clips) vs. limited (ceiling held clean)
+async function playLimiter(side) {
   if (side === 'A' && isPlayingA) { stopAll(); return; }
   if (side === 'B' && isPlayingB) { stopAll(); return; }
   stopAll();
-  const ctx = getCtx(), nodes = [];
-  const master = ctx.createGain(); master.gain.value = vol() * 0.58; master.connect(ctx.destination); nodes.push(master);
+  const ctx = getCtx();
+  await loadDemoBuffer();
+  if (!demoBuffer) return;
+
+  if (side === 'A') {
+    // No limiter, high gain — signal clips at the audio destination
+    startLoop(ctx, 2.4, null, 'A');
+  } else {
+    // Brickwall limiter catches the same driven signal
+    const lim = makeLimiter(ctx, -2, 20, 0, 0.001, 0.10);
+    startLoop(ctx, 2.4, lim, 'B');
+  }
+}
+
+// Step 2 — low input gain (barely touching) vs. high input gain (heavy GR)
+async function playInputGain(side) {
+  if (side === 'A' && isPlayingA) { stopAll(); return; }
+  if (side === 'B' && isPlayingB) { stopAll(); return; }
+  stopAll();
+  const ctx = getCtx();
+  await loadDemoBuffer();
+  if (!demoBuffer) return;
+
   const lim = makeLimiter(ctx, -2, 20, 0, 0.001, 0.10);
-  lim.connect(master); nodes.push(lim);
-  const inputGain = side === 'A' ? 0.55 : 1.90;
-  const sig = ctx.createGain(); sig.gain.value = inputGain; sig.connect(lim); nodes.push(sig);
-  [0, 0.55, 1.10, 1.65].forEach(t => makeStab(ctx, sig, nodes, 196, t, 0.52));
-
-  if (side === 'A') { isPlayingA = true; updateBtnState('A', true); }
-  else              { isPlayingB = true; updateBtnState('B', true); }
-  stopTimeout = setTimeout(stopAll, 3200);
-  activeNodes = nodes;
+  // Low gain: peaks barely reach ceiling — transparent. High gain: heavy GR, louder, more coloured.
+  const gain = side === 'A' ? 0.7 : 2.2;
+  startLoop(ctx, gain, lim, side);
 }
 
-// Step 3 — brickwall vs. dynamics character
-function playBrickwall(side) {
+// Step 3 — brickwall (flat top, precise) vs. dynamics (soft knee, musical)
+async function playBrickwall(side) {
   if (side === 'A' && isPlayingA) { stopAll(); return; }
   if (side === 'B' && isPlayingB) { stopAll(); return; }
   stopAll();
-  const ctx = getCtx(), nodes = [];
-  const master = ctx.createGain(); master.gain.value = vol() * 0.55; master.connect(ctx.destination); nodes.push(master);
-  const lim = side === 'A'
-    ? makeLimiter(ctx, -2, 20, 0, 0.0005, 0.08)     // brickwall: hard knee, instant attack
-    : makeLimiter(ctx, -4,  7, 4, 0.004,  0.18);    // dynamics: soft knee, moderate ratio
-  lim.connect(master); nodes.push(lim);
-  const sig = ctx.createGain(); sig.gain.value = 1.80; sig.connect(lim); nodes.push(sig);
-  [0, 0.55, 1.10, 1.65, 2.20].forEach(t => makeStab(ctx, sig, nodes, 233, t, 0.50));
+  const ctx = getCtx();
+  await loadDemoBuffer();
+  if (!demoBuffer) return;
 
-  if (side === 'A') { isPlayingA = true; updateBtnState('A', true); }
-  else              { isPlayingB = true; updateBtnState('B', true); }
-  stopTimeout = setTimeout(stopAll, 3800);
-  activeNodes = nodes;
+  const lim = side === 'A'
+    ? makeLimiter(ctx, -2, 20, 0, 0.0005, 0.08)   // brickwall: hard knee, near-instant attack
+    : makeLimiter(ctx, -4,  7, 4, 0.005,  0.20);   // dynamics: soft knee, moderate ratio
+  startLoop(ctx, 2.0, lim, side);
 }
 
-// Step 4 — release time: fast, slow, balanced
-function playRelease(side) {
+// Step 4 — release: fast (distortion), slow (pumping), balanced (auto-style)
+async function playRelease(side) {
   if (side === 'A' && isPlayingA) { stopAll(); return; }
   if (side === 'B' && isPlayingB) { stopAll(); return; }
   if (side === 'C' && isPlayingC) { stopAll(); return; }
   stopAll();
-  const ctx = getCtx(), nodes = [];
-  const master = ctx.createGain(); master.gain.value = vol() * 0.55; master.connect(ctx.destination); nodes.push(master);
-  const rel = side === 'A' ? 0.012 : side === 'B' ? 1.30 : 0.14;
-  const lim = makeLimiter(ctx, -3, 20, 0, 0.001, rel);
-  lim.connect(master); nodes.push(lim);
-  const sig = ctx.createGain(); sig.gain.value = 1.85; sig.connect(lim); nodes.push(sig);
-  // Repeating transients to expose release behavior
-  [0, 0.40, 0.80, 1.20, 1.60, 2.00, 2.40].forEach(t => {
-    makeOsc(ctx, sig, nodes, 110, 'sawtooth', t, 0.26, 0.62, 0.001, 0.08);
-  });
+  const ctx = getCtx();
+  await loadDemoBuffer();
+  if (!demoBuffer) return;
 
-  if (side === 'A') { isPlayingA = true; updateBtnState('A', true); }
-  else if (side === 'B') { isPlayingB = true; updateBtnState('B', true); }
-  else { isPlayingC = true; updateBtnState('C', true); }
-  stopTimeout = setTimeout(stopAll, 3500);
-  activeNodes = nodes;
+  const rel = side === 'A' ? 0.010 : side === 'B' ? 1.40 : 0.15;
+  const lim = makeLimiter(ctx, -3, 20, 0, 0.001, rel);
+  startLoop(ctx, 2.0, lim, side, 5500);
 }
 
-// Step 8 — practical workflow demo
-function playWorkflow() {
+// Step 8 — well-calibrated mastering setting
+async function playWorkflow() {
   if (isPlayingA) { stopAll(); return; }
   stopAll();
-  const ctx = getCtx(), nodes = [];
-  const master = ctx.createGain(); master.gain.value = vol() * 0.55; master.connect(ctx.destination); nodes.push(master);
+  const ctx = getCtx();
+  await loadDemoBuffer();
+  if (!demoBuffer) return;
+
+  // −1 dBTP ceiling equivalent, modest drive (~2 dB GR on loudest peaks)
   const lim = makeLimiter(ctx, -1, 20, 0, 0.001, 0.12);
-  lim.connect(master); nodes.push(lim);
-  const sig = ctx.createGain(); sig.gain.value = 1.25; sig.connect(lim); nodes.push(sig);
-  // Short musical phrase
-  const melody = [196.00, 220.00, 261.63, 220.00, 246.94, 196.00, 174.61];
-  melody.forEach((f, i) => {
-    makeOsc(ctx, sig, nodes, f,     'sine',     i * 0.50, 0.46, 0.55, 0.010, 0.12);
-    makeOsc(ctx, sig, nodes, f * 2, 'sine',     i * 0.50, 0.44, 0.20, 0.010, 0.12);
-    makeOsc(ctx, sig, nodes, f * 3, 'triangle', i * 0.50, 0.40, 0.08, 0.010, 0.12);
-  });
-  isPlayingA = true; updateBtnState('A', true);
-  stopTimeout = setTimeout(stopAll, 4800);
-  activeNodes = nodes;
+  startLoop(ctx, 1.2, lim, 'A', 5000);
 }
 
 // ─────────────────────────────────────────────────────────────
