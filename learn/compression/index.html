@@ -58,9 +58,13 @@
 }
 /* ── Page header ───────────────────────────────────────── */
   .page-header {
-    width: 100%; max-width: 900px;
-    padding: 52px 24px 36px;
+    width: 100%; max-width: 1280px;
+    padding: 52px 24px 40px;
     text-align: center;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px);
+    background-size: 28px 28px;
   }
   .page-eyebrow {
     font-family: 'IBM Plex Mono', monospace;
@@ -82,7 +86,7 @@
   /* ── Tool Selector ─────────────────────────────────────── */
   .tool-selector-wrap {
     width: 100%; max-width: 900px;
-    padding: 0 24px 40px;
+    padding: 32px 24px 40px;
   }
   .tool-selector-label {
     font-family: 'IBM Plex Mono', monospace;
@@ -429,6 +433,30 @@
     <div id="authArea"></div>
   </div>
 </nav>
+
+<!-- Page header -->
+<div class="page-header">
+  <div class="page-eyebrow">SonicSandbox / Learning Center</div>
+  <h1 class="page-title">Learn the tools.</h1>
+  <p class="page-sub">Guided lessons on the audio processing tools that shape every mix. Read, listen, and understand — then go train your ears.</p>
+</div>
+
+<!-- Topic selector -->
+<div class="tool-selector-wrap">
+  <div class="tool-selector-label">Choose a topic</div>
+  <div class="tool-selector">
+    <a class="tool-btn" href="/learn/"><div class="tool-dot" style="color:#8892ff"></div>EQ</a>
+    <a class="tool-btn" href="/learn/gain-staging/"><div class="tool-dot" style="color:#86efac"></div>Gain Staging</a>
+    <span class="tool-btn active"><div class="tool-dot" style="color:#f0a882"></div>Compression</span>
+    <a class="tool-btn" href="/learn/saturation/"><div class="tool-dot" style="color:#fbbf24"></div>Saturation</a>
+    <a class="tool-btn" href="/learn/reverb/"><div class="tool-dot" style="color:#a78bfa"></div>Reverb</a>
+    <a class="tool-btn" href="/learn/delay/"><div class="tool-dot" style="color:#f97316"></div>Delay</a>
+    <a class="tool-btn" href="/learn/soundstage/"><div class="tool-dot" style="color:#38bdf8"></div>Spatial Mixing</a>
+    <a class="tool-btn" href="/learn/signal-chain/"><div class="tool-dot" style="color:#22d3ee"></div>Signal Chain</a>
+    <a class="tool-btn" href="/learn/modulation/"><div class="tool-dot" style="color:#34d399"></div>Modulation</a>
+    <a class="tool-btn" href="/learn/limiting/"><div class="tool-dot" style="color:#fda4af"></div>Limiting</a>
+  </div>
+</div>
 
 <!-- Compression Module -->
 <div class="module-wrap" id="compModule">
