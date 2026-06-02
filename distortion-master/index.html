@@ -366,12 +366,13 @@
     border-bottom: 1px solid var(--border);
   }
   .game-bar {
-    width: 100%;
+    width: 100%; max-width: 980px;
     padding: 10px 24px;
     display: flex; align-items: center; justify-content: space-between;
     gap: 16px;
     border-bottom: 1px solid var(--border);
-    background: var(--surface);
+    background-image: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 28px 28px;
   }
   .game-bar-left { display: flex; align-items: center; }
   .brand { display: flex; align-items: center; gap: 10px; }
