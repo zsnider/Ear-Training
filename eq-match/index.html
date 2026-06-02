@@ -384,6 +384,90 @@
       border-color: var(--accent) !important;
       background: rgba(91,106,255,0.1) !important;
     }
+
+    /* ── Keyboard shortcuts popover ── */
+    .shortcuts-wrap { position: relative; }
+    .shortcuts-btn {
+      display: flex; align-items: center; gap: 5px;
+      background: var(--surface2); border: 0.5px solid var(--border2);
+      border-radius: 8px; color: var(--muted);
+      font-family: inherit; font-size: 12px; font-weight: 500;
+      padding: 5px 11px; cursor: pointer; transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .shortcuts-btn:hover { border-color: var(--accent); color: var(--text); }
+    .shortcuts-popover {
+      display: none; position: absolute; top: calc(100% + 8px); right: 0;
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: 12px; padding: 14px 18px;
+      z-index: 50; min-width: 260px;
+    }
+    .shortcuts-popover.open { display: block; }
+    .shortcut-row {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 16px; font-size: 12px; color: var(--muted); padding: 5px 0;
+      border-bottom: 0.5px solid var(--border);
+    }
+    .shortcut-row:last-child { border-bottom: none; }
+    .shortcut-keys { display: flex; gap: 4px; flex-shrink: 0; }
+
+    /* ── Settings sections ── */
+    .settings-section { display: flex; flex-direction: column; gap: 8px; }
+    .settings-collapse-btn {
+      display: flex; align-items: center; gap: 7px;
+      background: none; border: 1px solid var(--border);
+      border-radius: 10px; color: var(--muted);
+      font-family: inherit; font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 7px 14px; cursor: pointer; transition: all 0.15s;
+      width: fit-content;
+    }
+    .settings-collapse-btn:hover { border-color: var(--border2); color: var(--text); }
+    .settings-collapse-btn .collapse-arrow { font-size: 9px; transition: transform 0.2s; }
+    .settings-collapse-btn.open .collapse-arrow { transform: rotate(90deg); }
+    .advanced-settings { display: none; flex-direction: column; gap: 8px; }
+    .advanced-settings.open { display: flex; }
+
+    /* ── Listen buttons — upgraded ── */
+    .listen-btn {
+      /* override base listen-btn from above */
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 6px !important;
+      padding: 10px 16px !important;
+      min-height: 60px;
+    }
+    .listen-btn-label {
+      font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.07em;
+    }
+    .listen-bars {
+      display: flex; align-items: flex-end; gap: 2.5px; height: 14px;
+    }
+    .listen-bar {
+      width: 3px; border-radius: 2px; background: currentColor;
+      opacity: 0.3; transition: opacity 0.15s; flex-shrink: 0;
+    }
+    .listen-btn.active .listen-bar { opacity: 1; }
+    .listen-bar:nth-child(1) { height: 5px;  animation-delay: 0s; }
+    .listen-bar:nth-child(2) { height: 10px; animation-delay: 0.12s; }
+    .listen-bar:nth-child(3) { height: 14px; animation-delay: 0.06s; }
+    .listen-bar:nth-child(4) { height: 9px;  animation-delay: 0.18s; }
+    .listen-bar:nth-child(5) { height: 6px;  animation-delay: 0.09s; }
+    .listen-btn.active .listen-bar {
+      animation: barBounce 0.75s ease-in-out infinite;
+    }
+    @keyframes barBounce {
+      0%,100% { transform: scaleY(1); }
+      50%      { transform: scaleY(0.3); }
+    }
+
+    /* ── Result bar color feedback ── */
+    .result-bar { transition: border-color 0.5s ease; }
+    .result-bar.score-good { border-color: rgba(62,207,142,0.55) !important; }
+    .result-bar.score-ok   { border-color: rgba(245,166,35,0.55) !important; }
+    .result-bar.score-bad  { border-color: rgba(244,91,105,0.55) !important; }
   
     /* ── Game bar (site context + score row) ─────────────── */
   nav.site-nav {
@@ -524,12 +608,18 @@
     <div class="pill" data-diff="3" onclick="setDifficulty(3, this)">3</div>
     <div class="divider"></div>
     <span class="drag-hint">Drag ← → = freq &nbsp;·&nbsp; ↑ ↓ = gain &nbsp;·&nbsp; Scroll = Q</span>
-    <div class="divider"></div>
-    <span style="font-size:11px; color:var(--muted); white-space:nowrap;">
-      <kbd>Space</kbd> A/B &nbsp;·&nbsp; <kbd>D</kbd> dry &nbsp;·&nbsp;
-      <kbd>P</kbd> pause &nbsp;·&nbsp; <kbd>F</kbd> restart &nbsp;·&nbsp;
-      <kbd>↑↓</kbd> skip &nbsp;·&nbsp; <kbd>←→</kbd> seek &nbsp;·&nbsp; <kbd>↵</kbd> Check
-    </span>
+    <div style="margin-left:auto; position:relative;" class="shortcuts-wrap">
+      <button class="shortcuts-btn" onclick="toggleShortcuts(event)">⌨ Shortcuts</button>
+      <div class="shortcuts-popover" id="shortcutsPopover">
+        <div class="shortcut-row"><span>A/B listen</span><div class="shortcut-keys"><kbd>Space</kbd></div></div>
+        <div class="shortcut-row"><span>Dry signal</span><div class="shortcut-keys"><kbd>D</kbd></div></div>
+        <div class="shortcut-row"><span>Pause / Resume</span><div class="shortcut-keys"><kbd>P</kbd></div></div>
+        <div class="shortcut-row"><span>Restart audio</span><div class="shortcut-keys"><kbd>F</kbd></div></div>
+        <div class="shortcut-row"><span>Check answer</span><div class="shortcut-keys"><kbd>↵</kbd></div></div>
+        <div class="shortcut-row"><span>Skip track</span><div class="shortcut-keys"><kbd>↑</kbd><kbd>↓</kbd></div></div>
+        <div class="shortcut-row"><span>Seek ±10s</span><div class="shortcut-keys"><kbd>←</kbd><kbd>→</kbd></div></div>
+      </div>
+    </div>
   </div>
 
   <!-- EQ Canvas -->
@@ -556,11 +646,25 @@
   <!-- Listen buttons -->
   <div class="controls">
     <button class="listen-btn target-btn" id="btnTarget" onclick="listenTarget()" disabled>
-      <span id="targetDot"></span> Target
+      <div class="listen-bars">
+        <div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div>
+        <div class="listen-bar"></div><div class="listen-bar"></div>
+      </div>
+      <span class="listen-btn-label">Target</span>
     </button>
-    <button class="listen-btn dry-btn" id="btnDry" onclick="listenDry()" disabled>○ Dry</button>
+    <button class="listen-btn dry-btn" id="btnDry" onclick="listenDry()" disabled>
+      <div class="listen-bars">
+        <div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div>
+        <div class="listen-bar"></div><div class="listen-bar"></div>
+      </div>
+      <span class="listen-btn-label">Dry</span>
+    </button>
     <button class="listen-btn" id="btnMine" onclick="listenMine()" disabled>
-      <span id="mineDot"></span> My EQ
+      <div class="listen-bars">
+        <div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div>
+        <div class="listen-bar"></div><div class="listen-bar"></div>
+      </div>
+      <span class="listen-btn-label">My EQ</span>
     </button>
   </div>
 
@@ -589,88 +693,101 @@
     <div class="band-results" id="bandResults"></div>
   </div>
 
-  <!-- Training Tier + Filters -->
-  <div class="setting-item">
-    <span class="label">Training Tier</span>
-    <select id="gainThresholdSelect" onchange="updateTier(this.value)">
-      <option value="10" selected>Beginner (10–12 dB)</option>
-      <option value="8">Medium (8–10 dB)</option>
-      <option value="6">Advanced (6–8 dB)</option>
-      <option value="4">Pro (4–6 dB)</option>
-      <option value="2">Master (2–4 dB)</option>
-      <option value="0">Legend (0–2 dB)</option>
-      <option value="-1">All (0–12 dB)</option>
-    </select>
-    <div class="divider"></div>
-    <span class="label">Filters</span>
-    <div id="filterSelection" style="display:flex; gap:8px; flex-wrap:wrap;">
-      <div class="pill active" data-type="peaking"   onclick="toggleFilterType('peaking', this)">Peaking</div>
-      <div class="pill"        data-type="lowshelf"  onclick="toggleFilterType('lowshelf', this)">Low Shelf</div>
-      <div class="pill"        data-type="highshelf" onclick="toggleFilterType('highshelf', this)">High Shelf</div>
-      <div class="pill"        data-type="lowpass"   onclick="toggleFilterType('lowpass', this)">Low Pass</div>
-      <div class="pill"        data-type="highpass"  onclick="toggleFilterType('highpass', this)">High Pass</div>
-      <div class="pill"        data-type="notch"     onclick="toggleFilterType('notch', this)">Notch</div>
+  <!-- Game Settings -->
+  <div class="settings-section">
+    <!-- Training Tier + Filters -->
+    <div class="setting-item">
+      <span class="label">Training Tier</span>
+      <select id="gainThresholdSelect" onchange="updateTier(this.value)">
+        <option value="10" selected>Beginner (10–12 dB)</option>
+        <option value="8">Medium (8–10 dB)</option>
+        <option value="6">Advanced (6–8 dB)</option>
+        <option value="4">Pro (4–6 dB)</option>
+        <option value="2">Master (2–4 dB)</option>
+        <option value="0">Legend (0–2 dB)</option>
+        <option value="-1">All (0–12 dB)</option>
+      </select>
+      <div class="divider"></div>
+      <span class="label">Filters</span>
+      <div id="filterSelection" style="display:flex; gap:8px; flex-wrap:wrap;">
+        <div class="pill active" data-type="peaking"   onclick="toggleFilterType('peaking', this)">Peaking</div>
+        <div class="pill"        data-type="lowshelf"  onclick="toggleFilterType('lowshelf', this)">Low Shelf</div>
+        <div class="pill"        data-type="highshelf" onclick="toggleFilterType('highshelf', this)">High Shelf</div>
+        <div class="pill"        data-type="lowpass"   onclick="toggleFilterType('lowpass', this)">Low Pass</div>
+        <div class="pill"        data-type="highpass"  onclick="toggleFilterType('highpass', this)">High Pass</div>
+        <div class="pill"        data-type="notch"     onclick="toggleFilterType('notch', this)">Notch</div>
+      </div>
+    </div>
+
+    <!-- Audio Source -->
+    <div class="setting-item">
+      <span class="label">Audio Source</span>
+      <div class="source-pill active" id="srcPink"    onclick="setSource('pink')">Pink Noise</div>
+      <div class="source-pill"        id="srcOneShot" onclick="setSource('oneshot')">One-shots</div>
+      <div class="source-pill"        id="srcLoop"    onclick="setSource('loop')">Loops</div>
+      <div class="source-pill"        id="srcCustom"  onclick="triggerUpload()"
+        style="border-style:dashed; border-color:var(--border2);">
+        <span id="folderLabel">Upload Folder</span>
+        <input type="file" id="folderInput" webkitdirectory directory multiple
+          onchange="handleFolderUpload(event)" style="display:none;">
+      </div>
+      <span id="sourceLoadStatus" style="font-size:12px; color:var(--amber); display:none;"></span>
     </div>
   </div>
 
-  <!-- Q Range -->
-  <div class="setting-item">
-    <span class="label">Q Range</span>
-    <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted);">
-      <span>Min</span>
-      <input class="num-input" type="number" id="qMinInput" min="0" max="20" step="0.1" value="0.5" oninput="updateQRange()">
-    </div>
-    <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted);">
-      <span>Max</span>
-      <input class="num-input" type="number" id="qMaxInput" min="0" max="20" step="0.1" value="10" oninput="updateQRange()">
-    </div>
-    <button id="btnFixQ" class="fix-q-btn active" onclick="toggleFixedQ()"
-      style="background:rgba(91,106,255,0.1); color:var(--accent2); border:1px solid var(--accent); border-radius:8px; font-family:inherit; font-size:12px; font-weight:500; padding:5px 14px; cursor:pointer; transition:all 0.15s; white-space:nowrap;">
-      Fix Q to Defaults
-    </button>
-    <span style="font-size:11px; color:var(--muted);" id="qRangeHint">Q fixed to defaults</span>
-  </div>
+  <!-- Advanced Settings toggle -->
+  <button class="settings-collapse-btn" id="advancedToggle" onclick="toggleAdvanced()">
+    <span class="collapse-arrow">▶</span> Advanced
+  </button>
 
-  <!-- Gain Direction -->
-  <div class="setting-item">
-    <span class="label">Gain Direction</span>
-    <div class="pill"        id="dirBoth"  onclick="setGainDirection('both',this)">Both</div>
-    <div class="pill active" id="dirBoost" onclick="setGainDirection('boost',this)">Boost Only (+)</div>
-    <div class="pill"        id="dirCut"   onclick="setGainDirection('cut',this)">Cut Only (−)</div>
-  </div>
+  <!-- Advanced Settings -->
+  <div class="advanced-settings" id="advancedSettings">
 
-  <!-- Audio Source -->
-  <div class="setting-item">
-    <span class="label">Audio Source</span>
-    <div class="source-pill active" id="srcPink"    onclick="setSource('pink')">Pink Noise</div>
-    <div class="source-pill"        id="srcOneShot" onclick="setSource('oneshot')">One-shots</div>
-    <div class="source-pill"        id="srcLoop"    onclick="setSource('loop')">Loops</div>
-    <div class="source-pill"        id="srcCustom"  onclick="triggerUpload()"
-      style="border-style:dashed; border-color:var(--border2);">
-      <span id="folderLabel">Upload Folder</span>
-      <input type="file" id="folderInput" webkitdirectory directory multiple
-        onchange="handleFolderUpload(event)" style="display:none;">
+    <!-- Q Range -->
+    <div class="setting-item">
+      <span class="label">Q Range</span>
+      <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted);">
+        <span>Min</span>
+        <input class="num-input" type="number" id="qMinInput" min="0" max="20" step="0.1" value="0.5" oninput="updateQRange()">
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted);">
+        <span>Max</span>
+        <input class="num-input" type="number" id="qMaxInput" min="0" max="20" step="0.1" value="10" oninput="updateQRange()">
+      </div>
+      <button id="btnFixQ" class="fix-q-btn active" onclick="toggleFixedQ()"
+        style="background:rgba(91,106,255,0.1); color:var(--accent2); border:1px solid var(--accent); border-radius:8px; font-family:inherit; font-size:12px; font-weight:500; padding:5px 14px; cursor:pointer; transition:all 0.15s; white-space:nowrap;">
+        Fix Q to Defaults
+      </button>
+      <span style="font-size:11px; color:var(--muted);" id="qRangeHint">Q fixed to defaults</span>
     </div>
-    <span id="sourceLoadStatus" style="font-size:12px; color:var(--amber); display:none;"></span>
-  </div>
 
-  <!-- Hz Frequency Range -->
-  <div class="setting-item">
-    <span class="label">Hz Range</span>
-    <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted);">
-      <span>Min</span>
-      <input class="num-input" type="number" id="freqMinInput" min="20" max="20000" step="1" value="20"
-        onblur="syncFreqFromInput('min')"
-        onkeydown="if(event.key==='Enter'){syncFreqFromInput('min');this.blur();}">
+    <!-- Gain Direction -->
+    <div class="setting-item">
+      <span class="label">Gain Direction</span>
+      <div class="pill"        id="dirBoth"  onclick="setGainDirection('both',this)">Both</div>
+      <div class="pill active" id="dirBoost" onclick="setGainDirection('boost',this)">Boost Only (+)</div>
+      <div class="pill"        id="dirCut"   onclick="setGainDirection('cut',this)">Cut Only (−)</div>
     </div>
-    <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted);">
-      <span>Max</span>
-      <input class="num-input" type="number" id="freqMaxInput" min="20" max="20000" step="1" value="20000"
-        onblur="syncFreqFromInput('max')"
-        onkeydown="if(event.key==='Enter'){syncFreqFromInput('max');this.blur();}">
+
+    <!-- Hz Frequency Range -->
+    <div class="setting-item">
+      <span class="label">Hz Range</span>
+      <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted);">
+        <span>Min</span>
+        <input class="num-input" type="number" id="freqMinInput" min="20" max="20000" step="1" value="20"
+          onblur="syncFreqFromInput('min')"
+          onkeydown="if(event.key==='Enter'){syncFreqFromInput('min');this.blur();}">
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted);">
+        <span>Max</span>
+        <input class="num-input" type="number" id="freqMaxInput" min="20" max="20000" step="1" value="20000"
+          onblur="syncFreqFromInput('max')"
+          onkeydown="if(event.key==='Enter'){syncFreqFromInput('max');this.blur();}">
+      </div>
+      <button onclick="resetFreqRange()" class="btn-secondary" style="padding:5px 12px; font-size:12px;">Reset</button>
+      <span style="font-size:11px; color:var(--muted);" id="freqRangeHint">20 Hz – 20 kHz</span>
     </div>
-    <button onclick="resetFreqRange()" class="btn-secondary" style="padding:5px 12px; font-size:12px;">Reset</button>
-    <span style="font-size:11px; color:var(--muted);" id="freqRangeHint">20 Hz – 20 kHz</span>
+
   </div>
 
 </div>
@@ -788,6 +905,25 @@ async function getManifest() {
   return samplesManifest;
 }
 
+// ── Shortcuts popover ─────────────────────────────────────────────────────────
+function toggleShortcuts(e) {
+  e.stopPropagation();
+  const pop = document.getElementById('shortcutsPopover');
+  pop.classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  const pop = document.getElementById('shortcutsPopover');
+  if (pop) pop.classList.remove('open');
+});
+
+// ── Advanced settings toggle ──────────────────────────────────────────────────
+function toggleAdvanced() {
+  const btn = document.getElementById('advancedToggle');
+  const sec = document.getElementById('advancedSettings');
+  const open = sec.classList.toggle('open');
+  btn.classList.toggle('open', open);
+}
+
 // ── Help Section ──────────────────────────────────────────────────────────────
 function toggleHelp() {
   const btn = document.getElementById('helpToggle');
@@ -903,6 +1039,28 @@ function drawEQ() {
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = '#161820';
   ctx.fillRect(0, 0, W, H);
+
+  // Frequency region color bands
+  const freqRegions = [
+    { f1: 20,   f2: 60,    fill: 'rgba(201,123,255,0.045)', label: 'Sub' },
+    { f1: 60,   f2: 250,   fill: 'rgba(91,106,255,0.04)',   label: 'Bass' },
+    { f1: 250,  f2: 2000,  fill: 'rgba(62,207,142,0.03)',   label: 'Mids' },
+    { f1: 2000, f2: 6000,  fill: 'rgba(245,166,35,0.035)',  label: 'Hi-Mid' },
+    { f1: 6000, f2: 20000, fill: 'rgba(96,232,255,0.03)',   label: 'Air' },
+  ];
+  ctx.save();
+  for (const reg of freqRegions) {
+    const rx1 = freqToX(reg.f1, W), rx2 = freqToX(reg.f2, W);
+    ctx.fillStyle = reg.fill;
+    ctx.fillRect(rx1, 0, rx2 - rx1, H);
+    // Region label at top
+    ctx.fillStyle = reg.fill.replace(/[\d.]+\)$/, '0.5)');
+    ctx.font = '9px -apple-system,sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(reg.label, (rx1 + rx2) / 2, 12);
+  }
+  ctx.textAlign = 'left';
+  ctx.restore();
 
   // Freq grid
   for (const f of [50,100,200,500,1000,2000,5000,10000,20000]) {
@@ -1263,10 +1421,6 @@ function updateListenBtns() {
   document.getElementById('btnTarget').classList.toggle('active', listeningTo==='target');
   document.getElementById('btnMine').classList.toggle('active',   listeningTo==='user');
   document.getElementById('btnDry').classList.toggle('active',    listeningTo==='dry');
-
-  const td=document.getElementById('targetDot'), md=document.getElementById('mineDot');
-  td.className = listeningTo==='target' ? 'pulse-dot' : ''; td.style.width = listeningTo==='target' ? '' : '0';
-  md.className = listeningTo==='user'   ? 'pulse-dot' : ''; md.style.width = listeningTo==='user'   ? '' : '0';
 }
 
 function ensureAudio() {
@@ -1624,7 +1778,8 @@ function newRound() {
   if (sourceType==='loop'    && loopFileNames.length>0)     loopIdx    = randNext(loopFileNames.length, loopIdx);
 
   roundActive=true;
-  document.getElementById('resultBar').classList.remove('visible');
+  const _rb = document.getElementById('resultBar');
+  _rb.classList.remove('visible', 'score-good', 'score-ok', 'score-bad');
     const _rpreset = document.getElementById('resultPts'); if (_rpreset) _rpreset.textContent = '';
   document.getElementById('btnCheck').disabled   = false;
   document.getElementById('btnTarget').disabled  = false;
@@ -1737,7 +1892,12 @@ function checkAnswer() {
   let finalMsg = msgs[3][1], finalCol = msgs[3][2];
   for (const [t, m, c] of msgs) { if (score >= t) { finalMsg = m; finalCol = c; break; } }
 
-  document.getElementById('resultBar').classList.add('visible');
+  const resultBar = document.getElementById('resultBar');
+  resultBar.classList.add('visible');
+  resultBar.classList.remove('score-good', 'score-ok', 'score-bad');
+  setTimeout(() => {
+    resultBar.classList.add(score >= 70 ? 'score-good' : score >= 40 ? 'score-ok' : 'score-bad');
+  }, 60);
   const rb = document.getElementById('resultBig');
   rb.textContent = score; rb.style.color = finalCol;
   { const _rp = document.getElementById('resultPts'); if (_rp) _rp.textContent = `+${weightedScore} pts  ×${mult.toFixed(1)}`; }
