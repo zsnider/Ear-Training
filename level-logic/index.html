@@ -125,10 +125,13 @@
 
   .btn-monitor {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px; font-weight: 700;
-    padding: 6px 16px; border-radius: 8px; cursor: pointer;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 10px 16px; border-radius: 8px; cursor: pointer;
     border: 1.5px solid var(--border2); background: var(--surface2);
-    color: var(--muted); transition: all 0.12s; letter-spacing: 0.06em;
+    color: var(--muted); transition: all 0.12s;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    min-height: 58px; justify-content: center;
   }
   .btn-monitor:hover:not(:disabled) { border-color: var(--accent); color: var(--accent2); }
   .btn-monitor:disabled { opacity: 0.35; cursor: not-allowed; }
@@ -140,6 +143,20 @@
     background: rgba(240,180,41,0.12);
     border-color: var(--accent2); color: var(--accent2);
   }
+
+  /* Animated listen bars */
+  .listen-bars { display:flex; align-items:flex-end; gap:2.5px; height:14px; }
+  .listen-bar {
+    width:3px; border-radius:2px; background:currentColor;
+    opacity:0.3; transition:opacity 0.15s; flex-shrink:0;
+  }
+  .listen-bar:nth-child(1){height:5px;  animation-delay:0s;}
+  .listen-bar:nth-child(2){height:10px; animation-delay:0.12s;}
+  .listen-bar:nth-child(3){height:14px; animation-delay:0.06s;}
+  .listen-bar:nth-child(4){height:9px;  animation-delay:0.18s;}
+  .listen-bar:nth-child(5){height:6px;  animation-delay:0.09s;}
+  @keyframes barBounce { 0%,100%{transform:scaleY(1);} 50%{transform:scaleY(0.3);} }
+  .btn-monitor.active .listen-bar { opacity:1; animation:barBounce 0.75s ease-in-out infinite; }
 
   .monitor-hint {
     font-size: 11px; color: var(--muted);
@@ -168,7 +185,7 @@
     display: block; width: 100%; height: 120px;
     transition: filter 0.25s, opacity 0.25s;
   }
-  canvas#meterCanvas.hidden-meter { filter: blur(10px); opacity: 0.2; }
+  canvas#meterCanvas.hidden-meter { opacity: 0; pointer-events: none; }
 
   /* ── dB answer buttons ── */
   .db-grid {
@@ -535,8 +552,14 @@
   <div class="prompt-card" id="promptCard">
     <div class="prompt-left">
       <div class="monitor-row">
-        <button class="btn-monitor monitor-a" id="btnA" onclick="setMonitor('A')" disabled>A — Original</button>
-        <button class="btn-monitor monitor-b" id="btnB" onclick="setMonitor('B')" disabled>B — Adjusted</button>
+        <button class="btn-monitor monitor-a" id="btnA" onclick="setMonitor('A')" disabled>
+          <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
+          <span>A — Original</span>
+        </button>
+        <button class="btn-monitor monitor-b" id="btnB" onclick="setMonitor('B')" disabled>
+          <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
+          <span>B — Adjusted</span>
+        </button>
         <span class="monitor-hint" id="monitorHint"></span>
       </div>
       <div class="prompt-question" id="promptText">Press <span>Play</span> to start</div>
