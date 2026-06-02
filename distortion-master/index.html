@@ -76,10 +76,84 @@
 
   .setting-item {
     background:var(--surface); border:1px solid var(--border);
-    padding:8px 16px; border-radius:12px;
-    display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    border-radius:12px; overflow:hidden;
+    display:flex; flex-direction:column;
   }
-  .settings-row { display:flex; gap:14px; flex-wrap:wrap; }
+  .settings-inner-row {
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    padding:9px 16px;
+  }
+  .settings-divider { width:100%; height:1px; background:var(--border); flex-shrink:0; }
+
+  /* ── Listen button upgrade ── */
+  .listen-btn {
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 10px 16px !important;
+    min-height: 60px;
+  }
+  .listen-btn-label {
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.07em;
+  }
+  .listen-bars { display:flex; align-items:flex-end; gap:2.5px; height:14px; }
+  .listen-bar {
+    width:3px; border-radius:2px; background:currentColor;
+    opacity:0.3; transition:opacity 0.15s; flex-shrink:0;
+  }
+  .listen-btn.active .listen-bar { opacity:1; animation:barBounce 0.75s ease-in-out infinite; }
+  .listen-bar:nth-child(1) { height:5px;  animation-delay:0s; }
+  .listen-bar:nth-child(2) { height:10px; animation-delay:0.12s; }
+  .listen-bar:nth-child(3) { height:14px; animation-delay:0.06s; }
+  .listen-bar:nth-child(4) { height:9px;  animation-delay:0.18s; }
+  .listen-bar:nth-child(5) { height:6px;  animation-delay:0.09s; }
+  @keyframes barBounce { 0%,100%{transform:scaleY(1);} 50%{transform:scaleY(0.3);} }
+
+  /* ── Param ranges panel ── */
+  .ranges-toggle-btn {
+    display:flex; align-items:center; gap:7px;
+    background:none; border:1px solid var(--border);
+    border-radius:10px; color:var(--muted);
+    font-family:'IBM Plex Sans',sans-serif; font-size:11px; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.08em;
+    padding:7px 14px; cursor:pointer; transition:all 0.15s; width:fit-content;
+  }
+  .ranges-toggle-btn:hover { border-color:var(--border2); color:var(--text); }
+  .ranges-toggle-btn .rt-arrow { font-size:9px; transition:transform 0.2s; }
+  .ranges-toggle-btn.open .rt-arrow { transform:rotate(90deg); }
+  .ranges-panel {
+    display:none; flex-direction:column;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; overflow:hidden;
+  }
+  .ranges-panel.open { display:flex; }
+  .range-row {
+    display:flex; align-items:center; gap:8px;
+    padding:9px 14px; border-bottom:1px solid var(--border);
+  }
+  .range-row:last-child { border-bottom:none; }
+  .range-param-label {
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.08em;
+    color:var(--muted); width:58px; flex-shrink:0;
+  }
+  .range-input {
+    width:62px; background:var(--surface2); color:var(--text);
+    border:1px solid var(--border2); border-radius:6px;
+    padding:4px 7px; font-family:'IBM Plex Mono',monospace; font-size:12px; outline:none;
+  }
+  .range-input:focus { border-color:var(--accent); }
+  .range-sep  { font-size:11px; color:var(--muted); }
+  .range-unit { font-size:11px; color:var(--muted); min-width:18px; }
+  .range-reset {
+    margin-left:auto; font-size:10px; color:var(--muted);
+    background:none; border:none; cursor:pointer; padding:0;
+    font-family:inherit; text-decoration:underline; text-underline-offset:2px;
+  }
+  .range-reset:hover { color:var(--text); }
 
   .label {
     font-size:11px; font-weight:600; color:var(--muted);
@@ -519,21 +593,17 @@
 
 <div class="main">
 
-  <div class="settings-row">
-    <div class="setting-item">
+  <div class="setting-item">
+    <!-- Row 1: Difficulty -->
+    <div class="settings-inner-row" id="difficultyBar">
       <span class="label">Difficulty</span>
       <div class="pill active" onclick="setDifficulty('easy',this)">Easy</div>
       <div class="pill" onclick="setDifficulty('medium',this)">Medium</div>
       <div class="pill" onclick="setDifficulty('hard',this)">Hard</div>
       <div class="pill" onclick="setDifficulty('pro',this)">Pro</div>
       <div class="pill" onclick="setDifficulty('custom',this)">Custom</div>
-    </div>
-    <div class="setting-item" style="flex:1;">
-      <span class="label">Params</span>
-      <span id="customHint" style="font-size:10px;color:var(--muted);display:none;white-space:nowrap;">— click to toggle</span>
-      <div id="paramPills" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
       <div style="margin-left:auto; position:relative;" class="shortcuts-wrap">
-        <button class="shortcuts-btn" onclick="toggleShortcuts(event)">&#9000; Shortcuts</button>
+        <button class="shortcuts-btn" onclick="toggleShortcuts(event)">⌨ Shortcuts</button>
         <div class="shortcuts-popover" id="shortcutsPopover">
           <div class="shortcut-row"><span>Toggle A/B</span><div class="shortcut-keys"><kbd>Space</kbd></div></div>
           <div class="shortcut-row"><span>Dry signal</span><div class="shortcut-keys"><kbd>D</kbd></div></div>
@@ -546,6 +616,18 @@
         </div>
       </div>
     </div>
+    <div class="settings-divider"></div>
+    <!-- Row 2: Params -->
+    <div class="settings-inner-row">
+      <span class="label">Params</span>
+      <span id="customHint" style="font-size:10px;color:var(--muted);display:none;white-space:nowrap;">— click to toggle</span>
+      <div id="paramPills" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+      <div style="margin-left:auto; display:flex; align-items:center; gap:8px; flex-shrink:0;">
+        <span class="label">Locked</span>
+        <div class="pill" id="fixLockedBtn" onclick="toggleFixLocked()"
+             title="Locked params vary each round">Vary Each Round</div>
+      </div>
+    </div>
   </div>
 
   <div class="workspace">
@@ -554,10 +636,7 @@
       <!-- Target distortion -->
       <div class="dist-panel" id="targetPanel">
         <div class="panel-header">
-          <span class="panel-title t-title">▶ TARGET</span>
-          <div class="listen-pill t-pill" id="targetListenPill">
-            <div class="pulse" style="background:var(--accent2)"></div> Listening
-          </div>
+          <span class="panel-title t-title">Target</span>
         </div>
         <div class="knob-grid" id="targetKnobs"></div>
         <div class="spectrum-wrap">
@@ -569,10 +648,7 @@
       <!-- User distortion -->
       <div class="dist-panel" id="userPanel">
         <div class="panel-header">
-          <span class="panel-title u-title">◎ YOUR SETTINGS</span>
-          <div class="listen-pill u-pill" id="userListenPill">
-            <div class="pulse" style="background:var(--gold2)"></div> Listening
-          </div>
+          <span class="panel-title u-title">Your Distortion</span>
         </div>
         <div class="knob-grid" id="userKnobs"></div>
         <div class="spectrum-wrap">
@@ -622,7 +698,10 @@
           <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
           <span class="listen-btn-label">Yours</span>
         </button>
-        <button class="btn-dry" id="btnDry" onclick="toggleDry()" disabled title="Toggle dry (D)">Dry</button>
+        <button class="listen-btn btn-dry" id="btnDry" onclick="toggleDry()" disabled title="Toggle dry (D)">
+          <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
+          <span class="listen-btn-label">Dry</span>
+        </button>
       </div>
       <div class="controls-bar">
         <button class="btn-play-restart" id="btnPlayRestart" onclick="restartAudio()" disabled title="Restart audio (F)">
@@ -636,6 +715,12 @@
         <button class="btn-secondary" onclick="newRound()" style="flex:1">New Round</button>
         <button class="btn-primary" id="btnCheck" onclick="checkAnswer()" disabled style="flex:1">Check Answer</button>
       </div>
+
+      <!-- Settings ranges -->
+      <button class="ranges-toggle-btn" id="rangesToggleBtn" onclick="toggleRangesPanel()">
+        <span class="rt-arrow">▶</span> Settings
+      </button>
+      <div class="ranges-panel" id="rangesPanel"></div>
 
       <div class="result-bar" id="resultBar">
         <div class="result-top">
@@ -748,10 +833,19 @@ const DIFFICULTY = {
   custom: { params:null,                          label:'Custom' },
 };
 
+// ── Param ranges (for randomization) ─────────────────────────────────────────
+const paramRanges = {
+  drive: { min:0.2, max:1,   defaultMin:0.2, defaultMax:1   },
+  mix:   { min:0,   max:1,   defaultMin:0,   defaultMax:1   },
+  tone:  { min:-12, max:12,  defaultMin:-12, defaultMax:12  },
+  type:  { min:0,   max:3,   defaultMin:0,   defaultMax:3   }, // index into DIST_TYPES
+};
+
 // ── State ─────────────────────────────────────────────────────────────────────
-let difficulty   = 'easy';
-let activeParams = [...DIFFICULTY.easy.params];
-let customParams = ['drive','mix','type']; // persists across difficulty switches
+let difficulty      = 'easy';
+let activeParams    = [...DIFFICULTY.easy.params];
+let fixLockedParams = false;
+let customParams    = ['drive','mix','type']; // persists across difficulty switches
 let targetSettings = {}, userSettings = {};
 let roundActive = false, answered = false;
 let totalScore=0, streak=0, round=0;
@@ -824,12 +918,110 @@ function updateMultBadge() {
 function setDifficulty(d, el) {
   difficulty = d;
   activeParams = d === 'custom' ? [...customParams] : [...DIFFICULTY[d].params];
-  document.querySelectorAll('.setting-item .pill').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#difficultyBar .pill').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('customHint').style.display = d === 'custom' ? '' : 'none';
   renderParamPills();
   updateMultBadge();
   if (roundActive) newRound();
+}
+
+function toggleFixLocked() {
+  fixLockedParams = !fixLockedParams;
+  const btn = document.getElementById('fixLockedBtn');
+  btn.classList.toggle('active', !fixLockedParams);
+  btn.textContent = fixLockedParams ? 'Fixed to Defaults' : 'Vary Each Round';
+  btn.title = fixLockedParams
+    ? 'Locked params fixed to defaults — click to vary each round'
+    : 'Locked params vary each round — click to fix to defaults';
+  if (roundActive) newRound();
+}
+
+function toggleRangesPanel() {
+  const panel = document.getElementById('rangesPanel');
+  const btn   = document.getElementById('rangesToggleBtn');
+  const open  = panel.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  if (open && !panel.hasChildNodes()) buildRangesPanel();
+}
+
+function buildRangesPanel() {
+  const panel = document.getElementById('rangesPanel');
+  panel.innerHTML = '';
+
+  // Numeric params
+  const numericParams = [
+    { key:'drive', label:'Drive',   unit:'%',  step:1,  dispScale:100 },
+    { key:'mix',   label:'Wet/Dry', unit:'%',  step:1,  dispScale:100 },
+    { key:'tone',  label:'Tone',    unit:'dB', step:0.5, dispScale:1  },
+  ];
+  numericParams.forEach(({ key, label, unit, step, dispScale }) => {
+    const r = paramRanges[key];
+    const p = PARAMS[key];
+    const toDisp = v => Math.round(v * dispScale * 10) / 10;
+    const fromDisp = v => v / dispScale;
+    const row = document.createElement('div');
+    row.className = 'range-row';
+    row.innerHTML = `
+      <span class="range-param-label">${label}</span>
+      <input class="range-input" type="number" id="range-min-${key}"
+        value="${toDisp(r.min)}" min="${toDisp(p.min)}" max="${toDisp(p.max)}" step="${step}"
+        onchange="updateRangeScaled('${key}','min',this.value,${dispScale})">
+      <span class="range-sep">–</span>
+      <input class="range-input" type="number" id="range-max-${key}"
+        value="${toDisp(r.max)}" min="${toDisp(p.min)}" max="${toDisp(p.max)}" step="${step}"
+        onchange="updateRangeScaled('${key}','max',this.value,${dispScale})">
+      <span class="range-unit">${unit}</span>
+      <button class="range-reset" onclick="resetRange('${key}')">reset</button>
+    `;
+    panel.appendChild(row);
+  });
+
+  // Type param — selects from available types
+  const tr = paramRanges.type;
+  const typeRow = document.createElement('div');
+  typeRow.className = 'range-row';
+  const minOpts = DIST_TYPES.map((t,i) =>
+    `<option value="${i}" ${i===tr.min?'selected':''}>${DIST_TYPE_LABELS[t]}</option>`).join('');
+  const maxOpts = DIST_TYPES.map((t,i) =>
+    `<option value="${i}" ${i===tr.max?'selected':''}>${DIST_TYPE_LABELS[t]}</option>`).join('');
+  typeRow.innerHTML = `
+    <span class="range-param-label">Type</span>
+    <select class="range-input" id="range-min-type" style="width:90px;" onchange="updateRange('type','min',this.value)">${minOpts}</select>
+    <span class="range-sep">–</span>
+    <select class="range-input" id="range-max-type" style="width:90px;" onchange="updateRange('type','max',this.value)">${maxOpts}</select>
+    <button class="range-reset" onclick="resetRange('type')">reset</button>
+  `;
+  panel.appendChild(typeRow);
+}
+
+function updateRangeScaled(key, which, rawVal, scale) {
+  const val = parseFloat(rawVal) / scale;
+  updateRange(key, which, val);
+  // Sync displayed input value back
+  const el = document.getElementById(`range-${which}-${key}`);
+  if (el) el.value = Math.round(val * scale * 10) / 10;
+}
+
+function updateRange(key, which, rawVal) {
+  const r = paramRanges[key];
+  const val = parseFloat(rawVal);
+  if (isNaN(val)) return;
+  r[which] = val;
+  if (r.min > r.max) {
+    if (which === 'min') r.max = r.min;
+    else                 r.min = r.max;
+    const otherId = which === 'min' ? `range-max-${key}` : `range-min-${key}`;
+    const other   = document.getElementById(otherId);
+    if (other) other.value = which === 'min' ? r.max : r.min;
+  }
+}
+
+function resetRange(key) {
+  const r = paramRanges[key];
+  r.min = r.defaultMin; r.max = r.defaultMax;
+  document.getElementById('rangesPanel').innerHTML = '';
+  buildRangesPanel();
 }
 
 function renderParamPills() {
@@ -1280,11 +1472,9 @@ function toggleWaveform() {
 
 // ── Listen buttons ────────────────────────────────────────────────────────────
 function updateListenBtns() {
-  document.getElementById('btnTarget').classList.toggle('active', listeningTo==='target');
-  document.getElementById('btnUser').classList.toggle('active',   listeningTo==='user');
-  document.getElementById('targetListenPill').classList.toggle('visible', listeningTo==='target');
-  document.getElementById('userListenPill').classList.toggle('visible',   listeningTo==='user');
-
+  document.getElementById('btnTarget').classList.toggle('active', listeningTo==='target' && !isDry);
+  document.getElementById('btnUser').classList.toggle('active',   listeningTo==='user'   && !isDry);
+  document.getElementById('btnDry').classList.toggle('active',    isDry);
 }
 
 function ensureAudio() {
@@ -1524,15 +1714,26 @@ function newRound() {
   targetSettings={}; userSettings={};
   Object.keys(PARAMS).forEach(key => {
     const p = PARAMS[key];
+    const r = paramRanges[key];
+    const isActive = activeParams.includes(key);
     if (key==='type') {
-      targetSettings[key] = activeParams.includes(key) ? Math.floor(Math.random()*DIST_TYPES.length) : 0;
-      userSettings[key]   = 0;
+      if (isActive) {
+        const lo = Math.round(r.min), hi = Math.round(r.max);
+        targetSettings[key] = lo + Math.floor(Math.random()*(hi - lo + 1));
+      } else {
+        targetSettings[key] = fixLockedParams ? 0 : Math.floor(Math.random()*DIST_TYPES.length);
+      }
+      userSettings[key] = 0;
     } else {
-      targetSettings[key] = activeParams.includes(key) ? p.min + Math.random()*(p.max-p.min) : p.default;
-      userSettings[key]   = p.default;
+      if (isActive) {
+        targetSettings[key] = r.min + Math.random()*(r.max - r.min);
+      } else {
+        targetSettings[key] = fixLockedParams ? p.default : r.min + Math.random()*(r.max - r.min);
+      }
+      userSettings[key] = p.default;
     }
   });
-  if (activeParams.includes('drive')) targetSettings.drive = Math.max(0.2, targetSettings.drive);
+  if (activeParams.includes('drive')) targetSettings.drive = Math.max(paramRanges.drive.min, targetSettings.drive);
 
   if (customFiles.length>0)       customIdx    = (customIdx+1)    % customFiles.length;
   if (oneShotBuffers.length>0)   oneShotIndex = randNext(oneShotBuffers.length, oneShotIndex);
@@ -1664,6 +1865,7 @@ function showToast(msg) {
 
 renderParamPills();
 updateMultBadge();
+document.getElementById('fixLockedBtn').classList.toggle('active', !fixLockedParams);
 drawSpectrum('target', document.getElementById('targetSpectrum'));
 drawSpectrum('user',   document.getElementById('userSpectrum'));
 window.addEventListener('resize', () => {
