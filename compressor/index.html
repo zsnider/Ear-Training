@@ -445,6 +445,17 @@
     padding: 0 2px;
   }
 
+  /* Panel dot accent */
+  .panel-dot {
+    display: inline-block; width: 7px; height: 7px;
+    border-radius: 50%; margin-right: 7px; vertical-align: middle;
+    flex-shrink: 0;
+  }
+
+  /* Transfer curve legend — always visible, dims until revealed */
+  .transfer-compare { opacity: 0.25; transition: opacity 0.4s ease; }
+  .transfer-compare.revealed { opacity: 1; }
+
 /* ── Help Section ── */
 .help-toggle {
   display: flex; align-items: center; gap: 8px;
@@ -671,20 +682,16 @@
 
 <div class="main">
 
-  <!-- Settings bar -->
-  <div class="settings-bar">
+  <!-- Difficulty bar -->
+  <div class="settings-bar" id="difficultyBar">
     <span class="label">Difficulty</span>
     <div class="pill active" onclick="setDifficulty('easy',this)">Easy</div>
     <div class="pill" onclick="setDifficulty('medium',this)">Medium</div>
     <div class="pill" onclick="setDifficulty('hard',this)">Hard</div>
     <div class="pill" onclick="setDifficulty('pro',this)">Pro</div>
     <div class="pill" onclick="setDifficulty('custom',this)">Custom</div>
-    <div class="vdiv"></div>
-    <span class="label">Active Params</span>
-    <div id="paramPills" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;"></div>
-    <div class="vdiv" style="margin-left:auto;"></div>
     <div style="margin-left:auto; position:relative;" class="shortcuts-wrap">
-      <button class="shortcuts-btn" onclick="toggleShortcuts(event)">&#9000; Shortcuts</button>
+      <button class="shortcuts-btn" onclick="toggleShortcuts(event)">⌨ Shortcuts</button>
       <div class="shortcuts-popover" id="shortcutsPopover">
         <div class="shortcut-row"><span>Toggle A/B</span><div class="shortcut-keys"><kbd>Space</kbd></div></div>
         <div class="shortcut-row"><span>Dry signal</span><div class="shortcut-keys"><kbd>D</kbd></div></div>
@@ -697,6 +704,12 @@
     </div>
   </div>
 
+  <!-- Active Params bar -->
+  <div class="settings-bar">
+    <span class="label">Active Params</span>
+    <div id="paramPills" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;"></div>
+  </div>
+
   <!-- Workspace -->
   <div class="workspace">
 
@@ -706,8 +719,7 @@
       <!-- Target compressor -->
       <div class="comp-panel" id="targetPanel">
         <div class="panel-header">
-          <span class="panel-title target-title">▶ TARGET</span>
-          <div class="listening-pill" id="targetListenPill"><div class="pulse"></div> Listening</div>
+          <span class="panel-title target-title"><span class="panel-dot" style="background:var(--blue2);"></span>Target</span>
         </div>
         <div class="knob-grid" id="targetKnobs"></div>
         <div class="transfer-wrap" id="targetTransferWrap">
@@ -719,14 +731,13 @@
       <!-- User compressor -->
       <div class="comp-panel" id="userPanel">
         <div class="panel-header">
-          <span class="panel-title user-title">◎ YOUR SETTINGS</span>
-          <div class="listening-pill" id="userListenPill"><div class="pulse" style="background:var(--green)"></div> Listening</div>
+          <span class="panel-title user-title"><span class="panel-dot" style="background:var(--green);"></span>Your Comp</span>
         </div>
         <div class="knob-grid" id="userKnobs"></div>
         <div class="transfer-wrap">
           <div class="transfer-label">Transfer Curve</div>
           <canvas class="transfer-canvas" id="userTransfer"></canvas>
-          <div class="transfer-compare" id="transferCompare" style="display:none;">
+          <div class="transfer-compare" id="transferCompare">
             <div class="tc-legend"><div class="tc-dot" style="background:var(--blue2);"></div> Target</div>
             <div class="tc-legend"><div class="tc-dot" style="background:var(--green);"></div> Yours</div>
           </div>
@@ -778,23 +789,22 @@
           <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
           <span class="listen-btn-label">Target</span>
         </button>
-        <button class="listen-btn dry-btn"    id="btnDry"    onclick="listenDry()"    disabled>○ Dry</button>
+        <button class="listen-btn dry-btn" id="btnDry" onclick="listenDry()" disabled>
+          <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
+          <span class="listen-btn-label">Dry</span>
+        </button>
         <button class="listen-btn user-btn"   id="btnUser"   onclick="listenUser()"   disabled>
           <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
           <span class="listen-btn-label">Yours</span>
         </button>
       </div>
 
-      <!-- Transport controls -->
+      <!-- Transport + round controls -->
       <div class="controls-bar">
         <button class="btn-secondary" id="btnPause"   onclick="togglePause()"   disabled style="flex:1;">⏸ Pause</button>
-        <button class="btn-secondary" id="btnRestart" onclick="restartAudio()" disabled style="flex:1;">↺ Restart</button>
-      </div>
-
-      <!-- Round controls -->
-      <div class="controls-bar">
-        <button class="btn-secondary" onclick="newRound()" style="flex:1;">New Round</button>
-        <button class="btn-primary" id="btnCheck" onclick="checkAnswer()" disabled style="flex:1;">Check Answer</button>
+        <button class="btn-secondary" id="btnRestart" onclick="restartAudio()"  disabled style="flex:1;">↺ Restart</button>
+        <button class="btn-secondary" onclick="newRound()"                               style="flex:1;">New Round</button>
+        <button class="btn-primary"   id="btnCheck"   onclick="checkAnswer()"   disabled style="flex:1;">Check</button>
       </div>
 
       <!-- Result -->
@@ -969,7 +979,7 @@ function setDifficulty(d, el) {
   } else {
     activeParams = [...DIFFICULTY[d].params];
   }
-  document.querySelectorAll('.settings-bar .pill').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#difficultyBar .pill').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
   renderParamPills();
   updateMultBadge();
@@ -1559,9 +1569,6 @@ function updateListenBtns() {
   document.getElementById('btnTarget').classList.toggle('active', listeningTo==='target');
   document.getElementById('btnDry').classList.toggle('active',    listeningTo==='dry');
   document.getElementById('btnUser').classList.toggle('active',   listeningTo==='user');
-  document.getElementById('targetListenPill').classList.toggle('visible', listeningTo==='target');
-  document.getElementById('userListenPill').classList.toggle('visible',   listeningTo==='user');
-
 
 }
 
@@ -1719,7 +1726,7 @@ function newRound() {
   document.getElementById('btnRestart').disabled = false;
   document.getElementById('btnPause').textContent = '⏸ Pause';
   document.getElementById('btnPause').classList.remove('paused');
-  document.getElementById('transferCompare').style.display = 'none';
+  document.getElementById('transferCompare').classList.remove('revealed');
   document.getElementById('makeupBadge').textContent = 'Makeup: +0 dB';
 
   renderKnobs('target', targetSettings, true);
@@ -1749,7 +1756,7 @@ function checkAnswer() {
   document.getElementById('makeupBadge').classList.remove('hidden-panel');
   document.getElementById('targetGRRow').classList.remove('target-gr-hidden');
   drawTransfer('compare', document.getElementById('userTransfer'));
-  document.getElementById('transferCompare').style.display = 'flex';
+  document.getElementById('transferCompare').classList.add('revealed');
 
   // Score: compare transfer curves at 50 input points
   const points = 50;
