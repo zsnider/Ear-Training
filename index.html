@@ -305,7 +305,7 @@
 </head>
 <body>
 
-<!-- Mobile banner (desktop users see this; mobile users are auto-redirected) -->
+<!-- Mobile banner (only shown to mobile users who have opted out of auto-redirect) -->
 <div id="mobileBanner">
   📱 Playing on mobile? <a href="/mobile/">Try the mobile version →</a>
   <button class="banner-dismiss" id="bannerDismiss" title="Dismiss">×</button>
@@ -845,7 +845,7 @@
       return;
     }
 
-    if (!sessionStorage.getItem('ss_banner_dismissed')) {
+    if (isMobile && !sessionStorage.getItem('ss_banner_dismissed')) {
       const banner = document.getElementById('mobileBanner');
       banner.style.display = 'flex';
       document.getElementById('bannerDismiss').addEventListener('click', () => {
