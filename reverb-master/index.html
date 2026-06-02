@@ -75,13 +75,64 @@
   /* ── Main ── */
   .main { width:100%; max-width:980px; padding: 18px 24px 0; display:flex; flex-direction:column; gap:14px; }
 
-  /* ── Settings row ── */
+  /* ── Settings box ── */
   .setting-item {
     background: var(--surface); border: 1px solid var(--border);
-    padding: 8px 16px; border-radius: 12px;
-    display: flex; align-items:center; gap:12px; flex-wrap: wrap;
+    border-radius: 12px; overflow: hidden;
+    display: flex; flex-direction: column;
   }
-  .settings-row { display:flex; gap:14px; flex-wrap:wrap; }
+  .settings-inner-row {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 9px 16px;
+  }
+  .settings-divider { width: 100%; height: 1px; background: var(--border); flex-shrink: 0; }
+
+  /* ── Param ranges panel ── */
+  .ranges-toggle-btn {
+    display: flex; align-items: center; gap: 7px;
+    background: none; border: 1px solid var(--border);
+    border-radius: 10px; color: var(--muted);
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 7px 14px; cursor: pointer; transition: all 0.15s;
+    width: fit-content;
+  }
+  .ranges-toggle-btn:hover { border-color: var(--border2); color: var(--text); }
+  .ranges-toggle-btn .rt-arrow { font-size: 9px; transition: transform 0.2s; }
+  .ranges-toggle-btn.open .rt-arrow { transform: rotate(90deg); }
+
+  .ranges-panel {
+    display: none; flex-direction: column;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+  }
+  .ranges-panel.open { display: flex; }
+  .range-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 14px; border-bottom: 1px solid var(--border);
+  }
+  .range-row:last-child { border-bottom: none; }
+  .range-param-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--muted); width: 62px; flex-shrink: 0;
+  }
+  .range-input {
+    width: 62px; background: var(--surface2); color: var(--text);
+    border: 1px solid var(--border2); border-radius: 6px;
+    padding: 4px 7px; font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+    outline: none;
+  }
+  .range-input:focus { border-color: var(--accent); }
+  .range-sep  { font-size: 11px; color: var(--muted); }
+  .range-unit { font-size: 11px; color: var(--muted); min-width: 18px; }
+  .range-reset {
+    margin-left: auto; font-size: 10px; color: var(--muted);
+    background: none; border: none; cursor: pointer; padding: 0;
+    font-family: inherit; text-decoration: underline; text-underline-offset: 2px;
+  }
+  .range-reset:hover { color: var(--text); }
 
   .label {
     font-size: 11px; font-weight:600; color: var(--muted);
@@ -574,21 +625,17 @@
 <div class="main">
 
   <!-- Settings -->
-  <div class="settings-row">
-    <div class="setting-item">
+  <div class="setting-item">
+    <!-- Row 1: Difficulty -->
+    <div class="settings-inner-row" id="difficultyBar">
       <span class="label">Difficulty</span>
       <div class="pill active" onclick="setDifficulty('easy',this)">Easy</div>
       <div class="pill" onclick="setDifficulty('medium',this)">Medium</div>
       <div class="pill" onclick="setDifficulty('hard',this)">Hard</div>
       <div class="pill" onclick="setDifficulty('pro',this)">Pro</div>
       <div class="pill" onclick="setDifficulty('custom',this)">Custom</div>
-    </div>
-    <div class="setting-item" style="flex:1;">
-      <span class="label">Params</span>
-      <span id="customHint" style="font-size:10px;color:var(--muted);display:none;white-space:nowrap;">— click to toggle</span>
-      <div id="paramPills" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
       <div style="margin-left:auto; position:relative;" class="shortcuts-wrap">
-        <button class="shortcuts-btn" onclick="toggleShortcuts(event)">&#9000; Shortcuts</button>
+        <button class="shortcuts-btn" onclick="toggleShortcuts(event)">⌨ Shortcuts</button>
         <div class="shortcuts-popover" id="shortcutsPopover">
           <div class="shortcut-row"><span>Toggle A/B</span><div class="shortcut-keys"><kbd>Space</kbd></div></div>
           <div class="shortcut-row"><span>Dry signal</span><div class="shortcut-keys"><kbd>D</kbd></div></div>
@@ -599,6 +646,18 @@
           <div class="shortcut-row"><span>New round</span><div class="shortcut-keys"><kbd>⇧</kbd></div></div>
           <div class="shortcut-row"><span>Check answer</span><div class="shortcut-keys"><kbd>↵</kbd></div></div>
         </div>
+      </div>
+    </div>
+    <div class="settings-divider"></div>
+    <!-- Row 2: Active Params -->
+    <div class="settings-inner-row">
+      <span class="label">Params</span>
+      <span id="customHint" style="font-size:10px;color:var(--muted);display:none;white-space:nowrap;">— click to toggle</span>
+      <div id="paramPills" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+      <div style="margin-left:auto; display:flex; align-items:center; gap:8px; flex-shrink:0;">
+        <span class="label">Locked</span>
+        <div class="pill" id="fixLockedBtn" onclick="toggleFixLocked()"
+             title="Locked params vary each round">Vary Each Round</div>
       </div>
     </div>
   </div>
@@ -692,6 +751,12 @@
         <button class="btn-secondary" onclick="newRound()" style="flex:1">New Round</button>
         <button class="btn-primary" id="btnCheck" onclick="checkAnswer()" disabled style="flex:1">Check Answer</button>
       </div>
+
+      <!-- Ranges toggle -->
+      <button class="ranges-toggle-btn" id="rangesToggleBtn" onclick="toggleRangesPanel()">
+        <span class="rt-arrow">▶</span> Settings
+      </button>
+      <div class="ranges-panel" id="rangesPanel"></div>
 
       <!-- Result -->
       <div class="result-bar" id="resultBar">
@@ -796,10 +861,20 @@ const DIFFICULTY = {
   custom: { params:null,                                   label:'Custom' },
 };
 
+// ── Param ranges (for randomization) ─────────────────────────────────────────
+const paramRanges = {
+  roomSize: { min:0.01, max:0.99, defaultMin:0.01, defaultMax:0.99 },
+  decay:    { min:0.2,  max:8.0,  defaultMin:0.2,  defaultMax:8.0  },
+  preDelay: { min:0,    max:120,  defaultMin:0,    defaultMax:120  },
+  damping:  { min:0,    max:1,    defaultMin:0,    defaultMax:1    },
+  wet:      { min:0.20, max:1,    defaultMin:0.20, defaultMax:1    },
+};
+
 // ── State ─────────────────────────────────────────────────────────────────────
-let difficulty   = 'easy';
-let activeParams = [...DIFFICULTY.easy.params];
-let customParams = ['roomSize','decay','wet']; // persists across difficulty switches
+let difficulty      = 'easy';
+let activeParams    = [...DIFFICULTY.easy.params];
+let fixLockedParams = false;
+let customParams    = ['roomSize','decay','wet']; // persists across difficulty switches
 let targetSettings = {}, userSettings = {};
 let roundActive = false, answered = false;
 let totalScore = 0, streak = 0, round = 0;
@@ -875,12 +950,85 @@ function setDifficulty(d, el) {
   } else {
     activeParams = [...DIFFICULTY[d].params];
   }
-  document.querySelectorAll('.setting-item .pill').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#difficultyBar .pill').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('customHint').style.display = d === 'custom' ? '' : 'none';
   renderParamPills();
   updateMultBadge();
   if (roundActive) newRound();
+}
+
+function toggleFixLocked() {
+  fixLockedParams = !fixLockedParams;
+  const btn = document.getElementById('fixLockedBtn');
+  btn.classList.toggle('active', !fixLockedParams);
+  btn.textContent = fixLockedParams ? 'Fixed to Defaults' : 'Vary Each Round';
+  btn.title = fixLockedParams
+    ? 'Locked params fixed to defaults — click to vary each round'
+    : 'Locked params vary each round — click to fix to defaults';
+  if (roundActive) newRound();
+}
+
+function toggleRangesPanel() {
+  const panel = document.getElementById('rangesPanel');
+  const btn   = document.getElementById('rangesToggleBtn');
+  const open  = panel.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  if (open && !panel.hasChildNodes()) buildRangesPanel();
+}
+
+function buildRangesPanel() {
+  const panel = document.getElementById('rangesPanel');
+  panel.innerHTML = '';
+  const paramConfig = [
+    { key:'roomSize', label:'Room Size', unit:'%',  step:1,   isLog:false, dispFn: v=>`${Math.round(v*100)}` },
+    { key:'decay',    label:'Decay',     unit:'s',  step:0.1, isLog:true  },
+    { key:'preDelay', label:'Pre-Delay', unit:'ms', step:1,   isLog:false },
+    { key:'damping',  label:'Damping',   unit:'%',  step:1,   isLog:false, dispFn: v=>`${Math.round(v*100)}` },
+    { key:'wet',      label:'Wet/Dry',   unit:'%',  step:1,   isLog:false, dispFn: v=>`${Math.round(v*100)}` },
+  ];
+  paramConfig.forEach(({ key, label, unit, step }) => {
+    const r = paramRanges[key];
+    const p = PARAMS[key];
+    const fmt = v => Math.round(v * 100) / 100;
+    const row = document.createElement('div');
+    row.className = 'range-row';
+    row.innerHTML = `
+      <span class="range-param-label">${label}</span>
+      <input class="range-input" type="number" id="range-min-${key}"
+        value="${fmt(r.min)}" min="${p.min}" max="${p.max}" step="${step}"
+        onchange="updateRange('${key}','min',this.value)">
+      <span class="range-sep">–</span>
+      <input class="range-input" type="number" id="range-max-${key}"
+        value="${fmt(r.max)}" min="${p.min}" max="${p.max}" step="${step}"
+        onchange="updateRange('${key}','max',this.value)">
+      <span class="range-unit">${unit}</span>
+      <button class="range-reset" onclick="resetRange('${key}')">reset</button>
+    `;
+    panel.appendChild(row);
+  });
+}
+
+function updateRange(key, which, rawVal) {
+  const r = paramRanges[key];
+  const val = parseFloat(rawVal);
+  if (isNaN(val)) return;
+  // roomSize, damping, wet are stored as 0–1 but displayed as % in inputs
+  r[which] = val;
+  if (r.min > r.max) {
+    if (which === 'min') r.max = r.min;
+    else                 r.min = r.max;
+    const otherId = which === 'min' ? `range-max-${key}` : `range-min-${key}`;
+    const other   = document.getElementById(otherId);
+    if (other) other.value = which === 'min' ? r.max : r.min;
+  }
+}
+
+function resetRange(key) {
+  const r = paramRanges[key];
+  r.min = r.defaultMin; r.max = r.defaultMax;
+  document.getElementById('rangesPanel').innerHTML = '';
+  buildRangesPanel();
 }
 
 function renderParamPills() {
@@ -1489,11 +1637,18 @@ function skipTrack(delta) {
 
 // ── Round ─────────────────────────────────────────────────────────────────────
 function randomSetting(key) {
-  const p = PARAMS[key];
-  if (key==='decay'||key==='preDelay') {
-    return Math.exp(Math.log(p.min) + Math.random()*(Math.log(p.max)-Math.log(p.min)));
+  const r = paramRanges[key];
+  if (key==='decay') {
+    const lo=Math.log(Math.max(0.001,r.min)), hi=Math.log(Math.max(0.001,r.max));
+    return Math.exp(lo + Math.random()*(hi-lo));
   }
-  return p.min + Math.random()*(p.max-p.min);
+  if (key==='preDelay') {
+    // preDelay can be 0, handle log carefully
+    if (r.min <= 0) return r.min + Math.random()*(r.max-r.min);
+    const lo=Math.log(r.min), hi=Math.log(r.max);
+    return Math.exp(lo + Math.random()*(hi-lo));
+  }
+  return r.min + Math.random()*(r.max-r.min);
 }
 
 function newRound() {
@@ -1504,8 +1659,12 @@ function newRound() {
   targetSettings = {}; userSettings = {};
   Object.keys(PARAMS).forEach(key => {
     const p = PARAMS[key];
-    targetSettings[key] = activeParams.includes(key) ? randomSetting(key) : p.default;
-    userSettings[key]   = p.default;
+    if (activeParams.includes(key)) {
+      targetSettings[key] = randomSetting(key);
+    } else {
+      targetSettings[key] = fixLockedParams ? p.default : randomSetting(key);
+    }
+    userSettings[key] = p.default;
   });
 
   if (customFiles.length > 0)      customIdx    = (customIdx + 1)    % customFiles.length;
@@ -1692,6 +1851,7 @@ function showToast(msg) {
 // ── Init ──────────────────────────────────────────────────────────────────────
 renderParamPills();
 updateMultBadge();
+document.getElementById('fixLockedBtn').classList.toggle('active', !fixLockedParams);
 drawDecay('target', document.getElementById('targetDecay'));
 drawDecay('user',   document.getElementById('userDecay'));
 window.addEventListener('resize', () => {
