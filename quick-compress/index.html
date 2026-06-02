@@ -272,6 +272,36 @@
     cursor:pointer; padding:8px 14px; transition:all 0.15s;
     display:flex; align-items:center; gap:5px;
   }
+  /* ── Listen bars (Play A / Play B) ── */
+  .listen-bars { display:flex; align-items:flex-end; gap:2.5px; height:14px; }
+  .listen-bar {
+    width:3px; border-radius:2px; background:currentColor;
+    opacity:0.3; transition:opacity 0.15s; flex-shrink:0;
+  }
+  .listen-bar:nth-child(1){height:5px;  animation-delay:0s;}
+  .listen-bar:nth-child(2){height:10px; animation-delay:0.12s;}
+  .listen-bar:nth-child(3){height:14px; animation-delay:0.06s;}
+  .listen-bar:nth-child(4){height:9px;  animation-delay:0.18s;}
+  .listen-bar:nth-child(5){height:6px;  animation-delay:0.09s;}
+  @keyframes barBounce { 0%,100%{transform:scaleY(1);} 50%{transform:scaleY(0.3);} }
+
+  .btn-play-ab {
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 10px 18px !important;
+    min-height: 62px;
+  }
+  .btn-play-ab .listen-btn-label {
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.07em;
+  }
+  .btn-play-ab.active .listen-bar { opacity:1; animation:barBounce 0.75s ease-in-out infinite; }
+  /* A and B tints when active */
+  #btnPlayA.active { color:var(--a-col2); border-color:rgba(91,143,255,0.6); background:rgba(91,143,255,0.08); }
+  #btnPlayB.active { color:var(--b-col2); border-color:rgba(232,160,48,0.6);  background:rgba(232,160,48,0.08);  }
+
   .btn-action {
     background:var(--surface2); color:var(--muted);
     border:1px solid var(--border2);
@@ -508,8 +538,10 @@
     <div style="margin-left:auto; position:relative;" class="shortcuts-wrap">
       <button class="shortcuts-btn" onclick="toggleShortcuts(event)">&#9000; Shortcuts</button>
       <div class="shortcuts-popover" id="shortcutsPopover">
-        <div class="shortcut-row"><span>Play A</span><div class="shortcut-keys"><kbd>A</kbd></div></div>
-        <div class="shortcut-row"><span>Play B</span><div class="shortcut-keys"><kbd>B</kbd></div></div>
+        <div class="shortcut-row"><span>Rotate A / B</span><div class="shortcut-keys"><kbd>Space</kbd></div></div>
+        <div class="shortcut-row"><span>Rotate A / B</span><div class="shortcut-keys"><kbd>D</kbd></div></div>
+        <div class="shortcut-row"><span>Select A (guess)</span><div class="shortcut-keys"><kbd>A</kbd></div></div>
+        <div class="shortcut-row"><span>Select B (guess)</span><div class="shortcut-keys"><kbd>B</kbd></div></div>
         <div class="shortcut-row"><span>Pause</span><div class="shortcut-keys"><kbd>P</kbd></div></div>
         <div class="shortcut-row"><span>Restart</span><div class="shortcut-keys"><kbd>F</kbd></div></div>
         <div class="shortcut-row"><span>Seek</span><div class="shortcut-keys"><kbd>←</kbd><kbd>→</kbd></div></div>
@@ -563,8 +595,14 @@
 
   <!-- Audio controls -->
   <div class="audio-bar">
-    <button class="ctrl btn-action" id="btnPlayA" onclick="listenTo('A')" disabled>▶ Play A</button>
-    <button class="ctrl btn-action" id="btnPlayB" onclick="listenTo('B')" disabled>▶ Play B</button>
+    <button class="ctrl btn-action btn-play-ab" id="btnPlayA" onclick="listenTo('A')" disabled>
+      <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
+      <span class="listen-btn-label">Play A</span>
+    </button>
+    <button class="ctrl btn-action btn-play-ab" id="btnPlayB" onclick="listenTo('B')" disabled>
+      <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
+      <span class="listen-btn-label">Play B</span>
+    </button>
     <button class="ctrl btn-action" id="btnPause"   onclick="togglePause()"  disabled>⏸ Pause</button>
     <button class="ctrl btn-action" id="btnRestart" onclick="restartAudio()" disabled>↺ Restart</button>
     <button class="ctrl btn-action" id="btnNew"     onclick="newRound()">⟳ New Round</button>
@@ -841,8 +879,8 @@ function listenTo(side) {
 function updateListenBtns() {
   document.getElementById('btnA').classList.toggle('playing', listeningTo==='A' && roundActive && !answered);
   document.getElementById('btnB').classList.toggle('playing', listeningTo==='B' && roundActive && !answered);
-  document.getElementById('btnPlayA').textContent = listeningTo==='A' ? '⏸ Playing A' : '▶ Play A';
-  document.getElementById('btnPlayB').textContent = listeningTo==='B' ? '⏸ Playing B' : '▶ Play B';
+  document.getElementById('btnPlayA').classList.toggle('active', listeningTo==='A' && roundActive);
+  document.getElementById('btnPlayB').classList.toggle('active', listeningTo==='B' && roundActive);
 }
 
 // ── K-weighted LUFS loudness matching ────────────────────────────────────────
@@ -1316,7 +1354,8 @@ window.addEventListener('keydown', e => {
   if (e.code!=='KeyP' && audioCtx && audioCtx.state==='suspended') audioCtx.resume();
   if (e.code==='KeyA' && roundActive) { e.preventDefault(); listenTo('A'); if (!answered) selectAnswer('A'); }
   if (e.code==='KeyB' && roundActive) { e.preventDefault(); listenTo('B'); if (!answered) selectAnswer('B'); }
-  if (e.code==='Space')               { e.preventDefault(); if (roundActive) listenTo(listeningTo==='A'?'B':'A'); }
+  if (e.code==='Space') { e.preventDefault(); if (roundActive) listenTo(listeningTo==='A'?'B':'A'); }
+  if (e.code==='KeyD')  { e.preventDefault(); if (roundActive) listenTo(listeningTo==='A'?'B':'A'); }
   if (e.code==='KeyP')                { e.preventDefault(); togglePause(); }
   if (e.code==='KeyF')                { e.preventDefault(); restartAudio(); }
   if (e.code==='Enter')               { newRound(); }
