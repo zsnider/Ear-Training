@@ -1720,17 +1720,19 @@ function newRound() {
       if (isActive) {
         const lo = Math.round(r.min), hi = Math.round(r.max);
         targetSettings[key] = lo + Math.floor(Math.random()*(hi - lo + 1));
+        userSettings[key]   = 0;
       } else {
         targetSettings[key] = fixLockedParams ? 0 : Math.floor(Math.random()*DIST_TYPES.length);
+        userSettings[key]   = targetSettings[key]; // locked: user matches target
       }
-      userSettings[key] = 0;
     } else {
       if (isActive) {
         targetSettings[key] = r.min + Math.random()*(r.max - r.min);
+        userSettings[key]   = p.default;
       } else {
         targetSettings[key] = fixLockedParams ? p.default : r.min + Math.random()*(r.max - r.min);
+        userSettings[key]   = targetSettings[key]; // locked: user matches target
       }
-      userSettings[key] = p.default;
     }
   });
   if (activeParams.includes('drive')) targetSettings.drive = Math.max(paramRanges.drive.min, targetSettings.drive);

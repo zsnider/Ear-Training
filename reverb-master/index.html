@@ -1661,10 +1661,11 @@ function newRound() {
     const p = PARAMS[key];
     if (activeParams.includes(key)) {
       targetSettings[key] = randomSetting(key);
+      userSettings[key]   = p.default;
     } else {
       targetSettings[key] = fixLockedParams ? p.default : randomSetting(key);
+      userSettings[key]   = targetSettings[key]; // locked: user matches target
     }
-    userSettings[key] = p.default;
   });
 
   if (customFiles.length > 0)      customIdx    = (customIdx + 1)    % customFiles.length;

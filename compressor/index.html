@@ -1912,6 +1912,13 @@ function newRound() {
     targetSettings.makeup = Math.min(24, Math.round(estGR * 2) / 2);
   }
 
+  // Sync locked params: user matches target so both audio chains sound the same on those params
+  Object.keys(PARAMS).forEach(key => {
+    const isMakeupActive = key === 'makeup' && (difficulty !== 'custom' || activeParams.includes('makeup'));
+    const isActive = activeParams.includes(key) || isMakeupActive;
+    if (!isActive) userSettings[key] = targetSettings[key];
+  });
+
   // Advance sample index each round
   if (sourceType === 'custom'  && customFiles.length > 0)      customIdx  = (customIdx  + 1) % customFiles.length;
   if (sourceType === 'oneshot' && oneShotBuffers.length > 0)   oneShotIdx = randNext(oneShotBuffers.length, oneShotIdx);
