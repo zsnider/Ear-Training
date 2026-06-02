@@ -1731,10 +1731,10 @@ function checkAnswer() {
   if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'reverb-master', correct: score >= 70, roundScore: weightedScore });
 
   const msgs = [
-    [90,'🎯 Excellent! You hear reverb like a wizard.'],
-    [70,'👍 Great match. Your reverb ears are sharp.'],
-    [40,'🔶 Decent. Compare the decay curves carefully.'],
-    [0, '🔻 Keep going — focus on room size and decay first.'],
+    [90,'Perfect — professional level accuracy.'],
+    [70,'Good match — very close.'],
+    [40,'Getting there — compare the decay curves to close the gap.'],
+    [0, 'Keep practicing — focus on room size and decay first.'],
   ];
   let msg=msgs[3][1], col='var(--red)';
   for (const [t,m] of msgs) if (score>=t) { msg=m; col=score>=70?'var(--green)':score>=40?'var(--amber)':'var(--red)'; break; }

@@ -1094,7 +1094,7 @@ function submitAnswer(clickedDb) {
   document.getElementById('promptCard').classList.add(isCorrect ? 'correct-flash' : 'wrong-flash');
   const ri = document.getElementById('resultInline');
   const _multLbl = window.ScoringEngine ? ScoringEngine.label('level-logic', { difficulty }) : '×1.0';
-  ri.textContent = isCorrect ? `✓ Correct!   +${pts} pts  ${_multLbl}` : `✗ ${fmtDb(targetDb)} dB`;
+  ri.textContent = isCorrect ? `✓ Correct   +${pts} pts  ${_multLbl}` : `✗ Incorrect — ${fmtDb(targetDb)} dB`;
   ri.className   = `result-msg-inline ${isCorrect ? 'show-correct' : 'show-wrong'}`;
 
   addHistory(isCorrect);

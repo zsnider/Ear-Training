@@ -1874,10 +1874,10 @@ function checkAnswer() {
   if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'eq-match', correct: score >= 75, roundScore: weightedScore });
 
   const msgs = [
-    [90, '🎯 Excellent! Professional level hearing.', 'var(--green)'],
-    [70, '👍 Good match. Very close!',                'var(--green)'],
-    [40, '🔶 Decent. Compare the curves to see the gap.', 'var(--amber)'],
-    [0,  '🔻 Keep practicing — nail the frequency first.', 'var(--red)']
+    [90, 'Perfect — professional level accuracy.', 'var(--green)'],
+    [70, 'Good match — very close.', 'var(--green)'],
+    [40, 'Getting there — compare the curves to close the gap.', 'var(--amber)'],
+    [0, 'Keep practicing — focus on frequency placement first.', 'var(--red)']
   ];
   let finalMsg = msgs[3][1], finalCol = msgs[3][2];
   for (const [t, m, c] of msgs) { if (score >= t) { finalMsg = m; finalCol = c; break; } }

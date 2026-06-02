@@ -974,7 +974,7 @@ function submitGuess() {
   if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'freq-hunter', correct: pts >= 70, roundScore: weightedPts });
 
   const tier = pts >= 85 ? 'perfect' : pts >= 60 ? 'good' : pts >= 35 ? 'ok' : 'bad';
-  const tierLabel = pts >= 85 ? '🎯 Perfect!' : pts >= 60 ? '👍 Good' : pts >= 35 ? '🔶 Close' : '🔻 Keep going';
+  const tierLabel = pts >= 85 ? 'Perfect' : pts >= 60 ? 'Good match' : pts >= 35 ? 'Getting there' : 'Keep practicing';
 
   document.getElementById('promptBar').classList.add(pts >= 60 ? 'correct-flash' : 'wrong-flash');
   const sd = document.getElementById('scoreDelta');

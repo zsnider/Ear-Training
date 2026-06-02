@@ -232,7 +232,7 @@
   .ab-btn.correct .ab-result-badge { opacity:1; background:rgba(62,207,142,0.2); color:var(--green); }
   .ab-btn.correct .ab-result-badge::after { content:'✓ Compressed'; }
   .ab-btn.wrong   .ab-result-badge { opacity:1; background:rgba(244,91,105,0.15); color:var(--red); }
-  .ab-btn.wrong   .ab-result-badge::after { content:'✗ Wrong'; }
+  .ab-btn.wrong   .ab-result-badge::after { content:'✗ Incorrect'; }
   .ab-btn.dimmed  .ab-result-badge { opacity:1; background:rgba(255,255,255,0.06); color:var(--muted); }
   .ab-btn.dimmed  .ab-result-badge::after { content:'Dry'; }
 
@@ -837,12 +837,12 @@ function selectAnswer(side) {
   document.getElementById('promptBar').classList.add(correct ? 'correct-flash' : 'wrong-flash');
   const ri = document.getElementById('resultInline');
   const _multLbl = window.ScoringEngine ? ScoringEngine.label('quick-compress', { tier: currentTier }) : '×1.0';
-  ri.textContent = correct ? `✓ Correct!   +${pts} pts  ${_multLbl}` : `✗ It was ${compressedSide}`;
+  ri.textContent = correct ? `✓ Correct   +${pts} pts  ${_multLbl}` : `✗ Incorrect — it was ${compressedSide}`;
   ri.className   = `result-inline ${correct ? 'good' : 'bad'}`;
 
   document.getElementById('promptText').innerHTML = correct
-    ? `🎯 Correct! <span>${compressedSide}</span> was compressed · Ratio ${TIERS[currentTier].ratio}:1 · Thresh ${TIERS[currentTier].threshold}dB`
-    : `✗ Nope — <span>${compressedSide}</span> was the compressed one · Keep training`;
+    ? `✓ Correct — <span>${compressedSide}</span> was compressed · Ratio ${TIERS[currentTier].ratio}:1 · Thresh ${TIERS[currentTier].threshold}dB`
+    : `✗ Incorrect — <span>${compressedSide}</span> was the compressed one · Keep practicing`;
 
   document.getElementById('grRow').style.display = 'flex';
   listenTo(compressedSide);

@@ -1607,10 +1607,10 @@ function submitAnswer(choice) {
   resB.classList.add('show');
   if (correctChoice === 'A') {
     resA.className = 'panel-result show correct-res'; resA.textContent = '✓ Correct EQ';
-    resB.className = 'panel-result show wrong-res';   resB.textContent = '✗ Decoy';
+    resB.className = 'panel-result show wrong-res';   resB.textContent = '✗ Incorrect';
   } else {
     resB.className = 'panel-result show correct-res'; resB.textContent = '✓ Correct EQ';
-    resA.className = 'panel-result show wrong-res';   resA.textContent = '✗ Decoy';
+    resA.className = 'panel-result show wrong-res';   resA.textContent = '✗ Incorrect';
   }
 
   // If curves were hidden, reveal them now

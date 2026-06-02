@@ -1797,10 +1797,10 @@ function checkAnswer() {
   if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'distortion-master', correct: score >= 70, roundScore: weightedScore });
 
   const msgs=[
-    [90,'🎯 Excellent! You hear distortion like a wizard.'],
-    [70,'👍 Great match. Distortion ears developing well.'],
-    [40,'🔶 Decent. Compare the harmonic content carefully.'],
-    [0, '🔻 Keep going — focus on drive level and type first.'],
+    [90,'Perfect — professional level accuracy.'],
+    [70,'Good match — very close.'],
+    [40,'Getting there — compare the harmonic content to close the gap.'],
+    [0, 'Keep practicing — focus on drive level and type first.'],
   ];
   let msg=msgs[3][1], col='var(--red)';
   for(const[t,m]of msgs) if(score>=t){msg=m; col=score>=70?'var(--green)':score>=40?'var(--amber)':'var(--red)'; break;}

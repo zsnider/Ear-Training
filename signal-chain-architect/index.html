@@ -1626,7 +1626,7 @@ function showResult(targetOrder, userOrder, correctPos, skipped, roundLen) {
     hdr.textContent = `Revealed — here's the target chain`;
   } else if (isPerfect) {
     hdr.className = 'result-hdr perfect';
-    hdr.textContent = `✓ Perfect! All ${roundLen} positions correct`;
+    hdr.textContent = `Perfect — all ${roundLen} positions correct`;
   } else {
     hdr.className = 'result-hdr partial';
     hdr.textContent = `${correctPos} / ${roundLen} positions correct`;

@@ -1171,7 +1171,7 @@ function submitAnswer() {
   }
 
   const tier = pts >= 85 ? 'perfect' : pts >= 65 ? 'good' : pts >= 40 ? 'ok' : 'bad';
-  const msgs = { perfect:'🎯 Spot on!', good:'👍 Close!', ok:'🔶 Getting there', bad:'🔻 Keep training' };
+  const msgs = { perfect:'Perfect — spot on.', good:'Good — very close.', ok:'Getting there — keep refining.', bad:'Keep practicing — trust your ears.' };
 
   document.getElementById('promptBar').classList.add(pts >= 65 ? 'correct-flash' : 'wrong-flash');
   const ri = document.getElementById('resultInline');
