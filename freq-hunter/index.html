@@ -214,6 +214,7 @@
   .btn-listen:hover { background: rgba(0,229,204,0.08); border-color: rgba(0,229,204,0.6); }
   .btn-listen.playing { background: rgba(0,229,204,0.12); border-color: var(--accent); }
   .btn-listen:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-listen.is-paused { opacity: 0.7; }
 
   .btn-action {
     background: var(--surface2); color: var(--muted);
@@ -514,11 +515,10 @@
 
   <!-- Audio controls -->
   <div class="audio-bar">
-    <button class="btn-listen" id="btnPlay" onclick="startRound()">
-      <span id="playDot"></span> Play
+    <button class="btn-listen" id="btnPlayPause" onclick="togglePlayPause()">
+      ▶ Play
     </button>
     <button class="btn-action" id="btnDry"     onclick="toggleDry()"    disabled>Dry</button>
-    <button class="btn-action" id="btnPause"   onclick="togglePause()"  disabled>&#9646;&#9646; Pause</button>
     <button class="btn-action" id="btnRestart" onclick="restartAudio()" disabled>&#9654; Restart</button>
 
     <div class="source-wrap">
@@ -873,7 +873,6 @@ function startRound() {
     }</span>`;
 
   document.getElementById('btnDry').disabled     = false;
-  document.getElementById('btnPause').disabled   = false;
   document.getElementById('btnRestart').disabled = false;
 
   // Advance sample index each round
@@ -1077,8 +1076,7 @@ function startAudio() {
   }
 
   isPlaying = true;
-  document.getElementById('playDot').className = 'pulse-dot';
-  document.getElementById('btnPlay').classList.add('playing');
+  const pp=document.getElementById('btnPlayPause'); if(pp){pp.innerHTML='⏸ Pause'; pp.classList.add('playing'); pp.classList.remove('is-paused');}
 }
 
 function buildOneShotSource() {
@@ -1124,8 +1122,7 @@ function stopAudio() {
   if (pannerNode){ try { pannerNode.disconnect(); } catch(e){} pannerNode = null; }
   if (outGain)   { try { outGain.disconnect(); }    catch(e){} outGain = null; }
   isPlaying = false;
-  document.getElementById('playDot').className = '';
-  document.getElementById('btnPlay').classList.remove('playing');
+  const pp=document.getElementById('btnPlayPause'); if(pp){pp.innerHTML='▶ Play'; pp.classList.remove('playing','is-paused');}
 }
 
 // ── Dry / Pause / Restart / Seek / Skip ──────────────────────────────────────
@@ -1143,13 +1140,18 @@ function toggleDry() {
   }
 }
 
+function togglePlayPause() {
+  if (!isPlaying) { startRound(); return; }
+  togglePause();
+}
+
 function togglePause() {
   if (!roundActive || !audioCtx) return;
-  const btn = document.getElementById('btnPause');
+  const btn = document.getElementById('btnPlayPause');
   if (isPaused) {
     audioCtx.resume().then(() => {
       isPaused = false;
-      btn.innerHTML = '&#9646;&#9646; Pause'; btn.classList.remove('paused');
+      btn.innerHTML = '⏸ Pause'; btn.classList.remove('is-paused');
       if (sourceType === 'oneshot' && isPlaying && oneShotBuffers.length) {
         if (shotLoopTimer) clearInterval(shotLoopTimer);
         buildOneShotSource();
@@ -1159,7 +1161,7 @@ function togglePause() {
     if (shotLoopTimer) { clearInterval(shotLoopTimer); shotLoopTimer = null; }
     audioCtx.suspend().then(() => {
       isPaused = true;
-      btn.innerHTML = '&#9654; Resume'; btn.classList.add('paused');
+      btn.innerHTML = '▶ Play'; btn.classList.add('is-paused');
     });
   }
 }
@@ -1168,8 +1170,8 @@ function restartAudio() {
   if (!roundActive) return;
   if (isPaused && audioCtx) {
     audioCtx.resume(); isPaused = false;
-    const btn = document.getElementById('btnPause');
-    btn.innerHTML = '&#9646;&#9646; Pause'; btn.classList.remove('paused');
+    const pp = document.getElementById('btnPlayPause');
+    if(pp){pp.innerHTML='⏸ Pause'; pp.classList.remove('is-paused');}
   }
   musicOffset = 0;
   startAudio();

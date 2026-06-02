@@ -319,6 +319,7 @@
   .btn-listen:hover { background:rgba(124,92,252,0.1); border-color:rgba(124,92,252,0.7); }
   .btn-listen.playing { background:rgba(124,92,252,0.15); border-color:var(--accent2); }
   .btn-listen:disabled { opacity:0.35; cursor:not-allowed; }
+  .btn-listen.is-paused { opacity:0.7; }
 
   .btn-primary { background:var(--accent); color:#fff; }
   .btn-primary:hover { background:var(--accent2); }
@@ -703,11 +704,10 @@
 
   <!-- Audio bar -->
   <div class="audio-bar">
-    <button class="btn-listen" id="btnPlay" onclick="startRound()">
-      <span id="playDot"></span> Play
+    <button class="btn-listen" id="btnPlayPause" onclick="togglePlayPause()">
+      ▶ Play
     </button>
     <button class="btn-action" id="btnCenter"  onclick="toggleCenter()"  disabled title="Monitor at center (Space/D)">Center</button>
-    <button class="btn-action" id="btnPause"   onclick="togglePause()"   disabled title="Pause (P)">&#9646;&#9646; Pause</button>
     <button class="btn-action" id="btnRestart" onclick="restartAudio()"  disabled title="Restart (F)">&#9654; Restart</button>
 
     <div class="source-wrap">
@@ -1108,8 +1108,7 @@ function startRound() {
   document.getElementById('targetReadout').style.opacity = '0';
   document.getElementById('targetReadout').textContent = '—';
   document.getElementById('targetHandle').classList.remove('visible');
-  document.getElementById('btnCenter').disabled = false;
-  document.getElementById('btnPause').disabled  = false;
+  document.getElementById('btnCenter').disabled  = false;
   document.getElementById('btnRestart').disabled = false;
   document.getElementById('btnCenter').classList.remove('center-active');
   document.getElementById('btnCenter').textContent = 'Center';
@@ -1295,8 +1294,7 @@ function startAudio() {
   }
 
   isPlaying = true;
-  document.getElementById('playDot').className = 'pulse-dot';
-  document.getElementById('btnPlay').classList.add('playing');
+  const pp=document.getElementById('btnPlayPause'); if(pp){pp.innerHTML='⏸ Pause'; pp.classList.add('playing'); pp.classList.remove('is-paused');}
 }
 
 // ── One-shot source builders ──────────────────────────────────────────────────
@@ -1385,8 +1383,7 @@ function stopAudio() {
   if (pannerNodeR)    { try { pannerNodeR.disconnect(); } catch(e){} pannerNodeR = null; }
   if (outGain)        { try { outGain.disconnect();     } catch(e){} outGain     = null; }
   isPlaying = false;
-  document.getElementById('playDot').className = '';
-  document.getElementById('btnPlay').classList.remove('playing');
+  const pp=document.getElementById('btnPlayPause'); if(pp){pp.innerHTML='▶ Play'; pp.classList.remove('playing','is-paused');}
 }
 
 // ── Center / Pause / Restart ──────────────────────────────────────────────────
@@ -1406,12 +1403,17 @@ function toggleCenter() {
   }
 }
 
+function togglePlayPause() {
+  if (!isPlaying) { startRound(); return; }
+  togglePause();
+}
+
 function togglePause() {
   if (!roundActive || !audioCtx) return;
-  const btn = document.getElementById('btnPause');
+  const btn = document.getElementById('btnPlayPause');
   if (isPaused) {
     audioCtx.resume().then(()=>{
-      isPaused=false; btn.innerHTML='&#9646;&#9646; Pause'; btn.classList.remove('paused');
+      isPaused=false; btn.innerHTML='⏸ Pause'; btn.classList.remove('is-paused');
       // Restart interval-based sources after resume
       if (sourceType === 'oneShot' && isPlaying) {
         if (shotLoopTimer) clearInterval(shotLoopTimer);
@@ -1421,13 +1423,13 @@ function togglePause() {
     });
   } else {
     if (shotLoopTimer) { clearInterval(shotLoopTimer); shotLoopTimer=null; }
-    audioCtx.suspend().then(()=>{isPaused=true;btn.innerHTML='&#9654; Resume';btn.classList.add('paused');});
+    audioCtx.suspend().then(()=>{isPaused=true;btn.innerHTML='▶ Play';btn.classList.add('is-paused');});
   }
 }
 
 function restartAudio() {
   if (!roundActive) return;
-  if (isPaused && audioCtx){audioCtx.resume();isPaused=false;const btn=document.getElementById('btnPause');btn.innerHTML='&#9646;&#9646; Pause';btn.classList.remove('paused');}
+  if (isPaused && audioCtx){audioCtx.resume();isPaused=false;const pp=document.getElementById('btnPlayPause');if(pp){pp.innerHTML='⏸ Pause';pp.classList.remove('is-paused');}}
   startAudio(); showToast('Restarted');
 }
 
