@@ -437,6 +437,31 @@ input[type=range]:disabled::-webkit-slider-thumb { background: var(--muted); box
   }
   .forgot-pw-link:hover { color: var(--text); }
 
+
+  .shortcuts-wrap { position: relative; }
+  .shortcuts-btn {
+    display: flex; align-items: center; gap: 5px;
+    background: var(--surface2); border: 0.5px solid var(--border2);
+    border-radius: 8px; color: var(--muted);
+    font-family: inherit; font-size: 12px; font-weight: 500;
+    padding: 5px 11px; cursor: pointer; transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .shortcuts-btn:hover { border-color: var(--accent); color: var(--text); }
+  .shortcuts-popover {
+    display: none; position: absolute; top: calc(100% + 8px); right: 0;
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 12px; padding: 14px 18px;
+    z-index: 50; min-width: 260px;
+  }
+  .shortcuts-popover.open { display: block; }
+  .shortcut-row {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 16px; font-size: 12px; color: var(--muted); padding: 5px 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .shortcut-row:last-child { border-bottom: none; }
+  .shortcut-keys { display: flex; gap: 4px; flex-shrink: 0; }
 </style>
   <script src="../scoring.js"></script>
 
@@ -564,14 +589,17 @@ input[type=range]:disabled::-webkit-slider-thumb { background: var(--muted); box
       <button class="ctrl-btn" id="btnPause"   onclick="togglePause()"     disabled>⏸ Pause</button>
       <button class="ctrl-btn" id="btnRestart" onclick="restartAudio()"    disabled>⟲</button>
     </div>
-    <div class="kbd-legend">
-      <kbd>Space</kbd>&nbsp;Target/Your Delay
-      &nbsp;·&nbsp;<kbd>D</kbd>&nbsp;Dry
-      &nbsp;·&nbsp;<kbd>P</kbd>&nbsp;Pause
-      &nbsp;·&nbsp;<kbd>F</kbd>&nbsp;Restart
-      &nbsp;·&nbsp;<kbd>←&nbsp;→</kbd>&nbsp;Seek
-      &nbsp;·&nbsp;<kbd>↑&nbsp;↓</kbd>&nbsp;Skip
-      &nbsp;·&nbsp;<kbd>↵</kbd>&nbsp;Submit
+    <div style="margin-left:auto; position:relative;" class="shortcuts-wrap">
+      <button class="shortcuts-btn" onclick="toggleShortcuts(event)">&#9000; Shortcuts</button>
+      <div class="shortcuts-popover" id="shortcutsPopover">
+        <div class="shortcut-row"><span>Target / Your Delay</span><div class="shortcut-keys"><kbd>Space</kbd></div></div>
+        <div class="shortcut-row"><span>Dry</span><div class="shortcut-keys"><kbd>D</kbd></div></div>
+        <div class="shortcut-row"><span>Pause</span><div class="shortcut-keys"><kbd>P</kbd></div></div>
+        <div class="shortcut-row"><span>Restart</span><div class="shortcut-keys"><kbd>F</kbd></div></div>
+        <div class="shortcut-row"><span>Seek</span><div class="shortcut-keys"><kbd>←</kbd><kbd>→</kbd></div></div>
+        <div class="shortcut-row"><span>Skip track</span><div class="shortcut-keys"><kbd>↑</kbd><kbd>↓</kbd></div></div>
+        <div class="shortcut-row"><span>Submit</span><div class="shortcut-keys"><kbd>↵</kbd></div></div>
+      </div>
     </div>
     <div class="monitor-hint" id="monitorHint" style="display:none"></div>
   </div>
@@ -1510,6 +1538,16 @@ function addHistory(score) {
   while (strip.children.length > 48) strip.removeChild(strip.firstChild);
 }
 
+
+function toggleShortcuts(e) {
+  e.stopPropagation();
+  const pop = document.getElementById('shortcutsPopover');
+  pop.classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  const pop = document.getElementById('shortcutsPopover');
+  if (pop) pop.classList.remove('open');
+});
 // ── Keyboard shortcuts ─────────────────────────────────────────────────────────
 window.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT') return;

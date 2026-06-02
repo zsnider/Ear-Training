@@ -537,6 +537,69 @@
   }
   .forgot-pw-link:hover { color: var(--text); }
 
+
+  .shortcuts-wrap { position: relative; }
+  .shortcuts-btn {
+    display: flex; align-items: center; gap: 5px;
+    background: var(--surface2); border: 0.5px solid var(--border2);
+    border-radius: 8px; color: var(--muted);
+    font-family: inherit; font-size: 12px; font-weight: 500;
+    padding: 5px 11px; cursor: pointer; transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .shortcuts-btn:hover { border-color: var(--accent); color: var(--text); }
+  .shortcuts-popover {
+    display: none; position: absolute; top: calc(100% + 8px); right: 0;
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 12px; padding: 14px 18px;
+    z-index: 50; min-width: 260px;
+  }
+  .shortcuts-popover.open { display: block; }
+  .shortcut-row {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 16px; font-size: 12px; color: var(--muted); padding: 5px 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .shortcut-row:last-child { border-bottom: none; }
+  .shortcut-keys { display: flex; gap: 4px; flex-shrink: 0; }
+
+  .listen-btn {
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 10px 16px !important;
+    min-height: 60px;
+  }
+  .listen-btn-label {
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.07em;
+  }
+  .listen-bars {
+    display: flex; align-items: flex-end; gap: 2.5px; height: 14px;
+  }
+  .listen-bar {
+    width: 3px; border-radius: 2px; background: currentColor;
+    opacity: 0.3; transition: opacity 0.15s; flex-shrink: 0;
+  }
+  .listen-btn.active .listen-bar { opacity: 1; }
+  .listen-bar:nth-child(1) { height: 5px;  animation-delay: 0s; }
+  .listen-bar:nth-child(2) { height: 10px; animation-delay: 0.12s; }
+  .listen-bar:nth-child(3) { height: 14px; animation-delay: 0.06s; }
+  .listen-bar:nth-child(4) { height: 9px;  animation-delay: 0.18s; }
+  .listen-bar:nth-child(5) { height: 6px;  animation-delay: 0.09s; }
+  .listen-btn.active .listen-bar {
+    animation: barBounce 0.75s ease-in-out infinite;
+  }
+  @keyframes barBounce {
+    0%,100% { transform: scaleY(1); }
+    50%      { transform: scaleY(0.3); }
+  }
+
+  .result-bar { transition: border-color 0.5s ease; }
+  .result-bar.score-good { border-color: rgba(62,207,142,0.55) !important; }
+  .result-bar.score-ok   { border-color: rgba(245,166,35,0.55) !important; }
+  .result-bar.score-bad  { border-color: rgba(244,91,105,0.55) !important; }
 </style>
   <script src="../scoring.js"></script>
 
@@ -620,11 +683,18 @@
     <span class="label">Active Params</span>
     <div id="paramPills" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;"></div>
     <div class="vdiv" style="margin-left:auto;"></div>
-    <span style="font-size:11px;color:var(--muted);white-space:nowrap;">
-      <kbd>Space</kbd> A/B &nbsp;·&nbsp; <kbd>D</kbd> dry &nbsp;·&nbsp;
-      <kbd>P</kbd> pause &nbsp;·&nbsp; <kbd>F</kbd> restart &nbsp;·&nbsp;
-      <kbd>↑↓</kbd> skip &nbsp;·&nbsp; <kbd>←→</kbd> seek &nbsp;·&nbsp; <kbd>↵</kbd> Check
-    </span>
+    <div style="margin-left:auto; position:relative;" class="shortcuts-wrap">
+      <button class="shortcuts-btn" onclick="toggleShortcuts(event)">&#9000; Shortcuts</button>
+      <div class="shortcuts-popover" id="shortcutsPopover">
+        <div class="shortcut-row"><span>Toggle A/B</span><div class="shortcut-keys"><kbd>Space</kbd></div></div>
+        <div class="shortcut-row"><span>Dry signal</span><div class="shortcut-keys"><kbd>D</kbd></div></div>
+        <div class="shortcut-row"><span>Pause</span><div class="shortcut-keys"><kbd>P</kbd></div></div>
+        <div class="shortcut-row"><span>Restart</span><div class="shortcut-keys"><kbd>F</kbd></div></div>
+        <div class="shortcut-row"><span>Skip track</span><div class="shortcut-keys"><kbd>↑</kbd><kbd>↓</kbd></div></div>
+        <div class="shortcut-row"><span>Seek</span><div class="shortcut-keys"><kbd>←</kbd><kbd>→</kbd></div></div>
+        <div class="shortcut-row"><span>Check answer</span><div class="shortcut-keys"><kbd>↵</kbd></div></div>
+      </div>
+    </div>
   </div>
 
   <!-- Workspace -->
@@ -705,11 +775,13 @@
       <!-- Listen buttons -->
       <div class="controls-bar">
         <button class="listen-btn target-btn" id="btnTarget" onclick="listenTarget()" disabled>
-          <span id="targetDot"></span> Target
+          <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
+          <span class="listen-btn-label">Target</span>
         </button>
         <button class="listen-btn dry-btn"    id="btnDry"    onclick="listenDry()"    disabled>○ Dry</button>
         <button class="listen-btn user-btn"   id="btnUser"   onclick="listenUser()"   disabled>
-          <span id="userDot"></span> Yours
+          <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
+          <span class="listen-btn-label">Yours</span>
         </button>
       </div>
 
@@ -1490,10 +1562,7 @@ function updateListenBtns() {
   document.getElementById('targetListenPill').classList.toggle('visible', listeningTo==='target');
   document.getElementById('userListenPill').classList.toggle('visible',   listeningTo==='user');
 
-  const td = document.getElementById('targetDot');
-  const ud = document.getElementById('userDot');
-  td.style.cssText = listeningTo==='target' ? 'width:6px;height:6px;background:var(--blue2);border-radius:50%;animation:pulse 1.1s infinite;display:inline-block;' : 'display:none;';
-  ud.style.cssText = listeningTo==='user'   ? 'width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 1.1s infinite;display:inline-block;' : 'display:none;';
+
 }
 
 function ensureAudio() {
@@ -1640,7 +1709,7 @@ function newRound() {
   if (sourceType === 'loop'    && loopFileNames.length > 0)    loopIdx    = randNext(loopFileNames.length, loopIdx);
 
   roundActive = true;
-  document.getElementById('resultBar').classList.remove('visible');
+  document.getElementById('resultBar').classList.remove('visible','score-good','score-ok','score-bad');
     const _rpreset = document.getElementById('resultPts'); if (_rpreset) _rpreset.textContent = '';
   document.getElementById('btnCheck').disabled   = false;
   document.getElementById('btnTarget').disabled  = false;
@@ -1712,6 +1781,7 @@ function checkAnswer() {
   for (const [t,m] of msgs) if (score >= t) { msg = m; col = score>=70?'var(--green)':score>=40?'var(--amber)':'var(--red)'; break; }
 
   document.getElementById('resultBar').classList.add('visible');
+  { const rb = document.getElementById('resultBar'); rb.classList.remove('score-good','score-ok','score-bad'); setTimeout(()=>{ rb.classList.add(score>=70?'score-good':score>=40?'score-ok':'score-bad'); },60); }
   document.getElementById('resultBig').textContent  = score;
   { const _rp = document.getElementById('resultPts'); if (_rp) _rp.textContent = `+${weightedScore} pts  ×${mult.toFixed(1)}`; }
   document.getElementById('resultBig').style.color  = col;
@@ -1740,6 +1810,16 @@ function checkAnswer() {
   showToast(`Round: ${score}/100`);
 }
 
+
+function toggleShortcuts(e) {
+  e.stopPropagation();
+  const pop = document.getElementById('shortcutsPopover');
+  pop.classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  const pop = document.getElementById('shortcutsPopover');
+  if (pop) pop.classList.remove('open');
+});
 // ── Keyboard shortcuts ────────────────────────────────────────────────────────
 window.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
