@@ -693,9 +693,30 @@
     <div class="band-results" id="bandResults"></div>
   </div>
 
-  <!-- Game Settings -->
-  <div class="settings-section">
-    <!-- Training Tier + Filters -->
+  <!-- Audio Source (always visible) -->
+  <div class="setting-item">
+    <span class="label">Audio Source</span>
+    <div class="source-pill active" id="srcPink"    onclick="setSource('pink')">Pink Noise</div>
+    <div class="source-pill"        id="srcOneShot" onclick="setSource('oneshot')">One-shots</div>
+    <div class="source-pill"        id="srcLoop"    onclick="setSource('loop')">Loops</div>
+    <div class="source-pill"        id="srcCustom"  onclick="triggerUpload()"
+      style="border-style:dashed; border-color:var(--border2);">
+      <span id="folderLabel">Upload Folder</span>
+      <input type="file" id="folderInput" webkitdirectory directory multiple
+        onchange="handleFolderUpload(event)" style="display:none;">
+    </div>
+    <span id="sourceLoadStatus" style="font-size:12px; color:var(--amber); display:none;"></span>
+  </div>
+
+  <!-- Settings toggle -->
+  <button class="settings-collapse-btn" id="advancedToggle" onclick="toggleAdvanced()">
+    <span class="collapse-arrow">▶</span> Settings
+  </button>
+
+  <!-- Settings panel -->
+  <div class="advanced-settings" id="advancedSettings">
+
+    <!-- Training Tier + Gain Direction -->
     <div class="setting-item">
       <span class="label">Training Tier</span>
       <select id="gainThresholdSelect" onchange="updateTier(this.value)">
@@ -708,6 +729,14 @@
         <option value="-1">All (0–12 dB)</option>
       </select>
       <div class="divider"></div>
+      <span class="label">Gain Direction</span>
+      <div class="pill"        id="dirBoth"  onclick="setGainDirection('both',this)">Both</div>
+      <div class="pill active" id="dirBoost" onclick="setGainDirection('boost',this)">Boost Only (+)</div>
+      <div class="pill"        id="dirCut"   onclick="setGainDirection('cut',this)">Cut Only (−)</div>
+    </div>
+
+    <!-- Filter Type -->
+    <div class="setting-item">
       <span class="label">Filters</span>
       <div id="filterSelection" style="display:flex; gap:8px; flex-wrap:wrap;">
         <div class="pill active" data-type="peaking"   onclick="toggleFilterType('peaking', this)">Peaking</div>
@@ -719,29 +748,24 @@
       </div>
     </div>
 
-    <!-- Audio Source -->
+    <!-- Hz Range -->
     <div class="setting-item">
-      <span class="label">Audio Source</span>
-      <div class="source-pill active" id="srcPink"    onclick="setSource('pink')">Pink Noise</div>
-      <div class="source-pill"        id="srcOneShot" onclick="setSource('oneshot')">One-shots</div>
-      <div class="source-pill"        id="srcLoop"    onclick="setSource('loop')">Loops</div>
-      <div class="source-pill"        id="srcCustom"  onclick="triggerUpload()"
-        style="border-style:dashed; border-color:var(--border2);">
-        <span id="folderLabel">Upload Folder</span>
-        <input type="file" id="folderInput" webkitdirectory directory multiple
-          onchange="handleFolderUpload(event)" style="display:none;">
+      <span class="label">Hz Range</span>
+      <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted);">
+        <span>Min</span>
+        <input class="num-input" type="number" id="freqMinInput" min="20" max="20000" step="1" value="20"
+          onblur="syncFreqFromInput('min')"
+          onkeydown="if(event.key==='Enter'){syncFreqFromInput('min');this.blur();}">
       </div>
-      <span id="sourceLoadStatus" style="font-size:12px; color:var(--amber); display:none;"></span>
+      <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted);">
+        <span>Max</span>
+        <input class="num-input" type="number" id="freqMaxInput" min="20" max="20000" step="1" value="20000"
+          onblur="syncFreqFromInput('max')"
+          onkeydown="if(event.key==='Enter'){syncFreqFromInput('max');this.blur();}">
+      </div>
+      <button onclick="resetFreqRange()" class="btn-secondary" style="padding:5px 12px; font-size:12px;">Reset</button>
+      <span style="font-size:11px; color:var(--muted);" id="freqRangeHint">20 Hz – 20 kHz</span>
     </div>
-  </div>
-
-  <!-- Advanced Settings toggle -->
-  <button class="settings-collapse-btn" id="advancedToggle" onclick="toggleAdvanced()">
-    <span class="collapse-arrow">▶</span> Advanced
-  </button>
-
-  <!-- Advanced Settings -->
-  <div class="advanced-settings" id="advancedSettings">
 
     <!-- Q Range -->
     <div class="setting-item">
@@ -759,33 +783,6 @@
         Fix Q to Defaults
       </button>
       <span style="font-size:11px; color:var(--muted);" id="qRangeHint">Q fixed to defaults</span>
-    </div>
-
-    <!-- Gain Direction -->
-    <div class="setting-item">
-      <span class="label">Gain Direction</span>
-      <div class="pill"        id="dirBoth"  onclick="setGainDirection('both',this)">Both</div>
-      <div class="pill active" id="dirBoost" onclick="setGainDirection('boost',this)">Boost Only (+)</div>
-      <div class="pill"        id="dirCut"   onclick="setGainDirection('cut',this)">Cut Only (−)</div>
-    </div>
-
-    <!-- Hz Frequency Range -->
-    <div class="setting-item">
-      <span class="label">Hz Range</span>
-      <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted);">
-        <span>Min</span>
-        <input class="num-input" type="number" id="freqMinInput" min="20" max="20000" step="1" value="20"
-          onblur="syncFreqFromInput('min')"
-          onkeydown="if(event.key==='Enter'){syncFreqFromInput('min');this.blur();}">
-      </div>
-      <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted);">
-        <span>Max</span>
-        <input class="num-input" type="number" id="freqMaxInput" min="20" max="20000" step="1" value="20000"
-          onblur="syncFreqFromInput('max')"
-          onkeydown="if(event.key==='Enter'){syncFreqFromInput('max');this.blur();}">
-      </div>
-      <button onclick="resetFreqRange()" class="btn-secondary" style="padding:5px 12px; font-size:12px;">Reset</button>
-      <span style="font-size:11px; color:var(--muted);" id="freqRangeHint">20 Hz – 20 kHz</span>
     </div>
 
   </div>
@@ -1040,27 +1037,20 @@ function drawEQ() {
   ctx.fillStyle = '#161820';
   ctx.fillRect(0, 0, W, H);
 
-  // Frequency region color bands
-  const freqRegions = [
-    { f1: 20,   f2: 60,    fill: 'rgba(201,123,255,0.045)', label: 'Sub' },
-    { f1: 60,   f2: 250,   fill: 'rgba(91,106,255,0.04)',   label: 'Bass' },
-    { f1: 250,  f2: 2000,  fill: 'rgba(62,207,142,0.03)',   label: 'Mids' },
-    { f1: 2000, f2: 6000,  fill: 'rgba(245,166,35,0.035)',  label: 'Hi-Mid' },
-    { f1: 6000, f2: 20000, fill: 'rgba(96,232,255,0.03)',   label: 'Air' },
-  ];
-  ctx.save();
-  for (const reg of freqRegions) {
-    const rx1 = freqToX(reg.f1, W), rx2 = freqToX(reg.f2, W);
-    ctx.fillStyle = reg.fill;
-    ctx.fillRect(rx1, 0, rx2 - rx1, H);
-    // Region label at top
-    ctx.fillStyle = reg.fill.replace(/[\d.]+\)$/, '0.5)');
-    ctx.font = '9px -apple-system,sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(reg.label, (rx1 + rx2) / 2, 12);
+  // Frequency region gradient wash
+  {
+    const grad = ctx.createLinearGradient(0, 0, W, 0);
+    // Stops keyed to log-frequency positions (Sub→Bass→Mids→Hi-Mid→Air)
+    grad.addColorStop(freqToX(20,    W) / W, 'rgba(201,123,255,0.05)');
+    grad.addColorStop(freqToX(60,    W) / W, 'rgba(130,110,255,0.04)');
+    grad.addColorStop(freqToX(250,   W) / W, 'rgba(91,106,255,0.035)');
+    grad.addColorStop(freqToX(800,   W) / W, 'rgba(62,207,142,0.03)');
+    grad.addColorStop(freqToX(2500,  W) / W, 'rgba(245,166,35,0.03)');
+    grad.addColorStop(freqToX(6000,  W) / W, 'rgba(240,130,60,0.03)');
+    grad.addColorStop(freqToX(20000, W) / W, 'rgba(96,232,255,0.04)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
   }
-  ctx.textAlign = 'left';
-  ctx.restore();
 
   // Freq grid
   for (const f of [50,100,200,500,1000,2000,5000,10000,20000]) {
