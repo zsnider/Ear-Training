@@ -56,22 +56,11 @@
   }
 
   nav {
-    max-width: 780px; margin: 0 auto;
+    width: 100%; max-width: 1280px;
     padding: 20px 28px;
-    display: flex; align-items: center; gap: 10px;
+    display: flex; align-items: center;
   }
-.nav-sep { color: var(--border2); font-size: 14px; }
-  .nav-page { font-size: 13px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
-  .back-btn {
-    margin-left: auto;
-    display: inline-flex; align-items: center; gap: 6px;
-    font-size: 13px; color: var(--muted); text-decoration: none;
-    font-family: 'IBM Plex Mono', monospace;
-    padding: 6px 12px; border-radius: 8px;
-    border: 1px solid var(--border); background: var(--surface);
-    transition: color 0.15s, border-color 0.15s;
-  }
-  .back-btn:hover { color: var(--text); border-color: var(--border2); }
+  @media (max-width: 600px) { nav { padding: 16px 20px; } }
 
   /* ── Content ─────────────────────────────────────────── */
   .page {
@@ -158,10 +147,20 @@
 <body>
 
 <nav>
-  <a class="nav-logo" href="/"><span>Sonic</span>Sandbox</a>
-  <span class="nav-sep">/</span>
-  <span class="nav-page">Privacy Policy</span>
-  <a class="back-btn" href="/">← Games</a>
+  <div class="nav-logo-wrap">
+    <a class="nav-logo" href="/">Sonic<span>Sandbox</span></a>
+  </div>
+  <div class="nav-center">
+    <a class="nav-link" href="/">Home</a>
+    <a class="nav-link" href="/games/">Games</a>
+    <a class="nav-link" href="/learn/">Learn</a>
+    <a class="nav-link" href="/stats/">Stats</a>
+  </div>
+  <div class="nav-right">
+    <div id="navAuthArea">
+      <a class="auth-btn" href="/">Sign in</a>
+    </div>
+  </div>
 </nav>
 
 <main class="page">
@@ -208,7 +207,7 @@
         <li><strong>Browser storage preferences</strong> — a handful of keys are stored in your browser's <code>localStorage</code> and <code>sessionStorage</code> to remember UI state (e.g. whether you prefer the desktop version, or have dismissed a banner). These never leave your device.</li>
       </ul>
 
-      <p>We do <strong>not</strong> collect IP addresses, device fingerprints, or browsing behavior. We run no analytics platform and serve no advertisements.</p>
+      <p>We do <strong>not</strong> collect IP addresses directly, serve advertisements, or sell your data. We use a privacy-focused analytics tool (Umami) to measure aggregate page traffic — see Section 3 for details.</p>
     </section>
 
     <section>
@@ -226,6 +225,9 @@
         </li>
         <li>
           <strong>GitHub Pages</strong> — the site's static files are hosted on GitHub Pages (Microsoft). GitHub may collect basic server logs. See <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">GitHub's privacy statement</a>.
+        </li>
+        <li>
+          <strong>Umami</strong> (<a href="https://umami.is/privacy" target="_blank" rel="noopener">privacy policy</a>) — a privacy-focused, open-source analytics platform used to measure aggregate page traffic (e.g. page views, referrers). Umami does not use cookies, does not track individual users across sessions, and does not share data with third parties. No personally identifiable information is collected.
         </li>
       </ul>
       <p>We do not use any advertising networks, social media tracking pixels, or data brokers.</p>
@@ -301,9 +303,32 @@
     &nbsp;·&nbsp; <a href="/support/">Support</a>
   </div>
   <div class="footer-right">
-    <span>© 2025 Zach Snider</span>
+    <span>© 2026 Zach Snider</span>
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../supabase-client.js"></script>
+<script>
+(function() {
+  const navAuthArea = document.getElementById('navAuthArea');
+  document.addEventListener('ss:authchange', async e => {
+    const user = e.detail;
+    if (user) {
+      navAuthArea.innerHTML = `<div class="user-pill"><span class="username-display" style="color:var(--muted);font-size:12px;">${user.email}</span></div>`;
+      const profile = await SonicSandbox.getProfile();
+      const el = navAuthArea.querySelector('.username-display');
+      if (!el) return;
+      if (profile?.username) {
+        el.outerHTML = `<a class="set-username-link" href="/account/">@${profile.username}</a>`;
+      } else {
+        el.outerHTML = `<a class="set-username-link" href="/account/">Set username</a>`;
+      }
+    } else {
+      navAuthArea.innerHTML = `<a class="auth-btn" href="/">Sign in</a>`;
+    }
+  });
+})();
+</script>
 </body>
 </html>
