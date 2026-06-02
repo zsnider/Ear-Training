@@ -125,32 +125,111 @@ main {
 }
 .monitor-group { display: flex; gap: 8px; }
 .monitor-btn {
-  font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500;
-  padding: 6px 14px; background: var(--surface2);
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 10px 14px; background: var(--surface2);
   border: 1px solid var(--border2); border-radius: 8px;
   color: var(--muted); cursor: pointer; transition: all 0.15s;
-  display: flex; align-items: center; gap: 6px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  min-height: 58px; justify-content: center;
 }
-.monitor-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); transition: all 0.2s; }
 .monitor-btn:hover { color: var(--text); }
 .monitor-btn.active-target { border-color: var(--accent); color: var(--accent2); }
-.monitor-btn.active-target .monitor-dot { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
-.monitor-btn.active-user { border-color: rgba(251,146,60,0.5); color: rgba(251,146,60,0.85); }
-.monitor-btn.active-user .monitor-dot { background: rgba(251,146,60,0.7); }
-.monitor-btn.active-dry { border-color: var(--text); color: var(--text); }
-.monitor-btn.active-dry .monitor-dot { background: var(--text); box-shadow: 0 0 6px rgba(232,237,248,0.5); }
+.monitor-btn.active-user   { border-color: rgba(251,146,60,0.5); color: rgba(251,146,60,0.9); }
+.monitor-btn.active-dry    { border-color: var(--text); color: var(--text); }
 .monitor-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-.player-controls { display: flex; gap: 7px; align-items: center; }
-.ctrl-btn {
-  font-family: 'IBM Plex Mono', monospace; font-size: 12px;
-  padding: 5px 10px; background: var(--surface2);
-  border: 1px solid var(--border2); border-radius: 7px;
-  color: var(--muted); cursor: pointer; transition: all 0.15s;
+
+/* Animated bars for monitor buttons */
+.listen-bars { display:flex; align-items:flex-end; gap:2.5px; height:14px; }
+.listen-bar  {
+  width:3px; border-radius:2px; background:currentColor;
+  opacity:0.3; transition:opacity 0.15s; flex-shrink:0;
 }
-.ctrl-btn:hover:not(:disabled) { color: var(--text); }
-.ctrl-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-.ctrl-btn.playing { border-color: var(--accent); color: var(--accent2); }
-.ctrl-btn.paused { background: rgba(249,115,22,0.08); }
+.listen-bar:nth-child(1){height:5px;  animation-delay:0s;}
+.listen-bar:nth-child(2){height:10px; animation-delay:0.12s;}
+.listen-bar:nth-child(3){height:14px; animation-delay:0.06s;}
+.listen-bar:nth-child(4){height:9px;  animation-delay:0.18s;}
+.listen-bar:nth-child(5){height:6px;  animation-delay:0.09s;}
+.monitor-btn.active-target .listen-bar,
+.monitor-btn.active-user   .listen-bar,
+.monitor-btn.active-dry    .listen-bar {
+  opacity:1; animation:barBounce 0.75s ease-in-out infinite;
+}
+@keyframes barBounce { 0%,100%{transform:scaleY(1);} 50%{transform:scaleY(0.3);} }
+
+/* Settings card divider row */
+.settings-divider { width:100%; height:1px; background:var(--border); }
+
+/* Param ranges panel */
+.ranges-toggle-btn {
+  display:flex; align-items:center; gap:7px;
+  background:none; border:1px solid var(--border);
+  border-radius:10px; color:var(--muted);
+  font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600;
+  text-transform:uppercase; letter-spacing:0.08em;
+  padding:7px 14px; cursor:pointer; transition:all 0.15s; width:fit-content;
+}
+.ranges-toggle-btn:hover { border-color:var(--border2); color:var(--text); }
+.ranges-toggle-btn .rt-arrow { font-size:9px; transition:transform 0.2s; }
+.ranges-toggle-btn.open .rt-arrow { transform:rotate(90deg); }
+.ranges-panel {
+  display:none; flex-direction:column;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:12px; overflow:hidden;
+}
+.ranges-panel.open { display:flex; }
+.range-row {
+  display:flex; align-items:center; gap:8px;
+  padding:9px 14px; border-bottom:1px solid var(--border);
+}
+.range-row:last-child { border-bottom:none; }
+.range-param-label {
+  font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:600;
+  text-transform:uppercase; letter-spacing:0.08em;
+  color:var(--muted); width:70px; flex-shrink:0;
+}
+.range-input {
+  width:62px; background:var(--surface2); color:var(--text);
+  border:1px solid var(--border2); border-radius:6px;
+  padding:4px 7px; font-family:'IBM Plex Mono',monospace; font-size:12px; outline:none;
+}
+.range-input:focus { border-color:var(--accent); }
+.range-sep  { font-size:11px; color:var(--muted); }
+.range-unit { font-size:11px; color:var(--muted); min-width:22px; }
+.range-reset {
+  margin-left:auto; font-size:10px; color:var(--muted);
+  background:none; border:none; cursor:pointer; padding:0;
+  font-family:inherit; text-decoration:underline; text-underline-offset:2px;
+}
+.range-reset:hover { color:var(--text); }
+.player-controls { display: flex; gap: 8px; align-items: center; }
+
+/* Transport buttons — styled like Reverb/Distortion Master */
+.transport-btn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500;
+  padding: 8px 16px; border-radius: 10px;
+  display: flex; align-items: center; gap: 7px;
+  cursor: pointer; transition: all 0.15s; white-space: nowrap; border: 1px solid;
+}
+.transport-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.transport-play {
+  background: var(--surface2); color: var(--accent2);
+  border-color: rgba(249,115,22,0.3);
+}
+.transport-play:hover:not(:disabled) { background: rgba(249,115,22,0.08); border-color: rgba(249,115,22,0.6); }
+.transport-play.is-paused { color: var(--muted); border-color: var(--border2); background: rgba(249,115,22,0.06); }
+.transport-restart {
+  background: var(--surface2); color: var(--muted);
+  border-color: var(--border2);
+}
+.transport-restart:hover:not(:disabled) { border-color: var(--accent2); color: var(--accent2); }
+
+/* Source card (moved below game area) */
+.source-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 20px;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
 .pulse-dot {
   width: 8px; height: 8px; border-radius: 50%;
   background: var(--accent); box-shadow: 0 0 6px var(--accent);
@@ -541,18 +620,15 @@ input[type=range]:disabled::-webkit-slider-thumb { background: var(--muted); box
   <!-- Settings -->
   <div class="settings-card">
     <div class="settings-row">
-      <span class="settings-label">Source</span>
+      <span class="settings-label">Difficulty</span>
       <div class="btn-group">
-        <button class="src-btn active" id="srcPink"    onclick="setSource('pink')">Pink Noise</button>
-        <button class="src-btn"        id="srcOneShot" onclick="setSource('oneShot')">One-Shots</button>
-        <button class="src-btn"        id="srcLoop"    onclick="setSource('loop')">Loops</button>
-        <button class="src-btn"        id="srcCustom"  onclick="triggerUpload()">
-          <span id="uploadLabel">Upload Folder</span>
-        </button>
+        <button class="seg-btn active" id="diffEasy"   onclick="setDifficulty('easy')">Easy</button>
+        <button class="seg-btn"        id="diffMedium" onclick="setDifficulty('medium')">Medium</button>
+        <button class="seg-btn"        id="diffHard"   onclick="setDifficulty('hard')">Hard</button>
       </div>
-      <input type="file" id="folderInput" accept="audio/*" multiple webkitdirectory
-             style="display:none" onchange="handleFolderUpload(event)">
+      <button class="new-round-btn" onclick="newRound()">New Round</button>
     </div>
+    <div class="settings-divider"></div>
     <div class="settings-row">
       <span class="settings-label">Params</span>
       <div class="btn-group">
@@ -560,13 +636,10 @@ input[type=range]:disabled::-webkit-slider-thumb { background: var(--muted); box
         <button class="lock-btn"        id="lockFeedback"  onclick="toggleLock('feedback')">Feedback</button>
         <button class="lock-btn"        id="lockWet"       onclick="toggleLock('wet')">Wet / Dry</button>
       </div>
-      <span class="settings-label" style="margin-left:12px">Difficulty</span>
-      <div class="btn-group">
-        <button class="seg-btn active"  id="diffEasy"   onclick="setDifficulty('easy')">Easy</button>
-        <button class="seg-btn"        id="diffMedium" onclick="setDifficulty('medium')">Medium</button>
-        <button class="seg-btn"        id="diffHard"   onclick="setDifficulty('hard')">Hard</button>
+      <div style="margin-left:auto; display:flex; align-items:center; gap:8px; flex-shrink:0;">
+        <span class="settings-label">Locked</span>
+        <button class="lock-btn active" id="fixLockedBtn" onclick="toggleFixLocked()">Vary Each Round</button>
       </div>
-      <button class="new-round-btn" onclick="newRound()">New Round</button>
     </div>
   </div>
 
@@ -574,20 +647,21 @@ input[type=range]:disabled::-webkit-slider-thumb { background: var(--muted); box
   <div class="player-card">
     <div class="monitor-group">
       <button class="monitor-btn" id="monitorTarget" onclick="setMonitor('target')" disabled>
-        <span class="monitor-dot"></span>TARGET
+        <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
+        <span>Target</span>
       </button>
       <button class="monitor-btn" id="monitorUser" onclick="setMonitor('user')" disabled>
-        <span class="monitor-dot"></span>YOUR DELAY
+        <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
+        <span>Your Delay</span>
       </button>
       <button class="monitor-btn" id="monitorDry" onclick="setMonitor('dry')" disabled>
-        <span class="monitor-dot"></span>DRY
+        <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
+        <span>Dry</span>
       </button>
     </div>
     <div class="player-controls">
-      <span id="playDot"></span>
-      <button class="ctrl-btn" id="btnPlay"    onclick="playCurrentRound()" disabled>▶ Play</button>
-      <button class="ctrl-btn" id="btnPause"   onclick="togglePause()"     disabled>⏸ Pause</button>
-      <button class="ctrl-btn" id="btnRestart" onclick="restartAudio()"    disabled>⟲</button>
+      <button class="transport-btn transport-play" id="btnPlayPause" onclick="togglePlayPause()" disabled>▶ Play</button>
+      <button class="transport-btn transport-restart" id="btnRestart" onclick="restartAudio()" disabled>↺ Restart</button>
     </div>
     <div style="margin-left:auto; position:relative;" class="shortcuts-wrap">
       <button class="shortcuts-btn" onclick="toggleShortcuts(event)">&#9000; Shortcuts</button>
@@ -716,11 +790,32 @@ input[type=range]:disabled::-webkit-slider-thumb { background: var(--muted); box
     </div>
   </div>
 
+  <!-- Audio Source -->
+  <div class="source-card">
+    <span class="settings-label">Source</span>
+    <div class="btn-group">
+      <button class="src-btn active" id="srcPink"    onclick="setSource('pink')">Pink Noise</button>
+      <button class="src-btn"        id="srcOneShot" onclick="setSource('oneShot')">One-Shots</button>
+      <button class="src-btn"        id="srcLoop"    onclick="setSource('loop')">Loops</button>
+      <button class="src-btn"        id="srcCustom"  onclick="triggerUpload()">
+        <span id="uploadLabel">Upload Folder</span>
+      </button>
+    </div>
+    <input type="file" id="folderInput" accept="audio/*" multiple webkitdirectory
+           style="display:none" onchange="handleFolderUpload(event)">
+  </div>
+
   <!-- History -->
   <div class="history-card">
     <div class="history-label">Round History</div>
     <div class="history-row" id="historyStrip"></div>
   </div>
+
+  <!-- Parameter ranges -->
+  <button class="ranges-toggle-btn" id="rangesToggleBtn" onclick="toggleRangesPanel()">
+    <span class="rt-arrow">▶</span> Settings
+  </button>
+  <div class="ranges-panel" id="rangesPanel"></div>
 </main>
 
 <!-- Help Toggle -->
@@ -791,12 +886,19 @@ const DIFFICULTY_CFG = {
   medium: { delayTime: [75,  700], feedback: [10, 80], wet: [15, 70] },
   hard:   { delayTime: [50,  750], feedback: [5,  88], wet: [10, 80] },
 };
-const PARAM_RANGES = { delayTime: 700, feedback: 90, wet: 100 };
+const PARAM_RANGES    = { delayTime: 700, feedback: 90, wet: 100 };
+const PARAM_DEFAULTS  = { delayTime: 300, feedback: 45, wet: 40  };
+const PARAM_ABS_MIN   = { delayTime: 50,  feedback: 0,  wet: 0   };
+const PARAM_ABS_MAX   = { delayTime: 750, feedback: 90, wet: 100 };
+
+// Custom per-param ranges (null = use difficulty cfg)
+let customRanges = { delayTime: null, feedback: null, wet: null };
 
 // ── State ──────────────────────────────────────────────────────────────────────
-let difficulty     = 'easy';
-let sourceType     = 'pink';
-let lockedParams   = { delayTime: false, feedback: true, wet: true };
+let difficulty      = 'easy';
+let sourceType      = 'pink';
+let lockedParams    = { delayTime: false, feedback: true, wet: true };
+let fixLockedParams = false; // when true, locked params use PARAM_DEFAULTS instead of randomizing
 
 let roundActive    = false;
 let answered       = false;
@@ -849,6 +951,74 @@ function updateMultBadge() {
     el.textContent = ScoringEngine.label('delay-master', { difficulty, numParams: getNumParams() });
 }
 
+function toggleFixLocked() {
+  fixLockedParams = !fixLockedParams;
+  const btn = document.getElementById('fixLockedBtn');
+  btn.classList.toggle('active', !fixLockedParams);
+  btn.textContent = fixLockedParams ? 'Fixed to Defaults' : 'Vary Each Round';
+  btn.title = fixLockedParams
+    ? 'Locked params use fixed default values — click to vary each round'
+    : 'Locked params vary each round — click to fix to defaults';
+}
+
+function toggleRangesPanel() {
+  const panel = document.getElementById('rangesPanel');
+  const btn   = document.getElementById('rangesToggleBtn');
+  const open  = panel.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  if (open && !panel.hasChildNodes()) buildRangesPanel();
+}
+
+function buildRangesPanel() {
+  const panel = document.getElementById('rangesPanel');
+  panel.innerHTML = '';
+  const paramConfig = [
+    { key:'delayTime', label:'Delay Time', unit:'ms', step:5  },
+    { key:'feedback',  label:'Feedback',   unit:'%',  step:1  },
+    { key:'wet',       label:'Wet / Dry',  unit:'%',  step:1  },
+  ];
+  paramConfig.forEach(({ key, label, unit, step }) => {
+    const range  = getParamRange(key);
+    const absMin = PARAM_ABS_MIN[key], absMax = PARAM_ABS_MAX[key];
+    const row = document.createElement('div');
+    row.className = 'range-row';
+    row.innerHTML = `
+      <span class="range-param-label">${label}</span>
+      <input class="range-input" type="number" id="range-min-${key}"
+        value="${range[0]}" min="${absMin}" max="${absMax}" step="${step}"
+        onchange="updateRange('${key}','min',this.value)">
+      <span class="range-sep">–</span>
+      <input class="range-input" type="number" id="range-max-${key}"
+        value="${range[1]}" min="${absMin}" max="${absMax}" step="${step}"
+        onchange="updateRange('${key}','max',this.value)">
+      <span class="range-unit">${unit}</span>
+      <button class="range-reset" onclick="resetRange('${key}')">reset</button>
+    `;
+    panel.appendChild(row);
+  });
+}
+
+function updateRange(key, which, rawVal) {
+  const val = parseFloat(rawVal);
+  if (isNaN(val)) return;
+  if (!customRanges[key]) customRanges[key] = [...getParamRange(key)];
+  const idx = which === 'min' ? 0 : 1;
+  customRanges[key][idx] = val;
+  // Clamp so min <= max
+  if (customRanges[key][0] > customRanges[key][1]) {
+    customRanges[key][which === 'min' ? 1 : 0] = val;
+    const otherId = `range-${which === 'min' ? 'max' : 'min'}-${key}`;
+    const other = document.getElementById(otherId);
+    if (other) other.value = val;
+  }
+}
+
+function resetRange(key) {
+  customRanges[key] = null;
+  document.getElementById('rangesPanel').innerHTML = '';
+  buildRangesPanel();
+}
+
 function setDifficulty(d) {
   difficulty = d;
   ['diffEasy','diffMedium','diffHard'].forEach(id =>
@@ -873,14 +1043,22 @@ function toggleLock(param) {
 // ── Round generation ───────────────────────────────────────────────────────────
 function snap(val, step) { return Math.round(val / step) * step; }
 
+function getParamRange(param) {
+  return customRanges[param] || DIFFICULTY_CFG[difficulty][param];
+}
+
 function generateTarget() {
-  const cfg = DIFFICULTY_CFG[difficulty];
   const rnd = (min, max) => min + Math.random() * (max - min);
-  return {
-    delayTime: snap(rnd(...cfg.delayTime), 5),
-    feedback:  snap(rnd(...cfg.feedback),  5),
-    wet:       snap(rnd(...cfg.wet),        5),
-  };
+  const result = {};
+  Object.keys(targetParams).forEach(param => {
+    if (fixLockedParams && lockedParams[param]) {
+      result[param] = PARAM_DEFAULTS[param];
+    } else {
+      const [lo, hi] = getParamRange(param);
+      result[param] = snap(rnd(lo, hi), 5);
+    }
+  });
+  return result;
 }
 
 function randomStart(param) {
@@ -944,9 +1122,8 @@ function renderGame() {
   // Buttons
   ['monitorTarget','monitorUser','monitorDry'].forEach(id =>
     document.getElementById(id).disabled = false);
-  document.getElementById('btnPlay').disabled    = false;
-  document.getElementById('btnPause').disabled   = false;
-  document.getElementById('btnRestart').disabled = false;
+  document.getElementById('btnPlayPause').disabled = false;
+  document.getElementById('btnRestart').disabled   = false;
   document.getElementById('submitBtn').disabled  = false;
 
   updateMonitorUI();
@@ -1214,9 +1391,8 @@ function playCurrentRound() {
     playContinuousSource(chainInput);
   }
 
-  document.getElementById('playDot').className = 'pulse-dot';
-  document.getElementById('btnPlay').classList.add('playing');
-  document.getElementById('btnPause').disabled   = false;
+  const pp = document.getElementById('btnPlayPause');
+  if (pp) { pp.textContent = '⏸ Pause'; pp.disabled = false; pp.classList.remove('is-paused'); }
   document.getElementById('btnRestart').disabled = false;
 }
 
@@ -1235,9 +1411,8 @@ function stopPlayback() {
   chainNodes = [];
   if (outGain) { try { outGain.disconnect(); } catch(e) {} outGain = null; }
   isPlaying = false;
-  const dot = document.getElementById('playDot');
-  if (dot) dot.className = '';
-  document.getElementById('btnPlay')?.classList.remove('playing');
+  const pp = document.getElementById('btnPlayPause');
+  if (pp && !isPaused) { pp.textContent = '▶ Play'; }
 }
 
 function makePinkNoise(dur) {
@@ -1295,21 +1470,27 @@ function playContinuousSource(dest) {
 }
 
 // ── Pause / Restart ────────────────────────────────────────────────────────────
+function togglePlayPause() {
+  if (!roundActive) return;
+  if (!isPlaying) { playCurrentRound(); return; }
+  togglePause();
+}
+
 function togglePause() {
   if (!roundActive || !audioCtx) return;
-  const btn = document.getElementById('btnPause');
+  const btn = document.getElementById('btnPlayPause');
   if (isPaused) {
     if (loopAudioEl   && sourceType === 'loop')   loopAudioEl.play().catch(()=>{});
     if (customAudioEl && sourceType === 'custom') customAudioEl.play().catch(()=>{});
     audioCtx.resume().then(() => {
-      isPaused = false; btn.textContent = '⏸ Pause'; btn.classList.remove('paused');
+      isPaused = false; btn.textContent = '⏸ Pause'; btn.classList.remove('is-paused');
       if (sourceType === 'oneShot' && isPlaying) { stopPlayback(); playCurrentRound(); }
     });
   } else {
     if (loopAudioEl   && sourceType === 'loop')   loopAudioEl.pause();
     if (customAudioEl && sourceType === 'custom') customAudioEl.pause();
     if (shotLoopTimer) { clearInterval(shotLoopTimer); shotLoopTimer = null; }
-    audioCtx.suspend().then(() => { isPaused = true; btn.textContent = '▶ Resume'; btn.classList.add('paused'); });
+    audioCtx.suspend().then(() => { isPaused = true; btn.textContent = '▶ Resume'; btn.classList.add('is-paused'); });
   }
 }
 
@@ -1318,8 +1499,8 @@ function restartAudio() {
   initAudio();
   if (isPaused) {
     audioCtx.resume(); isPaused = false;
-    document.getElementById('btnPause').textContent = '⏸ Pause';
-    document.getElementById('btnPause').classList.remove('paused');
+    const pp = document.getElementById('btnPlayPause');
+    if (pp) { pp.textContent = '⏸ Pause'; pp.classList.remove('is-paused'); }
   }
   if (loopAudioEl   && sourceType === 'loop')   loopAudioEl.currentTime = 0;
   if (customAudioEl && sourceType === 'custom') customAudioEl.currentTime = 0;
@@ -1579,6 +1760,7 @@ window.addEventListener('resize', () => {
 });
 
 updateMultBadge();
+document.getElementById('fixLockedBtn').classList.toggle('active', !fixLockedParams);
 
 // ── Service worker ─────────────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
