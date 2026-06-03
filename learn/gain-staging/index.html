@@ -650,7 +650,7 @@ const steps = [
       { strong: 'Problems compound', rest: ' — a small level issue at stage 1 becomes a big problem by stage 5' },
       { strong: 'Not just mixing', rest: ' — gain staging applies to recording, tracking, plugin chains, and mastering' },
     ],
-    audio: { desc: 'A clean signal at a well-staged reference level — smooth, controlled, no harshness.', type: 'reference' },
+    audio: { desc: 'A music loop at a clean, well-staged level — smooth, controlled, natural dynamics intact.', type: 'reference' },
   },
 
   // ── Step 2 ──────────────────────────────────────────────────
@@ -671,7 +671,7 @@ const steps = [
       { strong: '+10 dB', rest: ' — perceived doubling of loudness (psychoacoustic rule of thumb)' },
       { strong: 'Logarithmic scale', rest: ' — the scale matches how our ears perceive changes in level' },
     ],
-    audio: { desc: 'Listen to the same tone at two different levels — first quiet (−24 dBFS), then loud (−6 dBFS). The jump is about 18 dB.', type: 'db_comparison' },
+    audio: { desc: 'The same loop played twice — first at a very quiet level (~−24 dBFS), then at a loud level (~−6 dBFS). The 18 dB jump is unmistakable with real music.', type: 'db_comparison' },
   },
 
   // ── Step 3 ──────────────────────────────────────────────────
@@ -692,7 +692,7 @@ const steps = [
       { strong: 'Can happen silently', rest: ' — clipping inside plugin chains may not show on your master meter' },
       { strong: 'Irreversible', rest: ' — once clipped and recorded, the original peak information is lost' },
     ],
-    audio: { desc: 'Hear the difference — a clean sine tone for 2 seconds, then the same tone pushed into hard clipping. The buzzing character is unmistakable.', type: 'clip' },
+    audio: { desc: 'The same loop played clean, then driven hard into a clipper. Clipping real music makes the distortion obvious — the character degrades noticeably.', type: 'clip' },
   },
 
   // ── Step 4 ──────────────────────────────────────────────────
@@ -713,7 +713,7 @@ const steps = [
       { strong: 'Plugin processing adds gain', rest: ' — EQ boosts and saturators can push levels up; headroom absorbs this' },
       { strong: '−18 dBFS average', rest: ' — leaves 18 dB of headroom, a widely-used practical target' },
     ],
-    audio: { desc: 'A dynamic signal where transient peaks stay well within the available headroom — no clipping, natural dynamics intact.', type: 'dynamic' },
+    audio: { desc: 'A music loop at a healthy gain — transient peaks stay well within headroom, dynamics intact, nothing fighting for ceiling.', type: 'dynamic' },
   },
 
   // ── Step 5 ──────────────────────────────────────────────────
@@ -734,7 +734,7 @@ const steps = [
       { strong: 'Use the output fader', rest: ' — most plugins have output gain or makeup gain — reduce it to compensate' },
       { strong: 'Don\'t compensate at the channel fader', rest: ' — lowering the fader at the end doesn\'t fix upstream clipping' },
     ],
-    audio: { desc: 'Listen as the same signal passes through simulated gain stages, getting progressively louder — subtle at first, then noticeably too hot by the end.', type: 'accumulation' },
+    audio: { desc: 'The same loop ramping through five gain stages — clean and quiet at the start, progressively hotter, audibly distorting by stage five.', type: 'accumulation' },
   },
 
   // ── Step 6 ──────────────────────────────────────────────────
@@ -776,7 +776,7 @@ const steps = [
       { strong: 'A guideline, not a law', rest: ' — adapt based on the source; what matters is consistent headroom' },
       { strong: 'Streaming targets', rest: ' — Spotify −14 LUFS, Apple Music −16 LUFS — leave room at the master for these targets' },
     ],
-    audio: { desc: 'A tone at the −18 dBFS working level — present and clear, but leaving plenty of room above for peaks and processing.', type: 'trim' },
+    audio: { desc: 'A loop at the −18 dBFS working level — present and clear, with headroom above for peaks and any downstream processing.', type: 'trim' },
   },
 
   // ── Step 8 ──────────────────────────────────────────────────
@@ -797,7 +797,7 @@ const steps = [
       { strong: 'Gain compensation', rest: ' — match bypassed and active levels before judging if a plugin is helping' },
       { strong: 'Louder ≠ better', rest: ' — always level-match before evaluating any processing; it\'s easy to be fooled' },
     ],
-    audio: { desc: 'A tone at reference level — the kind of signal you\'d want entering and leaving a plugin after proper gain compensation.', type: 'trim' },
+    audio: { desc: 'A loop at reference level — the kind of signal you want entering and leaving each plugin after proper gain compensation.', type: 'trim' },
   },
 
   // ── Step 9 ──────────────────────────────────────────────────
@@ -818,15 +818,18 @@ const steps = [
       { strong: 'Leave room for the limiter', rest: ' — aim for −6 to −10 dBFS peaks before the mastering limiter' },
       { strong: 'The payoff', rest: ' — well-staged tracks sum cleanly, and every processor in the chain does its job correctly' },
     ],
-    audio: { desc: 'Multiple tones layered together — simulating the way individual tracks sum to a stereo bus, each contributing to the overall level.', type: 'mixbus' },
+    audio: { desc: 'A loop through a mix bus chain — glue compressor and limiter working together quietly, the sound of a well-staged stereo bus.', type: 'mixbus' },
   },
 
 ];
 
 // ─────────────────────────────────────────────────────────────
-//  AUDIO ENGINE
+//  AUDIO ENGINE — Loop-based demos
 // ─────────────────────────────────────────────────────────────
 let audioCtx = null, activeNodes = [], isPlaying = false;
+let demoBuffer = null, bufferLoadPromise = null;
+
+const DEMO_LOOP = '/samples/loops/ohpalmusic-passive-hip-hop-beat-90bpm-d-minor-177334.mp3';
 
 function getAudioCtx() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -851,189 +854,152 @@ function updatePlayBtn(playing) {
   if (si) si.style.display = playing ? '' : 'none';
 }
 
-function makePinkNoise(ctx, seconds) {
-  const bufSize = Math.ceil(ctx.sampleRate * seconds);
-  const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
-  const data = buf.getChannelData(0);
-  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
-  for (let i = 0; i < bufSize; i++) {
-    const w = Math.random() * 2 - 1;
-    b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
-    b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
-    b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
-    data[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)/7; b6=w*0.115926;
-  }
-  return buf;
+function loadDemoBuffer() {
+  if (bufferLoadPromise) return bufferLoadPromise;
+  bufferLoadPromise = (async () => {
+    try {
+      const ctx = getAudioCtx();
+      const resp = await fetch(DEMO_LOOP);
+      const ab = await resp.arrayBuffer();
+      demoBuffer = await ctx.decodeAudioData(ab);
+    } catch(e) { console.error('Demo loop failed:', e); }
+    return demoBuffer;
+  })();
+  return bufferLoadPromise;
 }
 
-function playDemo(type) {
+function makeHardClipper() {
+  const ws = audioCtx.createWaveShaper();
+  const curve = new Float32Array(512);
+  for (let i = 0; i < 512; i++) {
+    const x = (i * 2) / 512 - 1;
+    curve[i] = Math.max(-1, Math.min(1, x * 5));
+  }
+  ws.curve = curve;
+  return ws;
+}
+
+async function playDemo(type) {
   const ctx = getAudioCtx();
   const vol = parseFloat(document.querySelector('.vol-slider')?.value ?? 0.5);
   stopAudio();
+  isPlaying = true;
+  updatePlayBtn(true);
+
+  await loadDemoBuffer();
+  if (!demoBuffer || !isPlaying) return;
+
   const master = ctx.createGain();
-  master.gain.value = vol * 0.38;
+  master.gain.value = vol * 0.55;
   master.connect(ctx.destination);
-  const dur = 5;
+
   const now = ctx.currentTime;
+  const nodes = [];
+
+  function makeLoopSrc() {
+    const src = ctx.createBufferSource();
+    src.buffer = demoBuffer; src.loop = true;
+    nodes.push(src);
+    return src;
+  }
 
   if (type === 'reference') {
-    // Clean triangle wave — smooth, controlled reference level
-    const osc = ctx.createOscillator();
-    osc.type = 'triangle'; osc.frequency.value = 220;
-    const env = ctx.createGain();
-    env.gain.setValueAtTime(0, now);
-    env.gain.linearRampToValueAtTime(0.55, now + 0.06);
-    env.gain.setValueAtTime(0.55, now + dur - 0.25);
-    env.gain.linearRampToValueAtTime(0, now + dur);
-    osc.connect(env); env.connect(master);
-    osc.start(); osc.stop(now + dur);
-    activeNodes = [osc];
+    // Loop at a clean, well-staged level — controlled, no clipping
+    const src = makeLoopSrc();
+    const g = ctx.createGain(); g.gain.value = 0.65;
+    src.connect(g); g.connect(master);
+    src.start();
+    activeNodes = nodes;
+    activeNodes._stopTimeout = setTimeout(() => stopAudio(), 5000);
   }
 
   else if (type === 'db_comparison') {
-    // Same tone, first quiet (−24 equiv), then loud (−6 equiv)
-    const osc1 = ctx.createOscillator();
-    osc1.type = 'triangle'; osc1.frequency.value = 330;
-    const g1 = ctx.createGain();
-    g1.gain.setValueAtTime(0, now);
-    g1.gain.linearRampToValueAtTime(0.12, now + 0.05);
-    g1.gain.setValueAtTime(0.12, now + 2.0);
-    g1.gain.linearRampToValueAtTime(0, now + 2.2);
-    osc1.connect(g1); g1.connect(master);
-    osc1.start(); osc1.stop(now + 2.2);
+    // Same loop: first very quiet (~−24 dBFS equiv), then loud (~−6 dBFS equiv)
+    const srcA = makeLoopSrc();
+    const gA = ctx.createGain(); gA.gain.value = 0.13; // quiet
+    srcA.connect(gA); gA.connect(master);
+    srcA.start(); srcA.stop(now + 2.5);
 
-    const osc2 = ctx.createOscillator();
-    osc2.type = 'triangle'; osc2.frequency.value = 330;
-    const g2 = ctx.createGain();
-    g2.gain.setValueAtTime(0, now + 2.5);
-    g2.gain.linearRampToValueAtTime(0.72, now + 2.55);
-    g2.gain.setValueAtTime(0.72, now + dur - 0.25);
-    g2.gain.linearRampToValueAtTime(0, now + dur);
-    osc2.connect(g2); g2.connect(master);
-    osc2.start(now + 2.5); osc2.stop(now + dur);
-    activeNodes = [osc1, osc2];
+    const srcB = makeLoopSrc();
+    const gB = ctx.createGain(); gB.gain.value = 0.82; // loud
+    srcB.connect(gB); gB.connect(master);
+    srcB.start(now + 2.8); srcB.stop(now + 5.3);
+
+    activeNodes = nodes;
+    activeNodes._stopTimeout = setTimeout(() => stopAudio(), 5600);
   }
 
   else if (type === 'clip') {
-    // Clean sine for 2s, then hard-clipped version
-    const osc1 = ctx.createOscillator();
-    osc1.type = 'sine'; osc1.frequency.value = 180;
-    const g1 = ctx.createGain();
-    g1.gain.setValueAtTime(0, now);
-    g1.gain.linearRampToValueAtTime(0.6, now + 0.05);
-    g1.gain.setValueAtTime(0.6, now + 2.1);
-    g1.gain.linearRampToValueAtTime(0, now + 2.3);
-    osc1.connect(g1); g1.connect(master);
-    osc1.start(); osc1.stop(now + 2.3);
+    // Loop clean for 2.5s, then same loop driven hard into a hard clipper
+    const srcClean = makeLoopSrc();
+    const gClean = ctx.createGain(); gClean.gain.value = 0.65;
+    srcClean.connect(gClean); gClean.connect(master);
+    srcClean.start(); srcClean.stop(now + 2.5);
 
-    const osc2 = ctx.createOscillator();
-    osc2.type = 'sine'; osc2.frequency.value = 180;
-    const boost = ctx.createGain();
-    boost.gain.value = 10;
-    const shaper = ctx.createWaveShaper();
-    const curve = new Float32Array(512);
-    for (let i = 0; i < 512; i++) {
-      const x = (i * 2) / 512 - 1;
-      curve[i] = Math.max(-1, Math.min(1, x * 4));
-    }
-    shaper.curve = curve;
-    const g2 = ctx.createGain();
-    g2.gain.setValueAtTime(0, now + 2.6);
-    g2.gain.linearRampToValueAtTime(0.55, now + 2.65);
-    g2.gain.setValueAtTime(0.55, now + dur - 0.25);
-    g2.gain.linearRampToValueAtTime(0, now + dur);
-    osc2.connect(boost); boost.connect(shaper); shaper.connect(g2); g2.connect(master);
-    osc2.start(now + 2.6); osc2.stop(now + dur);
-    activeNodes = [osc1, osc2];
+    const srcClip = makeLoopSrc();
+    const drive = ctx.createGain(); drive.gain.value = 4.5; // push way past 0 dBFS
+    const clipper = makeHardClipper();
+    const gOut = ctx.createGain(); gOut.gain.value = 0.55;
+    srcClip.connect(drive); drive.connect(clipper); clipper.connect(gOut); gOut.connect(master);
+    srcClip.start(now + 2.8); srcClip.stop(now + 5.3);
+
+    activeNodes = nodes;
+    activeNodes._stopTimeout = setTimeout(() => stopAudio(), 5600);
   }
 
   else if (type === 'dynamic') {
-    // Percussive pink noise with dynamic envelope — transients staying within headroom
-    const src = ctx.createBufferSource();
-    src.buffer = makePinkNoise(ctx, 3); src.loop = true;
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(0, now);
-    const hits = [0.05, 0.52, 0.98, 1.44, 1.90, 2.36, 2.82, 3.28, 3.74, 4.20, 4.65];
-    hits.forEach(t => {
-      g.gain.setValueAtTime(0.06, now + t);
-      g.gain.linearRampToValueAtTime(0.42, now + t + 0.04);
-      g.gain.exponentialRampToValueAtTime(0.055, now + t + 0.38);
-    });
-    g.gain.setValueAtTime(0, now + dur);
+    // Loop at a healthy gain — natural dynamics, transients within headroom
+    const src = makeLoopSrc();
+    const g = ctx.createGain(); g.gain.value = 0.65;
     src.connect(g); g.connect(master);
-    src.start(); src.stop(now + dur);
-    activeNodes = [src];
+    src.start();
+    activeNodes = nodes;
+    activeNodes._stopTimeout = setTimeout(() => stopAudio(), 5000);
   }
 
   else if (type === 'accumulation') {
-    // Tone growing progressively louder through stages, ending distorted
-    const osc = ctx.createOscillator();
-    osc.type = 'triangle'; osc.frequency.value = 220;
+    // Loop with gain ramping through 5 stages — clean at first, distorting by the end
+    const src = makeLoopSrc();
     const g = ctx.createGain();
-    g.gain.setValueAtTime(0, now);
-    g.gain.linearRampToValueAtTime(0.07,  now + 0.4);  // stage 1
-    g.gain.setValueAtTime(0.07, now + 0.9);
-    g.gain.linearRampToValueAtTime(0.13,  now + 1.4);  // stage 2
-    g.gain.setValueAtTime(0.13, now + 1.9);
-    g.gain.linearRampToValueAtTime(0.24,  now + 2.4);  // stage 3
-    g.gain.setValueAtTime(0.24, now + 2.9);
-    g.gain.linearRampToValueAtTime(0.48,  now + 3.4);  // stage 4
-    g.gain.setValueAtTime(0.48, now + 3.9);
-    g.gain.linearRampToValueAtTime(0.90,  now + 4.4);  // stage 5 — too hot
-    g.gain.setValueAtTime(0.90, now + dur - 0.15);
-    g.gain.linearRampToValueAtTime(0, now + dur);
-    // Mild shaper so the "too hot" stage has audible edge
-    const shaper = ctx.createWaveShaper();
-    const curve = new Float32Array(512);
-    for (let i = 0; i < 512; i++) {
-      const x = (i * 2) / 512 - 1;
-      curve[i] = Math.tanh(x * 2.5) / Math.tanh(2.5);
-    }
-    shaper.curve = curve;
-    osc.connect(g); g.connect(shaper); shaper.connect(master);
-    osc.start(); osc.stop(now + dur);
-    activeNodes = [osc];
+    g.gain.setValueAtTime(0.12, now);          // stage 1 — very quiet
+    g.gain.linearRampToValueAtTime(0.22, now + 1.0);  // stage 2
+    g.gain.linearRampToValueAtTime(0.40, now + 2.0);  // stage 3 — good working level
+    g.gain.linearRampToValueAtTime(0.72, now + 3.0);  // stage 4 — getting hot
+    g.gain.linearRampToValueAtTime(1.40, now + 4.0);  // stage 5 — clipping
+    // Hard clipper so the too-hot stage audibly distorts
+    const clipper = makeHardClipper();
+    const gOut = ctx.createGain(); gOut.gain.value = 0.55;
+    src.connect(g); g.connect(clipper); clipper.connect(gOut); gOut.connect(master);
+    src.start(); src.stop(now + 5.0);
+    activeNodes = nodes;
+    activeNodes._stopTimeout = setTimeout(() => stopAudio(), 5200);
   }
 
   else if (type === 'trim') {
-    // Clean, steady tone at a well-compensated working level
-    const osc = ctx.createOscillator();
-    osc.type = 'triangle'; osc.frequency.value = 280;
-    const env = ctx.createGain();
-    env.gain.setValueAtTime(0, now);
-    env.gain.linearRampToValueAtTime(0.5, now + 0.06);
-    env.gain.setValueAtTime(0.5, now + dur - 0.25);
-    env.gain.linearRampToValueAtTime(0, now + dur);
-    osc.connect(env); env.connect(master);
-    osc.start(); osc.stop(now + dur);
-    activeNodes = [osc];
+    // Loop at a clean working-level gain — present and clear, headroom intact
+    const src = makeLoopSrc();
+    const g = ctx.createGain(); g.gain.value = 0.60;
+    src.connect(g); g.connect(master);
+    src.start();
+    activeNodes = nodes;
+    activeNodes._stopTimeout = setTimeout(() => stopAudio(), 5000);
   }
 
   else if (type === 'mixbus') {
-    // Six layered tones — simulating a mix summing to a bus
-    const freqs  = [55, 110, 220, 330, 440, 660];
-    const types  = ['sawtooth', 'sawtooth', 'triangle', 'triangle', 'triangle', 'sine'];
-    const gains  = [0.14, 0.10, 0.08, 0.07, 0.06, 0.05];
-    const nodes  = freqs.map((f, i) => {
-      const osc = ctx.createOscillator();
-      osc.type = types[i]; osc.frequency.value = f;
-      const g = ctx.createGain();
-      g.gain.setValueAtTime(0, now);
-      g.gain.linearRampToValueAtTime(gains[i], now + 0.08 + i * 0.04);
-      g.gain.setValueAtTime(gains[i], now + dur - 0.3);
-      g.gain.linearRampToValueAtTime(0, now + dur);
-      osc.connect(g); g.connect(master);
-      osc.start(); osc.stop(now + dur);
-      return osc;
-    });
+    // Loop through a proper mix bus: glue comp + limiter — controlled, cohesive
+    const src = makeLoopSrc();
+    const glue = ctx.createDynamicsCompressor();
+    glue.threshold.value = -18; glue.ratio.value = 2.0; glue.knee.value = 8;
+    glue.attack.value = 0.025; glue.release.value = 0.20;
+    const lim = ctx.createDynamicsCompressor();
+    lim.threshold.value = -1; lim.ratio.value = 20; lim.attack.value = 0.001; lim.release.value = 0.08;
+    const g = ctx.createGain(); g.gain.value = 0.72;
+    src.connect(glue); glue.connect(lim); lim.connect(g); g.connect(master);
+    src.start();
     activeNodes = nodes;
+    activeNodes._stopTimeout = setTimeout(() => stopAudio(), 5000);
   }
 
-  isPlaying = true;
-  activeNodes._stopTimeout = setTimeout(() => {
-    isPlaying = false;
-    updatePlayBtn(false);
-  }, dur * 1000 + 200);
   updatePlayBtn(true);
 }
 

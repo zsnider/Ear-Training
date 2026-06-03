@@ -682,11 +682,14 @@ function buildDiagram_fullchain() {
 }
 
 // ─────────────────────────────────────────────────────────────
-//  AUDIO ENGINE
+//  AUDIO ENGINE — Loop-based demos
 // ─────────────────────────────────────────────────────────────
 
 let audioCtx = null, masterGain = null, activeNodes = [];
 let volumeLevel = 0.72;
+let demoBuffer = null, bufferLoadPromise = null;
+
+const DEMO_LOOP = '/samples/loops/ohpalmusic-passive-hip-hop-beat-90bpm-d-minor-177334.mp3';
 
 function getCtx() {
   if (!audioCtx) {
@@ -714,236 +717,197 @@ function stopSVGIcon() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="6" height="16"/><rect x="14" y="4" width="6" height="16"/></svg>`;
 }
 
-function playDemo(type, btn) {
+function loadDemoBuffer() {
+  if (bufferLoadPromise) return bufferLoadPromise;
+  bufferLoadPromise = (async () => {
+    try {
+      const ctx = getCtx();
+      const resp = await fetch(DEMO_LOOP);
+      const ab = await resp.arrayBuffer();
+      demoBuffer = await ctx.decodeAudioData(ab);
+    } catch(e) { console.error('Demo loop failed:', e); }
+    return demoBuffer;
+  })();
+  return bufferLoadPromise;
+}
+
+function makeSrc(nodes) {
+  const src = audioCtx.createBufferSource();
+  src.buffer = demoBuffer; src.loop = true;
+  nodes.push(src);
+  return src;
+}
+
+function makeTanh(amount) {
+  const ws = audioCtx.createWaveShaper();
+  const curve = new Float32Array(512);
+  for (let i = 0; i < 512; i++) {
+    const x = (i * 2) / 512 - 1;
+    curve[i] = Math.tanh(x * amount) / Math.tanh(amount);
+  }
+  ws.curve = curve;
+  return ws;
+}
+
+async function playDemo(type, btn) {
   const ctx = getCtx();
   if (ctx.state === 'suspended') ctx.resume();
-
   if (btn.classList.contains('playing')) { stopAudio(); return; }
   stopAudio();
-
   btn.classList.add('playing');
-  btn.innerHTML = stopSVGIcon() + ' Stop';
-
+  btn.innerHTML = stopSVGIcon() + ' Loading…';
   masterGain.gain.value = volumeLevel;
 
+  await loadDemoBuffer();
+  if (!demoBuffer || !btn.classList.contains('playing')) return;
+  btn.innerHTML = stopSVGIcon() + ' Stop';
+
+  const nodes = [];
+  const now = ctx.currentTime;
+
   if (type === 'clean') {
-    // Clean reference tone
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.value = 220;
-    g.gain.setValueAtTime(0, ctx.currentTime);
-    g.gain.linearRampToValueAtTime(0.55, ctx.currentTime + 0.04);
-    g.gain.setValueAtTime(0.55, ctx.currentTime + 3.5);
-    g.gain.linearRampToValueAtTime(0, ctx.currentTime + 3.7);
-    osc.connect(g); g.connect(masterGain);
-    osc.start(); osc.stop(ctx.currentTime + 3.8);
-    activeNodes.push(osc);
-    osc.onended = () => stopAudio();
+    // Loop at a clean, healthy gain — the sound of a well-staged signal chain
+    const src = makeSrc(nodes);
+    const g = ctx.createGain(); g.gain.value = 0.72;
+    src.connect(g); g.connect(masterGain);
+    src.start();
+    setTimeout(() => stopAudio(), 5000);
   }
 
   else if (type === 'order_ab') {
-    // Two tones: first clean, then with a resonant peak simulating wrong order
-    const now = ctx.currentTime;
-    // Version A — clean processed chain
-    const osc1 = ctx.createOscillator();
-    const g1 = ctx.createGain();
-    osc1.type = 'sawtooth';
-    osc1.frequency.value = 180;
-    g1.gain.setValueAtTime(0, now);
-    g1.gain.linearRampToValueAtTime(0.3, now + 0.05);
-    g1.gain.setValueAtTime(0.3, now + 1.5);
-    g1.gain.linearRampToValueAtTime(0, now + 1.6);
-    const filter1 = ctx.createBiquadFilter();
-    filter1.type = 'highpass'; filter1.frequency.value = 120;
-    osc1.connect(filter1); filter1.connect(g1); g1.connect(masterGain);
-    osc1.start(now); osc1.stop(now + 1.7);
-    activeNodes.push(osc1);
+    // A: EQ first → clears mud before comp → clean, open sound (3s)
+    // B: Comp first → reacts to full-spectrum energy → then EQ boosts artifacts (3s)
+    const srcA = makeSrc(nodes);
+    const hpA = ctx.createBiquadFilter();
+    hpA.type = 'highpass'; hpA.frequency.value = 100;
+    const compA = ctx.createDynamicsCompressor();
+    compA.threshold.value = -20; compA.ratio.value = 4; compA.attack.value = 0.01; compA.release.value = 0.12;
+    const gA = ctx.createGain(); gA.gain.value = 0.75;
+    srcA.connect(hpA); hpA.connect(compA); compA.connect(gA); gA.connect(masterGain);
+    srcA.start(); srcA.stop(now + 3.0);
 
-    // Version B — resonant peak from bad order (muddy)
-    const osc2 = ctx.createOscillator();
-    const g2 = ctx.createGain();
-    osc2.type = 'sawtooth';
-    osc2.frequency.value = 180;
-    const filter2 = ctx.createBiquadFilter();
-    filter2.type = 'peaking'; filter2.frequency.value = 320; filter2.Q.value = 5; filter2.gain.value = 12;
-    const comp2 = ctx.createDynamicsCompressor();
-    comp2.threshold.value = -14; comp2.ratio.value = 8;
-    g2.gain.setValueAtTime(0, now + 1.8);
-    g2.gain.linearRampToValueAtTime(0.3, now + 1.85);
-    g2.gain.setValueAtTime(0.3, now + 3.3);
-    g2.gain.linearRampToValueAtTime(0, now + 3.4);
-    osc2.connect(filter2); filter2.connect(comp2); comp2.connect(g2); g2.connect(masterGain);
-    osc2.start(now + 1.8); osc2.stop(now + 3.5);
-    activeNodes.push(osc2);
-    osc2.onended = () => stopAudio();
+    const srcB = makeSrc(nodes);
+    const compB = ctx.createDynamicsCompressor();
+    compB.threshold.value = -12; compB.ratio.value = 10; compB.attack.value = 0.002; compB.release.value = 0.04;
+    const eqB = ctx.createBiquadFilter();
+    eqB.type = 'peaking'; eqB.frequency.value = 260; eqB.Q.value = 2; eqB.gain.value = 9;
+    const gB = ctx.createGain(); gB.gain.value = 0.65;
+    srcB.connect(compB); compB.connect(eqB); eqB.connect(gB); gB.connect(masterGain);
+    srcB.start(now + 3.2); srcB.stop(now + 6.2);
+    setTimeout(() => stopAudio(), 6500);
   }
 
   else if (type === 'gate') {
-    // Tone with pauses showing gate silencing gaps
-    const now = ctx.currentTime;
-    const bursts = [
-      [0, 0.4, 0.5], [0.5, 0.9, 0.5], [1.0, 1.6, 0.5], [1.8, 2.2, 0.5], [2.4, 3.0, 0.5],
-    ];
-    bursts.forEach(([start, end, amp]) => {
-      const osc = ctx.createOscillator();
-      const g = ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.value = 440;
-      g.gain.setValueAtTime(0, now + start);
-      g.gain.linearRampToValueAtTime(amp, now + start + 0.02);
-      g.gain.setValueAtTime(amp, now + end - 0.02);
-      g.gain.linearRampToValueAtTime(0, now + end);
-      osc.connect(g); g.connect(masterGain);
-      osc.start(now + start); osc.stop(now + end + 0.02);
-      activeNodes.push(osc);
-    });
-    setTimeout(() => stopAudio(), 3200);
+    // Loop through a gain envelope that opens and closes rhythmically — simulating a noise gate
+    const src = makeSrc(nodes);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.001, now);
+    // Open gate on every beat (~120 BPM = 0.5s intervals), close quickly between beats
+    const beatLen = 0.5, openDur = 0.30;
+    for (let i = 0; i < 10; i++) {
+      const t = now + i * beatLen;
+      g.gain.setValueAtTime(0.001, t);
+      g.gain.linearRampToValueAtTime(0.78, t + 0.012);
+      g.gain.setValueAtTime(0.78, t + openDur - 0.03);
+      g.gain.linearRampToValueAtTime(0.001, t + openDur);
+    }
+    g.gain.setValueAtTime(0, now + 5.2);
+    src.connect(g); g.connect(masterGain);
+    src.start();
+    setTimeout(() => stopAudio(), 5500);
   }
 
   else if (type === 'eqcomp') {
-    // EQ before comp — stable level, then exaggerated pumping comp
-    const now = ctx.currentTime;
-    // Clean version (EQ → COMP)
-    const osc1 = ctx.createOscillator();
-    const g1 = ctx.createGain();
-    const comp1 = ctx.createDynamicsCompressor();
-    comp1.threshold.value = -20; comp1.ratio.value = 4; comp1.attack.value = 0.01; comp1.release.value = 0.1;
-    osc1.type = 'sawtooth'; osc1.frequency.value = 200;
-    g1.gain.setValueAtTime(0, now); g1.gain.linearRampToValueAtTime(0.4, now + 0.05);
-    g1.gain.setValueAtTime(0.4, now + 1.8); g1.gain.linearRampToValueAtTime(0, now + 1.9);
-    osc1.connect(comp1); comp1.connect(g1); g1.connect(masterGain);
-    osc1.start(now); osc1.stop(now + 2.0);
-    activeNodes.push(osc1);
+    // A: EQ (−5 dB at 250 Hz) → comp → clean, controlled (3s)
+    // B: Comp (heavy) → EQ boost → pumping, muddy (3s)
+    const srcA = makeSrc(nodes);
+    const eqA = ctx.createBiquadFilter();
+    eqA.type = 'peaking'; eqA.frequency.value = 250; eqA.Q.value = 1.5; eqA.gain.value = -5;
+    const compA = ctx.createDynamicsCompressor();
+    compA.threshold.value = -20; compA.ratio.value = 4; compA.attack.value = 0.01; compA.release.value = 0.15;
+    const gA = ctx.createGain(); gA.gain.value = 0.75;
+    srcA.connect(eqA); eqA.connect(compA); compA.connect(gA); gA.connect(masterGain);
+    srcA.start(); srcA.stop(now + 3.0);
 
-    // Pumpy version (COMP → EQ with bad settings)
-    const osc2 = ctx.createOscillator();
-    const g2 = ctx.createGain();
-    const comp2 = ctx.createDynamicsCompressor();
-    comp2.threshold.value = -8; comp2.ratio.value = 12; comp2.attack.value = 0.001; comp2.release.value = 0.05;
-    const filter2 = ctx.createBiquadFilter();
-    filter2.type = 'peaking'; filter2.frequency.value = 250; filter2.Q.value = 3; filter2.gain.value = 8;
-    osc2.type = 'sawtooth'; osc2.frequency.value = 200;
-    g2.gain.setValueAtTime(0, now + 2.2); g2.gain.linearRampToValueAtTime(0.4, now + 2.25);
-    g2.gain.setValueAtTime(0.4, now + 4.0); g2.gain.linearRampToValueAtTime(0, now + 4.1);
-    osc2.connect(filter2); filter2.connect(comp2); comp2.connect(g2); g2.connect(masterGain);
-    osc2.start(now + 2.2); osc2.stop(now + 4.2);
-    activeNodes.push(osc2);
-    osc2.onended = () => stopAudio();
+    const srcB = makeSrc(nodes);
+    const compB = ctx.createDynamicsCompressor();
+    compB.threshold.value = -10; compB.ratio.value = 12; compB.attack.value = 0.001; compB.release.value = 0.04;
+    const eqB = ctx.createBiquadFilter();
+    eqB.type = 'peaking'; eqB.frequency.value = 250; eqB.Q.value = 1.5; eqB.gain.value = 8;
+    const gB = ctx.createGain(); gB.gain.value = 0.65;
+    srcB.connect(compB); compB.connect(eqB); eqB.connect(gB); gB.connect(masterGain);
+    srcB.start(now + 3.2); srcB.stop(now + 6.2);
+    setTimeout(() => stopAudio(), 6500);
   }
 
   else if (type === 'compsat') {
-    // COMP then SAT: consistent saturation
-    const now = ctx.currentTime;
-    // Comp → Sat: even harmonic content
-    const osc1 = ctx.createOscillator();
-    const g1 = ctx.createGain();
+    // Comp → tanh saturation: consistent, warm harmonic colour on a real source
+    const src = makeSrc(nodes);
     const comp = ctx.createDynamicsCompressor();
-    comp.threshold.value = -18; comp.ratio.value = 4;
-    const ws = ctx.createWaveShaper();
-    const curve = new Float32Array(256);
-    for (let i = 0; i < 256; i++) {
-      const x = (i * 2 / 255) - 1;
-      curve[i] = Math.tanh(x * 1.8);
-    }
-    ws.curve = curve;
-    osc1.type = 'sawtooth'; osc1.frequency.value = 160;
-    g1.gain.setValueAtTime(0, now); g1.gain.linearRampToValueAtTime(0.5, now + 0.05);
-    g1.gain.setValueAtTime(0.5, now + 3.5); g1.gain.linearRampToValueAtTime(0, now + 3.7);
-    osc1.connect(comp); comp.connect(ws); ws.connect(g1); g1.connect(masterGain);
-    osc1.start(now); osc1.stop(now + 3.8);
-    activeNodes.push(osc1);
-    osc1.onended = () => stopAudio();
+    comp.threshold.value = -18; comp.ratio.value = 4; comp.attack.value = 0.01; comp.release.value = 0.12;
+    const sat = makeTanh(2.0);
+    const g = ctx.createGain(); g.gain.value = 0.75;
+    src.connect(comp); comp.connect(sat); sat.connect(g); g.connect(masterGain);
+    src.start();
+    setTimeout(() => stopAudio(), 5000);
   }
 
   else if (type === 'timebased') {
-    // Dry then wet (with reverb) to illustrate time-based last
-    const now = ctx.currentTime;
-    // Dry stab
-    const osc1 = ctx.createOscillator();
-    const g1 = ctx.createGain();
-    osc1.type = 'triangle'; osc1.frequency.value = 330;
-    g1.gain.setValueAtTime(0.6, now); g1.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
-    osc1.connect(g1); g1.connect(masterGain);
-    osc1.start(now); osc1.stop(now + 0.9);
-    activeNodes.push(osc1);
+    // Dry loop for 3s, then same loop plus delay-network reverb — space added last
+    const srcDry = makeSrc(nodes);
+    const gDry = ctx.createGain(); gDry.gain.value = 0.75;
+    srcDry.connect(gDry); gDry.connect(masterGain);
+    srcDry.start(); srcDry.stop(now + 3.0);
 
-    // Same stab with simulated reverb tail (delay network)
-    const delays = [0.04, 0.07, 0.11, 0.16, 0.22, 0.30, 0.40];
-    delays.forEach((d, i) => {
-      const osc = ctx.createOscillator();
-      const g = ctx.createGain();
-      const amp = 0.22 * Math.pow(0.65, i);
-      osc.type = 'triangle'; osc.frequency.value = 330 * (1 + (i % 3 === 0 ? 0.003 : -0.003));
-      g.gain.setValueAtTime(amp, now + 2.0 + d); g.gain.exponentialRampToValueAtTime(0.001, now + 2.0 + d + 1.2);
-      osc.connect(g); g.connect(masterGain);
-      osc.start(now + 2.0 + d); osc.stop(now + 2.0 + d + 1.3);
-      activeNodes.push(osc);
+    const srcWet = makeSrc(nodes);
+    const gWet = ctx.createGain(); gWet.gain.value = 0.70;
+    srcWet.connect(gWet); gWet.connect(masterGain);
+    // Delay taps to simulate reverb wash
+    [0.037, 0.071, 0.118, 0.179, 0.260, 0.380, 0.540].forEach((d, i) => {
+      const dly = ctx.createDelay(1.0); dly.delayTime.value = d;
+      const tg = ctx.createGain(); tg.gain.value = 0.16 * Math.pow(0.60, i);
+      gWet.connect(dly); dly.connect(tg); tg.connect(masterGain);
+      nodes.push(dly, tg);
     });
-    setTimeout(() => stopAudio(), 4000);
+    srcWet.start(now + 3.3); srcWet.stop(now + 6.3);
+    setTimeout(() => stopAudio(), 7000);
   }
 
   else if (type === 'masterbus') {
-    // Layered summing: 5 oscillators → gentle glue comp → limiter ceiling
-    const now = ctx.currentTime;
-    const freqs = [80, 160, 240, 440, 880, 1200];
-    const types = ['sawtooth', 'sawtooth', 'triangle', 'triangle', 'sine', 'sine'];
-    const sumG = ctx.createGain();
-    sumG.gain.value = 0.18;
-    const comp = ctx.createDynamicsCompressor();
-    comp.threshold.value = -16; comp.ratio.value = 2.5; comp.knee.value = 6; comp.attack.value = 0.02; comp.release.value = 0.18;
-    const limiter = ctx.createDynamicsCompressor();
-    limiter.threshold.value = -1; limiter.ratio.value = 20; limiter.attack.value = 0.001; limiter.release.value = 0.05;
-    sumG.connect(comp); comp.connect(limiter); limiter.connect(masterGain);
-
-    freqs.forEach((f, i) => {
-      const osc = ctx.createOscillator();
-      osc.type = types[i];
-      osc.frequency.value = f;
-      osc.connect(sumG);
-      osc.start(now); osc.stop(now + 4.0);
-      activeNodes.push(osc);
-    });
-    setTimeout(() => stopAudio(), 4200);
+    // Loop → glue compressor → brickwall limiter — the mix bus chain doing its job quietly
+    const src = makeSrc(nodes);
+    const glue = ctx.createDynamicsCompressor();
+    glue.threshold.value = -18; glue.ratio.value = 2.0; glue.knee.value = 8;
+    glue.attack.value = 0.025; glue.release.value = 0.20;
+    const lim = ctx.createDynamicsCompressor();
+    lim.threshold.value = -1; lim.ratio.value = 20; lim.attack.value = 0.001; lim.release.value = 0.08;
+    const g = ctx.createGain(); g.gain.value = 0.80;
+    src.connect(glue); glue.connect(lim); lim.connect(g); g.connect(masterGain);
+    src.start();
+    setTimeout(() => stopAudio(), 5000);
   }
 
   else if (type === 'fullchain') {
-    // Full chain preview: clean input → some processing → time-based tail
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'highpass'; filter.frequency.value = 100;
+    // Full chain: HP filter → comp → saturation → reverb — all stages in sequence
+    const src = makeSrc(nodes);
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass'; hp.frequency.value = 80;
     const comp = ctx.createDynamicsCompressor();
-    comp.threshold.value = -20; comp.ratio.value = 3;
-    const ws = ctx.createWaveShaper();
-    const curve = new Float32Array(256);
-    for (let i = 0; i < 256; i++) {
-      const x = (i * 2 / 255) - 1;
-      curve[i] = Math.tanh(x * 1.4);
-    }
-    ws.curve = curve;
-    osc.type = 'sawtooth'; osc.frequency.value = 196;
-    g.gain.setValueAtTime(0, now); g.gain.linearRampToValueAtTime(0.5, now + 0.06);
-    g.gain.setValueAtTime(0.5, now + 3.0); g.gain.linearRampToValueAtTime(0, now + 3.2);
-    osc.connect(filter); filter.connect(comp); comp.connect(ws); ws.connect(g); g.connect(masterGain);
-    osc.start(now); osc.stop(now + 3.4);
-    activeNodes.push(osc);
-
-    // Reverb tail
-    const delays2 = [0.05, 0.09, 0.14, 0.21, 0.32, 0.46];
-    delays2.forEach((d, i) => {
-      const o = ctx.createOscillator();
-      const gd = ctx.createGain();
-      const amp = 0.18 * Math.pow(0.6, i);
-      o.type = 'sawtooth'; o.frequency.value = 196 + i * 2;
-      gd.gain.setValueAtTime(amp, now + 3.0 + d); gd.gain.exponentialRampToValueAtTime(0.001, now + 3.0 + d + 1.5);
-      o.connect(gd); gd.connect(masterGain);
-      o.start(now + 3.0 + d); o.stop(now + 3.0 + d + 1.6);
-      activeNodes.push(o);
+    comp.threshold.value = -20; comp.ratio.value = 3; comp.attack.value = 0.012; comp.release.value = 0.15;
+    const sat = makeTanh(1.5);
+    const g = ctx.createGain(); g.gain.value = 0.75;
+    src.connect(hp); hp.connect(comp); comp.connect(sat); sat.connect(g); g.connect(masterGain);
+    // Reverb taps on the processed signal
+    [0.042, 0.088, 0.148, 0.228, 0.360].forEach((d, i) => {
+      const dly = ctx.createDelay(1.0); dly.delayTime.value = d;
+      const tg = ctx.createGain(); tg.gain.value = 0.10 * Math.pow(0.65, i);
+      g.connect(dly); dly.connect(tg); tg.connect(masterGain);
+      nodes.push(dly, tg);
     });
-    setTimeout(() => stopAudio(), 5200);
+    src.start();
+    setTimeout(() => stopAudio(), 5500);
   }
+
+  activeNodes = nodes;
 }
 
 // ─────────────────────────────────────────────────────────────
