@@ -3,529 +3,64 @@
 <head>
 <link rel="manifest" href="manifest.json">
 <meta charset="UTF-8">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cloud.umami.is 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://aolaxmmrmvovbzumlybe.supabase.co wss://aolaxmmrmvovbzumlybe.supabase.co https://cloud.umami.is; img-src 'self' data:; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
-<meta name="description" content="Match the drive, type, mix, and tone of a hidden distortion effect by ear.">
+<meta name="description" content="Match the drive, type, mix, and tone of a hidden distortion effect by ear — watch the waveform redden as it clips.">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Distortion Master — SonicSandbox</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="../style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="../daw-ui.css">
 <style>
-  :root {
-    --bg:       #0d0a0a;
-    --bg2:      #110d0d;
-    --surface:  #1a1212;
-    --surface2: #231818;
-    --surface3: #2c1f1f;
-    --border:   rgba(255,255,255,0.07);
-    --border2:  rgba(255,255,255,0.13);
-    --text:     #f0e8e8;
-    --muted:    #6a5a5a;
-    --accent:   #d44a2a;
-    --accent2:  #f07050;
-    --gold:     #e8a030;
-    --gold2:    #f0bc60;
-    --green:    #3ecf8e;
-    --red:      #f45b69;
-    --amber:    #f5a623;
-    --teal:     #2dd4c8;
-  }
+  /* Distortion identity colours — warm, hot drive */
+  body { --accent: #d44a2a; --accent2: #f07050; }
 
-  * { margin:0; padding:0; box-sizing:border-box; }
-
+  /* Clipping colour key (green → amber → red) */
   body {
-    font-family: 'IBM Plex Sans', -apple-system, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    display: flex; flex-direction: column; align-items: center;
-
-    user-select: none;
+    --clip-clean: #3ecf8e;
+    --clip-warn:  #f5a623;
+    --clip-hot:   #f45b69;
   }
 
-  header {
-    width:100%; max-width:980px;
-    padding: 24px 24px 0;
-    display:flex; align-items:center; justify-content:space-between;
-  }
-
-  .header-left { display:flex; align-items:center; gap:14px; }
-
-  .brand { display:flex; align-items:center; gap:10px; }
-  .brand-icon {
-    width:32px; height:32px;
-    background: var(--accent);
-    border-radius:8px;
-    display:flex; align-items:center; justify-content:center;
-  }
-  .brand-name {
-    font-family:'IBM Plex Mono',monospace;
-    font-size:16px; font-weight:600; letter-spacing:0.04em;
-  }
-  .brand-name span { color:var(--accent2); }
-
-  .score-row { display:flex; gap:22px; align-items:center; }
-  .stat { text-align:center; }
-  .stat-val { font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:600; color:var(--accent2); }
-  .stat-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-top:2px; }
-  .vdiv { width:1px; height:22px; background:var(--border2); }
-
-  .main { width:100%; max-width:980px; padding:18px 24px 0; display:flex; flex-direction:column; gap:14px; }
-
-  .setting-item {
-    background:var(--surface); border:1px solid var(--border);
-    border-radius:12px; overflow:hidden;
-    display:flex; flex-direction:column;
-  }
-  .settings-inner-row {
-    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-    padding:9px 16px;
-  }
-  .settings-divider { width:100%; height:1px; background:var(--border); flex-shrink:0; }
-
-  /* ── Listen button upgrade ── */
-  .listen-btn {
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important;
-    padding: 10px 16px !important;
-    min-height: 60px;
-  }
-  .listen-btn-label {
-    font-size: 11px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.07em;
-  }
-  .listen-bars { display:flex; align-items:flex-end; gap:2.5px; height:14px; }
-  .listen-bar {
-    width:3px; border-radius:2px; background:currentColor;
-    opacity:0.3; transition:opacity 0.15s; flex-shrink:0;
-  }
-  .listen-btn.active .listen-bar { opacity:1; animation:barBounce 0.75s ease-in-out infinite; }
-  .listen-bar:nth-child(1) { height:5px;  animation-delay:0s; }
-  .listen-bar:nth-child(2) { height:10px; animation-delay:0.12s; }
-  .listen-bar:nth-child(3) { height:14px; animation-delay:0.06s; }
-  .listen-bar:nth-child(4) { height:9px;  animation-delay:0.18s; }
-  .listen-bar:nth-child(5) { height:6px;  animation-delay:0.09s; }
-  @keyframes barBounce { 0%,100%{transform:scaleY(1);} 50%{transform:scaleY(0.3);} }
-
-  /* ── Param ranges panel ── */
-  .ranges-toggle-btn {
-    display:flex; align-items:center; gap:7px;
-    background:none; border:1px solid var(--border);
-    border-radius:10px; color:var(--muted);
-    font-family:'IBM Plex Sans',sans-serif; font-size:11px; font-weight:600;
-    text-transform:uppercase; letter-spacing:0.08em;
-    padding:7px 14px; cursor:pointer; transition:all 0.15s; width:fit-content;
-  }
-  .ranges-toggle-btn:hover { border-color:var(--border2); color:var(--text); }
-  .ranges-toggle-btn .rt-arrow { font-size:9px; transition:transform 0.2s; }
-  .ranges-toggle-btn.open .rt-arrow { transform:rotate(90deg); }
-  .ranges-panel {
-    display:none; flex-direction:column;
-    background:var(--surface); border:1px solid var(--border);
-    border-radius:12px; overflow:hidden;
-  }
-  .ranges-panel.open { display:flex; }
-  .range-row {
-    display:flex; align-items:center; gap:8px;
-    padding:9px 14px; border-bottom:1px solid var(--border);
-  }
-  .range-row:last-child { border-bottom:none; }
-  .range-param-label {
-    font-family:'IBM Plex Mono',monospace;
-    font-size:10px; font-weight:600;
-    text-transform:uppercase; letter-spacing:0.08em;
-    color:var(--muted); width:58px; flex-shrink:0;
-  }
-  .range-input {
-    width:62px; background:var(--surface2); color:var(--text);
-    border:1px solid var(--border2); border-radius:6px;
-    padding:4px 7px; font-family:'IBM Plex Mono',monospace; font-size:12px; outline:none;
-  }
-  .range-input:focus { border-color:var(--accent); }
-  .range-sep  { font-size:11px; color:var(--muted); }
-  .range-unit { font-size:11px; color:var(--muted); min-width:18px; }
-  .range-reset {
-    margin-left:auto; font-size:10px; color:var(--muted);
-    background:none; border:none; cursor:pointer; padding:0;
-    font-family:inherit; text-decoration:underline; text-underline-offset:2px;
-  }
-  .range-reset:hover { color:var(--text); }
-
-  .label {
-    font-size:11px; font-weight:600; color:var(--muted);
-    text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap;
-  }
-
-  .pill {
-    background:var(--surface2); border:1px solid var(--border2);
-    border-radius:20px; padding:5px 13px;
-    font-size:12px; color:var(--muted);
-    cursor:pointer; transition:all 0.15s;
-    font-family:'IBM Plex Sans',sans-serif; white-space:nowrap;
-  }
-  .pill:hover { border-color:var(--accent); color:var(--text); }
-  .pill.active {
-    background:var(--surface2); border-color:var(--accent2);
-    color:var(--accent2); box-shadow:0 0 8px rgba(240,112,80,0.15);
-  }
-
-  /* Param pill in custom mode */
-  .param-pill-toggle {
-    font-size:11px; padding:3px 9px; border-radius:10px; border:1px solid;
-    transition: all 0.15s;
-  }
-  .param-pill-toggle.togglable { cursor: pointer; }
-  .param-pill-toggle.togglable:hover { opacity: 0.85; }
-
-  kbd {
-    font-family:'IBM Plex Mono',monospace; font-size:10px;
-    background:var(--surface2); border:1px solid var(--border2);
-    border-radius:4px; padding:1px 5px; color:var(--muted);
-  }
-
-  /* ── Type selector pills ── */
-  .type-selector { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; }
-  .type-pill {
-    background:var(--surface2); border:1px solid var(--border2);
-    border-radius:8px; padding:4px 10px;
-    font-size:11px; color:var(--muted);
-    cursor:pointer; transition:all 0.15s;
-    font-family:'IBM Plex Mono',monospace;
-  }
-  .type-pill:hover { border-color:var(--accent); color:var(--text); }
-  .type-pill.active { border-color:var(--accent2); color:var(--accent2); background:rgba(240,112,80,0.1); }
-  .type-pill.locked-type { opacity:0.25; pointer-events:none; }
-
-  /* ── Workspace ── */
-  .workspace { display:grid; grid-template-columns:1fr 300px; gap:14px; }
-
-  .dist-panel {
-    background:var(--surface); border:1px solid var(--border);
-    border-radius:14px; overflow:hidden;
-    display:flex; flex-direction:column;
-  }
-
-  .panel-header {
-    display:flex; align-items:center; justify-content:space-between;
-    padding:11px 16px; border-bottom:1px solid var(--border);
-  }
-  .panel-title {
-    font-family:'IBM Plex Mono',monospace;
-    font-size:11px; font-weight:600;
-    letter-spacing:0.1em; text-transform:uppercase;
-  }
-  .panel-title.t-title { color:var(--accent2); }
-  .panel-title.u-title { color:var(--gold2); }
-
-  .listen-pill {
-    display:flex; align-items:center; gap:5px;
-    border-radius:20px; padding:3px 9px; font-size:11px;
-    opacity:0; transition:opacity 0.2s;
-  }
-  .listen-pill.t-pill { background:rgba(212,74,42,0.12); border:1px solid rgba(212,74,42,0.35); color:var(--accent2); }
-  .listen-pill.u-pill { background:rgba(232,160,48,0.1);  border:1px solid rgba(232,160,48,0.3);  color:var(--gold2); }
-  .listen-pill.visible { opacity:1; }
-
-  /* Knob grid */
-  .knob-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); flex:1; }
-  .knob-cell {
-    background:var(--surface); padding:14px 10px 12px;
-    display:flex; flex-direction:column; align-items:center; gap:9px;
-    transition:background 0.15s;
-  }
-  .knob-cell:hover { background:var(--surface2); }
-  .knob-cell.locked { opacity:0.25; pointer-events:none; }
-  .knob-cell.hidden-target .knob-wrap { filter:blur(10px); opacity:0; pointer-events:none; }
-  .knob-cell.hidden-target .knob-val  { filter:blur(10px); opacity:0; }
-  .knob-cell.hidden-target .type-selector { filter:blur(10px); opacity:0; pointer-events:none; }
-
-  .knob-label {
-    font-family:'IBM Plex Mono',monospace;
-    font-size:9px; font-weight:600;
-    letter-spacing:0.1em; text-transform:uppercase; color:var(--muted);
-  }
-  .knob-wrap { position:relative; width:62px; height:62px; cursor:grab; touch-action:none; }
-  .knob-wrap:active { cursor:grabbing; }
-  .knob-svg { width:100%; height:100%; }
-  .knob-val { font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:500; color:var(--text); text-align:center; min-height:16px; }
-
-  /* Harmonic spectrum visualizer */
-  .spectrum-wrap { padding:10px 16px 12px; border-top:1px solid var(--border); }
-  .spectrum-label { font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); margin-bottom:7px; }
-  canvas.spectrum-canvas { display:block; width:100%; height:90px; border-radius:6px; background:var(--bg2); }
-  .spectrum-canvas.hidden-spectrum { filter:blur(12px); opacity:0; }
-
-  .spec-legend { display:flex; gap:14px; margin-top:5px; }
-  .sl-item { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); }
-  .sl-dot { width:22px; height:3px; border-radius:2px; }
-
-  /* ── Right column ── */
-  .right-col { display:flex; flex-direction:column; gap:14px; }
-
-  .meter-panel {
-    background:var(--surface); border:1px solid var(--border);
-    border-radius:14px; padding:14px 16px;
-    display:flex; flex-direction:column; gap:10px;
-  }
-  .meter-row { display:flex; align-items:center; gap:10px; }
-  .meter-name { font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; width:52px; flex-shrink:0; }
-  .meter-name.t-c { color:var(--accent2); }
-  .meter-name.u-c { color:var(--gold2); }
-  .meter-track { flex:1; height:12px; background:var(--surface3); border-radius:3px; overflow:hidden; }
-  .meter-fill { height:100%; border-radius:3px; transition:width 0.06s linear; }
-  .meter-fill.t-fill { background:linear-gradient(to right,var(--accent),var(--accent2)); }
-  .meter-fill.u-fill { background:linear-gradient(to right,var(--gold),var(--gold2)); }
-  .meter-db { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text); width:40px; text-align:right; flex-shrink:0; }
-  #levelCanvas { width:100%; height:44px; border-radius:6px; background:var(--bg2); display:block; transition: opacity 0.2s; }
-  #levelCanvas.waveform-hidden { opacity: 0.01; }
-
-  .waveform-hide-btn {
+  /* CLIP indicator LED */
+  .clip-led {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px; color: var(--muted);
-    background: none; border: 1px solid var(--border2);
-    border-radius: 6px; padding: 2px 7px;
-    cursor: pointer; transition: all 0.15s;
-    line-height: 1.4;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.16em;
+    padding: 3px 9px; border-radius: 6px;
+    border: 1px solid var(--border2);
+    color: var(--muted); background: rgba(255,255,255,0.03);
+    transition: all 0.1s ease; white-space: nowrap;
   }
-  .waveform-hide-btn:hover { color: var(--text); border-color: var(--border2); }
-
-  .source-panel {
-    background:var(--surface); border:1px solid var(--border);
-    border-radius:14px; padding:14px 16px;
-    display:flex; flex-direction:column; gap:9px;
+  .clip-led.warn {
+    color: #160d05; background: var(--clip-warn); border-color: var(--clip-warn);
+    box-shadow: 0 0 11px -1px var(--clip-warn);
   }
-  .source-pill {
-    display:flex; align-items:center; gap:7px;
-    padding:7px 14px; border-radius:10px; font-size:13px;
-    background:var(--surface2); border:1px solid var(--border2);
-    cursor:pointer; transition:all 0.15s;
-  }
-  .source-pill:hover { border-color:var(--accent); }
-  .source-pill.active { border-color:var(--accent); background:rgba(212,74,42,0.1); color:var(--accent2); }
-
-  #sourceLoadStatus {
-    font-size:11px; font-family:'IBM Plex Mono',monospace;
-    color:var(--muted); min-height:16px;
+  .clip-led.clip {
+    color: #fff; background: var(--clip-hot); border-color: var(--clip-hot);
+    box-shadow: 0 0 14px 0 var(--clip-hot);
   }
 
-  button {
-    border:none; border-radius:10px;
-    font-family:'IBM Plex Sans',sans-serif;
-    font-size:13px; font-weight:500;
-    cursor:pointer; padding:10px 18px; transition:all 0.15s;
-  }
-  .btn-primary { background:var(--accent); color:#fff; }
-  .btn-primary:hover { background:var(--accent2); }
-  .btn-primary:disabled { opacity:0.35; cursor:not-allowed; }
-  .btn-secondary { background:var(--surface2); color:var(--text); border:1px solid var(--border2); }
-  .btn-secondary:hover { border-color:var(--accent); color:var(--accent2); }
+  /* Clip key + reveal legend in the display head */
+  .wave-keys { display: flex; align-items: center; gap: 16px; }
+  .clip-key { display: flex; align-items: center; gap: 10px; }
+  .clip-key-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.04em; }
+  .clip-key-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .wave-legend { display: none; gap: 14px; align-items: center; padding-left: 14px; border-left: 1px solid var(--border); }
 
-  .listen-btn {
-    background:var(--surface2); border:1px solid var(--border2);
-    display:flex; align-items:center; gap:7px;
-    padding:9px 16px; font-size:13px; transition:all 0.15s;
-  }
-  .listen-btn.t-btn { color:var(--accent2); border-color:rgba(212,74,42,0.35); }
-  .listen-btn.t-btn.active { background:rgba(212,74,42,0.12); border-color:rgba(212,74,42,0.7); }
-  .listen-btn.u-btn { color:var(--gold2); border-color:rgba(232,160,48,0.35); }
-  .listen-btn.u-btn.active { background:rgba(232,160,48,0.1); border-color:rgba(232,160,48,0.6); }
-  .listen-btn:disabled { opacity:0.35; cursor:not-allowed; }
+  /* Type rotary detents drawn under the knob */
+  .type-cell .knob-val { color: var(--accent2); font-weight: 600; }
+  .deck-target .type-cell .knob-val { color: var(--tgt2); }
 
-  .btn-dry {
-    background:var(--surface2); color:var(--muted);
-    border:1px solid var(--border2);
-    font-size:12px; padding:7px 14px; border-radius:8px;
-    cursor:pointer; font-family:'IBM Plex Sans',sans-serif;
-    transition:all 0.15s; white-space:nowrap;
+  @media (max-width: 520px) {
+    .wave-keys { gap: 8px; }
+    .clip-key { gap: 6px; }
+    .wave-legend { padding-left: 8px; }
   }
-  .btn-dry:hover { border-color:var(--amber); color:var(--amber); }
-  .btn-dry.active { background:rgba(245,166,35,0.1); border-color:var(--amber); color:var(--amber); }
-  .btn-dry:disabled { opacity:0.35; cursor:not-allowed; }
-
-  .btn-play-restart {
-    background:var(--surface2); color:var(--gold2);
-    border:1px solid rgba(232,160,48,0.3);
-    font-size:13px; padding:9px 16px; border-radius:10px;
-    cursor:pointer; font-family:'IBM Plex Sans',sans-serif;
-    display:flex; align-items:center; gap:7px;
-    transition:all 0.15s; white-space:nowrap;
-  }
-  .btn-play-restart:hover { background:rgba(232,160,48,0.08); border-color:rgba(232,160,48,0.6); }
-  .btn-play-restart:disabled { opacity:0.35; cursor:not-allowed; }
-
-  .btn-pause {
-    background:var(--surface2); color:var(--muted);
-    border:1px solid var(--border2);
-    font-size:13px; padding:9px 16px; border-radius:10px;
-    cursor:pointer; font-family:'IBM Plex Sans',sans-serif;
-    display:flex; align-items:center; gap:7px;
-    transition:all 0.15s; white-space:nowrap;
-  }
-  .btn-pause:hover { border-color:var(--accent2); color:var(--accent2); }
-  .btn-pause.paused { background:rgba(212,74,42,0.1); border-color:var(--accent2); color:var(--accent2); }
-  .btn-pause:disabled { opacity:0.35; cursor:not-allowed; }
-
-  .controls-bar { display:flex; gap:10px; flex-wrap:wrap; }
-
-  .pulse { width:6px; height:6px; border-radius:50%; animation:pulse 1.1s infinite; flex-shrink:0; }
-  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.3;transform:scale(0.6);} }
-
-  .result-bar {
-    background:var(--surface); border:1px solid var(--border);
-    border-radius:14px; padding:18px 20px;
-    display:none; flex-direction:column; gap:12px;
-  }
-  .result-bar.visible { display:flex; }
-  .result-top { display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
-  .result-big { font-family:'IBM Plex Mono',monospace; font-size:48px; font-weight:600; line-height:1; }
-  .result-denom { color:var(--muted); font-size:16px; }
-  .result-pts { font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; color:var(--accent2); margin-top:4px; opacity:0.9; }
-  .result-msg { font-size:13px; color:var(--muted); margin-bottom:6px; }
-  .acc-track { height:5px; background:var(--border2); border-radius:3px; overflow:hidden; flex:1; min-width:200px; }
-  .acc-fill { height:100%; border-radius:3px; width:0; transition:width 0.9s cubic-bezier(0.16,1,0.3,1); }
-
-  .param-results { display:flex; gap:8px; flex-wrap:wrap; }
-  .pr-chip { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:6px 12px; font-size:12px; color:var(--muted); font-family:'IBM Plex Mono',monospace; }
-  .pr-chip .good { color:var(--green); }
-  .pr-chip .bad  { color:var(--red); }
-
-  .toast {
-    position:fixed; bottom:24px; left:50%;
-    transform:translateX(-50%) translateY(12px);
-    background:var(--surface2); border:1px solid var(--border2);
-    border-radius:10px; padding:10px 16px; font-size:13px; color:var(--text);
-    opacity:0; transition:all 0.2s; pointer-events:none; z-index:999; white-space:nowrap;
-  }
-  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
-
-/* ── Help Section ── */
-.help-toggle {
-  display: flex; align-items: center; gap: 8px;
-  background: none; border: 1px solid var(--border);
-  border-radius: 10px; color: var(--muted);
-  font-family: 'IBM Plex Sans', sans-serif; font-size: 13px;
-  padding: 9px 16px; cursor: pointer; transition: all 0.15s;
-  margin-top: 4px; margin-left: 24px; width: fit-content;
-}
-.help-toggle:hover { border-color: var(--border2); color: var(--text); }
-.help-toggle .toggle-arrow { font-size: 10px; transition: transform 0.2s; display: inline-block; }
-.help-toggle.open .toggle-arrow { transform: rotate(90deg); }
-
-.help-section {
-  display: none; width: calc(100% - 48px);
-  background: var(--surface);
-  border: 1px solid var(--border); border-radius: 14px;
-  padding: 28px 32px; gap: 28px; flex-direction: column;
-}
-.help-section.visible { display: flex; }
-
-.help-section h2 {
-  font-size: 15px; font-weight: 600; color: var(--text);
-  letter-spacing: 0.02em; margin-bottom: 2px;
-}
-.help-section p { font-size: 13.5px; color: var(--muted); line-height: 1.65; }
-.help-section p strong { color: var(--text); font-weight: 500; }
-.help-block { display: flex; flex-direction: column; gap: 8px; }
-.help-divider { border: none; border-top: 1px solid var(--border); }
-
-    /* ── Game bar (site context + score row) ─────────────── */
-  nav.site-nav {
-    width: 100%;
-    padding: 14px 24px;
-    display: flex; align-items: center;
-    border-bottom: 1px solid var(--border);
-  }
-  .game-bar {
-    width: 100%; max-width: 980px;
-    padding: 10px 24px;
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 16px;
-    border-bottom: 1px solid var(--border);
-    background-image: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
-    background-size: 28px 28px;
-  }
-  .game-bar-left { display: flex; align-items: center; }
-  .brand { display: flex; align-items: center; gap: 10px; }
-  .brand-icon {
-    width: 28px; height: 28px; border-radius: 7px;
-    background: var(--accent);
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-  .brand-name {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 13px; font-weight: 600;
-    color: var(--text); letter-spacing: -0.01em;
-  }
-  .game-bar-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
-  .score-row { display: flex; align-items: center; gap: 16px; }
-  .stat { text-align: center; }
-  .stat-val {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 18px; font-weight: 700;
-    color: var(--accent2); line-height: 1;
-  }
-  .stat-label {
-    font-size: 9px; color: var(--muted);
-    text-transform: uppercase; letter-spacing: 0.08em;
-    margin-top: 2px;
-  }
-  .vdiv { width: 1px; height: 20px; background: var(--border2); }
-  .mult-badge {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 8px; color: var(--muted);
-    letter-spacing: 0.04em; opacity: 0.7;
-  }
-  @media (max-width: 600px) {
-    nav.site-nav { padding: 12px 16px; }
-    .game-bar { padding: 8px 16px; }
-    .stat-val { font-size: 15px; }
-    .score-row { gap: 10px; }
-  }
-
-  .forgot-pw-link {
-    display: block; width: 100%; text-align: center;
-    margin-top: 12px; font-size: 12px; color: var(--muted);
-    background: none; border: none; cursor: pointer; font-family: inherit;
-  }
-  .forgot-pw-link:hover { color: var(--text); }
-
-
-  .result-bar { transition: border-color 0.5s ease; }
-  .result-bar.score-good { border-color: rgba(62,207,142,0.55) !important; }
-  .result-bar.score-ok   { border-color: rgba(245,166,35,0.55) !important; }
-  .result-bar.score-bad  { border-color: rgba(244,91,105,0.55) !important; }
-
-  .shortcuts-wrap { position: relative; }
-  .shortcuts-btn {
-    display: flex; align-items: center; gap: 5px;
-    background: var(--surface2); border: 0.5px solid var(--border2);
-    border-radius: 8px; color: var(--muted);
-    font-family: inherit; font-size: 12px; font-weight: 500;
-    padding: 5px 11px; cursor: pointer; transition: all 0.15s;
-    white-space: nowrap;
-  }
-  .shortcuts-btn:hover { border-color: var(--accent); color: var(--text); }
-  .shortcuts-popover {
-    display: none; position: absolute; top: calc(100% + 8px); right: 0;
-    background: var(--surface); border: 1px solid var(--border2);
-    border-radius: 12px; padding: 14px 18px;
-    z-index: 50; min-width: 260px;
-  }
-  .shortcuts-popover.open { display: block; }
-  .shortcut-row {
-    display: flex; justify-content: space-between; align-items: center;
-    gap: 16px; font-size: 12px; color: var(--muted); padding: 5px 0;
-    border-bottom: 0.5px solid var(--border);
-  }
-  .shortcut-row:last-child { border-bottom: none; }
-  .shortcut-keys { display: flex; gap: 4px; flex-shrink: 0; }
 </style>
   <script src="../scoring.js"></script>
+  <script src="../daw-ui.js"></script>
 
   <!-- Open Graph / Social -->
   <meta property="og:type"        content="website">
@@ -541,6 +76,19 @@
   <script defer src="https://cloud.umami.is/script.js" data-website-id="a4e7fbcc-763c-4844-8f4f-669cf411e799"></script>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="knobCap" cx="38%" cy="30%" r="78%">
+      <stop offset="0%" stop-color="#3a4049"/>
+      <stop offset="55%" stop-color="#22262e"/>
+      <stop offset="100%" stop-color="#14171c"/>
+    </radialGradient>
+    <radialGradient id="knobCapLocked" cx="38%" cy="30%" r="78%">
+      <stop offset="0%" stop-color="#23262c"/>
+      <stop offset="100%" stop-color="#15171b"/>
+    </radialGradient>
+  </defs>
+</svg>
 
 <nav class="site-nav">
   <div class="nav-logo-wrap">
@@ -593,9 +141,9 @@
 
 <div class="main">
 
-  <div class="setting-item">
-    <!-- Row 1: Difficulty -->
-    <div class="settings-inner-row" id="difficultyBar">
+  <!-- Settings -->
+  <div class="settings-bar">
+    <div class="settings-row" id="difficultyBar">
       <span class="label">Difficulty</span>
       <div class="pill active" onclick="setDifficulty('easy',this)">Easy</div>
       <div class="pill" onclick="setDifficulty('medium',this)">Medium</div>
@@ -616,9 +164,8 @@
         </div>
       </div>
     </div>
-    <div class="settings-divider"></div>
-    <!-- Row 2: Params -->
-    <div class="settings-inner-row">
+    <div class="settings-row-divider"></div>
+    <div class="settings-row">
       <span class="label">Params</span>
       <span id="customHint" style="font-size:10px;color:var(--muted);display:none;white-space:nowrap;">— click to toggle</span>
       <div id="paramPills" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
@@ -630,115 +177,130 @@
     </div>
   </div>
 
-  <div class="workspace">
-    <div style="display:flex;flex-direction:column;gap:14px;">
+  <!-- Workspace -->
+  <div class="rig">
 
-      <!-- Target distortion -->
-      <div class="dist-panel" id="targetPanel">
-        <div class="panel-header">
-          <span class="panel-title t-title">Target</span>
-        </div>
-        <div class="knob-grid" id="targetKnobs"></div>
-        <div class="spectrum-wrap">
-          <div class="spectrum-label">Harmonic Content</div>
-          <canvas class="spectrum-canvas hidden-spectrum" id="targetSpectrum"></canvas>
-        </div>
-      </div>
+    <section class="device">
 
-      <!-- User distortion -->
-      <div class="dist-panel" id="userPanel">
-        <div class="panel-header">
-          <span class="panel-title u-title">Your Distortion</span>
+      <div class="device-top">
+        <div class="gr-needles">
+          <div class="gr-needles-head">
+            <span class="gr-cap-title">Output</span>
+            <span class="clip-led" id="clipLed">CLIP</span>
+          </div>
+          <div class="vu-row">
+            <div class="vu-unit">
+              <div class="vu" id="vuUser"></div>
+              <div class="vu-foot"><span class="gr-name user-c">YOU</span><span class="meter-db" id="userLvlDb">−∞</span></div>
+            </div>
+            <div class="vu-unit target-gr-hidden" id="targetLvlRow">
+              <div class="vu" id="vuTarget"></div>
+              <div class="vu-foot"><span class="gr-name target-c">TGT</span><span class="meter-db" id="targetLvlDb">−∞</span></div>
+            </div>
+          </div>
         </div>
-        <div class="knob-grid" id="userKnobs"></div>
-        <div class="spectrum-wrap">
-          <div class="spectrum-label">Harmonic Content</div>
-          <canvas class="spectrum-canvas" id="userSpectrum"></canvas>
-          <div class="spec-legend" id="specLegend" style="display:none;">
-            <div class="sl-item"><div class="sl-dot" style="background:var(--accent2)"></div> Target</div>
-            <div class="sl-item"><div class="sl-dot" style="background:var(--gold2)"></div> Yours</div>
+        <div class="monitor">
+          <span class="monitor-label">Monitor</span>
+          <div class="monitor-switch">
+            <button class="mon-btn target-btn" id="btnTarget" onclick="listenTarget()" disabled>
+              <span class="listen-bars"><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span></span>
+              <span class="listen-btn-label">Target</span>
+            </button>
+            <button class="mon-btn dry-btn" id="btnDry" onclick="toggleDry()" disabled>
+              <span class="listen-bars"><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span></span>
+              <span class="listen-btn-label">Dry</span>
+            </button>
+            <button class="mon-btn user-btn" id="btnUser" onclick="listenUser()" disabled>
+              <span class="listen-bars"><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span></span>
+              <span class="listen-btn-label">Yours</span>
+            </button>
           </div>
         </div>
       </div>
 
-    </div>
-
-    <!-- Right column -->
-    <div class="right-col">
-
-      <!-- Waveform panel -->
-      <div class="meter-panel">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-          <span class="label">Waveform</span>
-          <button class="waveform-hide-btn" id="waveformHideBtn" onclick="toggleWaveform()">Hide</button>
+      <div class="display-well">
+        <div class="display-main">
+          <div class="display-head">
+            <span class="display-title">Output Waveform</span>
+            <div class="wave-keys">
+              <div class="clip-key">
+                <div class="clip-key-item"><span class="clip-key-dot" style="background:var(--clip-clean);"></span>Clean</div>
+                <div class="clip-key-item"><span class="clip-key-dot" style="background:var(--clip-warn);"></span>Driven</div>
+                <div class="clip-key-item"><span class="clip-key-dot" style="background:var(--clip-hot);"></span>Clipping</div>
+              </div>
+              <div class="wave-legend" id="waveLegend">
+                <div class="tc-legend"><div class="tc-dot" style="background:var(--tgt2);"></div> Target</div>
+                <div class="tc-legend"><div class="tc-dot" style="background:var(--accent2);"></div> Yours</div>
+              </div>
+            </div>
+          </div>
+          <canvas class="hero-canvas" id="heroWave"></canvas>
+          <div class="scope-row">
+            <span class="scope-label">Signal</span>
+            <canvas id="levelCanvas"></canvas>
+            <button class="waveform-hide-btn" id="waveformHideBtn" onclick="toggleWaveform()">Hide</button>
+          </div>
         </div>
-        <canvas id="levelCanvas"></canvas>
       </div>
 
-      <!-- Source -->
-      <div class="source-panel">
-        <span class="label">Audio Source</span>
-        <div class="source-pill" id="srcOneShot" onclick="setSource('oneShot')">One-shots</div>
-        <div class="source-pill" id="srcLoop"    onclick="setSource('loop')">Loops</div>
+      <div class="deck deck-target" id="targetPanel">
+        <div class="deck-label"><span class="deck-dot" style="background:var(--tgt2);"></span>Target — hidden until you check</div>
+        <div class="knob-grid" id="targetKnobs"></div>
+      </div>
+
+      <div class="deck deck-user" id="userPanel">
+        <div class="deck-label"><span class="deck-dot" style="background:var(--accent2);"></span>Your distortion</div>
+        <div class="knob-grid" id="userKnobs"></div>
+      </div>
+
+    </section>
+
+    <aside class="rack">
+      <div class="rack-panel">
+        <span class="rack-label">Audio Source</span>
         <div class="source-pill active" id="srcPink" onclick="setSource('pink')">Pink Noise</div>
+        <div class="source-pill" id="srcOneShot" onclick="setSource('oneShot')">One-shots</div>
+        <div class="source-pill" id="srcLoop" onclick="setSource('loop')">Loops</div>
         <div class="source-pill" id="srcCustom" onclick="triggerUpload()" style="border-style:dashed;">
           <span id="uploadLabel">Upload Folder</span>
+          <input type="file" id="folderInput" webkitdirectory directory multiple onchange="handleFolderUpload(event)">
         </div>
-        <input type="file" id="folderInput" webkitdirectory directory multiple onchange="handleFolderUpload(event)" style="display:none;">
         <span id="sourceLoadStatus"></span>
       </div>
 
-      <!-- Controls -->
-      <div class="controls-bar">
-        <button class="listen-btn t-btn" id="btnTarget" onclick="listenTarget()" disabled>
-          <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
-          <span class="listen-btn-label">Target</span>
-        </button>
-        <button class="listen-btn u-btn" id="btnUser" onclick="listenUser()" disabled>
-          <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
-          <span class="listen-btn-label">Yours</span>
-        </button>
-        <button class="listen-btn btn-dry" id="btnDry" onclick="toggleDry()" disabled title="Toggle dry (D)">
-          <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
-          <span class="listen-btn-label">Dry</span>
-        </button>
-      </div>
-      <div class="controls-bar">
-        <button class="btn-play-restart" id="btnPlayRestart" onclick="restartAudio()" disabled title="Restart audio (F)">
-          &#9654; Restart
-        </button>
-        <button class="btn-pause" id="btnPause" onclick="togglePause()" disabled title="Pause / Resume (P)">
-          &#9646;&#9646; Pause
-        </button>
-      </div>
-      <div class="controls-bar">
-        <button class="btn-secondary" onclick="newRound()" style="flex:1">New Round</button>
-        <button class="btn-primary" id="btnCheck" onclick="checkAnswer()" disabled style="flex:1">Check Answer</button>
+      <div class="rack-panel">
+        <span class="rack-label">Transport</span>
+        <div class="transport-grid">
+          <button class="btn-secondary" id="btnPause"   onclick="togglePause()"  disabled>&#9646;&#9646; Pause</button>
+          <button class="btn-secondary" id="btnRestart" onclick="restartAudio()" disabled>&#9654; Restart</button>
+          <button class="btn-secondary" onclick="newRound()" style="grid-column:1 / -1;">⟳ New Round</button>
+        </div>
+        <button class="btn-check" id="btnCheck" onclick="checkAnswer()" disabled>Check Match</button>
       </div>
 
-      <!-- Settings ranges -->
       <button class="ranges-toggle-btn" id="rangesToggleBtn" onclick="toggleRangesPanel()">
-        <span class="rt-arrow">▶</span> Settings
+        <span class="rt-arrow">▶</span> Parameter Ranges
       </button>
       <div class="ranges-panel" id="rangesPanel"></div>
+    </aside>
 
-      <div class="result-bar" id="resultBar">
-        <div class="result-top">
-          <div>
-            <div class="result-big" id="resultBig">—</div>
-            <div class="result-denom">/ 100</div>
-          <div class="result-pts" id="resultPts"></div>
-          </div>
-          <div style="flex:1;min-width:160px;">
-            <div class="result-msg" id="resultMsg"></div>
-            <div class="acc-track"><div class="acc-fill" id="accFill"></div></div>
-          </div>
-        </div>
-        <div class="param-results" id="paramResults"></div>
-      </div>
-
-    </div>
   </div>
+
+  <div class="result-bar" id="resultBar">
+    <div class="result-top">
+      <div>
+        <div class="result-big" id="resultBig">—</div>
+        <div class="result-denom">/ 100</div>
+        <div class="result-pts" id="resultPts"></div>
+      </div>
+      <div style="flex:1;min-width:160px;">
+        <div class="result-msg" id="resultMsg"></div>
+        <div class="acc-track"><div class="acc-fill" id="accFill"></div></div>
+      </div>
+    </div>
+    <div class="param-results" id="paramResults"></div>
+  </div>
+
 </div>
 
 <!-- Help Toggle -->
@@ -754,11 +316,12 @@
     <p>
       Set the difficulty to <strong>Easy</strong> — only <strong>Drive</strong> will be active.
       Press <strong>New Round</strong>, toggle between <strong>Target</strong> and <strong>Yours</strong>,
-      then adjust the Drive knob until the amount of grit and saturation matches. Press
-      <strong>Check Answer</strong> when you're ready.
+      then adjust the Drive knob until the amount of grit and saturation matches. Watch the
+      <strong>Output Waveform</strong> — it reddens as the signal clips. Press <strong>Check Match</strong>
+      when you're ready.
     </p>
     <p>
-      Use custom settings to test one parameter at a time or any combinatation of parameters.
+      Use custom settings to test one parameter at a time or any combination of parameters.
     </p>
   </div>
 
@@ -768,8 +331,8 @@
     <h2>What to listen for</h2>
     <p>
       <strong>Drive</strong> — how hard the signal is pushed into distortion. Low drive adds a subtle
-      warmth or "edge"; high drive produces aggressive, heavily clipped grit. Think of it as how much
-      the input signal is amplified before being shaped.
+      warmth or "edge"; high drive produces aggressive, heavily clipped grit. As you raise it, the
+      waveform's peaks flatten and turn from green to amber to red.
     </p>
     <p>
       <strong>Wet/Dry</strong> — blends the distorted signal with the original clean signal. 100% wet
@@ -781,15 +344,16 @@
       negative values darken it. Useful for controlling whether the distortion sounds harsh or warm.
     </p>
     <p>
-      <strong>Type</strong> — the clipping algorithm, each with a distinct character:
+      <strong>Type</strong> — the clipping algorithm, each with a distinct character. Click or drag the
+      Type knob to cycle through them.
     </p>
     <p>
       <strong>Soft Clip</strong> — gentle, rounded saturation. Warm and musical, similar to tube amplifiers.
-      The transition into clipping is gradual.
+      The transition into clipping is gradual, so the waveform's corners stay rounded.
     </p>
     <p>
       <strong>Hard Clip</strong> — abrupt, aggressive clipping. The waveform is cut flat at a threshold,
-      producing a harsh, buzzy sound with strong odd harmonics.
+      producing a harsh, buzzy sound with strong odd harmonics — and bold flat red tops on the scope.
     </p>
     <p>
       <strong>Tape</strong> — simulates magnetic tape saturation. Warm and slightly compressed-sounding,
@@ -797,7 +361,8 @@
     </p>
     <p>
       <strong>Foldback</strong> — when the signal exceeds a threshold, it "folds" back on itself rather
-      than clipping. Produces unusual, complex harmonic content that can sound metallic or chaotic.
+      than clipping. Produces unusual, complex harmonic content and a jagged, zig-zag waveform that can
+      sound metallic or chaotic.
     </p>
   </div>
 
@@ -820,9 +385,9 @@ const DIST_TYPE_LABELS = { softclip:'Soft Clip', hardclip:'Hard Clip', tape:'Tap
 
 const PARAMS = {
   drive: { label:'Drive',   min:0,   max:1,   default:0.3, fmt: v=>`${Math.round(v*100)}%`          },
-  mix:   { label:'Wet/Dry', min:0,   max:1,   default:0.5, fmt: v=>`${Math.round(v*100)}%`          },
-  tone:  { label:'Tone',    min:-12, max:12,  default:0,   fmt: v=>`${v>0?'+':''}${v.toFixed(1)}dB` },
   type:  { label:'Type',    min:0,   max:3,   default:0,   fmt: v=>DIST_TYPE_LABELS[DIST_TYPES[Math.round(v)]]||'Soft Clip', isType:true },
+  tone:  { label:'Tone',    min:-12, max:12,  default:0,   fmt: v=>`${v>0?'+':''}${v.toFixed(1)}dB` },
+  mix:   { label:'Wet/Dry', min:0,   max:1,   default:0.5, fmt: v=>`${Math.round(v*100)}%`          },
 };
 
 const DIFFICULTY = {
@@ -838,14 +403,14 @@ const paramRanges = {
   drive: { min:0.2, max:1,   defaultMin:0.2, defaultMax:1   },
   mix:   { min:0,   max:1,   defaultMin:0,   defaultMax:1   },
   tone:  { min:-12, max:12,  defaultMin:-12, defaultMax:12  },
-  type:  { min:0,   max:3,   defaultMin:0,   defaultMax:3   }, // index into DIST_TYPES
+  type:  { min:0,   max:3,   defaultMin:0,   defaultMax:3   },
 };
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let difficulty      = 'easy';
 let activeParams    = [...DIFFICULTY.easy.params];
 let fixLockedParams = false;
-let customParams    = ['drive','mix','type']; // persists across difficulty switches
+let customParams    = ['drive','mix','type'];
 let targetSettings = {}, userSettings = {};
 let roundActive = false, answered = false;
 let totalScore=0, streak=0, round=0;
@@ -879,7 +444,6 @@ let oneShotLoopTimer = null;
 // Loops
 let loopFileNames = [], loopManifestLoaded = false, loopIndex = 0;
 
-// Pick a random index different from current (falls back to 0 if only 1 item)
 function randNext(len, cur) {
   if (len <= 1) return 0;
   let next;
@@ -890,8 +454,7 @@ let loopAudioEl = null, loopMediaSrc = null;
 
 let draggingKnob = null;
 
-// ── Sample file lists ─────────────────────────────────────────────────────────
-// ── Samples manifest (edit samples/manifest.json to add new files) ────────────
+// ── Samples manifest ──────────────────────────────────────────────────────────
 let samplesManifest = null;
 async function getManifest() {
   if (samplesManifest) return samplesManifest;
@@ -948,18 +511,15 @@ function toggleRangesPanel() {
 function buildRangesPanel() {
   const panel = document.getElementById('rangesPanel');
   panel.innerHTML = '';
-
-  // Numeric params
   const numericParams = [
-    { key:'drive', label:'Drive',   unit:'%',  step:1,  dispScale:100 },
-    { key:'mix',   label:'Wet/Dry', unit:'%',  step:1,  dispScale:100 },
-    { key:'tone',  label:'Tone',    unit:'dB', step:0.5, dispScale:1  },
+    { key:'drive', label:'Drive',   unit:'%',  step:1,   dispScale:100 },
+    { key:'mix',   label:'Wet/Dry', unit:'%',  step:1,   dispScale:100 },
+    { key:'tone',  label:'Tone',    unit:'dB', step:0.5, dispScale:1   },
   ];
   numericParams.forEach(({ key, label, unit, step, dispScale }) => {
     const r = paramRanges[key];
     const p = PARAMS[key];
     const toDisp = v => Math.round(v * dispScale * 10) / 10;
-    const fromDisp = v => v / dispScale;
     const row = document.createElement('div');
     row.className = 'range-row';
     row.innerHTML = `
@@ -977,7 +537,7 @@ function buildRangesPanel() {
     panel.appendChild(row);
   });
 
-  // Type param — selects from available types
+  // Type — selectable range
   const tr = paramRanges.type;
   const typeRow = document.createElement('div');
   typeRow.className = 'range-row';
@@ -987,9 +547,9 @@ function buildRangesPanel() {
     `<option value="${i}" ${i===tr.max?'selected':''}>${DIST_TYPE_LABELS[t]}</option>`).join('');
   typeRow.innerHTML = `
     <span class="range-param-label">Type</span>
-    <select class="range-input" id="range-min-type" style="width:90px;" onchange="updateRange('type','min',this.value)">${minOpts}</select>
+    <select class="range-input" id="range-min-type" style="width:92px;" onchange="updateRange('type','min',this.value)">${minOpts}</select>
     <span class="range-sep">–</span>
-    <select class="range-input" id="range-max-type" style="width:90px;" onchange="updateRange('type','max',this.value)">${maxOpts}</select>
+    <select class="range-input" id="range-max-type" style="width:92px;" onchange="updateRange('type','max',this.value)">${maxOpts}</select>
     <button class="range-reset" onclick="resetRange('type')">reset</button>
   `;
   panel.appendChild(typeRow);
@@ -998,7 +558,6 @@ function buildRangesPanel() {
 function updateRangeScaled(key, which, rawVal, scale) {
   const val = parseFloat(rawVal) / scale;
   updateRange(key, which, val);
-  // Sync displayed input value back
   const el = document.getElementById(`range-${which}-${key}`);
   if (el) el.value = Math.round(val * scale * 10) / 10;
 }
@@ -1034,7 +593,7 @@ function renderParamPills() {
     const active = activeParams.includes(key);
     span.style.borderColor = active ? 'var(--accent)' : 'var(--border2)';
     span.style.color       = active ? 'var(--accent2)' : 'var(--muted)';
-    span.style.background  = active ? 'rgba(212,74,42,0.1)' : 'var(--surface2)';
+    span.style.background  = active ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'rgba(255,255,255,0.025)';
     span.textContent = PARAMS[key].label;
     if (isCustom) {
       span.title = 'Click to ' + (active ? 'disable' : 'enable');
@@ -1062,40 +621,21 @@ function toggleCustomParam(key) {
   }
 }
 
-// ── Knob SVG ──────────────────────────────────────────────────────────────────
+// ── Knob SVG (uses shared makeProKnobSVG) ─────────────────────────────────────
 const KNOB_START = -135, KNOB_END = 135;
-
 function paramToAngle(key, val) {
   const p = PARAMS[key];
   const t = Math.max(0, Math.min(1, (val - p.min) / (p.max - p.min)));
   return KNOB_START + t * (KNOB_END - KNOB_START);
 }
-
 function makeKnobSVG(key, val, color, isLocked) {
-  const cx=31, cy=31, r=23;
-  const toRad = a => (a-90)*Math.PI/180;
-  const ax = (a,rr) => cx + rr*Math.cos(toRad(a));
-  const ay = (a,rr) => cy + rr*Math.sin(toRad(a));
-  const angle = paramToAngle(key, val);
-  const large = (angle - KNOB_START) > 180 ? 1 : 0;
-  const trackPath = `M${ax(KNOB_START,r)} ${ay(KNOB_START,r)} A${r} ${r} 0 1 1 ${ax(KNOB_END,r)} ${ay(KNOB_END,r)}`;
-  const fillPath  = `M${ax(KNOB_START,r)} ${ay(KNOB_START,r)} A${r} ${r} 0 ${large} 1 ${ax(angle,r)} ${ay(angle,r)}`;
-  const dotX = cx + 16*Math.cos(toRad(angle));
-  const dotY = cy + 16*Math.sin(toRad(angle));
-  const bg = isLocked ? 'var(--surface)' : 'var(--surface2)';
-  return `<svg class="knob-svg" viewBox="0 0 62 62" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="${cx}" cy="${cy}" r="${r+6}" fill="${bg}"/>
-    <path d="${trackPath}" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="3.5" stroke-linecap="round"/>
-    <path d="${fillPath}"  fill="none" stroke="${color}" stroke-width="3.5" stroke-linecap="round" opacity="${isLocked?0.15:0.9}"/>
-    <circle cx="${dotX}" cy="${dotY}" r="3.5" fill="${isLocked?'#444':color}"/>
-    <circle cx="${cx}" cy="${cy}" r="9" fill="${isLocked?'var(--surface)':'var(--surface3)'}"/>
-  </svg>`;
+  return makeProKnobSVG(paramToAngle(key, val), color, isLocked);
 }
 
 function renderKnobs(panel, settings, hideActive) {
   const container = document.getElementById(panel==='target' ? 'targetKnobs' : 'userKnobs');
   container.innerHTML = '';
-  const color = panel==='target' ? 'var(--accent2)' : 'var(--gold2)';
+  const color = panel==='target' ? 'var(--tgt2)' : 'var(--accent2)';
 
   Object.keys(PARAMS).forEach(key => {
     const p = PARAMS[key];
@@ -1105,6 +645,7 @@ function renderKnobs(panel, settings, hideActive) {
 
     const cell = document.createElement('div');
     let cls = 'knob-cell';
+    if (p.isType)     cls += ' type-cell';
     if (userLocked)   cls += ' locked';
     if (targetHidden) cls += ' hidden-target';
     if (targetGreyed) cls += ' locked';
@@ -1113,77 +654,78 @@ function renderKnobs(panel, settings, hideActive) {
     const val = settings[key] ?? p.default;
     const displayVal = targetHidden ? '?' : p.fmt(val);
 
-    if (p.isType) {
-      const typeIdx = Math.round(val);
-      const isUserPanel = panel === 'user';
-      let typePillsHtml = '';
-      DIST_TYPES.forEach((t, i) => {
-        const isActive = i === typeIdx;
-        const clickable = isUserPanel && !userLocked;
-        typePillsHtml += `<div class="type-pill${isActive?' active':''}${!clickable?' locked-type':''}"
-          onclick="${clickable ? `setTypeParam(${i})` : ''}">${DIST_TYPE_LABELS[t]}</div>`;
-      });
-      cell.innerHTML = `
-        <div class="knob-label">${p.label}</div>
-        <div class="type-selector" id="type-selector-${panel}">${typePillsHtml}</div>
-        <div class="knob-val" id="kval-${panel}-${key}">${displayVal}</div>`;
-    } else {
-      cell.innerHTML = `
-        <div class="knob-label">${p.label}</div>
-        <div class="knob-wrap" id="knob-${panel}-${key}" data-key="${key}" data-panel="${panel}">
-          ${makeKnobSVG(key, val, color, targetGreyed)}
-        </div>
-        <div class="knob-val" id="kval-${panel}-${key}">${displayVal}</div>`;
-      if (panel==='user' && !userLocked) {
-        const wrap = cell.querySelector('.knob-wrap');
-        wrap.addEventListener('mousedown', startDrag);
-        wrap.addEventListener('touchstart', startDrag, {passive:false});
-        wrap.addEventListener('wheel', onWheel, {passive:false});
-      }
-    }
+    cell.innerHTML = `
+      <div class="knob-label">${p.label}</div>
+      <div class="knob-wrap" id="knob-${panel}-${key}" data-key="${key}" data-panel="${panel}" ${p.isType?'title="Click or drag to change type"':''}>
+        ${makeKnobSVG(key, val, color, targetGreyed)}
+      </div>
+      <div class="knob-val" id="kval-${panel}-${key}">${displayVal}</div>`;
     container.appendChild(cell);
+
+    if (panel==='user' && !userLocked) {
+      const wrap = cell.querySelector('.knob-wrap');
+      wrap.addEventListener('mousedown', startDrag);
+      wrap.addEventListener('touchstart', startDrag, {passive:false});
+      wrap.addEventListener('wheel', onWheel, {passive:false});
+    }
   });
 }
 
-function setTypeParam(idx) {
-  if (!roundActive) return;
-  userSettings.type = idx;
-  const sel = document.getElementById('type-selector-user');
-  if (sel) sel.querySelectorAll('.type-pill').forEach((p,i) => p.classList.toggle('active', i===idx));
-  const lbl = document.getElementById('kval-user-type');
-  if (lbl) lbl.textContent = PARAMS.type.fmt(idx);
-  liveUpdateUserDist();
-}
-
-// ── Knob dragging ─────────────────────────────────────────────────────────────
+// ── Knob interaction ──────────────────────────────────────────────────────────
 function startDrag(e) {
   if (!roundActive) return;
   const wrap = e.currentTarget;
   const key  = wrap.dataset.key;
   const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-  draggingKnob = { key, startY: clientY, startVal: userSettings[key] };
+  draggingKnob = { key, startY: clientY, startVal: userSettings[key], moved: false };
   e.preventDefault();
 }
 
-function applyDrag({ key, startY, startVal }, currentY) {
-  const dy = startY - currentY;
+function applyDrag(d, currentY) {
+  const { key, startY, startVal } = d;
   const p  = PARAMS[key];
-  userSettings[key] = Math.max(p.min, Math.min(p.max, startVal + dy * (p.max - p.min) / 200));
+  const dy = startY - currentY;
+  if (Math.abs(dy) > 2) d.moved = true;
+  let val;
+  if (key === 'type') {
+    val = startVal + dy * (p.max - p.min) / 150;
+    val = Math.max(p.min, Math.min(p.max, Math.round(val)));
+  } else {
+    val = Math.max(p.min, Math.min(p.max, startVal + dy * (p.max - p.min) / 200));
+  }
+  userSettings[key] = val;
   updateUserKnob(key);
   liveUpdateUserDist();
 }
 
 window.addEventListener('mousemove', e => { if (draggingKnob) applyDrag(draggingKnob, e.clientY); });
 window.addEventListener('touchmove', e => { if (!draggingKnob) return; applyDrag(draggingKnob, e.touches[0].clientY); e.preventDefault(); }, {passive:false});
-window.addEventListener('mouseup',  () => { draggingKnob = null; });
-window.addEventListener('touchend', () => { draggingKnob = null; });
+window.addEventListener('mouseup',  () => {
+  if (draggingKnob && draggingKnob.key === 'type' && !draggingKnob.moved) cycleType();
+  draggingKnob = null;
+});
+window.addEventListener('touchend', () => {
+  if (draggingKnob && draggingKnob.key === 'type' && !draggingKnob.moved) cycleType();
+  draggingKnob = null;
+});
+
+function cycleType() {
+  if (!roundActive) return;
+  userSettings.type = (Math.round(userSettings.type ?? 0) + 1) % DIST_TYPES.length;
+  updateUserKnob('type');
+  liveUpdateUserDist();
+}
 
 function onWheel(e) {
   if (!roundActive) return;
   const key = e.currentTarget.dataset.key;
   const p   = PARAMS[key];
   const dir = e.deltaY < 0 ? 1 : -1;
-  userSettings[key] = Math.max(p.min, Math.min(p.max, userSettings[key] + dir * (p.max-p.min) * 0.02));
+  if (key === 'type') {
+    userSettings.type = (Math.round(userSettings.type ?? 0) + dir + DIST_TYPES.length) % DIST_TYPES.length;
+  } else {
+    userSettings[key] = Math.max(p.min, Math.min(p.max, userSettings[key] + dir * (p.max-p.min) * 0.02));
+  }
   updateUserKnob(key);
   liveUpdateUserDist();
   e.preventDefault();
@@ -1194,90 +736,118 @@ function updateUserKnob(key) {
   const p    = PARAMS[key];
   const wrap = document.getElementById(`knob-user-${key}`);
   const lbl  = document.getElementById(`kval-user-${key}`);
-  if (wrap) wrap.innerHTML = makeKnobSVG(key, val, 'var(--gold2)', false);
+  if (wrap) wrap.innerHTML = makeKnobSVG(key, val, 'var(--accent2)', false);
   if (lbl)  lbl.textContent = p.fmt(val);
-  drawSpectrum('user', document.getElementById('userSpectrum'));
-  if (answered) drawSpectrum('compare', document.getElementById('userSpectrum'));
-}
-
-// ── Harmonic spectrum visualizer ──────────────────────────────────────────────
-function computeHarmonics(settings) {
-  const { drive, type: typeVal, mix } = settings;
-  const typeIdx = Math.round(typeVal ?? 0);
-  const typeName = DIST_TYPES[typeIdx] || 'softclip';
-  const d = Math.max(0.001, drive);
-  const wet = mix ?? 0.5;
-  const N = 12;
-  const amps = new Array(N).fill(0);
-  amps[0] = 1.0;
-  if (typeName === 'softclip') {
-    for (let i=1;i<N;i++) amps[i] = i%2===0 ? d*Math.pow(0.55,i)*0.3 : d*Math.pow(0.65,i);
-  } else if (typeName === 'hardclip') {
-    for (let i=1;i<N;i++) amps[i] = i%2===0 ? d*Math.pow(0.7,i)*0.4 : d*Math.pow(0.8,i)*1.1;
-  } else if (typeName === 'tape') {
-    for (let i=1;i<N;i++) amps[i] = i%2===0 ? d*Math.pow(0.75,i)*1.2 : d*Math.pow(0.5,i)*0.5;
-  } else if (typeName === 'foldback') {
-    for (let i=1;i<N;i++) amps[i] = d*(0.5+0.5*Math.sin(i*1.3))*Math.pow(0.72,i);
-  }
-  for (let i=1;i<N;i++) amps[i] *= wet;
-  return amps;
-}
-
-function drawSpectrum(mode, canvas) {
-  const dpr = window.devicePixelRatio || 1;
-  const W = canvas.clientWidth || 400, H = canvas.clientHeight || 90;
-  canvas.width = W*dpr; canvas.height = H*dpr;
-  const c = canvas.getContext('2d');
-  c.scale(dpr, dpr);
-  c.fillStyle = '#110d0d'; c.fillRect(0, 0, W, H);
-  c.strokeStyle = 'rgba(255,255,255,0.05)'; c.lineWidth = 1;
-  for (let i=1;i<4;i++) {
-    const x=(i/4)*W, y=(i/4)*H;
-    c.beginPath(); c.moveTo(x,0); c.lineTo(x,H); c.stroke();
-    c.beginPath(); c.moveTo(0,y); c.lineTo(W,y); c.stroke();
-  }
-  const drawBars = (settings, color, offsetX) => {
-    const amps = computeHarmonics(settings);
-    const N = amps.length;
-    const barW = Math.max(2, W/N*0.45);
-    for (let i=0;i<N;i++) {
-      const x = (i/N)*W + offsetX;
-      const barH = Math.min(H-4, amps[i]*(H-8));
-      c.fillStyle = color; c.fillRect(x-barW/2, H-barH, barW, barH);
-    }
-    c.fillStyle = 'rgba(255,255,255,0.18)'; c.font = '9px -apple-system,sans-serif';
-    for (let i=0;i<N;i++) c.fillText(i===0?'F':`H${i}`, (i/N)*W+2, H-2);
-  };
-  if (mode === 'user')         drawBars(userSettings,   'rgba(232,160,48,0.75)', 0);
-  else if (mode === 'compare') { drawBars(targetSettings,'rgba(240,112,80,0.6)',-3); drawBars(userSettings,'rgba(232,160,48,0.75)',3); }
-  else                         drawBars(targetSettings, 'rgba(240,112,80,0.85)', 0);
+  drawHero(answered ? 'compare' : 'user');
 }
 
 // ── Distortion DSP ────────────────────────────────────────────────────────────
-function makeWaveShaperCurve(settings) {
-  const { drive, type: typeVal } = settings;
-  const typeIdx  = Math.round(typeVal ?? 0);
+function shaperSample(x, settings) {
+  // x: input amplitude already including test-tone scaling. Returns shaped value.
+  const drive   = settings.drive ?? 0;
+  const typeIdx = Math.round(settings.type ?? 0);
   const typeName = DIST_TYPES[typeIdx] || 'softclip';
+  const gain = 1 + drive * 40;
+  let v = x * gain;
+  switch (typeName) {
+    case 'softclip': return v / (1 + Math.abs(v));
+    case 'hardclip': return Math.max(-0.95, Math.min(0.95, v));
+    case 'tape':     return Math.tanh(v * 0.85);
+    case 'foldback': {
+      let y = v; const th = 0.9;
+      let guard = 0;
+      while (Math.abs(y) > th && guard++ < 64) { if (y > th) y = 2*th - y; else if (y < -th) y = -2*th - y; }
+      return y;
+    }
+    default: return v / (1 + Math.abs(v));
+  }
+}
+
+function makeWaveShaperCurve(settings) {
   const n = 256;
   const curve = new Float32Array(n);
-  const gain  = 1 + drive * 40;
   for (let i = 0; i < n; i++) {
-    let x = (i * 2) / n - 1;
-    x *= gain;
-    switch (typeName) {
-      case 'softclip':  curve[i] = x / (1 + Math.abs(x)); break;
-      case 'hardclip':  curve[i] = Math.max(-0.95, Math.min(0.95, x)); break;
-      case 'tape':      curve[i] = Math.tanh(x * 0.85); break;
-      case 'foldback': {
-        let y = x; const thresh = 0.9;
-        while (Math.abs(y) > thresh) { if (y>thresh) y=2*thresh-y; else if (y<-thresh) y=-2*thresh-y; }
-        curve[i] = y; break;
-      }
-      default: curve[i] = x / (1 + Math.abs(x));
-    }
+    const x = (i * 2) / n - 1;
+    curve[i] = shaperSample(x, settings);
   }
-  const peak = Math.max(...curve.map(Math.abs)) || 1;
-  return curve.map(v => v / peak);
+  let peak = 0; for (let i=0;i<n;i++) peak = Math.max(peak, Math.abs(curve[i]));
+  peak = peak || 1;
+  for (let i=0;i<n;i++) curve[i] /= peak;
+  return curve;
+}
+
+// ── Hero waveform (clipping-coloured) ─────────────────────────────────────────
+const HERO_CYCLES = 2.5;   // tone cycles shown
+const HERO_AMP    = 0.12;  // display tone amplitude (keeps low-drive clean)
+
+function clipColor(amt) {
+  // amt 0..1 → green → amber → red
+  const g = [62,207,142], a = [245,166,35], r = [244,91,105];
+  let c;
+  if (amt <= 0.5) { const t = amt/0.5;       c = g.map((v,i)=>Math.round(v+(a[i]-v)*t)); }
+  else            { const t = (amt-0.5)/0.5; c = a.map((v,i)=>Math.round(v+(r[i]-v)*t)); }
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+
+function computeWave(settings, N) {
+  const xs = [], ys = [], clips = [];
+  const gain = 1 + (settings.drive ?? 0) * 40;
+  for (let i = 0; i <= N; i++) {
+    const ph  = (i / N) * HERO_CYCLES * 2 * Math.PI;
+    const inp = HERO_AMP * Math.sin(ph);
+    ys.push(shaperSample(inp, settings));
+    clips.push(Math.max(0, Math.min(1, (Math.abs(inp * gain) - 1) / 2.5)));
+    xs.push(i / N);
+  }
+  let maxA = 1e-6; for (const y of ys) maxA = Math.max(maxA, Math.abs(y));
+  return { xs, ys: ys.map(y => y / maxA), clips };
+}
+
+function drawHero(mode) {
+  const canvas = document.getElementById('heroWave');
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.clientWidth || 600, H = canvas.clientHeight || 248;
+  if (canvas.width !== W*dpr) { canvas.width = W*dpr; canvas.height = H*dpr; }
+  const c = canvas.getContext('2d');
+  c.setTransform(dpr,0,0,dpr,0,0);
+  c.clearRect(0,0,W,H);
+  c.fillStyle = '#060708'; c.fillRect(0,0,W,H);
+
+  const mid = H/2, amp = H * 0.40;
+
+  // grid
+  c.strokeStyle = 'rgba(255,255,255,0.045)'; c.lineWidth = 1;
+  for (let i=1;i<8;i++){ const x=(i/8)*W; c.beginPath(); c.moveTo(x,0); c.lineTo(x,H); c.stroke(); }
+  // ceiling guide lines (0 dBFS)
+  c.strokeStyle = 'rgba(244,91,105,0.16)'; c.setLineDash([4,5]); c.lineWidth = 1;
+  [mid-amp, mid+amp].forEach(y => { c.beginPath(); c.moveTo(0,y); c.lineTo(W,y); c.stroke(); });
+  c.setLineDash([]);
+  // center line
+  c.strokeStyle = 'rgba(255,255,255,0.09)'; c.beginPath(); c.moveTo(0,mid); c.lineTo(W,mid); c.stroke();
+
+  const N = Math.max(160, Math.min(720, Math.round(W)));
+
+  // target reference (on reveal): thin blue outline, no clip colour
+  if (mode === 'compare') {
+    const t = computeWave(targetSettings, N);
+    c.strokeStyle = 'rgba(135,160,255,0.85)'; c.lineWidth = 1.6; c.beginPath();
+    for (let i=0;i<=N;i++){ const x=t.xs[i]*W, y=mid - t.ys[i]*amp; i===0?c.moveTo(x,y):c.lineTo(x,y); }
+    c.stroke();
+  }
+
+  // yours — clip-coloured trace
+  const u = computeWave(userSettings, N);
+  c.lineWidth = 2.6; c.lineJoin = 'round'; c.lineCap = 'round';
+  for (let i=1;i<=N;i++){
+    const x0=u.xs[i-1]*W, y0=mid - u.ys[i-1]*amp;
+    const x1=u.xs[i]*W,   y1=mid - u.ys[i]*amp;
+    const amt=(u.clips[i-1]+u.clips[i])/2;
+    c.strokeStyle = clipColor(amt);
+    if (amt > 0.55) { c.shadowColor='rgba(244,91,105,0.55)'; c.shadowBlur=6; } else { c.shadowBlur=0; }
+    c.beginPath(); c.moveTo(x0,y0); c.lineTo(x1,y1); c.stroke();
+  }
+  c.shadowBlur = 0;
 }
 
 // ── Audio ─────────────────────────────────────────────────────────────────────
@@ -1360,7 +930,7 @@ function buildAudioGraph() {
     currentSource = makePinkNoise();
   }
 
-  analyserDry = audioCtx.createAnalyser(); analyserDry.fftSize = 256;
+  analyserDry = audioCtx.createAnalyser(); analyserDry.fftSize = 1024;
   if (sourceType !== 'oneShot') currentSource.connect(analyserDry);
 
   dryBypassGain = audioCtx.createGain(); dryBypassGain.gain.value = 0;
@@ -1381,8 +951,8 @@ function buildAudioGraph() {
     currentSource.connect(userMixDry);
   }
 
-  analyserTarget = audioCtx.createAnalyser(); analyserTarget.fftSize = 256;
-  analyserUser   = audioCtx.createAnalyser(); analyserUser.fftSize   = 256;
+  analyserTarget = audioCtx.createAnalyser(); analyserTarget.fftSize = 1024;
+  analyserUser   = audioCtx.createAnalyser(); analyserUser.fftSize   = 1024;
   targetMixOut.connect(analyserTarget);
   userMixOut.connect(analyserUser);
 
@@ -1434,29 +1004,65 @@ function liveUpdateUserDist() {
 
 // ── Meter loop ────────────────────────────────────────────────────────────────
 function startMeterLoop() {
-  const buf = new Float32Array(256);
+  const buf = new Float32Array(1024);
   const lvsCvs = document.getElementById('levelCanvas');
+  const clipLed = document.getElementById('clipLed');
   const dpr = window.devicePixelRatio || 1;
+
   function loop() {
     animFrameId = requestAnimationFrame(loop);
+
+    // output-level VU needles (RMS) for YOU / TGT
+    const lvl = an => { if(!an) return 0; an.getFloatTimeDomainData(buf); let s=0; for(let i=0;i<buf.length;i++) s+=buf[i]*buf[i]; return Math.sqrt(s/buf.length); };
+    const lvlAngle = n => -52 + Math.max(0, Math.min(1, n)) * 104;
+    const norm = r => (20*Math.log10(r + 1e-7) + 48) / 48;
+    const tR = lvl(analyserTarget), uR = lvl(analyserUser);
+    const tNd = document.getElementById('vuTargetNeedle'), uNd = document.getElementById('vuUserNeedle');
+    if (tNd) tNd.setAttribute('transform', `rotate(${lvlAngle(norm(tR)).toFixed(2)} 60 72)`);
+    if (uNd) uNd.setAttribute('transform', `rotate(${lvlAngle(norm(uR)).toFixed(2)} 60 72)`);
+    const dbTxt = r => r < 1e-6 ? '−∞' : `${(20*Math.log10(r)).toFixed(0)}`;
+    const tdb = document.getElementById('targetLvlDb'); if (tdb) tdb.textContent = dbTxt(tR);
+    const udb = document.getElementById('userLvlDb');   if (udb) udb.textContent = dbTxt(uR);
+
+    // ── signal scope (clip-coloured) ──
     const W = lvsCvs.clientWidth, H = lvsCvs.clientHeight || 44;
     if (lvsCvs.width !== W*dpr) { lvsCvs.width=W*dpr; lvsCvs.height=H*dpr; }
     const lc = lvsCvs.getContext('2d');
     lc.setTransform(dpr,0,0,dpr,0,0);
-    lc.clearRect(0,0,W,H); lc.fillStyle='#110d0d'; lc.fillRect(0,0,W,H);
+    lc.clearRect(0,0,W,H);
+    lc.fillStyle='#060708'; lc.fillRect(0,0,W,H);
+
+    // faint dry input behind
     if (analyserDry) {
       analyserDry.getFloatTimeDomainData(buf);
-      lc.strokeStyle='rgba(255,255,255,0.1)'; lc.lineWidth=1; lc.beginPath();
-      for(let i=0;i<256;i++){const x=(i/256)*W,y=H/2-buf[i]*H*0.45;i===0?lc.moveTo(x,y):lc.lineTo(x,y);}
+      lc.strokeStyle='rgba(255,255,255,0.10)'; lc.lineWidth=1; lc.beginPath();
+      const step = Math.ceil(buf.length / W);
+      for(let i=0;i<buf.length;i+=step){const x=(i/buf.length)*W,y=H/2-buf[i]*H*0.42;i===0?lc.moveTo(x,y):lc.lineTo(x,y);}
       lc.stroke();
     }
-    const aActive = listeningTo==='target' ? analyserTarget : analyserUser;
+
+    // monitored output — colour by instantaneous level (clipping)
+    let peak = 0;
+    const aActive = isDry ? analyserDry : (listeningTo==='target' ? analyserTarget : analyserUser);
     if (aActive) {
       aActive.getFloatTimeDomainData(buf);
-      lc.strokeStyle = listeningTo==='target' ? 'rgba(240,112,80,0.85)' : 'rgba(232,160,48,0.85)';
-      lc.lineWidth=1.5; lc.beginPath();
-      for(let i=0;i<256;i++){const x=(i/256)*W,y=H/2-buf[i]*H*0.45;i===0?lc.moveTo(x,y):lc.lineTo(x,y);}
-      lc.stroke();
+      lc.lineWidth=1.6; lc.lineJoin='round';
+      const step = Math.ceil(buf.length / W);
+      let px=0, py=H/2 - buf[0]*H*0.42, started=false;
+      for(let i=0;i<buf.length;i+=step){
+        const s=buf[i]; const a=Math.abs(s); if (a>peak) peak=a;
+        const x=(i/buf.length)*W, y=H/2 - s*H*0.42;
+        const amt=Math.max(0,Math.min(1,(a-0.5)/0.45));
+        if (started){ lc.strokeStyle=clipColor(amt); lc.beginPath(); lc.moveTo(px,py); lc.lineTo(x,y); lc.stroke(); }
+        px=x; py=y; started=true;
+      }
+    }
+
+    // CLIP LED from monitored peak
+    if (clipLed) {
+      clipLed.classList.remove('warn','clip');
+      if (peak >= 0.985)      clipLed.classList.add('clip');
+      else if (peak >= 0.8)   clipLed.classList.add('warn');
     }
   }
   loop();
@@ -1482,8 +1088,8 @@ function ensureAudio() {
   if (audioCtx.state==='suspended') audioCtx.resume();
   if (!currentSource) buildAudioGraph();
 }
-function listenTarget() { if(!roundActive)return; ensureAudio(); if(abActive)stopAB(); routeTo('target'); }
-function listenUser()   { if(!roundActive)return; ensureAudio(); if(abActive)stopAB(); routeTo('user');   }
+function listenTarget() { if(!roundActive)return; ensureAudio(); if(abActive)stopAB(); if(isDry)toggleDry(); routeTo('target'); }
+function listenUser()   { if(!roundActive)return; ensureAudio(); if(abActive)stopAB(); if(isDry)toggleDry(); routeTo('user');   }
 
 function toggleAB() {
   if (!roundActive) return; ensureAudio();
@@ -1502,6 +1108,7 @@ function toggleDry() {
   if (!roundActive) return;
   isDry = !isDry;
   document.getElementById('btnDry').classList.toggle('active', isDry);
+  updateListenBtns();
   if (!audioCtx) return;
   if (isDry) {
     try { analyserTarget.disconnect(outputGain); } catch(e){}
@@ -1696,7 +1303,7 @@ function triggerShot() {
   if (isDry) {
     const srcDry = audioCtx.createBufferSource(); srcDry.buffer = sample.buffer;
     const dryVol = audioCtx.createGain(); dryVol.gain.value = 0.7;
-    srcDry.connect(dryVol); dryVol.connect(outputGain); srcDry.start(0); return;
+    srcDry.connect(dryVol); dryVol.connect(analyserDry); dryVol.connect(outputGain); srcDry.start(0); return;
   }
   const srcT = audioCtx.createBufferSource(); srcT.buffer = sample.buffer;
   srcT.connect(targetDistNode); srcT.connect(targetMixDry); srcT.start(0);
@@ -1707,7 +1314,7 @@ function triggerShot() {
 // ── Round ─────────────────────────────────────────────────────────────────────
 function newRound() {
   stopOneShotLoop(); stopAB();
-  if (isPaused && audioCtx) { audioCtx.resume(); isPaused=false; }
+  if (isPaused && audioCtx) { audioCtx.resume(); isPaused=false; const pb=document.getElementById('btnPause'); pb.innerHTML='&#9646;&#9646; Pause'; pb.classList.remove('paused'); }
   roundActive=false; answered=false;
   round++; document.getElementById('roundCount').textContent=round;
 
@@ -1723,7 +1330,7 @@ function newRound() {
         userSettings[key]   = 0;
       } else {
         targetSettings[key] = fixLockedParams ? 0 : Math.floor(Math.random()*DIST_TYPES.length);
-        userSettings[key]   = targetSettings[key]; // locked: user matches target
+        userSettings[key]   = targetSettings[key];
       }
     } else {
       if (isActive) {
@@ -1731,7 +1338,7 @@ function newRound() {
         userSettings[key]   = p.default;
       } else {
         targetSettings[key] = fixLockedParams ? p.default : r.min + Math.random()*(r.max - r.min);
-        userSettings[key]   = targetSettings[key]; // locked: user matches target
+        userSettings[key]   = targetSettings[key];
       }
     }
   });
@@ -1743,20 +1350,19 @@ function newRound() {
 
   roundActive=true;
   document.getElementById('resultBar').classList.remove('visible','score-good','score-ok','score-bad');
-    const _rpreset = document.getElementById('resultPts'); if (_rpreset) _rpreset.textContent = '';
+  const _rpreset = document.getElementById('resultPts'); if (_rpreset) _rpreset.textContent = '';
   document.getElementById('btnCheck').disabled=false;
   document.getElementById('btnTarget').disabled=false;
   document.getElementById('btnUser').disabled=false;
   document.getElementById('btnDry').disabled=false;
-  document.getElementById('btnPlayRestart').disabled=false;
+  document.getElementById('btnRestart').disabled=false;
   document.getElementById('btnPause').disabled=false;
-  document.getElementById('specLegend').style.display='none';
-  document.getElementById('targetSpectrum').classList.add('hidden-spectrum');
+  document.getElementById('waveLegend').style.display='none';
+  document.getElementById('targetLvlRow')?.classList.add('target-gr-hidden');
 
   renderKnobs('target', targetSettings, true);
   renderKnobs('user',   userSettings,   false);
-  drawSpectrum('target', document.getElementById('targetSpectrum'));
-  drawSpectrum('user',   document.getElementById('userSpectrum'));
+  drawHero('user');
 
   listeningTo='target';
   initAudio(); if(audioCtx.state==='suspended') audioCtx.resume();
@@ -1769,10 +1375,9 @@ function checkAnswer() {
   answered=true;
 
   renderKnobs('target', targetSettings, false);
-  document.getElementById('targetSpectrum').classList.remove('hidden-spectrum');
-  drawSpectrum('target', document.getElementById('targetSpectrum'));
-  drawSpectrum('compare', document.getElementById('userSpectrum'));
-  document.getElementById('specLegend').style.display='flex';
+  document.getElementById('waveLegend').style.display='flex';
+  document.getElementById('targetLvlRow')?.classList.remove('target-gr-hidden');
+  drawHero('compare');
   if (currentSource) routeTo('user');
 
   let totalErr=0, count=0;
@@ -1799,7 +1404,7 @@ function checkAnswer() {
   const msgs=[
     [90,'Perfect — professional level accuracy.'],
     [70,'Good match — very close.'],
-    [40,'Getting there — compare the harmonic content to close the gap.'],
+    [40,'Getting there — compare the clipping shapes to close the gap.'],
     [0, 'Keep practicing — focus on drive level and type first.'],
   ];
   let msg=msgs[3][1], col='var(--red)';
@@ -1832,7 +1437,6 @@ function checkAnswer() {
   showToast(`Round: ${score}/100`);
 }
 
-
 function toggleShortcuts(e) {
   e.stopPropagation();
   const pop = document.getElementById('shortcutsPopover');
@@ -1842,11 +1446,12 @@ document.addEventListener('click', () => {
   const pop = document.getElementById('shortcutsPopover');
   if (pop) pop.classList.remove('open');
 });
+
 // ── Keyboard shortcuts ────────────────────────────────────────────────────────
 window.addEventListener('keydown', e => {
   if (e.target.tagName==='INPUT') return;
   if (e.code !== 'KeyP' && audioCtx && audioCtx.state==='suspended') audioCtx.resume();
-  if (e.code==='Space')      { e.preventDefault(); if(!roundActive)return; routeTo(listeningTo==='target'?'user':'target'); }
+  if (e.code==='Space')      { e.preventDefault(); if(!roundActive)return; if(isDry)toggleDry(); routeTo(listeningTo==='target'?'user':'target'); }
   if (e.code==='Enter')      { if(roundActive&&!answered) checkAnswer(); else newRound(); }
   if (e.code==='KeyD')       { e.preventDefault(); toggleDry(); }
   if (e.code==='KeyF')       { e.preventDefault(); restartAudio(); }
@@ -1865,16 +1470,20 @@ function showToast(msg) {
   setTimeout(()=>t.classList.remove('show'),3000);
 }
 
+(function initVU(){
+  const t = document.getElementById('vuTarget'), u = document.getElementById('vuUser');
+  if (t) t.innerHTML = buildVU('vuTargetNeedle', 'var(--tgt2)', -52);
+  if (u) u.innerHTML = buildVU('vuUserNeedle', 'var(--accent2)', -52);
+})();
 renderParamPills();
 updateMultBadge();
 document.getElementById('fixLockedBtn').classList.toggle('active', !fixLockedParams);
-drawSpectrum('target', document.getElementById('targetSpectrum'));
-drawSpectrum('user',   document.getElementById('userSpectrum'));
+renderKnobs('target', { ...Object.fromEntries(Object.keys(PARAMS).map(k=>[k,PARAMS[k].default])) }, true);
+renderKnobs('user',   { ...Object.fromEntries(Object.keys(PARAMS).map(k=>[k,PARAMS[k].default])) }, false);
+drawHero('user');
 window.addEventListener('resize', () => {
-  if(!roundActive) return;
-  drawSpectrum('target', document.getElementById('targetSpectrum'));
-  if(answered) drawSpectrum('compare', document.getElementById('userSpectrum'));
-  else         drawSpectrum('user',    document.getElementById('userSpectrum'));
+  if(!roundActive) { drawHero('user'); return; }
+  drawHero(answered ? 'compare' : 'user');
 });
 
 if ('serviceWorker' in navigator) {
