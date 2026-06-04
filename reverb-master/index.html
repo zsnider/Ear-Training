@@ -3,559 +3,22 @@
 <head>
 <link rel="manifest" href="manifest.json">
 <meta charset="UTF-8">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cloud.umami.is 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://aolaxmmrmvovbzumlybe.supabase.co wss://aolaxmmrmvovbzumlybe.supabase.co https://cloud.umami.is; img-src 'self' data:; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
 <meta name="description" content="Match hidden reverb settings — room size, decay, pre-delay, and wet/dry — entirely by ear.">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Reverb Master — SonicSandbox</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="../style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="../daw-ui.css">
 <style>
-  :root {
-    --bg:       #0a0c10;
-    --bg2:      #0d0f14;
-    --surface:  #121520;
-    --surface2: #181c28;
-    --surface3: #1e2332;
-    --border:   rgba(255,255,255,0.07);
-    --border2:  rgba(255,255,255,0.13);
-    --text:     #dde4f0;
-    --muted:    #5a6070;
-    --accent:   #5b3fd4;
-    --accent2:  #8b6fff;
-    --teal:     #2dd4c8;
-    --teal2:    #5ee8dc;
-    --green:    #3ecf8e;
-    --red:      #f45b69;
-    --amber:    #f5a623;
-  }
-
-  * { margin:0; padding:0; box-sizing:border-box; }
-
-  body {
-    font-family: 'IBM Plex Sans', -apple-system, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    display: flex; flex-direction: column; align-items: center;
-
-    user-select: none;
-  }
-
-  /* ── Header ── */
-  header {
-    width: 100%; max-width: 980px;
-    padding: 24px 24px 0;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-
-  .header-left { display:flex; align-items:center; gap:14px; }
-
-  .brand { display:flex; align-items:center; gap:10px; }
-  .brand-icon {
-    width: 32px; height: 32px;
-    background: var(--accent);
-    border-radius: 8px;
-    display: flex; align-items:center; justify-content:center;
-  }
-  .brand-name {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 16px; font-weight: 600; letter-spacing: 0.04em;
-  }
-  .brand-name span { color: var(--accent2); }
-
-  .score-row { display:flex; gap:22px; align-items:center; }
-  .stat { text-align:center; }
-  .stat-val { font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:600; color:var(--accent2); }
-  .stat-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-top:2px; }
-  .vdiv { width:1px; height:22px; background:var(--border2); }
-
-  /* ── Main ── */
-  .main { width:100%; max-width:980px; padding: 18px 24px 0; display:flex; flex-direction:column; gap:14px; }
-
-  /* ── Settings box ── */
-  .setting-item {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; overflow: hidden;
-    display: flex; flex-direction: column;
-  }
-  .settings-inner-row {
-    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-    padding: 9px 16px;
-  }
-  .settings-divider { width: 100%; height: 1px; background: var(--border); flex-shrink: 0; }
-
-  /* ── Param ranges panel ── */
-  .ranges-toggle-btn {
-    display: flex; align-items: center; gap: 7px;
-    background: none; border: 1px solid var(--border);
-    border-radius: 10px; color: var(--muted);
-    font-family: 'IBM Plex Sans', sans-serif; font-size: 11px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.08em;
-    padding: 7px 14px; cursor: pointer; transition: all 0.15s;
-    width: fit-content;
-  }
-  .ranges-toggle-btn:hover { border-color: var(--border2); color: var(--text); }
-  .ranges-toggle-btn .rt-arrow { font-size: 9px; transition: transform 0.2s; }
-  .ranges-toggle-btn.open .rt-arrow { transform: rotate(90deg); }
-
-  .ranges-panel {
-    display: none; flex-direction: column;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; overflow: hidden;
-  }
-  .ranges-panel.open { display: flex; }
-  .range-row {
-    display: flex; align-items: center; gap: 8px;
-    padding: 9px 14px; border-bottom: 1px solid var(--border);
-  }
-  .range-row:last-child { border-bottom: none; }
-  .range-param-label {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.08em;
-    color: var(--muted); width: 62px; flex-shrink: 0;
-  }
-  .range-input {
-    width: 62px; background: var(--surface2); color: var(--text);
-    border: 1px solid var(--border2); border-radius: 6px;
-    padding: 4px 7px; font-family: 'IBM Plex Mono', monospace; font-size: 12px;
-    outline: none;
-  }
-  .range-input:focus { border-color: var(--accent); }
-  .range-sep  { font-size: 11px; color: var(--muted); }
-  .range-unit { font-size: 11px; color: var(--muted); min-width: 18px; }
-  .range-reset {
-    margin-left: auto; font-size: 10px; color: var(--muted);
-    background: none; border: none; cursor: pointer; padding: 0;
-    font-family: inherit; text-decoration: underline; text-underline-offset: 2px;
-  }
-  .range-reset:hover { color: var(--text); }
-
-  .label {
-    font-size: 11px; font-weight:600; color: var(--muted);
-    text-transform: uppercase; letter-spacing:0.07em; white-space: nowrap;
-  }
-
-  .pill {
-    background: var(--surface2); border: 1px solid var(--border2);
-    border-radius: 20px; padding: 5px 13px;
-    font-size: 12px; color: var(--muted);
-    cursor: pointer; transition: all 0.15s;
-    font-family: 'IBM Plex Sans', sans-serif; white-space: nowrap;
-  }
-  .pill:hover { border-color: var(--accent); color: var(--text); }
-  .pill.active {
-    background: var(--surface2); border-color: var(--accent2);
-    color: var(--accent2); box-shadow: 0 0 8px rgba(164,138,255,0.15);
-  }
-
-  /* Param pill in custom mode */
-  .param-pill-toggle {
-    font-size:11px; padding:3px 9px; border-radius:10px; border:1px solid;
-    transition: all 0.15s;
-  }
-  .param-pill-toggle.togglable { cursor: pointer; }
-  .param-pill-toggle.togglable:hover { opacity: 0.85; }
-
-  select {
-    background: var(--surface2); color: var(--text);
-    border: 1px solid var(--border2);
-    padding: 5px 10px; border-radius: 8px;
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 12px; outline:none; cursor:pointer;
-  }
-  select:hover { border-color: var(--accent); }
-
-  kbd {
-    font-family: 'IBM Plex Mono', monospace; font-size:10px;
-    background: var(--surface2); border: 1px solid var(--border2);
-    border-radius: 4px; padding: 1px 5px; color: var(--muted);
-  }
-
-  /* ── Workspace ── */
-  .workspace { display: grid; grid-template-columns: 1fr 300px; gap: 14px; }
-
-  /* ── Reverb panels ── */
-  .rev-panel {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 14px; overflow: hidden;
-    display: flex; flex-direction: column;
-  }
-
-  .panel-header {
-    display:flex; align-items:center; justify-content:space-between;
-    padding: 11px 16px; border-bottom: 1px solid var(--border);
-  }
-  .panel-title {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px; font-weight:600;
-    letter-spacing: 0.1em; text-transform:uppercase;
-  }
-  .panel-title.t-title { color: var(--accent2); }
-  .panel-title.u-title { color: var(--teal2); }
-
-  .listen-pill {
-    display:flex; align-items:center; gap:5px;
-    border-radius:20px; padding: 3px 9px; font-size:11px;
-    opacity:0; transition:opacity 0.2s;
-  }
-  .listen-pill.t-pill { background:rgba(124,92,252,0.12); border:1px solid rgba(124,92,252,0.35); color:var(--accent2); }
-  .listen-pill.u-pill { background:rgba(45,212,200,0.1);  border:1px solid rgba(45,212,200,0.3);  color:var(--teal2); }
-  .listen-pill.visible { opacity:1; }
-
-  /* Knob grid */
-  .knob-grid {
-    display: grid; grid-template-columns: repeat(5, 1fr);
-    gap: 1px; background: var(--border); flex:1;
-  }
-  .knob-cell {
-    background: var(--surface); padding: 14px 10px 12px;
-    display:flex; flex-direction:column; align-items:center; gap:9px;
-    transition: background 0.15s;
-  }
-  .knob-cell:hover { background: var(--surface2); }
-  .knob-cell.locked { opacity:0.25; pointer-events:none; }
-  .knob-cell.hidden-target .knob-wrap { filter:blur(10px); opacity:0; pointer-events:none; }
-  .knob-cell.hidden-target .knob-val  { filter:blur(10px); opacity:0; }
-
-  .knob-label {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 9px; font-weight:600;
-    letter-spacing: 0.1em; text-transform:uppercase; color:var(--muted);
-  }
-  .knob-wrap {
-    position:relative; width:62px; height:62px;
-    cursor:grab; touch-action:none;
-  }
-  .knob-wrap:active { cursor:grabbing; }
-  .knob-svg { width:100%; height:100%; }
-  .knob-val {
-    font-family:'IBM Plex Mono',monospace;
-    font-size:11px; font-weight:500; color:var(--text);
-    text-align:center; min-height:16px;
-  }
-
-  /* Decay visualizer */
-  .decay-wrap { padding: 10px 16px 12px; border-top: 1px solid var(--border); }
-  .decay-label {
-    font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase;
-    color:var(--muted); margin-bottom:7px;
-  }
-  canvas.decay-canvas {
-    display:block; width:100%; height:90px;
-    border-radius:6px; background:var(--bg2);
-  }
-  .decay-canvas.hidden-decay { filter: blur(12px); opacity: 0; }
-
-  /* ── Right column ── */
-  .right-col { display:flex; flex-direction:column; gap:14px; }
-
-  /* Level meter panel */
-  .meter-panel {
-    background: var(--surface); border:1px solid var(--border);
-    border-radius:14px; padding:14px 16px;
-    display:flex; flex-direction:column; gap:10px;
-  }
-  .meter-row { display:flex; align-items:center; gap:10px; }
-  .meter-name {
-    font-family:'IBM Plex Mono',monospace; font-size:10px;
-    font-weight:600; text-transform:uppercase; letter-spacing:0.08em;
-    width:52px; flex-shrink:0;
-  }
-  .meter-name.t-c { color:var(--accent2); }
-  .meter-name.u-c { color:var(--teal2); }
-  .meter-track { flex:1; height:12px; background:var(--surface3); border-radius:3px; overflow:hidden; }
-  .meter-fill { height:100%; border-radius:3px; transition:width 0.06s linear; }
-  .meter-fill.t-fill { background: linear-gradient(to right, var(--accent), var(--accent2)); }
-  .meter-fill.u-fill { background: linear-gradient(to right, var(--teal), var(--teal2)); }
-  .meter-db { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text); width:40px; text-align:right; flex-shrink:0; }
-  #levelCanvas { width:100%; height:44px; border-radius:6px; background:var(--bg2); display:block; transition: opacity 0.2s; }
-  #levelCanvas.waveform-hidden { opacity: 0.01; }
-
-  .waveform-hide-btn {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px; color: var(--muted);
-    background: none; border: 1px solid var(--border2);
-    border-radius: 6px; padding: 2px 7px;
-    cursor: pointer; transition: all 0.15s;
-    line-height: 1.4;
-  }
-  .waveform-hide-btn:hover { color: var(--text); border-color: var(--border2); }
-
-  /* Source panel */
-  .source-panel {
-    background:var(--surface); border:1px solid var(--border);
-    border-radius:14px; padding:14px 16px;
-    display:flex; flex-direction:column; gap:9px;
-  }
-  .source-pill {
-    display:flex; align-items:center; gap:7px;
-    padding:7px 14px; border-radius:10px; font-size:13px;
-    background:var(--surface2); border:1px solid var(--border2);
-    cursor:pointer; transition:all 0.15s;
-  }
-  .source-pill:hover { border-color:var(--accent); }
-  .source-pill.active { border-color:var(--accent); background:rgba(124,92,252,0.1); color:var(--accent2); }
-  .source-pill input[type=file] { display:none; }
-
-  #sourceLoadStatus {
-    font-size:11px; font-family:'IBM Plex Mono',monospace;
-    color:var(--muted); min-height:16px;
-  }
-
-  /* Buttons */
-  button {
-    border:none; border-radius:10px;
-    font-family:'IBM Plex Sans',sans-serif;
-    font-size:13px; font-weight:500;
-    cursor:pointer; padding:10px 18px; transition:all 0.15s;
-  }
-  .btn-primary { background:var(--accent); color:#fff; }
-  .btn-primary:hover { background:var(--accent2); }
-  .btn-primary:disabled { opacity:0.35; cursor:not-allowed; }
-  .btn-secondary { background:var(--surface2); color:var(--text); border:1px solid var(--border2); }
-  .btn-secondary:hover { border-color:var(--accent); color:var(--accent2); }
-
-  .listen-btn {
-    background:var(--surface2); border:1px solid var(--border2);
-    display:flex; align-items:center; gap:7px;
-    padding:9px 16px; font-size:13px; transition:all 0.15s;
-  }
-  .listen-btn.t-btn { color:var(--accent2); border-color:rgba(124,92,252,0.3); }
-  .listen-btn.t-btn.active { background:rgba(124,92,252,0.12); border-color:rgba(124,92,252,0.6); }
-  .listen-btn.u-btn { color:var(--teal2); border-color:rgba(45,212,200,0.3); }
-  .listen-btn.u-btn.active { background:rgba(45,212,200,0.1); border-color:rgba(45,212,200,0.5); }
-  .listen-btn:disabled { opacity:0.35; cursor:not-allowed; }
-
-  .controls-bar { display:flex; gap:10px; flex-wrap:wrap; }
-
-  .pulse {
-    width:6px; height:6px; border-radius:50%;
-    animation:pulse 1.1s infinite; flex-shrink:0;
-  }
-  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.3;transform:scale(0.6);} }
-
-  /* Result bar */
-  .result-bar {
-    background:var(--surface); border:1px solid var(--border);
-    border-radius:14px; padding:18px 20px;
-    display:none; flex-direction:column; gap:12px;
-  }
-  .result-bar.visible { display:flex; }
-  .result-top { display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
-  .result-big { font-family:'IBM Plex Mono',monospace; font-size:48px; font-weight:600; line-height:1; }
-  .result-denom { color:var(--muted); font-size:16px; }
-  .result-pts { font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; color:var(--accent2); margin-top:4px; opacity:0.9; }
-  .result-msg { font-size:13px; color:var(--muted); margin-bottom:6px; }
-  .acc-track { height:5px; background:var(--border2); border-radius:3px; overflow:hidden; flex:1; min-width:200px; }
-  .acc-fill { height:100%; border-radius:3px; width:0; transition:width 0.9s cubic-bezier(0.16,1,0.3,1); }
-
-  .param-results { display:flex; gap:8px; flex-wrap:wrap; }
-  .pr-chip {
-    background:var(--surface2); border:1px solid var(--border);
-    border-radius:8px; padding:6px 12px; font-size:12px; color:var(--muted);
-    font-family:'IBM Plex Mono',monospace;
-  }
-  .pr-chip .good { color:var(--green); }
-  .pr-chip .bad  { color:var(--red); }
-
-  /* Decay legend */
-  .decay-legend { display:flex; gap:14px; margin-top:5px; }
-  .dl-item { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); }
-  .dl-dot { width:22px; height:3px; border-radius:2px; }
-
-  .btn-dry {
-    background: var(--surface2); color: var(--muted);
-    border: 1px solid var(--border2);
-    font-size: 12px; padding: 7px 14px; border-radius: 8px;
-    cursor: pointer; font-family: 'IBM Plex Sans', sans-serif;
-    transition: all 0.15s; white-space: nowrap;
-  }
-  .btn-dry:hover { border-color: var(--amber); color: var(--amber); }
-  .btn-dry.active { background: rgba(245,166,35,0.1); border-color: var(--amber); color: var(--amber); }
-  .btn-dry:disabled { opacity: 0.35; cursor: not-allowed; }
-
-  .btn-action {
-    background: var(--surface2); color: var(--teal2);
-    border: 1px solid rgba(94,232,220,0.3);
-    font-size: 13px; padding: 9px 14px; border-radius: 10px;
-    cursor: pointer; font-family: 'IBM Plex Sans', sans-serif;
-    display: flex; align-items: center; gap: 6px;
-    transition: all 0.15s; white-space: nowrap;
-  }
-  .btn-action:hover { background: rgba(94,232,220,0.08); border-color: rgba(94,232,220,0.6); }
-  .btn-action.paused { color: var(--accent2); border-color: rgba(139,111,255,0.5); background: rgba(139,111,255,0.08); }
-  .btn-action:disabled { opacity: 0.35; cursor: not-allowed; }
-
-  .toast {
-    position:fixed; bottom:24px; left:50%;
-    transform:translateX(-50%) translateY(12px);
-    background:var(--surface2); border:1px solid var(--border2);
-    border-radius:10px; padding:10px 16px; font-size:13px; color:var(--text);
-    opacity:0; transition:all 0.2s; pointer-events:none; z-index:999; white-space:nowrap;
-  }
-  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
-
-/* ── Help Section ── */
-.help-toggle {
-  display: flex; align-items: center; gap: 8px;
-  background: none; border: 1px solid var(--border);
-  border-radius: 10px; color: var(--muted);
-  font-family: 'IBM Plex Sans', sans-serif; font-size: 13px;
-  padding: 9px 16px; cursor: pointer; transition: all 0.15s;
-  margin-top: 4px; margin-left: 24px; width: fit-content;
-}
-.help-toggle:hover { border-color: var(--border2); color: var(--text); }
-.help-toggle .toggle-arrow { font-size: 10px; transition: transform 0.2s; display: inline-block; }
-.help-toggle.open .toggle-arrow { transform: rotate(90deg); }
-
-.help-section {
-  display: none; width: calc(100% - 48px);
-  background: var(--surface);
-  border: 1px solid var(--border); border-radius: 14px;
-  padding: 28px 32px; gap: 28px; flex-direction: column;
-}
-.help-section.visible { display: flex; }
-
-.help-section h2 {
-  font-size: 15px; font-weight: 600; color: var(--text);
-  letter-spacing: 0.02em; margin-bottom: 2px;
-}
-.help-section p { font-size: 13.5px; color: var(--muted); line-height: 1.65; }
-.help-section p strong { color: var(--text); font-weight: 500; }
-.help-block { display: flex; flex-direction: column; gap: 8px; }
-.help-divider { border: none; border-top: 1px solid var(--border); }
-
-    /* ── Game bar (site context + score row) ─────────────── */
-  nav.site-nav {
-    width: 100%;
-    padding: 14px 24px;
-    display: flex; align-items: center;
-    border-bottom: 1px solid var(--border);
-  }
-  .game-bar {
-    width: 100%; max-width: 980px;
-    padding: 10px 24px;
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 16px;
-    border-bottom: 1px solid var(--border);
-    background-image: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
-    background-size: 28px 28px;
-  }
-  .game-bar-left { display: flex; align-items: center; }
-  .brand { display: flex; align-items: center; gap: 10px; }
-  .brand-icon {
-    width: 28px; height: 28px; border-radius: 7px;
-    background: var(--accent);
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-  .brand-name {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 13px; font-weight: 600;
-    color: var(--text); letter-spacing: -0.01em;
-  }
-  .game-bar-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
-  .score-row { display: flex; align-items: center; gap: 16px; }
-  .stat { text-align: center; }
-  .stat-val {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 18px; font-weight: 700;
-    color: var(--accent2); line-height: 1;
-  }
-  .stat-label {
-    font-size: 9px; color: var(--muted);
-    text-transform: uppercase; letter-spacing: 0.08em;
-    margin-top: 2px;
-  }
-  .vdiv { width: 1px; height: 20px; background: var(--border2); }
-  .mult-badge {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 8px; color: var(--muted);
-    letter-spacing: 0.04em; opacity: 0.7;
-  }
-  @media (max-width: 600px) {
-    nav.site-nav { padding: 12px 16px; }
-    .game-bar { padding: 8px 16px; }
-    .stat-val { font-size: 15px; }
-    .score-row { gap: 10px; }
-  }
-
-  .forgot-pw-link {
-    display: block; width: 100%; text-align: center;
-    margin-top: 12px; font-size: 12px; color: var(--muted);
-    background: none; border: none; cursor: pointer; font-family: inherit;
-  }
-  .forgot-pw-link:hover { color: var(--text); }
-
-
-  .shortcuts-wrap { position: relative; }
-  .shortcuts-btn {
-    display: flex; align-items: center; gap: 5px;
-    background: var(--surface2); border: 0.5px solid var(--border2);
-    border-radius: 8px; color: var(--muted);
-    font-family: inherit; font-size: 12px; font-weight: 500;
-    padding: 5px 11px; cursor: pointer; transition: all 0.15s;
-    white-space: nowrap;
-  }
-  .shortcuts-btn:hover { border-color: var(--accent); color: var(--text); }
-  .shortcuts-popover {
-    display: none; position: absolute; top: calc(100% + 8px); right: 0;
-    background: var(--surface); border: 1px solid var(--border2);
-    border-radius: 12px; padding: 14px 18px;
-    z-index: 50; min-width: 260px;
-  }
-  .shortcuts-popover.open { display: block; }
-  .shortcut-row {
-    display: flex; justify-content: space-between; align-items: center;
-    gap: 16px; font-size: 12px; color: var(--muted); padding: 5px 0;
-    border-bottom: 0.5px solid var(--border);
-  }
-  .shortcut-row:last-child { border-bottom: none; }
-  .shortcut-keys { display: flex; gap: 4px; flex-shrink: 0; }
-
-  .listen-btn {
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important;
-    padding: 10px 16px !important;
-    min-height: 60px;
-  }
-  .listen-btn-label {
-    font-size: 11px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.07em;
-  }
-  .listen-bars {
-    display: flex; align-items: flex-end; gap: 2.5px; height: 14px;
-  }
-  .listen-bar {
-    width: 3px; border-radius: 2px; background: currentColor;
-    opacity: 0.3; transition: opacity 0.15s; flex-shrink: 0;
-  }
-  .listen-btn.active .listen-bar { opacity: 1; }
-  .listen-bar:nth-child(1) { height: 5px;  animation-delay: 0s; }
-  .listen-bar:nth-child(2) { height: 10px; animation-delay: 0.12s; }
-  .listen-bar:nth-child(3) { height: 14px; animation-delay: 0.06s; }
-  .listen-bar:nth-child(4) { height: 9px;  animation-delay: 0.18s; }
-  .listen-bar:nth-child(5) { height: 6px;  animation-delay: 0.09s; }
-  .listen-btn.active .listen-bar {
-    animation: barBounce 0.75s ease-in-out infinite;
-  }
-  @keyframes barBounce {
-    0%,100% { transform: scaleY(1); }
-    50%      { transform: scaleY(0.3); }
-  }
-
-  .result-bar { transition: border-color 0.5s ease; }
-  .result-bar.score-good { border-color: rgba(62,207,142,0.55) !important; }
-  .result-bar.score-ok   { border-color: rgba(245,166,35,0.55) !important; }
-  .result-bar.score-bad  { border-color: rgba(244,91,105,0.55) !important; }
+  /* Reverb identity colours */
+  body { --accent: #5b3fd4; --accent2: #8b6fff; }
 </style>
   <script src="../scoring.js"></script>
+  <script src="../daw-ui.js"></script>
 
   <!-- Open Graph / Social -->
   <meta property="og:type"        content="website">
@@ -571,6 +34,19 @@
   <script defer src="https://cloud.umami.is/script.js" data-website-id="a4e7fbcc-763c-4844-8f4f-669cf411e799"></script>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="knobCap" cx="38%" cy="30%" r="78%">
+      <stop offset="0%" stop-color="#3a4049"/>
+      <stop offset="55%" stop-color="#22262e"/>
+      <stop offset="100%" stop-color="#14171c"/>
+    </radialGradient>
+    <radialGradient id="knobCapLocked" cx="38%" cy="30%" r="78%">
+      <stop offset="0%" stop-color="#23262c"/>
+      <stop offset="100%" stop-color="#15171b"/>
+    </radialGradient>
+  </defs>
+</svg>
 
 <nav class="site-nav">
   <div class="nav-logo-wrap">
@@ -625,9 +101,9 @@
 <div class="main">
 
   <!-- Settings -->
-  <div class="setting-item">
+  <div class="settings-bar">
     <!-- Row 1: Difficulty -->
-    <div class="settings-inner-row" id="difficultyBar">
+    <div class="settings-row" id="difficultyBar">
       <span class="label">Difficulty</span>
       <div class="pill active" onclick="setDifficulty('easy',this)">Easy</div>
       <div class="pill" onclick="setDifficulty('medium',this)">Medium</div>
@@ -648,9 +124,9 @@
         </div>
       </div>
     </div>
-    <div class="settings-divider"></div>
+    <div class="settings-row-divider"></div>
     <!-- Row 2: Active Params -->
-    <div class="settings-inner-row">
+    <div class="settings-row">
       <span class="label">Params</span>
       <span id="customHint" style="font-size:10px;color:var(--muted);display:none;white-space:nowrap;">— click to toggle</span>
       <div id="paramPills" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
@@ -663,63 +139,82 @@
   </div>
 
   <!-- Workspace -->
-  <div class="workspace">
-    <div style="display:flex;flex-direction:column;gap:14px;">
+  <div class="rig">
 
-      <!-- Target reverb -->
-      <div class="rev-panel" id="targetPanel">
-        <div class="panel-header">
-          <span class="panel-title t-title">▶ TARGET</span>
-          <div class="listen-pill t-pill" id="targetListenPill">
-            <div class="pulse" style="background:var(--accent2)"></div> Listening
+    <section class="device">
+
+      <div class="device-top">
+        <div class="gr-needles">
+          <div class="gr-needles-head"><span class="gr-cap-title">Output Level</span></div>
+          <div class="vu-row">
+            <div class="vu-unit">
+              <div class="vu" id="vuUser"></div>
+              <div class="vu-foot"><span class="gr-name user-c">YOU</span><span class="meter-db" id="userLvlDb">−∞</span></div>
+            </div>
+            <div class="vu-unit target-gr-hidden" id="targetLvlRow">
+              <div class="vu" id="vuTarget"></div>
+              <div class="vu-foot"><span class="gr-name target-c">TGT</span><span class="meter-db" id="targetLvlDb">−∞</span></div>
+            </div>
           </div>
         </div>
+        <div class="monitor">
+          <span class="monitor-label">Monitor</span>
+          <div class="monitor-switch">
+            <button class="mon-btn target-btn" id="btnTarget" onclick="listenTarget()" disabled>
+              <span class="listen-bars"><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span></span>
+              <span class="listen-btn-label">Target</span>
+            </button>
+            <button class="mon-btn dry-btn" id="btnDry" onclick="toggleDry()" disabled>
+              <span class="listen-bars"><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span></span>
+              <span class="listen-btn-label">Dry</span>
+            </button>
+            <button class="mon-btn user-btn" id="btnUser" onclick="listenUser()" disabled>
+              <span class="listen-bars"><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span></span>
+              <span class="listen-btn-label">Yours</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="display-well">
+        <div class="display-main">
+          <div class="display-head">
+            <span class="display-title">Decay Envelope</span>
+            <div id="decayLegend" style="display:none; gap:16px; align-items:center;">
+              <div class="tc-legend"><div class="tc-dot" style="background:var(--tgt2);"></div> Target</div>
+              <div class="tc-legend"><div class="tc-dot" style="background:var(--accent2);"></div> Yours</div>
+            </div>
+          </div>
+          <canvas class="hero-canvas" id="userDecay"></canvas>
+          <div class="scope-row">
+            <span class="scope-label">Signal</span>
+            <canvas id="levelCanvas"></canvas>
+            <button class="waveform-hide-btn" id="waveformHideBtn" onclick="toggleWaveform()">Hide</button>
+          </div>
+          <div class="decay-wrap hidden-offscreen">
+            <canvas class="decay-canvas hidden-decay" id="targetDecay"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="deck deck-target" id="targetPanel">
+        <div class="deck-label"><span class="deck-dot" style="background:var(--tgt2);"></span>Target — hidden until you check</div>
         <div class="knob-grid" id="targetKnobs"></div>
-        <div class="decay-wrap">
-          <div class="decay-label">Decay Envelope</div>
-          <canvas class="decay-canvas hidden-decay" id="targetDecay"></canvas>
-        </div>
       </div>
 
-      <!-- User reverb -->
-      <div class="rev-panel" id="userPanel">
-        <div class="panel-header">
-          <span class="panel-title u-title">◎ YOUR SETTINGS</span>
-          <div class="listen-pill u-pill" id="userListenPill">
-            <div class="pulse" style="background:var(--teal2)"></div> Listening
-          </div>
-        </div>
+      <div class="deck deck-user" id="userPanel">
+        <div class="deck-label"><span class="deck-dot" style="background:var(--accent2);"></span>Your reverb</div>
         <div class="knob-grid" id="userKnobs"></div>
-        <div class="decay-wrap">
-          <div class="decay-label">Decay Envelope</div>
-          <canvas class="decay-canvas" id="userDecay"></canvas>
-          <div class="decay-legend" id="decayLegend" style="display:none;">
-            <div class="dl-item"><div class="dl-dot" style="background:var(--accent2)"></div> Target</div>
-            <div class="dl-item"><div class="dl-dot" style="background:var(--teal2)"></div> Yours</div>
-          </div>
-        </div>
       </div>
 
-    </div>
+    </section>
 
-    <!-- Right column -->
-    <div class="right-col">
-
-      <!-- Waveform panel -->
-      <div class="meter-panel">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-          <span class="label">Waveform</span>
-          <button class="waveform-hide-btn" id="waveformHideBtn" onclick="toggleWaveform()">Hide</button>
-        </div>
-        <canvas id="levelCanvas"></canvas>
-      </div>
-
-      <!-- Source -->
-      <div class="source-panel">
-        <span class="label">Audio Source</span>
-        <div class="source-pill" id="srcOneShot" onclick="setSource('oneShot')">One-shots</div>
-        <div class="source-pill" id="srcLoop"    onclick="setSource('loop')">Loops</div>
+    <aside class="rack">
+      <div class="rack-panel">
+        <span class="rack-label">Audio Source</span>
         <div class="source-pill active" id="srcPink" onclick="setSource('pink')">Pink Noise</div>
+        <div class="source-pill" id="srcOneShot" onclick="setSource('oneShot')">One-shots</div>
+        <div class="source-pill" id="srcLoop" onclick="setSource('loop')">Loops</div>
         <div class="source-pill" id="srcCustom" onclick="triggerUpload()" style="border-style:dashed;">
           <span id="uploadLabel">Upload Folder</span>
           <input type="file" id="folderInput" webkitdirectory directory multiple onchange="handleFolderUpload(event)">
@@ -727,54 +222,37 @@
         <span id="sourceLoadStatus"></span>
       </div>
 
-      <!-- Controls -->
-      <div class="controls-bar">
-        <button class="listen-btn t-btn" id="btnTarget" onclick="listenTarget()" disabled>
-          <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
-          <span class="listen-btn-label">Target</span>
-        </button>
-        <button class="listen-btn u-btn" id="btnUser" onclick="listenUser()" disabled>
-          <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
-          <span class="listen-btn-label">Yours</span>
-        </button>
-        <button class="btn-dry" id="btnDry" onclick="toggleDry()" disabled title="Toggle dry signal (D)">Dry</button>
-      </div>
-      <div class="controls-bar">
-        <button class="btn-action" id="btnRestart" onclick="restartAudio()" disabled title="Restart audio (F)">
-          &#9654; Restart
-        </button>
-        <button class="btn-action" id="btnPause" onclick="togglePause()" disabled title="Pause / Resume (P)">
-          &#9646;&#9646; Pause
-        </button>
-      </div>
-      <div class="controls-bar">
-        <button class="btn-secondary" onclick="newRound()" style="flex:1">New Round</button>
-        <button class="btn-primary" id="btnCheck" onclick="checkAnswer()" disabled style="flex:1">Check Answer</button>
+      <div class="rack-panel">
+        <span class="rack-label">Transport</span>
+        <div class="transport-grid">
+          <button class="btn-secondary" id="btnPause"   onclick="togglePause()"  disabled>&#9646;&#9646; Pause</button>
+          <button class="btn-secondary" id="btnRestart" onclick="restartAudio()" disabled>&#9654; Restart</button>
+          <button class="btn-secondary" onclick="newRound()" style="grid-column:1 / -1;">⟳ New Round</button>
+        </div>
+        <button class="btn-check" id="btnCheck" onclick="checkAnswer()" disabled>Check Match</button>
       </div>
 
-      <!-- Ranges toggle -->
       <button class="ranges-toggle-btn" id="rangesToggleBtn" onclick="toggleRangesPanel()">
-        <span class="rt-arrow">▶</span> Settings
+        <span class="rt-arrow">▶</span> Parameter Ranges
       </button>
       <div class="ranges-panel" id="rangesPanel"></div>
+    </aside>
 
-      <!-- Result -->
-      <div class="result-bar" id="resultBar">
-        <div class="result-top">
-          <div>
-            <div class="result-big" id="resultBig">—</div>
-            <div class="result-denom">/ 100</div>
-          <div class="result-pts" id="resultPts"></div>
-          </div>
-          <div style="flex:1;min-width:160px;">
-            <div class="result-msg" id="resultMsg"></div>
-            <div class="acc-track"><div class="acc-fill" id="accFill"></div></div>
-          </div>
-        </div>
-        <div class="param-results" id="paramResults"></div>
+  </div>
+
+  <div class="result-bar" id="resultBar">
+    <div class="result-top">
+      <div>
+        <div class="result-big" id="resultBig">—</div>
+        <div class="result-denom">/ 100</div>
+        <div class="result-pts" id="resultPts"></div>
       </div>
-
+      <div style="flex:1;min-width:160px;">
+        <div class="result-msg" id="resultMsg"></div>
+        <div class="acc-track"><div class="acc-fill" id="accFill"></div></div>
+      </div>
     </div>
+    <div class="param-results" id="paramResults"></div>
   </div>
 
 </div>
@@ -1085,30 +563,13 @@ function paramToAngle(key, val) {
 }
 
 function makeKnobSVG(key, val, color, isLocked) {
-  const cx=31, cy=31, r=23;
-  const toRad = a => (a-90)*Math.PI/180;
-  const ax = (a,rr) => cx + rr*Math.cos(toRad(a));
-  const ay = (a,rr) => cy + rr*Math.sin(toRad(a));
-  const angle = paramToAngle(key, val);
-  const large = (angle - KNOB_START) > 180 ? 1 : 0;
-  const trackPath = `M${ax(KNOB_START,r)} ${ay(KNOB_START,r)} A${r} ${r} 0 1 1 ${ax(KNOB_END,r)} ${ay(KNOB_END,r)}`;
-  const fillPath  = `M${ax(KNOB_START,r)} ${ay(KNOB_START,r)} A${r} ${r} 0 ${large} 1 ${ax(angle,r)} ${ay(angle,r)}`;
-  const dotX = cx + 16*Math.cos(toRad(angle));
-  const dotY = cy + 16*Math.sin(toRad(angle));
-  const bg = isLocked ? 'var(--surface)' : 'var(--surface2)';
-  return `<svg class="knob-svg" viewBox="0 0 62 62" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="${cx}" cy="${cy}" r="${r+6}" fill="${bg}"/>
-    <path d="${trackPath}" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="3.5" stroke-linecap="round"/>
-    <path d="${fillPath}"  fill="none" stroke="${color}" stroke-width="3.5" stroke-linecap="round" opacity="${isLocked?0.15:0.9}"/>
-    <circle cx="${dotX}" cy="${dotY}" r="3.5" fill="${isLocked?'#333':color}"/>
-    <circle cx="${cx}" cy="${cy}" r="9" fill="${isLocked?'var(--surface)':'var(--surface3)'}"/>
-  </svg>`;
+  return makeProKnobSVG(paramToAngle(key, val), color, isLocked);
 }
 
 function renderKnobs(panel, settings, hideActive) {
   const container = document.getElementById(panel === 'target' ? 'targetKnobs' : 'userKnobs');
   container.innerHTML = '';
-  const color = panel === 'target' ? 'var(--accent2)' : 'var(--teal2)';
+  const color = panel === 'target' ? 'var(--tgt2)' : 'var(--accent2)';
 
   Object.keys(PARAMS).forEach(key => {
     const p = PARAMS[key];
@@ -1194,7 +655,7 @@ function updateUserKnob(key) {
   const wrap = document.getElementById(`knob-user-${key}`);
   const lbl  = document.getElementById(`kval-user-${key}`);
   if (!wrap || !lbl) return;
-  wrap.innerHTML = makeKnobSVG(key, val, 'var(--teal2)', false);
+  wrap.innerHTML = makeKnobSVG(key, val, 'var(--accent2)', false);
   lbl.textContent = p.fmt(val);
   drawDecay('user', document.getElementById('userDecay'));
   if (answered) drawDecay('compare', document.getElementById('userDecay'));
@@ -1233,12 +694,12 @@ function drawDecay(mode, canvas) {
     c.fill();
   };
   if (mode === 'user') {
-    drawCurve(userSettings, 'rgba(94,232,220,0.9)');
+    drawCurve(userSettings, 'rgba(139,111,255,0.95)');
   } else if (mode === 'compare') {
-    drawCurve(targetSettings, 'rgba(164,138,255,0.8)');
-    drawCurve(userSettings,   'rgba(94,232,220,0.9)');
+    drawCurve(targetSettings, 'rgba(135,160,255,0.85)');
+    drawCurve(userSettings,   'rgba(139,111,255,0.95)');
   } else {
-    drawCurve(targetSettings, 'rgba(164,138,255,0.9)');
+    drawCurve(targetSettings, 'rgba(135,160,255,0.95)');
   }
 }
 
@@ -1415,6 +876,18 @@ function startMeterLoop() {
   function loop() {
     animFrameId = requestAnimationFrame(loop);
 
+    // analog output-level meters
+    const lvl = an => { if(!an) return 0; an.getFloatTimeDomainData(buf); let s=0; for(let i=0;i<256;i++) s+=buf[i]*buf[i]; return Math.sqrt(s/256); };
+    const lvlAngle = n => -52 + Math.max(0, Math.min(1, n)) * 104;
+    const tR = lvl(analyserTarget), uR = lvl(analyserUser);
+    const norm = r => (20*Math.log10(r + 1e-7) + 48) / 48;
+    const tNd = document.getElementById('vuTargetNeedle'), uNd = document.getElementById('vuUserNeedle');
+    if (tNd) tNd.setAttribute('transform', `rotate(${lvlAngle(norm(tR)).toFixed(2)} 60 72)`);
+    if (uNd) uNd.setAttribute('transform', `rotate(${lvlAngle(norm(uR)).toFixed(2)} 60 72)`);
+    const dbTxt = r => r < 1e-6 ? '−∞' : `${(20*Math.log10(r)).toFixed(0)}`;
+    const tdb = document.getElementById('targetLvlDb'); if (tdb) tdb.textContent = dbTxt(tR);
+    const udb = document.getElementById('userLvlDb');   if (udb) udb.textContent = dbTxt(uR);
+
     const W = lvsCvs.clientWidth, H = lvsCvs.clientHeight || 44;
     if (lvsCvs.width !== W*dpr) { lvsCvs.width=W*dpr; lvsCvs.height=H*dpr; }
     const lc = lvsCvs.getContext('2d');
@@ -1430,7 +903,7 @@ function startMeterLoop() {
     const aActive = listeningTo==='target' ? analyserTarget : analyserUser;
     if (aActive) {
       aActive.getFloatTimeDomainData(buf);
-      lc.strokeStyle = listeningTo==='target' ? 'rgba(164,138,255,0.8)' : 'rgba(94,232,220,0.8)';
+      lc.strokeStyle = listeningTo==='target' ? 'rgba(135,160,255,0.85)' : 'rgba(139,111,255,0.85)';
       lc.lineWidth=1.5; lc.beginPath();
       for(let i=0;i<256;i++){const x=(i/256)*W,y=H/2-buf[i]*H*0.45;i===0?lc.moveTo(x,y):lc.lineTo(x,y);}
       lc.stroke();
@@ -1451,8 +924,7 @@ function toggleWaveform() {
 function updateListenBtns() {
   document.getElementById('btnTarget').classList.toggle('active', listeningTo==='target');
   document.getElementById('btnUser').classList.toggle('active',   listeningTo==='user');
-  document.getElementById('targetListenPill').classList.toggle('visible', listeningTo==='target');
-  document.getElementById('userListenPill').classList.toggle('visible',   listeningTo==='user');
+  // listening pills removed in faceplate layout
 
 }
 
@@ -1683,6 +1155,7 @@ function newRound() {
   document.getElementById('btnPause').disabled   = false;
   document.getElementById('decayLegend').style.display = 'none';
   document.getElementById('targetDecay').classList.add('hidden-decay');
+  document.getElementById('targetLvlRow')?.classList.add('target-gr-hidden');
 
   renderKnobs('target', targetSettings, true);
   renderKnobs('user',   userSettings,   false);
@@ -1701,6 +1174,7 @@ function checkAnswer() {
 
   renderKnobs('target', targetSettings, false);
   document.getElementById('targetDecay').classList.remove('hidden-decay');
+  document.getElementById('targetLvlRow')?.classList.remove('target-gr-hidden');
   drawDecay('compare', document.getElementById('userDecay'));
   document.getElementById('decayLegend').style.display = 'flex';
   if (currentSource) routeTo('user');
@@ -1850,6 +1324,11 @@ function showToast(msg) {
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
+(function initVU(){
+  const t = document.getElementById('vuTarget'), u = document.getElementById('vuUser');
+  if (t) t.innerHTML = buildVU('vuTargetNeedle', 'var(--tgt2)', -52);
+  if (u) u.innerHTML = buildVU('vuUserNeedle', 'var(--accent2)', -52);
+})();
 renderParamPills();
 updateMultBadge();
 document.getElementById('fixLockedBtn').classList.toggle('active', !fixLockedParams);

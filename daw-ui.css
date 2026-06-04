@@ -125,13 +125,18 @@ nav.site-nav {
 }
 .pill:hover { border-color: var(--accent); color: var(--text); }
 .pill.active {
-  background: linear-gradient(180deg, rgba(232,134,90,0.22), rgba(232,134,90,0.08));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 24%, transparent), color-mix(in srgb, var(--accent) 8%, transparent));
   border-color: var(--accent);
   color: #fff;
   box-shadow: 0 0 0 1px var(--accent) inset, 0 4px 14px -6px var(--accent);
 }
-.param-pill-toggle { cursor: pointer !important; transition: all 0.15s; }
-.param-pill-toggle:hover { opacity: 0.85; transform: scale(1.04); }
+.param-pill-toggle {
+  font-size: 11px; padding: 4px 11px; border-radius: 8px;
+  border: 1px solid var(--border2); font-weight: 500;
+  white-space: nowrap; transition: all 0.15s;
+}
+.param-pill-toggle.togglable { cursor: pointer; }
+.param-pill-toggle.togglable:hover { opacity: 0.85; transform: scale(1.04); }
 .custom-hint { font-size: 10px; color: var(--muted); font-style: italic; padding: 0 2px; }
 
 select {
@@ -265,9 +270,9 @@ kbd {
 }
 .mon-btn {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 10px;
+  gap: 9px;
   background: transparent; border: 1px solid transparent;
-  border-radius: 9px; padding: 24px 28px; min-width: 116px;
+  border-radius: 9px; padding: 10px 26px; min-width: 110px;
   cursor: pointer; transition: all 0.15s; color: var(--muted);
 }
 .mon-btn .listen-btn-label {
@@ -278,7 +283,7 @@ kbd {
 .mon-btn:hover:not(:disabled) { background: rgba(255,255,255,0.04); }
 .mon-btn.target-btn.active { background: rgba(91,127,255,0.16); border-color: rgba(91,127,255,0.55); box-shadow: 0 0 14px -4px var(--tgt); }
 .mon-btn.dry-btn.active    { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.28); color: var(--text); }
-.mon-btn.user-btn.active   { background: rgba(232,134,90,0.16); border-color: rgba(232,134,90,0.6); box-shadow: 0 0 14px -4px var(--accent); }
+.mon-btn.user-btn.active   { background: color-mix(in srgb, var(--accent) 17%, transparent); border-color: color-mix(in srgb, var(--accent) 60%, transparent); box-shadow: 0 0 14px -4px var(--accent); }
 .mon-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
 .listen-bars { display: flex; align-items: flex-end; gap: 3px; height: 18px; }
@@ -466,7 +471,7 @@ kbd {
 .source-pill:hover { border-color: var(--accent); }
 .source-pill.active {
   border-color: var(--accent);
-  background: linear-gradient(180deg, rgba(232,134,90,0.18), rgba(232,134,90,0.05));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 20%, transparent), color-mix(in srgb, var(--accent) 6%, transparent));
   color: var(--accent2);
 }
 .source-pill input[type=file] { display: none; }

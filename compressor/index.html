@@ -17,6 +17,7 @@
   body { --accent: #e8865a; --accent2: #f0a882; }
 </style>
   <script src="../scoring.js"></script>
+  <script src="../daw-ui.js"></script>
 
   <!-- Open Graph / Social -->
   <meta property="og:type"        content="website">
@@ -579,7 +580,7 @@ function renderParamPills() {
     }
     span.textContent = PARAMS[key].label;
     if (difficulty === 'custom') {
-      span.className = 'param-pill-toggle';
+      span.className = 'param-pill-toggle togglable';
       span.title = `Click to ${isActive ? 'remove' : 'add'} ${PARAMS[key].label}`;
       span.onclick = () => toggleCustomParam(key);
     }
@@ -603,34 +604,7 @@ function paramToAngle(key, val) {
 }
 
 function makeKnobSVG(key, val, color, isLocked) {
-  const angle = paramToAngle(key, val);            // -135 .. 135
-  const cx = 44, cy = 44, rArc = 38, rCap = 26;
-  const toRad = a => (a - 90) * Math.PI / 180;
-  const ax = (a, rr) => cx + rr * Math.cos(toRad(a));
-  const ay = (a, rr) => cy + rr * Math.sin(toRad(a));
-
-  const trackPath = `M ${ax(KNOB_START,rArc)} ${ay(KNOB_START,rArc)} A ${rArc} ${rArc} 0 1 1 ${ax(KNOB_END,rArc)} ${ay(KNOB_END,rArc)}`;
-  const large = (angle - KNOB_START) > 180 ? 1 : 0;
-  const valPath = `M ${ax(KNOB_START,rArc)} ${ay(KNOB_START,rArc)} A ${rArc} ${rArc} 0 ${large} 1 ${ax(angle,rArc)} ${ay(angle,rArc)}`;
-
-  const pIn = rCap - 13, pOut = rCap - 2;
-  const nx1 = cx + pIn  * Math.cos(toRad(angle)), ny1 = cy + pIn  * Math.sin(toRad(angle));
-  const nx2 = cx + pOut * Math.cos(toRad(angle)), ny2 = cy + pOut * Math.sin(toRad(angle));
-  const tipx = ax(angle, rArc), tipy = ay(angle, rArc);
-
-  const arcColor = isLocked ? 'rgba(255,255,255,0.16)' : color;
-  const capFill  = isLocked ? 'url(#knobCapLocked)' : 'url(#knobCap)';
-  const glow     = isLocked ? '' : `filter:drop-shadow(0 0 4px ${color});`;
-
-  return `<svg class="knob-svg" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
-    <path d="${trackPath}" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="4.5" stroke-linecap="round"/>
-    <path d="${valPath}" fill="none" stroke="${arcColor}" stroke-width="4.5" stroke-linecap="round" opacity="${isLocked?0.5:1}" style="${glow}"/>
-    ${isLocked ? '' : `<circle cx="${tipx}" cy="${tipy}" r="3" fill="${color}" style="filter:drop-shadow(0 0 4px ${color});"/>`}
-    <circle cx="${cx}" cy="${cy+1.5}" r="${rCap}" fill="rgba(0,0,0,0.5)"/>
-    <circle cx="${cx}" cy="${cy}" r="${rCap}" fill="${capFill}" stroke="rgba(0,0,0,0.65)" stroke-width="1"/>
-    <circle cx="${cx}" cy="${cy-3}" r="${rCap-3}" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
-    <line x1="${nx1}" y1="${ny1}" x2="${nx2}" y2="${ny2}" stroke="${isLocked ? 'rgba(255,255,255,0.4)' : '#fff'}" stroke-width="2.5" stroke-linecap="round" opacity="${isLocked?0.6:0.95}"/>
-  </svg>`;
+  return makeProKnobSVG(paramToAngle(key, val), color, isLocked);
 }
 
 function renderKnobs(panel, settings, hideActive) {
@@ -1444,30 +1418,7 @@ function showToast(msg) {
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
-// ── Analog GR needle meters ──────────────────────────────
-function buildVU(needleId, color) {
-  const cx = 60, cy = 72, r = 50, rin = 43, span = 52, N = 7;
-  let ticks = '';
-  for (let i = 0; i < N; i++) {
-    const a = (-span + (i / (N - 1)) * 2 * span) * Math.PI / 180;
-    const x1 = cx + rin * Math.sin(a), y1 = cy - rin * Math.cos(a);
-    const x2 = cx + r   * Math.sin(a), y2 = cy - r   * Math.cos(a);
-    const major = (i === 0 || i === N - 1);
-    ticks += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="rgba(255,255,255,${major?0.42:0.16})" stroke-width="${major?1.6:1}"/>`;
-  }
-  const ex = cx + r * Math.sin(-span*Math.PI/180), ey = cy - r * Math.cos(-span*Math.PI/180);
-  const sx = cx + r * Math.sin( span*Math.PI/180), sy = cy - r * Math.cos( span*Math.PI/180);
-  return `<svg class="vu-svg" viewBox="0 0 120 84" xmlns="http://www.w3.org/2000/svg">
-    <path d="M ${ex.toFixed(1)} ${ey.toFixed(1)} A ${r} ${r} 0 0 1 ${sx.toFixed(1)} ${sy.toFixed(1)}" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
-    ${ticks}
-    <text x="${(sx+2).toFixed(1)}" y="${(sy-4).toFixed(1)}" class="vu-lbl">0</text>
-    <text x="${(ex-9).toFixed(1)}" y="${(ey-4).toFixed(1)}" class="vu-lbl">20</text>
-    <g id="${needleId}" transform="rotate(${span} ${cx} ${cy})">
-      <line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy - r + 7}" stroke="${color}" stroke-width="2.2" stroke-linecap="round" style="filter:drop-shadow(0 0 3px ${color});"/>
-    </g>
-    <circle cx="${cx}" cy="${cy}" r="4.5" fill="#15171b" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
-  </svg>`;
-}
+// ── Analog GR needle meters (renderers in daw-ui.js) ───────────────────────────────
 (function initVU(){
   const t = document.getElementById('vuTarget'), u = document.getElementById('vuUser');
   if (t) t.innerHTML = buildVU('vuTargetNeedle', 'var(--tgt2)');
