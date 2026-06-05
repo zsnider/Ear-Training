@@ -3,534 +3,212 @@
 <head>
   <link rel="manifest" href="manifest.json">
   <meta charset="UTF-8">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cloud.umami.is 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://aolaxmmrmvovbzumlybe.supabase.co wss://aolaxmmrmvovbzumlybe.supabase.co https://cloud.umami.is; img-src 'self' data:; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
   <meta name="description" content="Match a hidden EQ curve by ear. Train your frequency, gain, and Q recognition with interactive ear training.">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EQ Match — SonicSandbox</title>
-    <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="../style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
+  <link rel="stylesheet" href="../daw-ui.css">
 <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+  /* ── EQ Match identity: "Your EQ" reads emerald, target stays system-blue ── */
+  body { --accent: #1fd58a; --accent2: #5be8b0; }
 
-    :root {
-      --bg: #0d0e11;
-      --surface: #161820;
-      --surface2: #1e2028;
-      --border: rgba(255,255,255,0.08);
-      --border2: rgba(255,255,255,0.14);
-      --text: #e8e9f0;
-      --muted: #7a7d8e;
-      --accent: #5b6aff;
-      --accent2: #8892ff;
-      --green: #3ecf8e;
-      --red: #f45b69;
-      --amber: #f5a623;
-    }
+  /* Single full-width column — graph is the hero, controls stack below */
+  .main { max-width: 1040px; min-width: 0; }
 
-    body {
-      font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 0 0 60px;
-      user-select: none;
-    }
-
-    /* ── Header ── */
-    header {
-      width: 100%;
-      max-width: 980px;
-      padding: 20px 24px 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .header-left { display: flex; align-items: center; gap: 12px; }
-
-    .brand { display: flex; align-items: center; gap: 10px; }
-    .brand-icon {
-      width: 32px; height: 32px;
-      background: var(--accent);
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .brand-name {
-      font-size: 14px; font-weight: 700;
-      letter-spacing: 0.1em; color: var(--text);
-    }
-
-    .score-area { display: flex; gap: 20px; align-items: center; }
-    .stat { text-align: center; }
-    .stat-val { font-size: 20px; font-weight: 600; color: var(--accent2); }
-    .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
-    .divider { width: 1px; height: 20px; background: var(--border2); }
-
-    /* ── Main ── */
-    .main {
-      width: 100%;
-      max-width: 980px;
-      padding: 20px 24px 0;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    /* ── Help Section ── */
-    .help-toggle {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      color: var(--muted);
-      font-family: inherit;
-      font-size: 13px;
-      padding: 9px 16px;
-      cursor: pointer;
-      transition: all 0.15s;
-      margin-top: 4px;
-      margin-left: 24px;
-      width: fit-content;
-    }
-    .help-toggle:hover { border-color: var(--border2); color: var(--text); }
-    .help-toggle .toggle-arrow {
-      font-size: 10px;
-      transition: transform 0.2s;
-      display: inline-block;
-    }
-    .help-toggle.open .toggle-arrow { transform: rotate(90deg); }
-
-    .help-section {
-      display: none;
-      width: calc(100% - 48px);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 28px 32px;
-      gap: 28px;
-      flex-direction: column;
-    }
-    .help-section.visible { display: flex; }
-
-    .help-section h2 {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text);
-      letter-spacing: 0.02em;
-      margin-bottom: 2px;
-    }
-    .help-section p {
-      font-size: 13.5px;
-      color: var(--muted);
-      line-height: 1.65;
-    }
-    .help-section p strong { color: var(--text); font-weight: 500; }
-
-    .help-block { display: flex; flex-direction: column; gap: 8px; }
-
-    .help-freq-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 10px;
-      margin-top: 4px;
-    }
-    .help-freq-card {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 13px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .help-freq-card .freq-label {
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-    .help-freq-card .freq-range {
-      font-size: 11px;
-      color: var(--muted);
-      font-family: 'IBM Plex Mono', monospace;
-    }
-    .help-freq-card .freq-desc {
-      font-size: 12.5px;
-      color: var(--muted);
-      line-height: 1.55;
-      margin-top: 2px;
-    }
-    .help-divider {
-      border: none;
-      border-top: 1px solid var(--border);
-    }
-
-    .top-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-
-    .pill {
-      background: var(--surface2);
-      border: 0.5px solid var(--border2);
-      border-radius: 20px;
-      padding: 6px 14px;
-      font-size: 13px;
-      color: var(--muted);
-      cursor: pointer;
-      transition: all 0.15s;
-      user-select: none;
-    }
-    .pill:hover { border-color: var(--accent); color: var(--text); }
-    .pill.active {
-      background: var(--surface2);
-      border-color: var(--accent2);
-      color: var(--accent2);
-      box-shadow: 0 0 10px rgba(136,146,255,0.1);
-    }
-
-    .label {
-      font-size: 12px; color: var(--muted);
-      text-transform: uppercase; letter-spacing: 0.6px;
-      font-weight: 600; white-space: nowrap;
-    }
-
-    kbd {
-      font-family: inherit; font-size: 10px;
-      background: var(--surface);
-      border: 0.5px solid var(--border2);
-      border-radius: 4px; padding: 1px 5px; color: var(--text);
-    }
-
-    .drag-hint {
-      font-size: 11px; color: var(--muted);
-      background: var(--surface2);
-      border-radius: 6px; padding: 3px 10px;
-      white-space: nowrap;
-    }
-
-    /* ── EQ Canvas ── */
-    .eq-card {
-      background: var(--surface);
-      border: 0.5px solid var(--border);
-      border-radius: 16px;
-      overflow: hidden;
-    }
-
-    .eq-canvas-wrap { position: relative; width: 100%; height: 300px; }
-
-    canvas#eqCanvas {
-      display: block; width: 100%; height: 100%;
-      touch-action: none;
-    }
-
-    .eq-footer {
-      display: flex; align-items: center; gap: 20px;
-      padding: 10px 16px;
-      border-top: 0.5px solid var(--border);
-      flex-wrap: wrap;
-    }
-    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
-    .legend-line { width: 28px; height: 3px; border-radius: 2px; }
-    .hint-text { font-size: 12px; color: var(--muted); margin-left: auto; }
-
-    /* ── Band chips ── */
-    .band-info-row { display: flex; gap: 10px; flex-wrap: wrap; }
-
-    .band-chip {
-      background: var(--surface);
-      border: 0.5px solid var(--border);
-      border-radius: 10px; padding: 10px 14px;
-      flex: 1; min-width: 130px;
-      display: flex; flex-direction: column; gap: 5px;
-    }
-    .band-chip-header { display: flex; justify-content: space-between; align-items: center; }
-    .band-chip-name { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-    .band-chip-type { font-size: 11px; color: var(--muted); background: var(--surface2); border-radius: 5px; padding: 2px 6px; }
-    .band-vals { display: flex; gap: 10px; }
-    .band-val { font-size: 12px; color: var(--muted); }
-    .band-val span { color: var(--text); font-weight: 500; }
-
-    /* ── Buttons ── */
-    button {
-      border: none; border-radius: 10px;
-      font-family: inherit; font-size: 13px; font-weight: 500;
-      cursor: pointer; padding: 9px 18px; transition: all 0.15s;
-    }
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-primary:hover { background: var(--accent2); }
-    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
-    .btn-secondary { background: var(--surface2); color: var(--text); border: 0.5px solid var(--border2); }
-    .btn-secondary:hover { border-color: var(--accent); color: var(--accent2); }
-    .btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
-    .btn-secondary.paused { background: rgba(244,91,105,0.08); border-color: var(--red); color: var(--red); }
-
-    .listen-btn {
-      background: var(--surface2);
-      color: var(--green);
-      border: 0.5px solid rgba(62,207,142,0.3);
-      display: flex; align-items: center; gap: 8px;
-      padding: 9px 16px; font-size: 13px; flex: 1;
-    }
-    .listen-btn:hover { background: rgba(62,207,142,0.08); }
-    .listen-btn.active { background: rgba(62,207,142,0.15); border-color: rgba(62,207,142,0.65); }
-    .listen-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    .listen-btn.target-btn { color: var(--accent2); border-color: rgba(136,146,255,0.3); }
-    .listen-btn.target-btn:hover { background: rgba(136,146,255,0.08); }
-    .listen-btn.target-btn.active { background: rgba(136,146,255,0.15); border-color: rgba(136,146,255,0.65); }
-
-    .listen-btn.dry-btn { color: var(--muted); border-color: rgba(255,255,255,0.15); }
-    .listen-btn.dry-btn:hover { background: rgba(255,255,255,0.04); }
-    .listen-btn.dry-btn.active { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.3); color: var(--text); }
-
-    .pulse-dot {
-      width: 7px; height: 7px;
-      background: currentColor;
-      border-radius: 50%; flex-shrink: 0;
-      animation: pulse 1.1s infinite;
-    }
-    @keyframes pulse {
-      0%,100% { opacity:1; transform:scale(1); }
-      50% { opacity:0.3; transform:scale(0.6); }
-    }
-
-    /* ── Controls rows ── */
-    .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-
-    /* ── Settings rows ── */
-    .setting-item {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      padding: 8px 16px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    select {
-      background: var(--surface2); color: var(--text);
-      border: 1px solid var(--border2);
-      padding: 6px 12px; border-radius: 8px;
-      font-family: inherit; font-size: 13px;
-      outline: none; cursor: pointer; transition: border-color 0.2s;
-    }
-    select:hover { border-color: var(--accent); }
-
-    /* ── Source pills ── */
-    .source-pill {
-      cursor: pointer; padding: 5px 13px;
-      border-radius: 10px; font-size: 13px;
-      background: var(--surface2); border: 1px solid transparent;
-      transition: all 0.15s;
-    }
-    .source-pill:hover { border-color: var(--accent); color: var(--text); }
-    .source-pill.active { border-color: var(--accent); background: rgba(91,106,255,0.1); color: var(--accent2); }
-
-    /* ── Freq range ── */
-    .num-input {
-      width: 68px; background: var(--surface2); color: var(--text);
-      border: 1px solid var(--border2); border-radius: 6px;
-      padding: 4px 8px; font-family: inherit; font-size: 13px;
-    }
-    .num-input:focus { outline: none; border-color: var(--accent); }
-
-    /* ── Result bar ── */
-    .result-bar {
-      background: var(--surface);
-      border: 0.5px solid var(--border);
-      border-radius: 12px; padding: 18px 20px;
-      display: none; flex-direction: column; gap: 12px;
-    }
-    .result-bar.visible { display: flex; }
-    .result-top { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
-    .result-score { display: flex; align-items: baseline; gap: 6px; }
-    .result-big { font-size: 44px; font-weight: 700; line-height: 1; }
-    .result-denom { color: var(--muted); font-size: 16px; }
-    .result-pts { font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; color:var(--accent2); margin-top:4px; opacity:0.9; }
-    .result-msg { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
-    .acc-track { height: 5px; background: var(--border2); border-radius: 3px; overflow: hidden; flex: 1; min-width: 200px; }
-    .acc-fill { height: 100%; border-radius: 3px; width: 0; transition: width 0.9s cubic-bezier(0.16,1,0.3,1); }
-    .band-results { display: flex; gap: 8px; flex-wrap: wrap; }
-    .br-chip {
-      background: var(--surface2); border: 0.5px solid var(--border);
-      border-radius: 8px; padding: 6px 12px; font-size: 12px; color: var(--muted);
-    }
-    .br-chip .good { color: var(--green); font-weight: 500; }
-    .br-chip .bad { color: var(--red); font-weight: 500; }
-
-    /* ── Toast ── */
-    .toast {
-      position: fixed; bottom: 28px; left: 50%;
-      transform: translateX(-50%) translateY(16px);
-      background: var(--surface2); border: 0.5px solid var(--border2);
-      border-radius: 12px; padding: 11px 18px;
-      font-size: 14px; color: var(--text);
-      opacity: 0; transition: all 0.22s;
-      pointer-events: none; z-index: 999; white-space: nowrap;
-    }
-    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-    /* ── Fix-Q button active state ── */
-    .fix-q-btn.active {
-      color: var(--accent2) !important;
-      border-color: var(--accent) !important;
-      background: rgba(91,106,255,0.1) !important;
-    }
-
-    /* ── Keyboard shortcuts popover ── */
-    .shortcuts-wrap { position: relative; }
-    .shortcuts-btn {
-      display: flex; align-items: center; gap: 5px;
-      background: var(--surface2); border: 0.5px solid var(--border2);
-      border-radius: 8px; color: var(--muted);
-      font-family: inherit; font-size: 12px; font-weight: 500;
-      padding: 5px 11px; cursor: pointer; transition: all 0.15s;
-      white-space: nowrap;
-    }
-    .shortcuts-btn:hover { border-color: var(--accent); color: var(--text); }
-    .shortcuts-popover {
-      display: none; position: absolute; top: calc(100% + 8px); right: 0;
-      background: var(--surface); border: 1px solid var(--border2);
-      border-radius: 12px; padding: 14px 18px;
-      z-index: 50; min-width: 260px;
-    }
-    .shortcuts-popover.open { display: block; }
-    .shortcut-row {
-      display: flex; justify-content: space-between; align-items: center;
-      gap: 16px; font-size: 12px; color: var(--muted); padding: 5px 0;
-      border-bottom: 0.5px solid var(--border);
-    }
-    .shortcut-row:last-child { border-bottom: none; }
-    .shortcut-keys { display: flex; gap: 4px; flex-shrink: 0; }
-
-    /* ── Settings sections ── */
-    .settings-section { display: flex; flex-direction: column; gap: 8px; }
-    .settings-collapse-btn {
-      display: flex; align-items: center; gap: 7px;
-      background: none; border: 1px solid var(--border);
-      border-radius: 10px; color: var(--muted);
-      font-family: inherit; font-size: 11px; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.08em;
-      padding: 7px 14px; cursor: pointer; transition: all 0.15s;
-      width: fit-content;
-    }
-    .settings-collapse-btn:hover { border-color: var(--border2); color: var(--text); }
-    .settings-collapse-btn .collapse-arrow { font-size: 9px; transition: transform 0.2s; }
-    .settings-collapse-btn.open .collapse-arrow { transform: rotate(90deg); }
-    .advanced-settings { display: none; flex-direction: column; gap: 8px; }
-    .advanced-settings.open { display: flex; }
-
-    /* ── Listen buttons — upgraded ── */
-    .listen-btn {
-      /* override base listen-btn from above */
-      flex-direction: column !important;
-      align-items: center !important;
-      justify-content: center !important;
-      gap: 6px !important;
-      padding: 10px 16px !important;
-      min-height: 60px;
-    }
-    .listen-btn-label {
-      font-size: 11px; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.07em;
-    }
-    .listen-bars {
-      display: flex; align-items: flex-end; gap: 2.5px; height: 14px;
-    }
-    .listen-bar {
-      width: 3px; border-radius: 2px; background: currentColor;
-      opacity: 0.3; transition: opacity 0.15s; flex-shrink: 0;
-    }
-    .listen-btn.active .listen-bar { opacity: 1; }
-    .listen-bar:nth-child(1) { height: 5px;  animation-delay: 0s; }
-    .listen-bar:nth-child(2) { height: 10px; animation-delay: 0.12s; }
-    .listen-bar:nth-child(3) { height: 14px; animation-delay: 0.06s; }
-    .listen-bar:nth-child(4) { height: 9px;  animation-delay: 0.18s; }
-    .listen-bar:nth-child(5) { height: 6px;  animation-delay: 0.09s; }
-    .listen-btn.active .listen-bar {
-      animation: barBounce 0.75s ease-in-out infinite;
-    }
-    @keyframes barBounce {
-      0%,100% { transform: scaleY(1); }
-      50%      { transform: scaleY(0.3); }
-    }
-
-    /* ── Result bar color feedback ── */
-    .result-bar { transition: border-color 0.5s ease; }
-    .result-bar.score-good { border-color: rgba(62,207,142,0.55) !important; }
-    .result-bar.score-ok   { border-color: rgba(245,166,35,0.55) !important; }
-    .result-bar.score-bad  { border-color: rgba(244,91,105,0.55) !important; }
-  
-    /* ── Game bar (site context + score row) ─────────────── */
-  nav.site-nav {
-    width: 100%;
-    padding: 14px 24px;
-    display: flex; align-items: center;
-    border-bottom: 1px solid var(--border);
+  /* ── EQ device faceplate (full width) ────────────────────────── */
+  .eq-device {
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.04), transparent 18%),
+      linear-gradient(180deg, var(--metal-1) 0%, var(--metal-2) 100%);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 18px; padding: 16px;
+    display: flex; flex-direction: column; gap: 13px;
+    box-shadow: 0 1px 0 var(--panel-hi) inset, 0 -1px 0 rgba(0,0,0,0.5) inset, 0 30px 70px -34px #000;
+    min-width: 0;
   }
-  .game-bar {
-    width: 100%; max-width: 980px;
-    padding: 10px 24px;
+
+  /* graph header — gain direction lives here (where a nameplate would be), legend on the right */
+  .eq-head {
     display: flex; align-items: center; justify-content: space-between;
-    gap: 16px;
-    border-bottom: 1px solid var(--border);
-    background-image: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
-    background-size: 28px 28px;
+    gap: 14px; flex-wrap: wrap;
   }
-  .game-bar-left { display: flex; align-items: center; }
-  .brand { display: flex; align-items: center; gap: 10px; }
-  .brand-icon {
-    width: 28px; height: 28px; border-radius: 7px;
-    background: var(--accent);
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
+  .eq-head-left { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+
+  .eq-legend { display: flex; gap: 16px; }
+  .lg-item { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--muted); }
+  .lg-dot { width: 13px; height: 3px; border-radius: 2px; }
+  .lg-target { opacity: 0.4; transition: opacity 0.4s ease; }
+  .eq-legend.revealed .lg-target { opacity: 1; }
+
+  .eq-canvas-wrap {
+    position: relative; width: 100%; max-width: 100%; height: 432px;
+    border-radius: 11px; overflow: hidden;
+    background:
+      radial-gradient(120% 100% at 50% 0%, rgba(255,255,255,0.02), transparent 55%),
+      #060708;
+    border: 1px solid var(--well-edge);
+    box-shadow: 0 3px 14px rgba(0,0,0,0.55) inset;
   }
-  .brand-name {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 13px; font-weight: 600;
-    color: var(--text); letter-spacing: -0.01em;
+  canvas#eqCanvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: default; }
+
+  .eq-foot { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .eq-foot .gesture {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 11px; color: var(--muted);
+    font-family: 'IBM Plex Sans', sans-serif;
   }
-  .game-bar-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
-  .score-row { display: flex; align-items: center; gap: 16px; }
-  .stat { text-align: center; }
-  .stat-val {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 18px; font-weight: 700;
-    color: var(--accent2); line-height: 1;
+  .eq-foot .gesture b {
+    font-family: 'IBM Plex Mono', monospace; color: var(--text);
+    font-weight: 600; font-size: 10px;
   }
-  .stat-label {
-    font-size: 9px; color: var(--muted);
-    text-transform: uppercase; letter-spacing: 0.08em;
-    margin-top: 2px;
-  }
-  .vdiv { width: 1px; height: 20px; background: var(--border2); }
-  .mult-badge {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 8px; color: var(--muted);
-    letter-spacing: 0.04em; opacity: 0.7;
-  }
-  @media (max-width: 600px) {
-    nav.site-nav { padding: 12px 16px; }
-    .game-bar { padding: 8px 16px; }
-    .stat-val { font-size: 15px; }
-    .score-row { gap: 10px; }
+  .eq-foot-sep { width: 1px; height: 13px; background: var(--border2); }
+  .eq-hint {
+    margin-left: auto; font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; color: var(--muted);
   }
 
-  .forgot-pw-link {
-    display: block; width: 100%; text-align: center;
-    margin-top: 12px; font-size: 12px; color: var(--muted);
-    background: none; border: none; cursor: pointer; font-family: inherit;
+  /* ── Monitor row (full-width A/B switch) ─────────────────────── */
+  .monitor-bar {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px;
+    background: var(--well); border: 1px solid var(--well-edge);
+    border-radius: 14px; padding: 7px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5) inset;
   }
-  .forgot-pw-link:hover { color: var(--text); }
+  .monitor-bar .mon-btn { min-width: 0; width: 100%; padding: 13px 10px; border-radius: 10px; }
 
+  /* ── Transport row ───────────────────────────────────────────── */
+  .transport-row { display: flex; gap: 9px; flex-wrap: wrap; }
+  .transport-row .btn-secondary { flex: 1; min-width: 120px; }
+  .transport-row .t-gap { flex: 0.5; min-width: 0; }
+  .transport-row .btn-check { width: auto; flex: 1.5; min-width: 170px; padding: 11px 18px; }
+
+  /* ── Audio source bar ────────────────────────────────────────── */
+  .control-bar {
+    display: flex; align-items: center; gap: 11px; flex-wrap: wrap;
+    background: linear-gradient(180deg, var(--metal-1), var(--metal-2));
+    border: 1px solid var(--border); border-radius: 14px; padding: 11px 16px;
+    box-shadow: 0 1px 0 var(--panel-hi) inset;
+  }
+  .control-bar .source-pill { flex: 0 0 auto; }
+
+  /* ── Band readout deck ───────────────────────────────────────── */
+  .deck-bands { padding: 12px 14px 13px; }
+  .band-info-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .band-chip {
+    flex: 1; min-width: 150px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.022), transparent);
+    border: 1px solid var(--border);
+    border-radius: 11px; padding: 11px 14px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .band-chip-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .band-chip-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .band-chip-name::before {
+    content: ""; width: 8px; height: 8px; border-radius: 50%;
+    background: currentColor; box-shadow: 0 0 7px currentColor;
+  }
+  .band-chip-type {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; color: var(--muted);
+    background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+    border-radius: 6px; padding: 3px 8px; white-space: nowrap;
+  }
+  .band-vals { display: flex; gap: 16px; }
+  .band-val { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); }
+  .band-val span { color: var(--text); font-weight: 600; }
+
+  /* ── Settings rows extra ─────────────────────────────────────── */
+  .pill-group { display: flex; gap: 7px; align-items: center; }
+  .seg-divider { width: 1px; height: 20px; background: var(--border2); margin: 0 4px; }
+
+  /* ── Rack settings (filters + ranges) ────────────────────────── */
+  .adv-toggle {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.03); border: 1px solid var(--border2);
+    border-radius: 10px; color: var(--muted);
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    padding: 10px 14px; cursor: pointer; transition: all 0.15s; width: 100%;
+  }
+  .adv-toggle:hover { border-color: var(--accent); color: var(--text); }
+  .adv-toggle .collapse-arrow { font-size: 9px; transition: transform 0.2s; }
+  .adv-toggle.open .collapse-arrow { transform: rotate(90deg); }
+
+  .advanced-settings {
+    display: none; flex-direction: column; gap: 10px;
+    background: linear-gradient(180deg, var(--metal-1), var(--metal-2));
+    border: 1px solid var(--border); border-radius: 12px; padding: 14px;
+  }
+  .advanced-settings.open { display: flex; }
+  .adv-block { display: flex; flex-direction: column; gap: 8px; }
+  .adv-block-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .range-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .range-line .mini-label {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+    color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .num-input {
+    width: 64px; background: var(--well); color: var(--text);
+    border: 1px solid var(--border2); border-radius: 6px;
+    padding: 5px 8px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; outline: none;
+  }
+  .num-input:focus { border-color: var(--accent); }
+  .adv-mini-btn {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 11px; font-weight: 600;
+    background: rgba(255,255,255,0.03); color: var(--text);
+    border: 1px solid var(--border2); border-radius: 7px;
+    padding: 6px 12px; cursor: pointer; transition: all 0.15s;
+  }
+  .adv-mini-btn:hover { border-color: var(--accent); color: var(--accent2); }
+  .range-hint { font-size: 10px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+  .adv-divider { height: 1px; background: var(--border); margin: 2px 0; }
+  .tier-select { width: 100%; }
+
+  .fix-q-btn {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 11px; font-weight: 600;
+    background: var(--surface2); color: var(--muted);
+    border: 1px solid var(--border2); border-radius: 7px;
+    padding: 6px 12px; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .fix-q-btn.active {
+    color: #fff;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 24%, transparent), color-mix(in srgb, var(--accent) 8%, transparent));
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent) inset;
+  }
+
+  .source-load-status { font-size: 11px; color: var(--amber); display: none; }
+
+  /* result chips */
+  .br-chip {
+    background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+    border-radius: 8px; padding: 7px 12px; font-size: 12px; color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .br-chip .good { color: var(--green); }
+  .br-chip .bad  { color: var(--red); }
+
+  @media (max-width: 820px) {
+    .eq-canvas-wrap { height: 340px; }
+  }
+  @media (max-width: 560px) {
+    .eq-canvas-wrap { height: 264px; }
+    .eq-hint { display: none; }
+    .monitor-bar .mon-btn { padding: 10px 6px; }
+  }
 </style>
   <script src="../scoring.js"></script>
 
@@ -600,145 +278,116 @@
 
 <div class="main">
 
-  <!-- Bands + keyboard hint -->
-  <div class="top-bar">
-    <span class="label">Bands</span>
-    <div class="pill active" data-diff="1" onclick="setDifficulty(1, this)">1</div>
-    <div class="pill" data-diff="2" onclick="setDifficulty(2, this)">2</div>
-    <div class="pill" data-diff="3" onclick="setDifficulty(3, this)">3</div>
-    <div class="divider"></div>
-    <span class="drag-hint">Drag ← → = freq &nbsp;·&nbsp; ↑ ↓ = gain &nbsp;·&nbsp; Scroll = Q</span>
-    <div style="margin-left:auto; position:relative;" class="shortcuts-wrap">
-      <button class="shortcuts-btn" onclick="toggleShortcuts(event)">⌨ Shortcuts</button>
-      <div class="shortcuts-popover" id="shortcutsPopover">
-        <div class="shortcut-row"><span>A/B listen</span><div class="shortcut-keys"><kbd>Space</kbd></div></div>
-        <div class="shortcut-row"><span>Dry signal</span><div class="shortcut-keys"><kbd>D</kbd></div></div>
-        <div class="shortcut-row"><span>Pause / Resume</span><div class="shortcut-keys"><kbd>P</kbd></div></div>
-        <div class="shortcut-row"><span>Restart audio</span><div class="shortcut-keys"><kbd>F</kbd></div></div>
-        <div class="shortcut-row"><span>Check answer</span><div class="shortcut-keys"><kbd>↵</kbd></div></div>
-        <div class="shortcut-row"><span>Skip track</span><div class="shortcut-keys"><kbd>↑</kbd><kbd>↓</kbd></div></div>
-        <div class="shortcut-row"><span>Seek ±10s</span><div class="shortcut-keys"><kbd>←</kbd><kbd>→</kbd></div></div>
+  <!-- Settings bar -->
+  <div class="settings-bar">
+    <div class="settings-row">
+      <span class="label">Bands</span>
+      <div class="pill-group" id="bandsGroup">
+        <div class="pill active" data-diff="1" onclick="setDifficulty(1, this)">1</div>
+        <div class="pill" data-diff="2" onclick="setDifficulty(2, this)">2</div>
+        <div class="pill" data-diff="3" onclick="setDifficulty(3, this)">3</div>
+      </div>
+      <div class="seg-divider"></div>
+      <span class="label">Tier</span>
+      <select id="gainThresholdSelect" onchange="updateTier(this.value)">
+        <option value="10" selected>Beginner · 10–12 dB</option>
+        <option value="8">Medium · 8–10 dB</option>
+        <option value="6">Advanced · 6–8 dB</option>
+        <option value="4">Pro · 4–6 dB</option>
+        <option value="2">Master · 2–4 dB</option>
+        <option value="0">Legend · 0–2 dB</option>
+        <option value="-1">All · 0–12 dB</option>
+      </select>
+      <div class="seg-divider"></div>
+      <span class="label">Gain</span>
+      <div class="pill"        id="dirBoth"  onclick="setGainDirection('both',this)">Both ±</div>
+      <div class="pill active" id="dirBoost" onclick="setGainDirection('boost',this)">Boost +</div>
+      <div class="pill"        id="dirCut"   onclick="setGainDirection('cut',this)">Cut −</div>
+      <div style="margin-left:auto; position:relative;" class="shortcuts-wrap">
+        <button class="shortcuts-btn" onclick="toggleShortcuts(event)">⌨ Shortcuts</button>
+        <div class="shortcuts-popover" id="shortcutsPopover">
+          <div class="shortcut-row"><span>A/B listen</span><div class="shortcut-keys"><kbd>Space</kbd></div></div>
+          <div class="shortcut-row"><span>Dry signal</span><div class="shortcut-keys"><kbd>D</kbd></div></div>
+          <div class="shortcut-row"><span>Pause / Resume</span><div class="shortcut-keys"><kbd>P</kbd></div></div>
+          <div class="shortcut-row"><span>Restart audio</span><div class="shortcut-keys"><kbd>F</kbd></div></div>
+          <div class="shortcut-row"><span>Check answer</span><div class="shortcut-keys"><kbd>↵</kbd></div></div>
+          <div class="shortcut-row"><span>Skip track</span><div class="shortcut-keys"><kbd>↑</kbd><kbd>↓</kbd></div></div>
+          <div class="shortcut-row"><span>Seek ±10s</span><div class="shortcut-keys"><kbd>←</kbd><kbd>→</kbd></div></div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- EQ Canvas -->
-  <div class="eq-card">
+  <!-- ── EQ device (full-width hero graph) ─────────────────────── -->
+  <section class="eq-device">
     <div class="eq-canvas-wrap">
       <canvas id="eqCanvas"></canvas>
     </div>
-    <div class="eq-footer">
-      <div class="legend-item">
-        <div class="legend-line" style="background:rgba(91,106,255,0.85);"></div>
-        <span>Target (hidden until checked)</span>
+    <div class="eq-foot">
+      <span class="gesture"><b>DRAG</b> freq · gain</span>
+      <span class="eq-foot-sep"></span>
+      <span class="gesture"><b>SCROLL</b> on node = Q</span>
+      <div class="eq-legend" id="eqLegend" style="margin-left:auto;">
+        <div class="lg-item"><span class="lg-dot" style="background:var(--accent);box-shadow:0 0 8px var(--accent);"></span>Your EQ</div>
+        <div class="lg-item lg-target"><span class="lg-dot" style="background:var(--tgt2);"></span>Target</div>
       </div>
-      <div class="legend-item">
-        <div class="legend-line" style="background:rgba(62,207,142,0.85);"></div>
-        <span>Your EQ</span>
-      </div>
-      <div class="hint-text" id="canvasHint">Press New Round to start</div>
+      <span class="eq-hint" id="canvasHint" style="display:none;">Press New Round to start</span>
     </div>
-  </div>
+  </section>
 
-  <!-- Band info chips -->
-  <div class="band-info-row" id="bandInfoRow"></div>
-
-  <!-- Listen buttons -->
-  <div class="controls">
-    <button class="listen-btn target-btn" id="btnTarget" onclick="listenTarget()" disabled>
-      <div class="listen-bars">
-        <div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div>
-        <div class="listen-bar"></div><div class="listen-bar"></div>
-      </div>
+  <!-- Monitor (A/B) -->
+  <div class="monitor-bar">
+    <button class="mon-btn target-btn" id="btnTarget" onclick="listenTarget()" disabled>
+      <span class="listen-bars"><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span></span>
       <span class="listen-btn-label">Target</span>
     </button>
-    <button class="listen-btn dry-btn" id="btnDry" onclick="listenDry()" disabled>
-      <div class="listen-bars">
-        <div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div>
-        <div class="listen-bar"></div><div class="listen-bar"></div>
-      </div>
+    <button class="mon-btn dry-btn" id="btnDry" onclick="listenDry()" disabled>
+      <span class="listen-bars"><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span></span>
       <span class="listen-btn-label">Dry</span>
     </button>
-    <button class="listen-btn" id="btnMine" onclick="listenMine()" disabled>
-      <div class="listen-bars">
-        <div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div>
-        <div class="listen-bar"></div><div class="listen-bar"></div>
-      </div>
+    <button class="mon-btn user-btn" id="btnMine" onclick="listenMine()" disabled>
+      <span class="listen-bars"><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span></span>
       <span class="listen-btn-label">My EQ</span>
     </button>
   </div>
 
-  <!-- Transport + round controls -->
-  <div class="controls">
-    <button class="btn-secondary" id="btnPause" onclick="togglePause()" disabled style="flex:1;">⏸ Pause</button>
-    <button class="btn-secondary" id="btnRestart" onclick="restartAudio()" disabled style="flex:1;">↺ Restart</button>
-    <div style="flex:1"></div>
-    <button class="btn-secondary" onclick="newRound()" style="flex:1;">New Round</button>
-    <button class="btn-primary" id="btnCheck" onclick="checkAnswer()" disabled style="flex:1;">Check Answer</button>
+  <!-- Transport -->
+  <div class="transport-row">
+    <button class="btn-secondary" id="btnPause"   onclick="togglePause()"  disabled>⏸ Pause</button>
+    <button class="btn-secondary" id="btnRestart" onclick="restartAudio()" disabled>↺ Restart</button>
+    <div class="t-gap"></div>
+    <button class="btn-secondary" onclick="newRound()">⟳ New Round</button>
+    <button class="btn-check" id="btnCheck" onclick="checkAnswer()" disabled>Check Answer</button>
   </div>
 
-  <!-- Result bar -->
-  <div class="result-bar" id="resultBar">
-    <div class="result-top">
-      <div class="result-score">
-        <div class="result-big" id="resultBig">—</div>
-        <div class="result-denom">/ 100</div>
-      <div class="result-pts" id="resultPts"></div>
-      </div>
-      <div style="flex:1; min-width:200px;">
-        <div class="result-msg" id="resultMsg"></div>
-        <div class="acc-track"><div class="acc-fill" id="accFill"></div></div>
-      </div>
-    </div>
-    <div class="band-results" id="bandResults"></div>
+  <!-- Live band readouts -->
+  <div class="deck deck-bands">
+    <div class="deck-label"><span class="deck-dot" style="background:var(--accent2);"></span>Your bands — live readout</div>
+    <div class="band-info-row" id="bandInfoRow"></div>
   </div>
 
-  <!-- Audio Source (always visible) -->
-  <div class="setting-item">
+  <!-- Audio source -->
+  <div class="control-bar">
     <span class="label">Audio Source</span>
     <div class="source-pill active" id="srcPink"    onclick="setSource('pink')">Pink Noise</div>
     <div class="source-pill"        id="srcOneShot" onclick="setSource('oneshot')">One-shots</div>
     <div class="source-pill"        id="srcLoop"    onclick="setSource('loop')">Loops</div>
-    <div class="source-pill"        id="srcCustom"  onclick="triggerUpload()"
-      style="border-style:dashed; border-color:var(--border2);">
+    <div class="source-pill"        id="srcCustom"  onclick="triggerUpload()" style="border-style:dashed;">
       <span id="folderLabel">Upload Folder</span>
-      <input type="file" id="folderInput" webkitdirectory directory multiple
-        onchange="handleFolderUpload(event)" style="display:none;">
+      <input type="file" id="folderInput" webkitdirectory directory multiple onchange="handleFolderUpload(event)">
     </div>
-    <span id="sourceLoadStatus" style="font-size:12px; color:var(--amber); display:none;"></span>
+    <span id="sourceLoadStatus" class="source-load-status"></span>
   </div>
 
-  <!-- Settings toggle -->
-  <button class="settings-collapse-btn" id="advancedToggle" onclick="toggleAdvanced()">
-    <span class="collapse-arrow">▶</span> Settings
+  <!-- Filters & ranges -->
+  <button class="adv-toggle" id="advancedToggle" onclick="toggleAdvanced()">
+    <span class="collapse-arrow">▶</span> Filters &amp; Ranges
   </button>
-
-  <!-- Settings panel -->
   <div class="advanced-settings" id="advancedSettings">
 
-    <!-- Training Tier + Gain Direction -->
-    <div class="setting-item">
-      <span class="label">Training Tier</span>
-      <select id="gainThresholdSelect" onchange="updateTier(this.value)">
-        <option value="10" selected>Beginner (10–12 dB)</option>
-        <option value="8">Medium (8–10 dB)</option>
-        <option value="6">Advanced (6–8 dB)</option>
-        <option value="4">Pro (4–6 dB)</option>
-        <option value="2">Master (2–4 dB)</option>
-        <option value="0">Legend (0–2 dB)</option>
-        <option value="-1">All (0–12 dB)</option>
-      </select>
-      <div class="divider"></div>
-      <span class="label">Gain Direction</span>
-      <div class="pill"        id="dirBoth"  onclick="setGainDirection('both',this)">Both</div>
-      <div class="pill active" id="dirBoost" onclick="setGainDirection('boost',this)">Boost Only (+)</div>
-      <div class="pill"        id="dirCut"   onclick="setGainDirection('cut',this)">Cut Only (−)</div>
-    </div>
-
-    <!-- Filter Type -->
-    <div class="setting-item">
-      <span class="label">Filters</span>
-      <div id="filterSelection" style="display:flex; gap:8px; flex-wrap:wrap;">
+    <div class="adv-block">
+      <span class="adv-block-label">Filter Types</span>
+      <div class="filter-pills" id="filterSelection">
         <div class="pill active" data-type="peaking"   onclick="toggleFilterType('peaking', this)">Peaking</div>
         <div class="pill"        data-type="lowshelf"  onclick="toggleFilterType('lowshelf', this)">Low Shelf</div>
         <div class="pill"        data-type="highshelf" onclick="toggleFilterType('highshelf', this)">High Shelf</div>
@@ -748,43 +397,54 @@
       </div>
     </div>
 
-    <!-- Hz Range -->
-    <div class="setting-item">
-      <span class="label">Hz Range</span>
-      <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted);">
-        <span>Min</span>
+    <div class="adv-divider"></div>
+
+    <div class="adv-block">
+      <span class="adv-block-label">Hz Range</span>
+      <div class="range-line">
+        <span class="mini-label">Min</span>
         <input class="num-input" type="number" id="freqMinInput" min="20" max="20000" step="1" value="20"
           onblur="syncFreqFromInput('min')"
           onkeydown="if(event.key==='Enter'){syncFreqFromInput('min');this.blur();}">
-      </div>
-      <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted);">
-        <span>Max</span>
+        <span class="mini-label">Max</span>
         <input class="num-input" type="number" id="freqMaxInput" min="20" max="20000" step="1" value="20000"
           onblur="syncFreqFromInput('max')"
           onkeydown="if(event.key==='Enter'){syncFreqFromInput('max');this.blur();}">
+        <button onclick="resetFreqRange()" class="adv-mini-btn">Reset</button>
       </div>
-      <button onclick="resetFreqRange()" class="btn-secondary" style="padding:5px 12px; font-size:12px;">Reset</button>
-      <span style="font-size:11px; color:var(--muted);" id="freqRangeHint">20 Hz – 20 kHz</span>
+      <span class="range-hint" id="freqRangeHint">20 Hz – 20 kHz</span>
     </div>
 
-    <!-- Q Range -->
-    <div class="setting-item">
-      <span class="label">Q Range</span>
-      <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted);">
-        <span>Min</span>
+    <div class="adv-divider"></div>
+
+    <div class="adv-block">
+      <span class="adv-block-label">Q Range</span>
+      <div class="range-line">
+        <span class="mini-label">Min</span>
         <input class="num-input" type="number" id="qMinInput" min="0" max="20" step="0.1" value="0.5" oninput="updateQRange()">
-      </div>
-      <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted);">
-        <span>Max</span>
+        <span class="mini-label">Max</span>
         <input class="num-input" type="number" id="qMaxInput" min="0" max="20" step="0.1" value="10" oninput="updateQRange()">
+        <button id="btnFixQ" class="fix-q-btn active" onclick="toggleFixedQ()">Fix Q</button>
       </div>
-      <button id="btnFixQ" class="fix-q-btn active" onclick="toggleFixedQ()"
-        style="background:rgba(91,106,255,0.1); color:var(--accent2); border:1px solid var(--accent); border-radius:8px; font-family:inherit; font-size:12px; font-weight:500; padding:5px 14px; cursor:pointer; transition:all 0.15s; white-space:nowrap;">
-        Fix Q to Defaults
-      </button>
-      <span style="font-size:11px; color:var(--muted);" id="qRangeHint">Q fixed to defaults</span>
+      <span class="range-hint" id="qRangeHint">Q fixed to defaults</span>
     </div>
 
+  </div>
+
+  <!-- Result bar -->
+  <div class="result-bar" id="resultBar">
+    <div class="result-top">
+      <div>
+        <div class="result-big" id="resultBig">—</div>
+        <div class="result-denom">/ 100</div>
+        <div class="result-pts" id="resultPts"></div>
+      </div>
+      <div style="flex:1; min-width:200px;">
+        <div class="result-msg" id="resultMsg"></div>
+        <div class="acc-track"><div class="acc-fill" id="accFill"></div></div>
+      </div>
+    </div>
+    <div class="param-results" id="bandResults"></div>
   </div>
 
 </div>
@@ -800,16 +460,16 @@
   <div class="help-block">
     <h2>Where to start</h2>
     <p>
-      Set <strong>Training Tier</strong> to <strong>Beginner</strong> and keep <strong>Filters</strong> set to <strong>Peaking only</strong>.
+      Set <strong>Tier</strong> to <strong>Beginner</strong> and keep <strong>Filters</strong> set to <strong>Peaking only</strong>.
       Hit <strong>New Round</strong> — you'll hear a short audio clip with one or more EQ boosts applied.
-      Your job is to drag the EQ handles on the chart to match what you hear, then press <strong>Check Answer</strong>.
+      Your job is to drag the EQ nodes on the graph to match what you hear, then press <strong>Check Answer</strong>.
     </p>
     <p>
       Start with <strong>pink noise</strong> as your audio source — it covers the full frequency spectrum evenly,
       so there's nothing musical to distract you. Once you're scoring consistently, switch to loops or your own music.
     </p>
     <p>
-      Work through the Training Tiers from top to bottom. Each tier narrows the gain window, making boosts
+      Work through the Tiers from top to bottom. Each tier narrows the gain window, making boosts
       progressively harder to hear.
     </p>
   </div>
@@ -820,11 +480,11 @@
     <h2>What to listen for</h2>
     <p>
       When a frequency band is boosted, ask yourself: <strong>where does the sound feel heavier, brighter, honkier, or harsher?</strong>
-      Boosts create a sense of weight or presence in a specific part of the sound — find that part on the chart and drag the handle there.
+      Boosts create a sense of weight or presence in a specific part of the sound — find that part on the graph and drag the node there.
       Don't overthink the exact number at first; get the region right, then fine-tune.
     </p>
     <p>
-      Use the <strong>Target</strong> and <strong>My EQ</strong> buttons to A/B between the processed signal
+      Use the <strong>Target</strong> and <strong>My EQ</strong> monitor buttons to A/B between the processed signal
       and your attempt in real time while you adjust.
     </p>
   </div>
@@ -886,13 +546,35 @@
 
 <script>
 // ── Constants ─────────────────────────────────────────────────────────────────
-const BAND_COLORS   = ['#5b6aff','#3ecf8e','#f5a623','#f45b69','#c97bff'];
+// "Your EQ" team reads emerald (per-band shades); target stays system blue.
+const BAND_COLORS   = ['#1fd58a','#46e3a6','#0fbe7e','#74efc0','#119e6c'];
 const FILTER_LABELS = { peaking:'Peaking', lowshelf:'Low Shelf', highshelf:'High Shelf',
                         lowpass:'Low Pass', highpass:'High Pass', notch:'Notch' };
 const LOG_MIN = Math.log10(20), LOG_MAX = Math.log10(22000);
 const FREQ_LOG_MIN = Math.log10(20), FREQ_LOG_MAX = Math.log10(20000);
 
-// ── Sample file lists ─────────────────────────────────────────────────────────
+// Curve colours (read system tokens so the page theme stays the source of truth)
+const _css   = getComputedStyle(document.body);
+const USER_C  = (_css.getPropertyValue('--accent')  || '#1fd58a').trim();
+const USER_C2 = (_css.getPropertyValue('--accent2') || '#5be8b0').trim();
+const TGT_C   = (_css.getPropertyValue('--tgt')  || '#5b7fff').trim();
+const TGT_C2  = (_css.getPropertyValue('--tgt2') || '#87a0ff').trim();
+
+// ── Colour helpers ────────────────────────────────────────────────────────────
+function hexA(hex, a) {
+  hex = hex.replace('#','');
+  if (hex.length === 3) hex = hex.split('').map(c=>c+c).join('');
+  const r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b = parseInt(hex.slice(4,6),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+function lighten(hex, amt) {
+  hex = hex.replace('#','');
+  if (hex.length === 3) hex = hex.split('').map(c=>c+c).join('');
+  let r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b = parseInt(hex.slice(4,6),16);
+  r = Math.round(r + (255-r)*amt); g = Math.round(g + (255-g)*amt); b = Math.round(b + (255-b)*amt);
+  return `rgb(${r},${g},${b})`;
+}
+
 // ── Samples manifest (edit samples/manifest.json to add new files) ────────────
 let samplesManifest = null;
 async function getManifest() {
@@ -971,12 +653,13 @@ let loopAudioEl      = null, loopMediaSrc = null;
 const canvas = document.getElementById('eqCanvas');
 const ctx    = canvas.getContext('2d');
 let dragging = null;
+let hovering = null;
 
 // ── Coordinate helpers ────────────────────────────────────────────────────────
 const freqToX = (f, w) => ((Math.log10(f) - LOG_MIN) / (LOG_MAX - LOG_MIN)) * w;
 const xToFreq = (x, w) => Math.pow(10, LOG_MIN + (x / w) * (LOG_MAX - LOG_MIN));
-const gainToY = (g, h) => h/2 - (g / 18) * (h/2 - 26);
-const yToGain = (y, h) => -((y - h/2) / (h/2 - 26)) * 18;
+const gainToY = (g, h) => h/2 - (g / 18) * (h/2 - 30);
+const yToGain = (y, h) => -((y - h/2) / (h/2 - 30)) * 18;
 
 // ── EQ math ───────────────────────────────────────────────────────────────────
 function getBandGainAt(b, f) {
@@ -1021,6 +704,51 @@ function computeResponse(bands, pts) {
 }
 
 // ── Draw ──────────────────────────────────────────────────────────────────────
+const FREQ_ZONES = [
+  [20,60,'SUB'],[60,250,'BASS'],[250,500,'LO-MID'],[500,2000,'MID'],
+  [2000,4000,'HI-MID'],[4000,6000,'PRES'],[6000,20000,'AIR']
+];
+
+function roundedRectPath(c, x, y, w, h, r) {
+  c.beginPath();
+  c.moveTo(x+r, y);
+  c.arcTo(x+w, y,   x+w, y+h, r);
+  c.arcTo(x+w, y+h, x,   y+h, r);
+  c.arcTo(x,   y+h, x,   y,   r);
+  c.arcTo(x,   y,   x+w, y,   r);
+  c.closePath();
+}
+
+function drawCurvePath(bandsResponse, fpts, N, W, H) {
+  ctx.beginPath();
+  for (let i=0;i<N;i++) {
+    const x=freqToX(fpts[i],W), y=gainToY(bandsResponse[i],H);
+    i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  }
+}
+
+function drawNodeTooltip(x, y, b, col, W) {
+  const noGain = (b.type==='lowpass'||b.type==='highpass'||b.type==='notch');
+  const txt = fmtFreq(b.frequency) + (noGain ? '' : '  '+fmtGain(b.gain)) + '  Q' + b.Q.toFixed(1);
+  ctx.font = '600 11px "IBM Plex Mono", monospace';
+  const tw = ctx.measureText(txt).width;
+  const padX = 9, bw = tw + padX*2, bh = 22;
+  let bx = x - bw/2;
+  let by = y - bh - 18;
+  bx = Math.max(4, Math.min(W - bw - 4, bx));
+  if (by < 22) by = y + 18;
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.55)'; ctx.shadowBlur = 12; ctx.shadowOffsetY = 3;
+  roundedRectPath(ctx, bx, by, bw, bh, 6);
+  ctx.fillStyle = 'rgba(12,14,18,0.96)'; ctx.fill();
+  ctx.restore();
+  roundedRectPath(ctx, bx, by, bw, bh, 6);
+  ctx.lineWidth = 1; ctx.strokeStyle = hexA(col, 0.65); ctx.stroke();
+  ctx.fillStyle = '#eef0f6'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(txt, bx + bw/2, by + bh/2 + 0.5);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+}
+
 function drawEQ() {
   const dpr = window.devicePixelRatio || 1;
   const rect = canvas.parentElement.getBoundingClientRect();
@@ -1030,119 +758,191 @@ function drawEQ() {
     canvas.height = Math.round(H*dpr);
     canvas.style.width  = W + 'px';
     canvas.style.height = H + 'px';
-    ctx.scale(dpr, dpr);
   }
-
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = '#161820';
-  ctx.fillRect(0, 0, W, H);
 
-  // Frequency region gradient wash
+  // Background
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#0b0d10');
+  bg.addColorStop(1, '#060708');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+  // Subtle frequency-region wash (keeps green/blue curves legible on top)
   {
     const grad = ctx.createLinearGradient(0, 0, W, 0);
-    // Stops keyed to log-frequency positions (Sub→Bass→Mids→Hi-Mid→Air)
-    grad.addColorStop(freqToX(20,    W) / W, 'rgba(201,123,255,0.05)');
-    grad.addColorStop(freqToX(60,    W) / W, 'rgba(130,110,255,0.04)');
-    grad.addColorStop(freqToX(250,   W) / W, 'rgba(91,106,255,0.035)');
-    grad.addColorStop(freqToX(800,   W) / W, 'rgba(62,207,142,0.03)');
-    grad.addColorStop(freqToX(2500,  W) / W, 'rgba(245,166,35,0.03)');
-    grad.addColorStop(freqToX(6000,  W) / W, 'rgba(240,130,60,0.03)');
-    grad.addColorStop(freqToX(20000, W) / W, 'rgba(96,232,255,0.04)');
+    grad.addColorStop(freqToX(20,    W) / W, 'rgba(201,123,255,0.06)');
+    grad.addColorStop(freqToX(60,    W) / W, 'rgba(130,110,255,0.05)');
+    grad.addColorStop(freqToX(250,   W) / W, 'rgba(91,127,255,0.045)');
+    grad.addColorStop(freqToX(800,   W) / W, 'rgba(62,207,142,0.04)');
+    grad.addColorStop(freqToX(2500,  W) / W, 'rgba(245,166,35,0.04)');
+    grad.addColorStop(freqToX(6000,  W) / W, 'rgba(240,130,60,0.04)');
+    grad.addColorStop(freqToX(20000, W) / W, 'rgba(96,232,255,0.05)');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
   }
 
-  // Freq grid
-  for (const f of [50,100,200,500,1000,2000,5000,10000,20000]) {
+  // Frequency-zone labels (top strip)
+  ctx.font = '600 9px "IBM Plex Mono", monospace';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  for (const [f1, f2, lbl] of FREQ_ZONES) {
+    const xc = (freqToX(f1, W) + freqToX(f2, W)) / 2;
+    ctx.fillStyle = 'rgba(255,255,255,0.16)';
+    ctx.fillText(lbl, xc, 13);
+  }
+  ctx.textAlign = 'left';
+
+  // Vertical frequency grid
+  for (const f of [30,50,100,200,300,500,1000,2000,3000,5000,10000,15000,20000]) {
     const x = freqToX(f, W);
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke();
+    ctx.strokeStyle = (f===1000) ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.042)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x, 18); ctx.lineTo(x, H-15); ctx.stroke();
   }
   // dB grid
-  for (const db of [-12,-6,0,6,12]) {
+  for (const db of [-18,-12,-6,0,6,12,18]) {
     const y = gainToY(db, H);
-    ctx.strokeStyle = db===0 ? 'rgba(255,255,255,0.13)' : 'rgba(255,255,255,0.04)';
-    ctx.lineWidth   = db===0 ? 1.5 : 1;
-    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
-    ctx.fillStyle = 'rgba(255,255,255,0.18)';
-    ctx.font = '10px -apple-system,sans-serif';
-    ctx.fillText((db>0?'+':'')+db+'dB', 5, y-3);
+    const zero = db === 0;
+    ctx.strokeStyle = zero ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.04)';
+    ctx.lineWidth   = zero ? 1.4 : 1;
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.24)';
+    ctx.font = '9px "IBM Plex Mono", monospace';
+    ctx.fillText((db>0?'+':'')+db, 6, y-3);
   }
-  // Freq labels
-  for (const [f,l] of [[100,'100'],[500,'500'],[1000,'1k'],[5000,'5k'],[10000,'10k'],[20000,'20k']]) {
-    ctx.fillStyle = 'rgba(255,255,255,0.2)';
-    ctx.font = '10px -apple-system,sans-serif';
-    ctx.fillText(l, freqToX(f,W)+3, H-5);
+  // Freq labels (bottom)
+  ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(255,255,255,0.26)';
+  ctx.font = '9px "IBM Plex Mono", monospace';
+  for (const [f,l] of [[50,'50'],[100,'100'],[500,'500'],[1000,'1k'],[5000,'5k'],[10000,'10k'],[20000,'20k']]) {
+    ctx.fillText(l, freqToX(f,W), H-4);
   }
+  ctx.textAlign = 'left';
 
-  // Freq range overlay
+  // Freq range overlay (dim out-of-range edges)
   if (freqMin > 20 || freqMax < 20000) {
     const xL = freqToX(Math.max(20, freqMin), W);
     const xR = freqToX(Math.min(20000, freqMax), W);
-    ctx.fillStyle = 'rgba(91,106,255,0.04)';
-    ctx.fillRect(xL, 0, xR - xL, H);
-    ctx.strokeStyle = 'rgba(91,106,255,0.2)'; ctx.lineWidth = 1;
+    ctx.fillStyle = 'rgba(0,0,0,0.32)';
+    ctx.fillRect(0, 0, xL, H);
+    ctx.fillRect(xR, 0, W - xR, H);
+    ctx.strokeStyle = hexA(USER_C, 0.25); ctx.lineWidth = 1;
     ctx.setLineDash([3,4]);
     ctx.beginPath(); ctx.moveTo(xL,0); ctx.lineTo(xL,H); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(xR,0); ctx.lineTo(xR,H); ctx.stroke();
     ctx.setLineDash([]);
   }
 
-  if (!roundActive) return;
+  if (!roundActive) {
+    ctx.fillStyle = 'rgba(255,255,255,0.16)';
+    ctx.font = '600 13px "IBM Plex Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('PRESS  NEW  ROUND  TO  START', W/2, H/2 - 4);
+    ctx.textAlign = 'left';
+    return;
+  }
 
   const N = 500, fpts = [];
   for (let i=0; i<N; i++) fpts.push(Math.pow(10, LOG_MIN + (i/(N-1))*(LOG_MAX-LOG_MIN)));
 
-  // Target curve (after answered)
+  // Target curve (after answered) — blue reference
   if (answered) {
     const tg = computeResponse(targetBands, fpts);
-    ctx.beginPath();
-    for (let i=0;i<N;i++) {
-      const x=freqToX(fpts[i],W), y=gainToY(tg[i],H);
-      i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
-    }
-    ctx.strokeStyle='rgba(91,106,255,0.9)'; ctx.lineWidth=2.5; ctx.stroke();
-    ctx.lineTo(W,H/2); ctx.lineTo(0,H/2); ctx.closePath();
-    ctx.fillStyle='rgba(91,106,255,0.07)'; ctx.fill();
+    drawCurvePath(tg, fpts, N, W, H);
+    ctx.lineTo(W, H/2); ctx.lineTo(0, H/2); ctx.closePath();
+    const tgFill = ctx.createLinearGradient(0, 0, 0, H);
+    tgFill.addColorStop(0,   hexA(TGT_C, 0.16));
+    tgFill.addColorStop(0.5, hexA(TGT_C, 0.04));
+    tgFill.addColorStop(1,   hexA(TGT_C, 0.16));
+    ctx.fillStyle = tgFill; ctx.fill();
+
+    drawCurvePath(tg, fpts, N, W, H);
+    ctx.strokeStyle = TGT_C; ctx.lineWidth = 2.4; ctx.lineJoin = 'round';
+    ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]);
 
     for (let i=0;i<targetBands.length;i++) {
       const b=targetBands[i];
       const x=freqToX(b.frequency,W), y=gainToY(b.gain||0,H);
-      ctx.beginPath(); ctx.arc(x,y,6,0,Math.PI*2);
-      ctx.fillStyle=BAND_COLORS[i]+'44'; ctx.strokeStyle=BAND_COLORS[i]+'88';
-      ctx.lineWidth=1.5; ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.arc(x,y,6.5,0,Math.PI*2);
+      ctx.fillStyle = hexA(TGT_C, 0.30); ctx.strokeStyle = TGT_C2;
+      ctx.lineWidth = 1.5; ctx.fill(); ctx.stroke();
+      ctx.fillStyle = TGT_C2; ctx.font = '700 9px "IBM Plex Mono", monospace';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(i+1, x, y+0.5);
+      ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
     }
   }
 
-  // User curve
+  // User curve — emerald, the hero line
   const ug = computeResponse(userBands, fpts);
-  ctx.beginPath();
-  for (let i=0;i<N;i++) {
-    const x=freqToX(fpts[i],W), y=gainToY(ug[i],H);
-    i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
-  }
-  ctx.strokeStyle='rgba(62,207,142,0.9)'; ctx.lineWidth=2.5; ctx.stroke();
-  ctx.lineTo(W,H/2); ctx.lineTo(0,H/2); ctx.closePath();
-  ctx.fillStyle='rgba(62,207,142,0.06)'; ctx.fill();
+  drawCurvePath(ug, fpts, N, W, H);
+  ctx.lineTo(W, H/2); ctx.lineTo(0, H/2); ctx.closePath();
+  const ugFill = ctx.createLinearGradient(0, 0, 0, H);
+  ugFill.addColorStop(0,   hexA(USER_C, 0.22));
+  ugFill.addColorStop(0.5, hexA(USER_C, 0.05));
+  ugFill.addColorStop(1,   hexA(USER_C, 0.22));
+  ctx.fillStyle = ugFill; ctx.fill();
 
-  // User drag handles
+  ctx.save();
+  ctx.shadowColor = hexA(USER_C, 0.55); ctx.shadowBlur = 10;
+  drawCurvePath(ug, fpts, N, W, H);
+  ctx.strokeStyle = USER_C; ctx.lineWidth = 2.75; ctx.lineJoin = 'round'; ctx.stroke();
+  ctx.restore();
+
+  // User drag nodes — tactile
   for (let i=0;i<userBands.length;i++) {
     const b=userBands[i];
     const x=freqToX(b.frequency,W), y=gainToY(b.gain||0,H);
-    const isDrag = dragging && dragging.bandIndex===i;
-    const r = isDrag ? 12 : 9;
+    const col = BAND_COLORS[i % BAND_COLORS.length];
+    const isDrag  = dragging && dragging.bandIndex===i;
+    const isHover = hovering === i && !dragging;
+
+    // Crosshair guides while dragging
     if (isDrag) {
-      ctx.beginPath(); ctx.arc(x,y,r+6,0,Math.PI*2);
-      ctx.fillStyle=BAND_COLORS[i]+'18'; ctx.fill();
+      ctx.save();
+      ctx.setLineDash([2,5]); ctx.lineWidth = 1; ctx.strokeStyle = hexA(col, 0.5);
+      ctx.beginPath(); ctx.moveTo(x, 18); ctx.lineTo(x, H-15); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+      ctx.restore();
     }
-    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
-    ctx.fillStyle=BAND_COLORS[i]; ctx.strokeStyle='rgba(255,255,255,0.25)';
-    ctx.lineWidth=1.5; ctx.fill(); ctx.stroke();
-    ctx.fillStyle='#fff';
-    ctx.font=`${isDrag?12:10}px -apple-system,sans-serif`;
-    ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText(i+1, x, y);
-    ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+
+    // Glow halo on hover / drag
+    if (isDrag || isHover) {
+      const hr = isDrag ? 28 : 19;
+      const g = ctx.createRadialGradient(x, y, 2, x, y, hr);
+      g.addColorStop(0, hexA(col, isDrag ? 0.42 : 0.28));
+      g.addColorStop(1, hexA(col, 0));
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(x, y, hr, 0, Math.PI*2); ctx.fill();
+    }
+
+    const r = isDrag ? 12 : isHover ? 11 : 9;
+
+    // Dark backing so the node reads on any curve fill
+    ctx.beginPath(); ctx.arc(x, y, r+2.5, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(6,7,8,0.92)'; ctx.fill();
+
+    // Glossy node
+    ctx.save();
+    ctx.shadowColor = hexA(col, 0.7); ctx.shadowBlur = isDrag ? 16 : isHover ? 11 : 6;
+    const ng = ctx.createRadialGradient(x - r*0.32, y - r*0.42, 1, x, y, r);
+    ng.addColorStop(0, lighten(col, 0.45));
+    ng.addColorStop(1, col);
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2);
+    ctx.fillStyle = ng; ctx.fill();
+    ctx.restore();
+
+    ctx.lineWidth = 1.6; ctx.strokeStyle = 'rgba(255,255,255,0.88)';
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.stroke();
+
+    // Band number
+    ctx.fillStyle = '#05130d';
+    ctx.font = `700 ${isDrag?12:11}px "IBM Plex Mono", monospace`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(i+1, x, y+0.5);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+
+    // Live value tooltip while dragging
+    if (isDrag) drawNodeTooltip(x, y, b, col, W);
   }
 }
 
@@ -1157,7 +957,7 @@ function getPos(e) {
 function hitTest(x, y) {
   if (!roundActive) return -1;
   const W=canvas.clientWidth, H=canvas.clientHeight;
-  let best=-1, bestD=20;
+  let best=-1, bestD=24;
   for (let i=0;i<userBands.length;i++) {
     const b=userBands[i];
     const bx=freqToX(b.frequency,W), by=gainToY(b.gain||0,H);
@@ -1170,7 +970,7 @@ function hitTest(x, y) {
 canvas.addEventListener('mousedown', e => {
   const {x,y}=getPos(e);
   const i=hitTest(x,y);
-  if (i>=0) { dragging={bandIndex:i,lastX:x,lastY:y}; canvas.style.cursor='grabbing'; e.preventDefault(); }
+  if (i>=0) { dragging={bandIndex:i,lastX:x,lastY:y}; hovering=null; canvas.style.cursor='grabbing'; drawEQ(); e.preventDefault(); }
 });
 
 canvas.addEventListener('mousemove', e => {
@@ -1183,7 +983,7 @@ canvas.addEventListener('mousemove', e => {
     const logF=Math.log10(b.frequency)+dx*(LOG_MAX-LOG_MIN)/W;
     b.frequency=Math.max(20,Math.min(20000,Math.pow(10,logF)));
     if (b.type!=='lowpass'&&b.type!=='highpass'&&b.type!=='notch') {
-      b.gain=Math.max(-18,Math.min(18,(b.gain||0)-dy*36/(H-52)));
+      b.gain=Math.max(-18,Math.min(18,(b.gain||0)-dy*36/(H-60)));
     } else {
       b.gain=0;
     }
@@ -1192,11 +992,17 @@ canvas.addEventListener('mousemove', e => {
     drawEQ();
     e.preventDefault();
   } else {
-    canvas.style.cursor = hitTest(x,y)>=0 ? 'grab' : 'default';
+    const hi = hitTest(x,y);
+    canvas.style.cursor = hi>=0 ? 'grab' : 'default';
+    if (hi !== (hovering===null?-1:hovering)) { hovering = hi>=0 ? hi : null; drawEQ(); }
   }
 });
 
-window.addEventListener('mouseup', () => { if (dragging) { dragging=null; canvas.style.cursor='default'; } });
+canvas.addEventListener('mouseleave', () => {
+  if (!dragging && hovering!==null) { hovering=null; drawEQ(); }
+});
+
+window.addEventListener('mouseup', () => { if (dragging) { dragging=null; canvas.style.cursor='default'; drawEQ(); } });
 
 canvas.addEventListener('wheel', e => {
   if (!roundActive) return;
@@ -1215,7 +1021,7 @@ canvas.addEventListener('wheel', e => {
 canvas.addEventListener('touchstart', e => {
   const {x,y}=getPos(e);
   const i=hitTest(x,y);
-  if (i>=0) { dragging={bandIndex:i,lastX:x,lastY:y}; e.preventDefault(); }
+  if (i>=0) { dragging={bandIndex:i,lastX:x,lastY:y}; drawEQ(); e.preventDefault(); }
 }, { passive: false });
 
 canvas.addEventListener('touchmove', e => {
@@ -1228,13 +1034,13 @@ canvas.addEventListener('touchmove', e => {
   const logF=Math.log10(b.frequency)+dx*(LOG_MAX-LOG_MIN)/W;
   b.frequency=Math.max(20,Math.min(20000,Math.pow(10,logF)));
   if (b.type!=='lowpass'&&b.type!=='highpass'&&b.type!=='notch') {
-    b.gain=Math.max(-18,Math.min(18,(b.gain||0)-dy*36/(H-52)));
+    b.gain=Math.max(-18,Math.min(18,(b.gain||0)-dy*36/(H-60)));
   } else { b.gain=0; }
   liveUpdateFilter(dragging.bandIndex); updateBandChip(dragging.bandIndex); drawEQ();
   e.preventDefault();
 }, { passive: false });
 
-canvas.addEventListener('touchend', () => { dragging=null; });
+canvas.addEventListener('touchend', () => { if (dragging) { dragging=null; drawEQ(); } });
 
 // ── Audio init ────────────────────────────────────────────────────────────────
 function initAudio() {
@@ -1653,15 +1459,9 @@ function toggleFixedQ() {
   const btn = document.getElementById('btnFixQ');
   if (fixedQ) {
     btn.classList.add('active');
-    btn.style.background='rgba(91,106,255,0.1)';
-    btn.style.color='var(--accent2)';
-    btn.style.borderColor='var(--accent)';
     document.getElementById('qRangeHint').textContent = 'Q fixed to defaults';
   } else {
     btn.classList.remove('active');
-    btn.style.background='var(--surface2)';
-    btn.style.color='var(--muted)';
-    btn.style.borderColor='var(--border2)';
     document.getElementById('qRangeHint').textContent = `Random Q: ${qMin.toFixed(1)} – ${qMax.toFixed(1)}`;
   }
 }
@@ -1743,6 +1543,7 @@ function randomBand(index, usedTypes=[]) {
 function newRound() {
   stopNoise();
   roundActive=false; answered=false; isPaused=false;
+  hovering=null; dragging=null;
   round++;
   document.getElementById('roundCount').textContent = round;
 
@@ -1770,7 +1571,8 @@ function newRound() {
   roundActive=true;
   const _rb = document.getElementById('resultBar');
   _rb.classList.remove('visible', 'score-good', 'score-ok', 'score-bad');
-    const _rpreset = document.getElementById('resultPts'); if (_rpreset) _rpreset.textContent = '';
+  const _rpreset = document.getElementById('resultPts'); if (_rpreset) _rpreset.textContent = '';
+  document.getElementById('eqLegend').classList.remove('revealed');
   document.getElementById('btnCheck').disabled   = false;
   document.getElementById('btnTarget').disabled  = false;
   document.getElementById('btnMine').disabled    = false;
@@ -1779,7 +1581,7 @@ function newRound() {
   document.getElementById('btnRestart').disabled = false;
   document.getElementById('btnPause').textContent = '⏸ Pause';
   document.getElementById('btnPause').classList.remove('paused');
-  document.getElementById('canvasHint').textContent = 'Drag handles · scroll = Q';
+  document.getElementById('canvasHint').textContent = 'Drag nodes · scroll = Q';
 
   buildBandChips();
   drawEQ();
@@ -1832,6 +1634,7 @@ const fmtGain = g => (g>0?'+':'')+((g||0).toFixed(1))+'dB';
 function checkAnswer() {
   if (!roundActive || answered) return;
   answered = true;
+  document.getElementById('eqLegend').classList.add('revealed');
   drawEQ();
   if (sourceBus) routeTo('user');
 
@@ -1916,7 +1719,7 @@ function checkAnswer() {
     br.appendChild(c);
   }
 
-  document.getElementById('canvasHint').textContent = 'Blue = Target | Green = Your Guess';
+  document.getElementById('canvasHint').textContent = 'Green = Your EQ · Blue = Target';
   showToast(`Round Finished: ${score}/100`);
 }
 
