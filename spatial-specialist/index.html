@@ -3,554 +3,168 @@
 <head>
 <link rel="manifest" href="manifest.json">
 <meta charset="UTF-8">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cloud.umami.is 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://aolaxmmrmvovbzumlybe.supabase.co wss://aolaxmmrmvovbzumlybe.supabase.co https://cloud.umami.is; img-src 'self' data:; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
 <meta name="description" content="Guess the stereo pan position or width of an audio source. Train your spatial hearing in quick rounds.">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Spatial Specialist — SonicSandbox</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="../style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="../daw-ui.css">
 <style>
-  :root {
-    --bg:       #080a10;
-    --bg2:      #0b0e16;
-    --surface:  #101420;
-    --surface2: #171c2c;
-    --surface3: #1d2438;
-    --border:   rgba(255,255,255,0.07);
-    --border2:  rgba(255,255,255,0.13);
-    --text:     #dde8f8;
-    --muted:    #4c5878;
-    --accent:   #7c5cfc;
-    --accent2:  #a58aff;
-    --left:     #f45b69;
-    --right:    #3ecf8e;
-    --center:   #f5a623;
-    --green:    #3ecf8e;
-    --red:      #f45b69;
-    --amber:    #f5a623;
-  }
+  /* Spatial Specialist identity — cyan / azure */
+  body { --accent: #1bb6d4; --accent2: #5fd9f1; --left: #f4655f; --right: #3ecf8e; --center: #f5a623; }
 
-  * { margin:0; padding:0; box-sizing:border-box; }
+  .main { max-width: 1040px; }
 
-  body {
-    font-family: 'IBM Plex Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    display: flex; flex-direction: column; align-items: center;
-
-    user-select: none;
-  }
-
-  header {
-    width:100%; max-width:800px;
-    padding:22px 24px 0;
-    display:flex; align-items:center; justify-content:space-between;
-  }
-
-  .header-left { display:flex; align-items:center; gap:14px; }
-
-  .brand { display:flex; align-items:center; gap:10px; }
-  .brand-icon {
-    width:32px; height:32px;
-    background:var(--accent);
-    border-radius:8px;
-    display:flex; align-items:center; justify-content:center;
-  }
-  .brand-name {
-    font-family:'IBM Plex Mono',monospace;
-    font-size:15px; font-weight:700; letter-spacing:0.06em;
-  }
-  .brand-name span { color:var(--accent2); }
-
-  .score-row { display:flex; gap:18px; align-items:center; }
-  .stat { text-align:center; }
-  .stat-val { font-family:'IBM Plex Mono',monospace; font-size:20px; font-weight:700; color:var(--accent2); }
-  .stat-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; }
-  .vdiv { width:1px; height:20px; background:var(--border2); }
-
-  .main {
-    width:100%; max-width:800px;
-    padding:14px 24px 0;
-    display:flex; flex-direction:column; gap:14px;
-  }
-
-  .settings-row {
-    display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-    background:var(--surface); border:1px solid var(--border);
-    padding:7px 14px; border-radius:12px;
-  }
-
-  .label {
-    font-size:11px; font-weight:600; color:var(--muted);
-    text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap;
-  }
-
-  .pill {
-    background:var(--surface2); border:1px solid var(--border2);
-    border-radius:20px; padding:4px 13px;
-    font-size:12px; color:var(--muted);
-    cursor:pointer; transition:all 0.15s;
-    font-family:'IBM Plex Sans',sans-serif;
-  }
-  .pill:hover { border-color:var(--accent); color:var(--text); }
-  .pill.active { border-color:var(--accent2); color:var(--accent2); background:rgba(124,92,252,0.08); }
-
-  kbd {
-    font-family:'IBM Plex Mono',monospace; font-size:10px;
-    background:var(--surface2); border:1px solid var(--border2);
-    border-radius:4px; padding:1px 5px; color:var(--muted);
-  }
+  .mode-desc { font-size: 12px; color: var(--muted); font-style: italic; white-space: nowrap; }
 
   /* ── Prompt bar ── */
   .prompt-bar {
-    display:flex; align-items:center; gap:14px;
-    background:var(--surface); border:1px solid var(--border);
-    border-radius:12px; padding:12px 18px;
-    min-height:60px; flex-wrap:wrap;
-    transition:border-color 0.3s, box-shadow 0.3s;
+    display: flex; align-items: center; gap: 16px;
+    background: linear-gradient(180deg, var(--metal-1), var(--metal-2));
+    border: 1px solid var(--border); border-radius: 13px;
+    padding: 13px 18px; min-height: 56px;
+    box-shadow: 0 1px 0 var(--panel-hi) inset;
+    transition: border-color 0.3s, box-shadow 0.3s;
   }
-  .prompt-bar.correct-flash { border-color:var(--green); box-shadow:0 0 16px rgba(62,207,142,0.15); }
-  .prompt-bar.wrong-flash   { border-color:var(--red);   box-shadow:0 0 16px rgba(244,91,105,0.12); }
+  .prompt-bar.correct-flash { border-color: rgba(62,207,142,0.55); box-shadow: 0 0 22px -8px var(--green); }
+  .prompt-bar.wrong-flash   { border-color: rgba(244,91,105,0.5);  box-shadow: 0 0 22px -8px var(--red); }
+  .prompt-text { flex: 1; min-width: 0; font-size: 14.5px; color: var(--text); line-height: 1.45; }
+  .prompt-text span { color: var(--accent2); font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
+  .result-inline { font-family: 'IBM Plex Mono', monospace; font-size: 19px; font-weight: 700; opacity: 0; transition: opacity 0.15s; white-space: nowrap; }
+  .result-inline.show-good { opacity: 1; color: var(--green); }
+  .result-inline.show-ok   { opacity: 1; color: var(--amber); }
+  .result-inline.show-bad  { opacity: 1; color: var(--red); }
+  .next-bar { height: 3px; background: rgba(255,255,255,0.07); border-radius: 2px; overflow: hidden; margin-top: 6px; }
+  .next-fill { height: 100%; border-radius: 2px; background: var(--accent2); width: 100%; box-shadow: 0 0 8px var(--accent); }
 
-  .prompt-text { font-size:15px; color:var(--text); flex:1; line-height:1.4; }
-  .prompt-text span { color:var(--accent2); font-family:'IBM Plex Mono',monospace; font-weight:600; }
+  /* ── The imager (full-width hero) ── */
+  .imager { display: block; padding: 18px 18px 22px; }
 
-  .result-inline {
-    font-family:'IBM Plex Mono',monospace;
-    font-size:20px; font-weight:700;
-    opacity:0; transition:opacity 0.15s; white-space:nowrap;
-  }
-  .result-inline.show-good { opacity:1; color:var(--green); }
-  .result-inline.show-ok   { opacity:1; color:var(--amber); }
-  .result-inline.show-bad  { opacity:1; color:var(--red); }
+  .stage { position: relative; cursor: crosshair; }
+  .stage.answered { cursor: default; }
 
-  .next-bar { height:3px; background:var(--border2); border-radius:2px; overflow:hidden; margin-top:6px; }
-  .next-fill { height:100%; border-radius:2px; background:var(--accent); width:100%; transition:none; }
-
-  /* ── Stereo field visualizer ── */
-  .stereo-card {
-    background:var(--surface);
-    border:1px solid var(--border);
-    border-radius:16px;
-    padding:28px 24px 20px;
-    display:flex; flex-direction:column; gap:24px;
-  }
-
-  /* Speaker icons + field */
-  .field-row {
-    display:flex; align-items:center; gap:14px;
+  .scope-canvas {
+    display: block; width: 100%; height: 360px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #0a0d12 0%, #060708 100%);
+    border: 1px solid var(--well-edge);
+    box-shadow: 0 3px 16px rgba(0,0,0,0.55) inset;
   }
 
-  .speaker-label {
-    font-family:'IBM Plex Mono',monospace;
-    font-size:11px; font-weight:700; letter-spacing:0.08em;
-    color:var(--muted); flex-shrink:0; width:32px; text-align:center;
-    transition:color 0.2s;
-    user-select:none;
+  /* Ruler fused to the bottom edge of the scope */
+  .ruler { position: relative; margin-top: -15px; padding: 0 2px; z-index: 6; }
+  .ruler-track {
+    position: relative; height: 16px; border-radius: 9px;
+    background: linear-gradient(90deg,
+      color-mix(in srgb, var(--left) 26%, var(--well)) 0%,
+      var(--well) 44%, var(--well) 56%,
+      color-mix(in srgb, var(--right) 26%, var(--well)) 100%);
+    border: 1px solid var(--well-edge);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.04);
   }
-  .speaker-label.label-l { color:var(--left); opacity:0.5; transition:opacity 0.2s; }
-  .speaker-label.label-r { color:var(--right); opacity:0.5; transition:opacity 0.2s; }
+  .ruler-detent {
+    position: absolute; top: -4px; bottom: -4px; left: 50%;
+    width: 2px; transform: translateX(-50%);
+    background: linear-gradient(to bottom, transparent, var(--center), transparent); opacity: 0.85;
+  }
+  .ruler-fill { position: absolute; top: 0; height: 100%; border-radius: 9px; transition: left 0.05s, right 0.05s, width 0.05s; pointer-events: none; }
 
-  /* Center Mono label for Width mode */
-  .center-mono-label {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
-    color: var(--muted);
-    opacity: 0;
-    transition: opacity 0.2s;
-    pointer-events: none;
-    z-index: 5;
-  }
+  .ruler-scale { position: relative; height: 26px; margin-top: 9px; }
+  .tick { position: absolute; top: 0; width: 1px; height: 6px; transform: translateX(-50%); background: rgba(255,255,255,0.16); }
+  .tick.tick-center { background: color-mix(in srgb, var(--center) 70%, transparent); height: 9px; }
+  .tick-lbl { position: absolute; top: 11px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); transform: translateX(-50%); white-space: nowrap; }
+  .tick-lbl.lbl-center { color: color-mix(in srgb, var(--center) 80%, var(--muted)); }
 
-  /* Track bar */
-  .pan-track {
-    width:100%; height:8px;
-    background:var(--surface2);
-    border-radius:4px;
-    position:relative;
-    box-shadow:inset 0 1px 3px rgba(0,0,0,0.4);
-  }
-
-  /* Fill from center to handle */
-  .pan-fill {
-    position:absolute; top:0; height:100%;
-    border-radius:4px;
-    transition:left 0.05s, right 0.05s, width 0.05s;
-  }
-
-  /* Tick marks */
-  .pan-tick {
-    position:absolute; top:-12px;
-    width:1px; height:8px;
-    transform:translateX(-50%);
-  }
-  .pan-tick-label {
-    position:absolute; bottom:-18px;
-    font-family:'IBM Plex Mono',monospace;
-    font-size:9px; color:var(--muted);
-    transform:translateX(-50%);
-    white-space:nowrap;
-  }
-
-  /* User handle — draggable */
-  .pan-handle {
-    position:absolute; top:50%;
-    width:28px; height:28px;
-    border-radius:50%;
-    transform:translate(-50%, -50%);
-    cursor:grab;
-    display:flex; align-items:center; justify-content:center;
-    border:2.5px solid;
-    touch-action:none;
-    transition:box-shadow 0.12s, width 0.1s, height 0.1s;
-    z-index:10;
-  }
-  .pan-handle:active { cursor:grabbing; }
-  .pan-handle.user-handle {
-    background:var(--surface3);
-    border-color:var(--accent2);
-    box-shadow:0 0 0 4px rgba(124,92,252,0.18);
-  }
-  .pan-handle.user-handle:hover {
-    box-shadow:0 0 0 6px rgba(124,92,252,0.25);
-    width:32px; height:32px;
-  }
-  .pan-handle.target-handle {
-    background:rgba(0,229,204,0.15);
-    border-color:rgba(0,229,204,0.8);
-    cursor:default; pointer-events:none;
-    opacity:0; transition:opacity 0.3s;
-  }
-  .pan-handle.target-handle.visible { opacity:1; }
-
-  .handle-label {
-    font-family:'IBM Plex Mono',monospace;
-    font-size:9px; font-weight:700;
-    pointer-events:none;
-  }
-
-  /* ── Large click zone ── */
-  .stereo-card {
-    cursor: crosshair;
-  }
-  .stereo-card.answered {
-    cursor: default;
-  }
-  .pan-field {
-    flex:1; position:relative;
-    padding: 28px 0;
-    display: flex; align-items: center;
-    cursor: crosshair;
-  }
-
-  /* Pan value readout */
-  .pan-readout {
-    text-align:center;
-    display:flex; gap:24px; justify-content:center; align-items:baseline;
-  }
-  .readout-item { text-align:center; }
-  .readout-val {
-    font-family:'IBM Plex Mono',monospace;
-    font-size:26px; font-weight:700;
-  }
-  .readout-label {
-    font-size:10px; color:var(--muted); text-transform:uppercase;
-    letter-spacing:0.07em; margin-top:2px;
-  }
-  .readout-item.user-read .readout-val { color:var(--accent2); }
-  .readout-item.target-read .readout-val { color:rgba(0,229,204,0.9); opacity:0; transition:opacity 0.3s; }
-  .readout-item.target-read .readout-val.visible { opacity:1; }
-
-  /* Position description labels */
-  .position-label {
-    font-size:13px; color:var(--muted); text-align:center; min-height:20px;
-  }
-  .position-label span { color:var(--text); font-weight:500; }
-
-  /* ── Error indicator ── */
-  .error-bar-wrap {
-    display:none;
-    flex-direction:column; gap:6px;
-  }
-  .error-bar-wrap.visible { display:flex; }
-  .error-track {
-    height:6px; background:var(--border2); border-radius:3px; overflow:hidden;
-    position:relative;
-  }
-  .error-fill {
-    height:100%; border-radius:3px;
-    transition:width 0.8s cubic-bezier(0.16,1,0.3,1);
-  }
-  .error-labels {
-    display:flex; justify-content:space-between;
-    font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--muted);
-  }
-
-  /* ── History ── */
-  .history-strip { display:flex; gap:5px; flex-wrap:wrap; min-height:14px; }
-  .hist-dot { width:10px; height:10px; border-radius:50%; }
-  .hist-dot.perfect { background:var(--accent2); }
-  .hist-dot.good    { background:var(--green); }
-  .hist-dot.ok      { background:var(--amber); }
-  .hist-dot.bad     { background:var(--red); }
-
-  /* ── Audio bar ── */
-  .audio-bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-
-  button {
-    border:none; border-radius:10px;
-    font-family:'IBM Plex Sans',sans-serif;
-    font-size:13px; font-weight:500;
-    cursor:pointer; padding:9px 16px; transition:all 0.15s;
-  }
-  .btn-listen {
-    background:var(--surface2); color:var(--accent2);
-    border:1px solid rgba(124,92,252,0.35);
-    display:flex; align-items:center; gap:6px;
-  }
-  .btn-listen:hover { background:rgba(124,92,252,0.1); border-color:rgba(124,92,252,0.7); }
-  .btn-listen.playing { background:rgba(124,92,252,0.15); border-color:var(--accent2); }
-  .btn-listen:disabled { opacity:0.35; cursor:not-allowed; }
-  .btn-listen.is-paused { opacity:0.7; }
-
-  .btn-primary { background:var(--accent); color:#fff; }
-  .btn-primary:hover { background:var(--accent2); }
-  .btn-primary:disabled { opacity:0.35; cursor:not-allowed; }
-
-  .btn-secondary {
-    background:var(--surface2); color:var(--text); border:1px solid var(--border2);
-  }
-  .btn-secondary:hover { border-color:var(--accent); color:var(--accent2); }
-
-  .btn-action {
-    background:var(--surface2); color:var(--muted);
-    border:1px solid var(--border2);
-    font-size:12px; padding:7px 13px; border-radius:8px;
-    display:flex; align-items:center; gap:5px;
-    transition:all 0.15s;
-  }
-  .btn-action:hover { border-color:var(--accent); color:var(--accent); }
-  .btn-action.center-active {
-    background:rgba(245,166,35,0.08); border-color:var(--amber); color:var(--amber);
-  }
-  .btn-action.paused {
-    background:rgba(244,91,105,0.08); border-color:var(--red); color:var(--red);
-  }
-  .btn-action:disabled { opacity:0.35; cursor:not-allowed; }
-
-  .source-wrap {
-    display:flex; align-items:center; gap:6px; margin-left:auto;
-  }
-  .source-pill {
-    background:var(--surface2); border:1px solid var(--border2);
-    border-radius:7px; padding:4px 9px; font-size:11px;
-    color:var(--muted); cursor:pointer; transition:all 0.15s; white-space:nowrap;
-    font-family:'IBM Plex Sans',sans-serif;
-  }
-  .source-pill:hover { border-color:var(--accent); color:var(--text); }
-  .source-pill.active { border-color:var(--accent2); color:var(--accent2); background:rgba(124,92,252,0.07); }
-
-  #sourceLoadStatus {
-    font-size:11px; font-family:'IBM Plex Mono',monospace;
-    color:var(--muted); white-space:nowrap; min-width:0;
-  }
-
-  .pulse-dot {
-    width:7px; height:7px; border-radius:50%;
-    background:var(--accent2); flex-shrink:0;
-    animation:pdot 1.1s infinite;
-  }
-  @keyframes pdot { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.3;transform:scale(0.6);} }
-
-  /* ── Cursor guide line ── */
-  .cursor-line {
-    position: absolute;
-    top: 0; bottom: 0;
-    width: 2px;
-    background: rgba(165,138,255,0.55);
-    pointer-events: none;
-    transform: translateX(-50%);
-    display: none;
-    border-radius: 1px;
-  }
-  .cursor-line::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 50%;
-    transform: translateX(-50%);
-    width: 10px; height: 10px;
-    background: var(--accent2);
-    border-radius: 50%;
-    box-shadow: 0 0 8px rgba(165,138,255,0.6);
-  }
-  .cursor-line::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 50%;
-    transform: translateX(-50%);
-    width: 10px; height: 10px;
-    background: var(--accent2);
-    border-radius: 50%;
-    box-shadow: 0 0 8px rgba(165,138,255,0.6);
-  }
-  /* Mirror line for width mode */
-  .cursor-line-mirror {
-    position: absolute;
-    top: 0; bottom: 0;
-    width: 2px;
-    background: rgba(165,138,255,0.35);
-    pointer-events: none;
-    transform: translateX(-50%);
-    display: none;
-    border-radius: 1px;
-    border-style: dashed;
-  }
-
-  /* ── Toast ── */
-  .toast {
-    position:fixed; bottom:24px; left:50%;
-    transform:translateX(-50%) translateY(12px);
-    background:var(--surface2); border:1px solid var(--border2);
-    border-radius:10px; padding:10px 16px; font-size:13px; color:var(--text);
-    opacity:0; transition:all 0.2s; pointer-events:none; z-index:999; white-space:nowrap;
-  }
-  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
-
-/* ── Help Section ── */
-.help-toggle {
-  display: flex; align-items: center; gap: 8px;
-  background: none; border: 1px solid var(--border);
-  border-radius: 10px; color: var(--muted);
-  font-family: 'IBM Plex Sans', sans-serif; font-size: 13px;
-  padding: 9px 16px; cursor: pointer; transition: all 0.15s;
-  margin-top: 4px; margin-left: 24px; width: fit-content;
-}
-.help-toggle:hover { border-color: var(--border2); color: var(--text); }
-.help-toggle .toggle-arrow { font-size: 10px; transition: transform 0.2s; display: inline-block; }
-.help-toggle.open .toggle-arrow { transform: rotate(90deg); }
-
-.help-section {
-  display: none; width: calc(100% - 48px);
-  background: var(--surface);
-  border: 1px solid var(--border); border-radius: 14px;
-  padding: 28px 32px; gap: 28px; flex-direction: column;
-}
-.help-section.visible { display: flex; }
-
-.help-section h2 {
-  font-size: 15px; font-weight: 600; color: var(--text);
-  letter-spacing: 0.02em; margin-bottom: 2px;
-}
-.help-section p { font-size: 13.5px; color: var(--muted); line-height: 1.65; }
-.help-section p strong { color: var(--text); font-weight: 500; }
-.help-block { display: flex; flex-direction: column; gap: 8px; }
-.help-divider { border: none; border-top: 1px solid var(--border); }
-
-    /* ── Game bar (site context + score row) ─────────────── */
-  nav.site-nav {
-    width: 100%;
-    padding: 14px 24px;
-    display: flex; align-items: center;
-    border-bottom: 1px solid var(--border);
-  }
-  .game-bar {
-    width: 100%; max-width: 800px;
-    padding: 10px 24px;
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 16px;
-    border-bottom: 1px solid var(--border);
-    background-image: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
-    background-size: 28px 28px;
-  }
-  .game-bar-left { display: flex; align-items: center; }
-  .brand { display: flex; align-items: center; gap: 10px; }
-  .brand-icon {
-    width: 28px; height: 28px; border-radius: 7px;
-    background: var(--accent);
+  /* Handles (fader caps) */
+  .handle {
+    position: absolute; top: 8px; width: 34px; height: 34px;
+    transform: translate(-50%, -50%); border-radius: 11px;
     display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
+    cursor: grab; touch-action: none; z-index: 10;
+    transition: box-shadow 0.12s, width 0.1s, height 0.1s;
   }
-  .brand-name {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 13px; font-weight: 600;
-    color: var(--text); letter-spacing: -0.01em;
+  .handle:active { cursor: grabbing; }
+  .handle::before { content: ""; width: 2px; height: 14px; border-radius: 1px; background: currentColor; opacity: 0.9; }
+  .handle.user {
+    background: linear-gradient(180deg, #1d2734, #11161d);
+    border: 2px solid var(--accent2); color: var(--accent2);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent), 0 6px 16px -6px var(--accent);
   }
-  .game-bar-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
-  .score-row { display: flex; align-items: center; gap: 16px; }
-  .stat { text-align: center; }
-  .stat-val {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 18px; font-weight: 700;
-    color: var(--accent2); line-height: 1;
+  .handle.user:hover { width: 38px; height: 38px; box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 24%, transparent), 0 8px 20px -6px var(--accent); }
+  .handle.hidden-handle { display: none; }
+  .handle.target {
+    background: color-mix(in srgb, var(--tgt) 18%, #0c0f16);
+    border: 2px dashed var(--tgt2); color: var(--tgt2);
+    cursor: default; pointer-events: none;
+    opacity: 0; transition: opacity 0.35s, left 0.35s cubic-bezier(0.16,1,0.3,1); z-index: 9;
   }
-  .stat-label {
-    font-size: 9px; color: var(--muted);
-    text-transform: uppercase; letter-spacing: 0.08em;
-    margin-top: 2px;
+  .handle.target.visible { opacity: 1; }
+  .handle.target::before { height: 12px; opacity: 0.85; }
+
+  /* Single readout */
+  .readout-row { display: flex; justify-content: center; margin-top: 20px; }
+  .readout { text-align: center; }
+  .readout-val { font-family: 'IBM Plex Mono', monospace; font-size: 34px; font-weight: 700; line-height: 1; color: var(--accent2); }
+  .readout-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-top: 8px; }
+
+  .position-label { font-size: 13px; color: var(--muted); text-align: center; margin-top: 14px; min-height: 19px; }
+  .position-label span { color: var(--text); font-weight: 500; }
+
+  .error-wrap { display: none; flex-direction: column; gap: 7px; margin-top: 16px; max-width: 520px; margin-left: auto; margin-right: auto; }
+  .error-wrap.visible { display: flex; }
+  .error-head { display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+  .error-track { height: 6px; background: var(--well); border-radius: 3px; overflow: hidden; }
+  .error-fill { height: 100%; width: 0; border-radius: 3px; transition: width 0.8s cubic-bezier(0.16,1,0.3,1); }
+
+  /* Transport + source controls (under the imager) */
+  .btn-play {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: linear-gradient(180deg, var(--accent2), var(--accent));
+    color: #04181d; font-weight: 700; font-size: 14px; letter-spacing: 0.02em;
+    padding: 10px 24px; border-radius: 9px;
+    box-shadow: 0 6px 20px -8px var(--accent), inset 0 1px 0 rgba(255,255,255,0.35);
   }
-  .vdiv { width: 1px; height: 20px; background: var(--border2); }
-  .mult-badge {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 8px; color: var(--muted);
-    letter-spacing: 0.04em; opacity: 0.7;
+  .btn-play:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  .btn-play .pulse-dot { width: 7px; height: 7px; border-radius: 50%; background: #04181d; }
+  .btn-play.playing .pulse-dot { animation: pdot 1.1s infinite; }
+  @keyframes pdot { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.3;transform:scale(0.6);} }
+  .btn-action {
+    background: rgba(255,255,255,0.03); color: var(--text); border: 1px solid var(--border2);
+    border-radius: 9px; font-size: 13px; padding: 9px 16px;
   }
+  .btn-action:hover:not(:disabled) { border-color: var(--accent); color: var(--accent2); }
+  .btn-action:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-action.center-active { background: rgba(245,166,35,0.1); border-color: var(--center); color: var(--center); }
+  .btn-action.paused { background: rgba(244,91,105,0.1); border-color: var(--red); color: var(--red); }
+  #sourceLoadStatus { font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: var(--muted); }
+  .source-pill input[type=file] { display: none; }
+
+  /* History */
+  .history-wrap { display: flex; align-items: center; gap: 12px; padding: 0 4px; }
+  .history-label { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  .history-strip { display: flex; gap: 5px; flex-wrap: wrap; min-height: 12px; }
+  .hist-dot { width: 10px; height: 10px; border-radius: 3px; transition: all 0.2s; }
+  .hist-dot.perfect { background: var(--accent2); box-shadow: 0 0 7px -1px var(--accent); }
+  .hist-dot.good    { background: var(--green); }
+  .hist-dot.ok      { background: var(--amber); }
+  .hist-dot.bad     { background: var(--red); }
+
   @media (max-width: 600px) {
-    nav.site-nav { padding: 12px 16px; }
-    .game-bar { padding: 8px 16px; }
-    .stat-val { font-size: 15px; }
-    .score-row { gap: 10px; }
+    .scope-canvas { height: 248px; }
+    .readout-val { font-size: 27px; }
   }
-
-  .forgot-pw-link {
-    display: block; width: 100%; text-align: center;
-    margin-top: 12px; font-size: 12px; color: var(--muted);
-    background: none; border: none; cursor: pointer; font-family: inherit;
-  }
-  .forgot-pw-link:hover { color: var(--text); }
-
-
-  .shortcuts-wrap { position: relative; }
-  .shortcuts-btn {
-    display: flex; align-items: center; gap: 5px;
-    background: var(--surface2); border: 0.5px solid var(--border2);
-    border-radius: 8px; color: var(--muted);
-    font-family: inherit; font-size: 12px; font-weight: 500;
-    padding: 5px 11px; cursor: pointer; transition: all 0.15s;
-    white-space: nowrap;
-  }
-  .shortcuts-btn:hover { border-color: var(--accent); color: var(--text); }
-  .shortcuts-popover {
-    display: none; position: absolute; top: calc(100% + 8px); right: 0;
-    background: var(--surface); border: 1px solid var(--border2);
-    border-radius: 12px; padding: 14px 18px;
-    z-index: 50; min-width: 260px;
-  }
-  .shortcuts-popover.open { display: block; }
-  .shortcut-row {
-    display: flex; justify-content: space-between; align-items: center;
-    gap: 16px; font-size: 12px; color: var(--muted); padding: 5px 0;
-    border-bottom: 0.5px solid var(--border);
-  }
-  .shortcut-row:last-child { border-bottom: none; }
-  .shortcut-keys { display: flex; gap: 4px; flex-shrink: 0; }
 </style>
   <script src="../scoring.js"></script>
 
-  <!-- Open Graph / Social -->
   <meta property="og:type"        content="website">
   <meta property="og:url"         content="https://sonicsandbox.app/spatial-specialist/">
   <meta property="og:title"       content="Spatial Specialist — SonicSandbox">
   <meta property="og:description" content="Guess the stereo pan position or width of an audio source. Train your spatial hearing in quick rounds.">
   <meta property="og:image"       content="https://sonicsandbox.app/og-image.png">
-  <!-- Twitter Card -->
   <meta name="twitter:card"        content="summary_large_image">
   <meta name="twitter:title"       content="Spatial Specialist — SonicSandbox">
   <meta name="twitter:description" content="Guess the stereo pan position or width of an audio source. Train your spatial hearing in quick rounds.">
@@ -575,6 +189,7 @@
     </div>
   </div>
 </nav>
+
 <div class="game-bar">
   <div class="game-bar-left">
     <div class="brand">
@@ -592,25 +207,13 @@
   </div>
   <div class="game-bar-right">
     <div class="score-row">
-    <div class="stat">
-      <div class="stat-val" id="scoreVal">—</div>
-      <div class="stat-label">Score</div>
-    </div>
-    <div class="vdiv"></div>
-    <div class="stat">
-      <div class="stat-val" id="streakVal">—</div>
-      <div class="stat-label">Streak</div>
-    </div>
-    <div class="vdiv"></div>
-    <div class="stat">
-      <div class="stat-val" id="avgErrVal">—</div>
-      <div class="stat-label">Avg Error</div>
-    </div>
-    <div class="vdiv"></div>
-    <div class="stat">
-      <div class="stat-val" id="roundVal">—</div>
-      <div class="stat-label">Round</div>
-    </div>
+      <div class="stat"><div class="stat-val" id="scoreVal">—</div><div class="stat-label">Score</div></div>
+      <div class="vdiv"></div>
+      <div class="stat"><div class="stat-val" id="streakVal">—</div><div class="stat-label">Streak</div></div>
+      <div class="vdiv"></div>
+      <div class="stat"><div class="stat-val" id="avgErrVal">—</div><div class="stat-label">Avg Error</div></div>
+      <div class="vdiv"></div>
+      <div class="stat"><div class="stat-val" id="roundVal">—</div><div class="stat-label">Round</div></div>
     </div>
     <div id="multBadge" class="mult-badge">×1.0</div>
   </div>
@@ -619,150 +222,139 @@
 <div class="main">
 
   <!-- Settings -->
-  <div class="settings-row">
-    <span class="label">Game Mode</span>
-    <div class="pill active" id="modePanning" onclick="setGameMode('panning',this)">↔ Panning</div>
-    <div class="pill"        id="modeWidth"   onclick="setGameMode('width',this)">⟺ Width</div>
-    <div class="vdiv"></div>
-    <span id="modeDesc" style="font-size:11px;color:var(--muted);">Identify where the sound is panned in the stereo field</span>
-    <div class="vdiv" style="margin-left:auto;"></div>
-    <div style="margin-left:auto; position:relative;" class="shortcuts-wrap">
-      <button class="shortcuts-btn" onclick="toggleShortcuts(event)">&#9000; Shortcuts</button>
-      <div class="shortcuts-popover" id="shortcutsPopover">
-        <div class="shortcut-row"><span>Toggle center</span><div class="shortcut-keys"><kbd>Space</kbd><kbd>D</kbd></div></div>
-        <div class="shortcut-row"><span>Pause</span><div class="shortcut-keys"><kbd>P</kbd></div></div>
-        <div class="shortcut-row"><span>Restart</span><div class="shortcut-keys"><kbd>F</kbd></div></div>
-        <div class="shortcut-row"><span>Seek</span><div class="shortcut-keys"><kbd>←</kbd><kbd>→</kbd></div></div>
-        <div class="shortcut-row"><span>Skip track</span><div class="shortcut-keys"><kbd>↑</kbd><kbd>↓</kbd></div></div>
-        <div class="shortcut-row"><span>New round</span><div class="shortcut-keys"><kbd>↵</kbd></div></div>
+  <div class="settings-bar">
+    <div class="settings-row">
+      <span class="label">Game Mode</span>
+      <div class="pill active" id="modePanning" onclick="setGameMode('panning',this)">↔ Panning</div>
+      <div class="pill"        id="modeWidth"   onclick="setGameMode('width',this)">⟺ Width</div>
+      <span class="vdiv"></span>
+      <span class="mode-desc" id="modeDesc">Locate where the sound sits in the stereo field</span>
+      <div class="shortcuts-wrap" style="margin-left:auto; position:relative;">
+        <button class="shortcuts-btn" onclick="toggleShortcuts(event)">&#9000; Shortcuts</button>
+        <div class="shortcuts-popover" id="shortcutsPopover">
+          <div class="shortcut-row"><span>Toggle reference</span><div class="shortcut-keys"><kbd>Space</kbd><kbd>D</kbd></div></div>
+          <div class="shortcut-row"><span>Pause</span><div class="shortcut-keys"><kbd>P</kbd></div></div>
+          <div class="shortcut-row"><span>Restart</span><div class="shortcut-keys"><kbd>F</kbd></div></div>
+          <div class="shortcut-row"><span>Seek</span><div class="shortcut-keys"><kbd>←</kbd><kbd>→</kbd></div></div>
+          <div class="shortcut-row"><span>Skip track</span><div class="shortcut-keys"><kbd>↑</kbd><kbd>↓</kbd></div></div>
+          <div class="shortcut-row"><span>New round</span><div class="shortcut-keys"><kbd>↵</kbd></div></div>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Prompt -->
   <div class="prompt-bar" id="promptBar">
-    <div style="flex:1;">
-      <div class="prompt-text" id="promptText">Click <span>Play</span> to start — then click anywhere to place your guess</div>
+    <div style="flex:1; min-width:0;">
+      <div class="prompt-text" id="promptText">Press <span>Play</span> to start — then drag the handle or click the field to answer</div>
       <div class="next-bar" id="nextBar" style="display:none;"><div class="next-fill" id="nextFill"></div></div>
     </div>
     <div class="result-inline" id="resultInline"></div>
   </div>
 
-  <!-- Stereo field -->
-  <div class="stereo-card" id="stereoCard">
-
-    <div class="field-row">
-      <div class="speaker-label label-l" id="speakerL" style="min-width:36px;text-align:center;">L</div>
-
-      <div class="pan-field" id="panField" style="position:relative;">
-        <div id="centerMonoLabel" class="center-mono-label">MONO</div>
-        <div class="cursor-line" id="cursorLine"></div>
-        <div class="cursor-line-mirror" id="cursorMirror"></div>
-        <div class="pan-track" id="panTrack">
-          <div class="pan-fill" id="panFill"></div>
-          <div class="pan-handle user-handle" id="userHandle">
-            <span class="handle-label" style="color:var(--accent2)">▼</span>
+  <!-- Imager (full-width hero) -->
+  <section class="device">
+    <div class="display-well imager">
+      <div class="stage" id="stage">
+        <canvas class="scope-canvas" id="scopeCanvas"></canvas>
+        <div class="ruler">
+          <div class="ruler-track" id="rulerTrack">
+            <div class="ruler-detent"></div>
+            <div class="ruler-fill" id="rulerFill"></div>
+            <div class="handle user" id="userHandle"></div>
+            <div class="handle user hidden-handle" id="userMirror"></div>
+            <div class="handle target" id="targetHandle"></div>
+            <div class="handle target" id="targetMirror"></div>
           </div>
-          <div class="pan-handle target-handle" id="targetHandle">
-            <span class="handle-label" style="color:rgba(0,229,204,0.9)">◆</span>
-          </div>
+          <div class="ruler-scale" id="rulerScale"></div>
         </div>
       </div>
 
-      <div class="speaker-label label-r" id="speakerR" style="min-width:36px;text-align:center;">R</div>
-    </div>
-
-    <!-- Readout row -->
-    <div class="pan-readout">
-      <div class="readout-item user-read">
-        <div class="readout-val" id="userReadout">C</div>
-        <div class="readout-label">Your Answer</div>
+      <div class="readout-row">
+        <div class="readout">
+          <div class="readout-val" id="userReadout">C</div>
+          <div class="readout-lbl">Your Answer</div>
+        </div>
       </div>
-      <div class="readout-item target-read">
-        <div class="readout-val" id="targetReadout" style="opacity:0;">—</div>
-        <div class="readout-label">Target</div>
-      </div>
-    </div>
 
-    <div class="position-label" id="posLabel">Drag the handle to set your pan position</div>
+      <div class="position-label" id="posLabel">Drag the handle to set your pan position</div>
 
-    <!-- Error bar (after answering) -->
-    <div class="error-bar-wrap" id="errorWrap">
-      <div class="error-labels">
-        <span>Error</span>
-        <span id="errorPct"></span>
-      </div>
-      <div class="error-track">
-        <div class="error-fill" id="errorFill" style="width:0%"></div>
+      <div class="error-wrap" id="errorWrap">
+        <div class="error-head"><span>Error</span><span id="errorPct"></span></div>
+        <div class="error-track"><div class="error-fill" id="errorFill" style="width:0%"></div></div>
       </div>
     </div>
+  </section>
 
+  <!-- Transport (under the imager) -->
+  <div class="settings-bar">
+    <div class="settings-row">
+      <span class="label">Transport</span>
+      <button class="btn-play" id="btnPlayPause" onclick="togglePlayPause()"><span class="pulse-dot"></span><span class="bp-label">Play</span></button>
+      <button class="btn-action" id="btnRestart" onclick="restartAudio()" disabled>&#9654; Restart</button>
+      <button class="btn-action" onclick="startRound()">⟳ New Round</button>
+      <div class="vdiv" style="margin-left:auto;"></div>
+      <span class="label">Reference</span>
+      <button class="btn-action" id="btnCenter" onclick="toggleCenter()" disabled title="Monitor at center (Space / D)">Center</button>
+    </div>
   </div>
 
-  <!-- History -->
-  <div class="history-strip" id="historyStrip"></div>
-
-  <!-- Audio bar -->
-  <div class="audio-bar">
-    <button class="btn-listen" id="btnPlayPause" onclick="togglePlayPause()">
-      ▶ Play
-    </button>
-    <button class="btn-action" id="btnCenter"  onclick="toggleCenter()"  disabled title="Monitor at center (Space/D)">Center</button>
-    <button class="btn-action" id="btnRestart" onclick="restartAudio()"  disabled title="Restart (F)">&#9654; Restart</button>
-
-    <div class="source-wrap">
-      <div class="source-pill active" id="srcPink"    onclick="setSource('pink')">Pink</div>
-      <div class="source-pill"        id="srcOneShot" onclick="setSource('oneShot')">One-Shots</div>
+  <!-- Source (below transport) -->
+  <div class="settings-bar">
+    <div class="settings-row">
+      <span class="label">Audio Source</span>
+      <div class="source-pill active" id="srcPink"    onclick="setSource('pink')">Pink Noise</div>
+      <div class="source-pill"        id="srcOneShot" onclick="setSource('oneShot')">One-shots</div>
       <div class="source-pill"        id="srcLoop"    onclick="setSource('loop')">Loops</div>
       <div class="source-pill"        id="srcCustom"  onclick="triggerUpload()" style="border-style:dashed;">
         <span id="uploadLabel">Upload Folder</span>
+        <input type="file" id="folderInput" webkitdirectory directory multiple onchange="handleFolderUpload(event)">
       </div>
       <span id="sourceLoadStatus"></span>
-      <input type="file" id="folderInput" webkitdirectory directory multiple
-             onchange="handleFolderUpload(event)" style="display:none;">
     </div>
+  </div>
+
+  <!-- History -->
+  <div class="history-wrap">
+    <span class="history-label">Recent</span>
+    <div class="history-strip" id="historyStrip"></div>
   </div>
 
 </div>
 
-<!-- Help Toggle -->
+<!-- Help -->
 <button class="help-toggle" id="helpToggle" onclick="toggleHelp()">
   <span class="toggle-arrow">▶</span> How to play
 </button>
-
-<!-- Help Section -->
 <div class="help-section" id="helpSection">
   <div class="help-block">
     <h2>Where to start</h2>
     <p>
       Start in <strong>Panning</strong> mode. Press <strong>Play</strong> and listen to where the
-      sound sits in the stereo field. Drag the handle on the stereo ruler to your best guess of the
-      panning position, then press <strong>Submit</strong>.
+      sound sits between your ears. Drag the handle on the ruler to your best guess, then click the
+      field — or click anywhere on the field — to lock it in.
     </p>
     <p>
-      Use <strong>headphones</strong> if possible — stereo imaging is far more precise and reliable
-      through headphones than speakers, especially for subtle positions near center.
+      Use <strong>headphones</strong> if possible — stereo imaging is far more precise through
+      headphones than speakers, especially for subtle positions near center.
     </p>
   </div>
-
   <hr class="help-divider">
-
   <div class="help-block">
     <h2>What to listen for</h2>
     <p>
-      <strong>Panning</strong> — listen for the balance between your left and right ear.
-      A fully panned signal arrives entirely from one side. Center sounds equally loud on both.
-      Intermediate positions feel weighted toward one side but not exclusively.
+      <strong>Panning</strong> — listen for the balance between your left and right ear. A fully panned
+      signal arrives entirely from one side; center sounds equal on both. The beam marks wherever you
+      place the handle.
     </p>
     <p>
-      <strong>Width</strong> — rather than a single point in space, a wide signal fills the stereo
-      field with a sense of "spread." Listen for how much of the left-right space the sound occupies.
-      A mono signal collapses to a single point at center; a wide signal feels expansive and enveloping.
+      <strong>Width</strong> — rather than a single point, a wide signal fills the field with a sense of
+      spread. The two handles open apart from center and the whole span between them lights up: closed
+      together is mono (0%), fully open is full stereo (100%).
     </p>
     <p>
-      Trust your <strong>first instinct</strong>. Listening too long causes your brain to adapt and
-      the position becomes harder to judge. Toggle the dry signal with <kbd>Space</kbd>/<kbd>D</kbd>
-      as a reference point to re-anchor your perception.
+      Trust your <strong>first instinct</strong>. Toggle the <strong>Reference</strong> (center / mono)
+      with <kbd>Space</kbd>/<kbd>D</kbd> to re-anchor your perception.
     </p>
   </div>
 </div>
@@ -770,835 +362,456 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ════════════════════════ Spatial Specialist ════════════════════════════════
+// Audio engine, sources, scoring, round flow & keyboard are unchanged from the
+// original game. UI rebuilt: full-width straight-line beam imager + pan/width ruler.
 
-function toggleShortcuts(e) {
-  e.stopPropagation();
-  const pop = document.getElementById('shortcutsPopover');
-  pop.classList.toggle('open');
-}
-document.addEventListener('click', () => {
-  const pop = document.getElementById('shortcutsPopover');
-  if (pop) pop.classList.remove('open');
-});
+function toggleShortcuts(e){ e.stopPropagation(); document.getElementById('shortcutsPopover').classList.toggle('open'); }
+document.addEventListener('click', () => { const p=document.getElementById('shortcutsPopover'); if(p) p.classList.remove('open'); });
+function toggleHelp(){ const b=document.getElementById('helpToggle'), s=document.getElementById('helpSection'); b.classList.toggle('open', s.classList.toggle('visible')); }
 
-// ── Help Section ───────────────────────────────────────────────────────────────
-function toggleHelp() {
-  const btn = document.getElementById('helpToggle');
-  const sec = document.getElementById('helpSection');
-  const open = sec.classList.toggle('visible');
-  btn.classList.toggle('open', open);
-}
+const $ = id => document.getElementById(id);
 
-// ── State ─────────────────────────────────────────────────────────────────────
-let gameMode    = 'panning';  // 'panning' | 'width'
-let targetPan   = 0;
-let userClickedX = 0.5;
-let userPan     = 0;
-let roundActive = false;
-let answered    = false;
-let totalScore  = 0, streak = 0, totalRounds = 0, totalErr = 0;
-let isCenter    = false;
-let isPaused    = false;
+// ── State ──
+let gameMode='panning', targetPan=0, userPan=0;
+let roundActive=false, answered=false;
+let totalScore=0, streak=0, totalRounds=0, totalErr=0;
+let isCenter=false, isPaused=false;
+let hoverX=null;
 
 // Audio
-let audioCtx      = null;
-let noiseSource   = null;
-let noiseSourceR  = null;
-let pannerNode    = null;
-let pannerNodeR   = null;
-let outGain       = null;
-let isPlaying     = false;
-let shotLoopTimer = null;
-let sourceType    = 'pink';
+let audioCtx=null, noiseSource=null, noiseSourceR=null;
+let pannerNode=null, pannerNodeR=null, outGain=null;
+let isPlaying=false, shotLoopTimer=null, sourceType='pink';
+let customFiles=[], customIdx=0, customAudioEl=null, customMediaSrc=null;
+let oneShotBuffers=[], oneShotLoaded=false, oneShotIdx=0, currentShotSrc=null;
+let loopFileNames=[], loopManifestLoaded=false, loopIdx=0, loopAudioEl=null, loopMediaSrc=null;
 
-// Custom upload (streaming)
-let customFiles = [], customIdx = 0;
-let customAudioEl = null, customMediaSrc = null;
+// Interaction
+let isDragging=false, dragMoved=false, dragEndAt=0;
 
-// One-shots
-let oneShotBuffers = [], oneShotLoaded = false, oneShotIdx = 0;
-let currentShotSrc = null;
+function randNext(len,cur){ if(len<=1) return 0; let n; do{ n=Math.floor(Math.random()*len);}while(n===cur); return n; }
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
-// Loops (streaming)
-let loopFileNames = [], loopManifestLoaded = false, loopIdx = 0;
+// ── Samples manifest ──
+let samplesManifest=null;
+async function getManifest(){ if(samplesManifest) return samplesManifest; const r=await fetch('../samples/manifest.json'); samplesManifest=await r.json(); return samplesManifest; }
+function setLoadStatus(msg,isLoading){ const el=$('sourceLoadStatus'); if(!msg){el.textContent='';el.style.color='';return;} el.textContent=msg; el.style.color=isLoading?'var(--amber)':'var(--green)'; if(!isLoading) setTimeout(()=>{el.textContent='';el.style.color='';},2000); }
 
-// Pick a random index different from current (falls back to 0 if only 1 item)
-function randNext(len, cur) {
-  if (len <= 1) return 0;
-  let next;
-  do { next = Math.floor(Math.random() * len); } while (next === cur);
-  return next;
-}
-let loopAudioEl = null, loopMediaSrc = null;
-
-// Drag
-let isDragging = false;
-
-// ── Sample file lists ─────────────────────────────────────────────────────────
-// ── Samples manifest (edit samples/manifest.json to add new files) ────────────
-let samplesManifest = null;
-async function getManifest() {
-  if (samplesManifest) return samplesManifest;
-  const r = await fetch('../samples/manifest.json');
-  samplesManifest = await r.json();
-  return samplesManifest;
-}
-// Loop files are discovered dynamically from the directory listing
-
-// ── Load status helper ────────────────────────────────────────────────────────
-function setLoadStatus(msg, isLoading) {
-  const el = document.getElementById('sourceLoadStatus');
-  if (!msg) { el.textContent = ''; el.style.color = ''; return; }
-  el.textContent = msg;
-  el.style.color = isLoading ? 'var(--amber)' : 'var(--green)';
-  if (!isLoading) setTimeout(() => { el.textContent = ''; el.style.color = ''; }, 2000);
-}
-
-// ── Build track ticks ─────────────────────────────────────────────────────────
-function buildTicks() {
-  const track = document.getElementById('panTrack');
-  track.querySelectorAll('.pan-tick,.pan-tick-label').forEach(e=>e.remove());
-  const ticks = [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1];
-  const labels = {'-1':'L 100','-0.75':'L 75','-0.5':'L 50','-0.25':'L 25','0':'C','0.25':'R 25','0.5':'R 50','0.75':'R 75','1':'R 100'};
-  ticks.forEach(v => {
-    const pct = ((v + 1) / 2) * 100;
-    const tick = document.createElement('div');
-    tick.className = 'pan-tick';
-    tick.style.cssText = `left:${pct}%; background:${v===0?'rgba(245,166,35,0.4)':'rgba(255,255,255,0.1)'};`;
-    track.appendChild(tick);
-    const lbl = document.createElement('div');
-    lbl.className = 'pan-tick-label';
-    lbl.style.left = pct + '%';
-    lbl.textContent = labels[String(v)] || '';
-    track.appendChild(lbl);
+// ── Tick marks ──
+function buildTicks(){
+  const scale=$('rulerScale'); scale.innerHTML='';
+  const ticks=[-1,-0.75,-0.5,-0.25,0,0.25,0.5,0.75,1];
+  const labels={'-1':'L100','-0.75':'L75','-0.5':'L50','-0.25':'L25','0':'C','0.25':'R25','0.5':'R50','0.75':'R75','1':'R100'};
+  ticks.forEach(v=>{
+    const pct=((v+1)/2)*100;
+    const t=document.createElement('div'); t.className='tick'+(v===0?' tick-center':''); t.style.left=pct+'%'; scale.appendChild(t);
+    const l=document.createElement('div'); l.className='tick-lbl'+(v===0?' lbl-center':''); l.style.left=pct+'%'; l.textContent=labels[String(v)]; scale.appendChild(l);
   });
 }
 
-// ── Game Mode ─────────────────────────────────────────────────────────────────
-function promptTextForMode(mode) {
-  return mode === 'width'
-    ? `How <span>wide</span> is the stereo image? Click anywhere on the field to place your guess`
-    : `Where is the sound <span>panned</span>? Click anywhere on the field to place your guess`;
+// ── Game mode ──
+function promptTextForMode(mode){
+  return mode==='width'
+    ? `How <span>wide</span> is the stereo image? Drag the spread or click the field to answer`
+    : `Where is the sound <span>panned</span>? Drag the handle or click the field to answer`;
+}
+function updateMultBadge(){ const el=$('multBadge'); if(el&&window.ScoringEngine) el.textContent=ScoringEngine.label('spatial-specialist',{mode:gameMode}); }
+function setGameMode(mode,el){
+  gameMode=mode;
+  ['modePanning','modeWidth'].forEach(id=>$(id).classList.remove('active')); el.classList.add('active');
+  $('modeDesc').textContent = mode==='panning'
+    ? 'Locate where the sound sits in the stereo field'
+    : 'Judge how wide the stereo image is — mono (0%) to full (100%)';
+  if(roundActive && !answered) $('promptText').innerHTML=promptTextForMode(mode);
+  userPan=0; updatePanUI(0); updateMultBadge();
 }
 
-function updateMultBadge() {
-  const el = document.getElementById('multBadge');
-  if (el && window.ScoringEngine) el.textContent = ScoringEngine.label('spatial-specialist', { mode: gameMode });
+// ── Value formatting ──
+function fmtPan(v){
+  if(gameMode==='width'){ const p=Math.round(Math.abs(v)*100); if(p<2) return '0%'; if(p>98) return '100%'; return p+'%'; }
+  if(Math.abs(v)<0.01) return 'C';
+  const p=Math.round(Math.abs(v)*100); return (v<0?'L ':'R ')+p;
 }
+function pctOf(p){ return ((p+1)/2)*100; }
 
-function setGameMode(mode, el) {
-  gameMode = mode;
-  ['modePanning','modeWidth'].forEach(id=>document.getElementById(id).classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('modeDesc').textContent = mode === 'panning'
-    ? 'Identify where the sound is panned in the stereo field'
-    : 'Identify how wide the stereo image is (0% = mono → 100% = full stereo)';
-
-  if (mode === 'width') {
-    document.getElementById('speakerL').textContent = 'Wide';
-    document.getElementById('speakerR').textContent = 'Wide';
-    document.getElementById('speakerL').style.color = 'var(--accent2)';
-    document.getElementById('speakerR').style.color = 'var(--accent2)';
+// ── Update UI ──
+function updatePanUI(pan){
+  userPan = gameMode==='width' ? clamp(pan,0,1) : clamp(pan,-1,1);
+  const uh=$('userHandle'), um=$('userMirror'), fill=$('rulerFill');
+  if(gameMode==='width'){
+    const w=userPan, l=50-w*50, r=50+w*50;
+    uh.style.left=r+'%'; um.style.left=l+'%'; um.classList.remove('hidden-handle');
+    fill.style.left=l+'%'; fill.style.width=(r-l)+'%';
+    fill.style.background='linear-gradient(90deg, color-mix(in srgb,var(--accent) 30%,transparent), color-mix(in srgb,var(--accent) 70%,transparent), color-mix(in srgb,var(--accent) 30%,transparent))';
+    const desc=w<0.02?'Mono (0%)':w>0.98?'Full stereo (100%)':`${Math.round(w*100)}% wide`;
+    $('posLabel').innerHTML=`Your guess: <span>${desc}</span>`;
   } else {
-    document.getElementById('speakerL').textContent = 'L';
-    document.getElementById('speakerR').textContent = 'R';
-    document.getElementById('speakerL').style.color = '';
-    document.getElementById('speakerR').style.color = '';
+    const pct=pctOf(userPan); uh.style.left=pct+'%'; um.classList.add('hidden-handle');
+    if(userPan<0){ fill.style.left=pct+'%'; fill.style.width=(50-pct)+'%'; }
+    else { fill.style.left='50%'; fill.style.width=(pct-50)+'%'; }
+    fill.style.background='linear-gradient(90deg, color-mix(in srgb,var(--accent) 60%,transparent), color-mix(in srgb,var(--accent) 60%,transparent))';
+    const a=Math.abs(userPan);
+    const desc=a<0.05?'Center':a>0.95?(userPan<0?'Hard Left':'Hard Right'):(userPan<0?'Left ':'Right ')+Math.round(a*100)+'%';
+    $('posLabel').innerHTML=`Your guess: <span>${desc}</span>`;
   }
-
-  // Update prompt text if a round is active but not yet answered
-  if (roundActive && !answered) {
-    document.getElementById('promptText').innerHTML = promptTextForMode(mode);
-  }
-
-  updatePanUI(userPan);
-  updateMultBadge();
+  $('userReadout').textContent=fmtPan(userPan);
+  drawField();
 }
 
-// ── Pan value formatting ──────────────────────────────────────────────────────
-function fmtPan(v) {
-  if (gameMode === 'width') {
-    const pct = Math.round(Math.abs(v) * 100);
-    if (pct < 2) return '0% (Mono)';
-    if (pct > 98) return '100% (Wide)';
-    return pct + '% Wide';
-  }
-  if (Math.abs(v) < 0.01) return 'C';
-  const pct = Math.round(Math.abs(v) * 100);
-  return (v < 0 ? 'L ' : 'R ') + pct + '%';
+// ── Pointer interaction ──
+function panFromX(clientX){
+  const rect=$('rulerTrack').getBoundingClientRect();
+  const x=clamp(clientX-rect.left,0,rect.width);
+  const v=(x/rect.width)*2-1;
+  return gameMode==='width'?Math.abs(v):clamp(v,-1,1);
+}
+function beginDrag(e){ if(!roundActive||answered) return; isDragging=true; dragMoved=false; e.preventDefault(); try{ e.currentTarget.setPointerCapture(e.pointerId);}catch(_){} }
+$('userHandle').addEventListener('pointerdown', beginDrag);
+$('userMirror').addEventListener('pointerdown', beginDrag);
+window.addEventListener('pointermove', e=>{ if(!isDragging) return; dragMoved=true; const pan=panFromX(e.clientX); updatePanUI(pan); if(!isCenter) applyUserPanToAudio(pan); });
+window.addEventListener('pointerup', ()=>{ if(isDragging){ isDragging=false; dragEndAt=Date.now(); } });
+$('stage').addEventListener('pointermove', e=>{ if(!roundActive||answered||isDragging) return; if(e.pointerType==='touch') return; const rect=$('scopeCanvas').getBoundingClientRect(); hoverX=clamp(e.clientX-rect.left,0,rect.width); drawField(); });
+$('stage').addEventListener('pointerleave', ()=>{ hoverX=null; drawField(); });
+$('stage').addEventListener('click', e=>{
+  if(!roundActive||answered) return;
+  if(e.target.closest('.handle')) return;
+  if(isDragging || Date.now()-dragEndAt<250) return;
+  const pan=panFromX(e.clientX); updatePanUI(pan); if(!isCenter) applyUserPanToAudio(pan); submitAnswer();
+});
+function applyUserPanToAudio(pan){
+  if(!pannerNode||!audioCtx) return;
+  if(gameMode==='width'){ /* width: audio stays at target spread */ }
+  else pannerNode.pan.setTargetAtTime(pan, audioCtx.currentTime, 0.02);
 }
 
-// ── Update UI from userPan ────────────────────────────────────────────────────
-function updatePanUI(pan) {
-  userPan = gameMode === 'width' ? Math.max(0, Math.min(1, pan)) : Math.max(-1, Math.min(1, pan));
-  const pct = gameMode === 'width'
-    ? userClickedX * 100
-    : ((userPan + 1) / 2) * 100;
-
-  const handle = document.getElementById('userHandle');
-  handle.style.left = pct + '%';
-
-  const fill = document.getElementById('panFill');
-  const center = 50;
-  if (gameMode === 'width') {
-    const halfFill = userPan * 50;
-    fill.style.left  = (50 - halfFill) + '%';
-    fill.style.width = (halfFill * 2) + '%';
-    fill.style.background = 'linear-gradient(to right, rgba(244,91,105,0.4), rgba(124,92,252,0.6), rgba(62,207,142,0.4))';
-  } else if (userPan < 0) {
-    fill.style.left  = pct + '%';
-    fill.style.width = (center - pct) + '%';
-    fill.style.background = 'linear-gradient(to left, rgba(124,92,252,0.6), rgba(244,91,105,0.4))';
-  } else {
-    fill.style.left  = center + '%';
-    fill.style.width = (pct - center) + '%';
-    fill.style.background = 'linear-gradient(to right, rgba(124,92,252,0.6), rgba(62,207,142,0.4))';
-  }
-
-  document.getElementById('userReadout').textContent = fmtPan(userPan);
-
-  if (gameMode === 'width') {
-    const w = userPan;
-    document.getElementById('speakerL').style.opacity = 0.2 + w*0.8;
-    document.getElementById('speakerR').style.opacity = 0.2 + w*0.8;
-    const monoLabel = document.getElementById('centerMonoLabel');
-    if (monoLabel) monoLabel.style.opacity = 0.2 + (1 - w)*0.8;
-    const wDesc = w < 0.02 ? 'Mono (0%)' : w > 0.98 ? 'Full Stereo (100%)' : `${Math.round(w*100)}% Wide`;
-    document.getElementById('posLabel').innerHTML = `Your guess: <span>${wDesc}</span>`;
-  } else {
-    const absV = Math.abs(userPan);
-    document.getElementById('speakerL').style.opacity = userPan <= 0 ? 0.5 + absV*0.5 : Math.max(0.15, 0.5 - absV*0.4);
-    document.getElementById('speakerR').style.opacity = userPan >= 0 ? 0.5 + absV*0.5 : Math.max(0.15, 0.5 - absV*0.4);
-    const monoLabel = document.getElementById('centerMonoLabel');
-    if (monoLabel) monoLabel.style.opacity = '0';
-    const desc = Math.abs(userPan) < 0.05 ? 'Center' :
-                 Math.abs(userPan) > 0.95 ? (userPan<0?'Hard Left':'Hard Right') :
-                 (userPan<0?'Left ':'Right ') + Math.round(Math.abs(userPan)*100) + '%';
-    document.getElementById('posLabel').innerHTML = `Your guess: <span>${desc}</span>`;
-  }
-}
-
-// ── Handle drag ───────────────────────────────────────────────────────────────
-const userHandle = document.getElementById('userHandle');
-
-function panFromTrackX(x, trackWidth) {
-  const v = (x / trackWidth) * 2 - 1;
-  if (gameMode === 'width') {
-    userClickedX = x / trackWidth;
-    return Math.abs(v);
-  }
-  return Math.max(-1, Math.min(1, v));
-}
-
-userHandle.addEventListener('mousedown', e => {
-  if (!roundActive || answered) return;
-  isDragging = true;
-  e.preventDefault();
-});
-
-window.addEventListener('mousemove', e => {
-  if (!isDragging) return;
-  const track = document.getElementById('panTrack');
-  const rect  = track.getBoundingClientRect();
-  const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
-  const pan = panFromTrackX(x, rect.width);
-  updatePanUI(pan);
-  if (!isCenter) applyUserPanToAudio(pan);
-});
-
-window.addEventListener('mouseup', () => { if (isDragging) { isDragging = false; } });
-
-userHandle.addEventListener('touchstart', e => {
-  if (!roundActive || answered) return;
-  isDragging = true; e.preventDefault();
-}, {passive:false});
-
-window.addEventListener('touchmove', e => {
-  if (!isDragging) return;
-  const track = document.getElementById('panTrack');
-  const rect  = track.getBoundingClientRect();
-  const x = Math.max(0, Math.min(rect.width, e.touches[0].clientX - rect.left));
-  const pan = panFromTrackX(x, rect.width);
-  updatePanUI(pan);
-  if (!isCenter) applyUserPanToAudio(pan);
-  e.preventDefault();
-}, {passive:false});
-
-window.addEventListener('touchend', () => { isDragging = false; });
-
-// ── Cursor guide line on hover ────────────────────────────────────────────────
-document.getElementById('stereoCard').addEventListener('mousemove', e => {
-  if (!roundActive || answered) return;
-  const panField = document.getElementById('panField');
-  const rect = panField.getBoundingClientRect();
-  const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
-  const line   = document.getElementById('cursorLine');
-  const mirror = document.getElementById('cursorMirror');
-  line.style.display = 'block';
-  line.style.left    = x + 'px';
-  if (gameMode === 'width') {
-    mirror.style.display = 'block';
-    mirror.style.left    = (rect.width - x) + 'px';
-  } else {
-    mirror.style.display = 'none';
-  }
-});
-
-document.getElementById('stereoCard').addEventListener('mouseleave', () => {
-  document.getElementById('cursorLine').style.display   = 'none';
-  document.getElementById('cursorMirror').style.display = 'none';
-});
-
-document.getElementById('stereoCard').addEventListener('click', e => {
-  if (!roundActive || answered) return;
-  if (e.target.closest('button')) return;
-  if (e.target.closest('.pan-readout')) return;
-  if (e.target.closest('.error-bar-wrap')) return;
-  if (isDragging) return;
-  const panField = document.getElementById('panField');
-  const rect = panField.getBoundingClientRect();
-  const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
-  const pan = panFromTrackX(x, rect.width);
-  updatePanUI(pan);
-  if (!isCenter) applyUserPanToAudio(pan);
-  submitAnswer();
-});
-
-document.getElementById('panTrack').addEventListener('click', e => {
-  if (e.target === userHandle || e.target.closest('.pan-handle')) e.stopPropagation();
-});
-
-// ── Apply user pan to audio ───────────────────────────────────────────────────
-function applyUserPanToAudio(pan) {
-  if (!pannerNode || !audioCtx) return;
-  if (gameMode === 'width') {
-    // Audio stays at target width — user just positions the handle visually
-  } else {
-    pannerNode.pan.setTargetAtTime(pan, audioCtx.currentTime, 0.02);
-  }
-}
-
-// ── Round ─────────────────────────────────────────────────────────────────────
-function startRound() {
-  if (roundActive && !answered) return;
+// ── Round ──
+function startRound(){
+  if(roundActive && !answered) return;
   clearTimeout(window._nextTimeout);
-  answered   = false;
-  isCenter   = false;
-  roundActive = true;
-  totalRounds++;
-  document.getElementById('roundVal').textContent = totalRounds;
+  answered=false; isCenter=false; roundActive=true;
+  totalRounds++; $('roundVal').textContent=totalRounds;
+  if(gameMode==='width') targetPan=Math.round((0.1+Math.random()*0.85)*100)/100;
+  else { do{ targetPan=Math.round((Math.random()*2-1)*100)/100; } while(Math.abs(targetPan)<0.05); }
 
-  if (gameMode === 'width') {
-    targetPan = Math.round((0.1 + Math.random() * 0.85) * 100) / 100;
-  } else {
-    do { targetPan = Math.round((Math.random() * 2 - 1) * 100) / 100; }
-    while (Math.abs(targetPan) < 0.05);
-  }
+  $('stage').classList.remove('answered');
+  userPan=0; updatePanUI(0);
+  $('promptBar').classList.remove('correct-flash','wrong-flash');
+  $('resultInline').className='result-inline'; $('resultInline').textContent='';
+  $('nextBar').style.display='none';
+  $('errorWrap').classList.remove('visible');
+  $('targetHandle').classList.remove('visible'); $('targetMirror').classList.remove('visible');
+  $('btnCenter').disabled=false; $('btnRestart').disabled=false;
+  $('btnCenter').classList.remove('center-active'); $('btnCenter').textContent= gameMode==='width'?'Mono Ref':'Center';
+  $('promptText').innerHTML=promptTextForMode(gameMode);
 
-  // Reset UI
-  document.getElementById('stereoCard').classList.remove('answered');
-  userClickedX = 0.5;
-  userPan = 0;
-  updatePanUI(userPan);
-  document.getElementById('promptBar').classList.remove('correct-flash','wrong-flash');
-  const ri = document.getElementById('resultInline');
-  ri.className = 'result-inline'; ri.textContent = '';
-  document.getElementById('nextBar').style.display = 'none';
-  document.getElementById('errorWrap').classList.remove('visible');
-  document.getElementById('targetReadout').style.opacity = '0';
-  document.getElementById('targetReadout').textContent = '—';
-  document.getElementById('targetHandle').classList.remove('visible');
-  document.getElementById('btnCenter').disabled  = false;
-  document.getElementById('btnRestart').disabled = false;
-  document.getElementById('btnCenter').classList.remove('center-active');
-  document.getElementById('btnCenter').textContent = 'Center';
-
-  document.getElementById('promptText').innerHTML = promptTextForMode(gameMode);
-
-  // Advance track indices each round
-  if (sourceType === 'custom' && customFiles.length > 0) {
-    customIdx = (customIdx + 1) % customFiles.length;
-    if (customAudioEl) customAudioEl._currentFile = null; // force reload
-  }
-  if (sourceType === 'oneShot' && oneShotBuffers.length > 0) {
-    oneShotIdx = randNext(oneShotBuffers.length, oneShotIdx);
-  }
-  if (sourceType === 'loop' && loopFileNames.length > 0) {
-    loopIdx = randNext(loopFileNames.length, loopIdx);
-    if (loopAudioEl) loopAudioEl._currentFname = null; // force reload
-  }
-
+  if(sourceType==='custom'&&customFiles.length>0){ customIdx=(customIdx+1)%customFiles.length; if(customAudioEl) customAudioEl._currentFile=null; }
+  if(sourceType==='oneShot'&&oneShotBuffers.length>0) oneShotIdx=randNext(oneShotBuffers.length,oneShotIdx);
+  if(sourceType==='loop'&&loopFileNames.length>0){ loopIdx=randNext(loopFileNames.length,loopIdx); if(loopAudioEl) loopAudioEl._currentFname=null; }
   startAudio();
 }
 
-// ── Submit answer ─────────────────────────────────────────────────────────────
-function submitAnswer() {
-  if (!roundActive || answered) return;
-  answered = true;
-  document.getElementById('stereoCard').classList.add('answered');
-  document.getElementById('cursorLine').style.display   = 'none';
-  document.getElementById('cursorMirror').style.display = 'none';
+function submitAnswer(){
+  if(!roundActive||answered) return;
+  answered=true; $('stage').classList.add('answered'); hoverX=null;
 
-  const err  = Math.abs(userPan - targetPan);
-  const errPct = (err / 2) * 100;
-  const pts  = Math.round(Math.max(0, 100 - errPct * 1.6));
+  const err=Math.abs(userPan-targetPan), errPct=(err/2)*100;
+  const pts=Math.round(Math.max(0,100-errPct*1.6));
+  const weightedPts=window.ScoringEngine?Math.round(pts*ScoringEngine.multiplier('spatial-specialist',{mode:gameMode})):pts;
+  totalScore+=weightedPts;
+  totalErr = totalErr===0?errPct:(totalErr*(totalRounds-1)+errPct)/totalRounds;
+  if(pts>=70) streak++; else streak=0;
+  $('scoreVal').textContent=totalScore; $('streakVal').textContent=streak; $('avgErrVal').textContent=Math.round(totalErr)+'%';
+  if(window.SonicSandbox) SonicSandbox.saveScore({game:'spatial-specialist',correct:pts>=70,roundScore:weightedPts});
 
-  const weightedPts = window.ScoringEngine ? Math.round(pts * ScoringEngine.multiplier('spatial-specialist', { mode: gameMode })) : pts;
-  totalScore += weightedPts;
-  totalErr    = totalErr === 0 ? errPct : (totalErr * (totalRounds-1) + errPct) / totalRounds;
-  if (pts >= 70) streak++; else streak = 0;
+  if(gameMode==='width'){
+    const l=50-targetPan*50, r=50+targetPan*50;
+    $('targetHandle').style.left=r+'%'; $('targetMirror').style.left=l+'%'; $('targetMirror').classList.add('visible');
+  } else { $('targetHandle').style.left=pctOf(targetPan)+'%'; }
+  $('targetHandle').classList.add('visible');
 
-  document.getElementById('scoreVal').textContent  = totalScore;
-  document.getElementById('streakVal').textContent = streak;
-  document.getElementById('avgErrVal').textContent  = Math.round(totalErr) + '%';
-  if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'spatial-specialist', correct: pts >= 70, roundScore: weightedPts });
+  if(pannerNode&&audioCtx) pannerNode.pan.setTargetAtTime(targetPan, audioCtx.currentTime, 0.03);
 
-  // Reveal target handle
-  const th  = document.getElementById('targetHandle');
-  const tPct = gameMode === 'width'
-    ? 50 + targetPan * 50
-    : ((targetPan + 1) / 2) * 100;
-  th.style.left = tPct + '%';
-  th.classList.add('visible');
+  const tier=pts>=85?'perfect':pts>=65?'good':pts>=40?'ok':'bad';
+  const msgs={perfect:'Perfect — spot on.',good:'Good — very close.',ok:'Getting there — keep refining.',bad:'Keep practicing — trust your ears.'};
+  $('promptBar').classList.add(pts>=65?'correct-flash':'wrong-flash');
+  const _mult=window.ScoringEngine?ScoringEngine.label('spatial-specialist',{mode:gameMode}):'×1.0';
+  $('resultInline').textContent=`+${weightedPts} pts  ${_mult}`;
+  $('resultInline').className=`result-inline ${pts>=65?'show-good':pts>=40?'show-ok':'show-bad'}`;
 
-  const tr = document.getElementById('targetReadout');
-  tr.textContent = fmtPan(targetPan);
-  tr.style.opacity = '1';
-
-  // Route audio to true target position for comparison
-  if (pannerNode && audioCtx) {
-    pannerNode.pan.setTargetAtTime(targetPan, audioCtx.currentTime, 0.03);
-  }
-
-  const tier = pts >= 85 ? 'perfect' : pts >= 65 ? 'good' : pts >= 40 ? 'ok' : 'bad';
-  const msgs = { perfect:'Perfect — spot on.', good:'Good — very close.', ok:'Getting there — keep refining.', bad:'Keep practicing — trust your ears.' };
-
-  document.getElementById('promptBar').classList.add(pts >= 65 ? 'correct-flash' : 'wrong-flash');
-  const ri = document.getElementById('resultInline');
-  const _ssMult = window.ScoringEngine ? ScoringEngine.label('spatial-specialist', { mode: gameMode }) : '×1.0';
-  ri.textContent = `+${weightedPts} pts  ${_ssMult}`;
-  ri.className   = `result-inline ${pts>=65?'show-good':pts>=40?'show-ok':'show-bad'}`;
-
+  const diffPct=Math.round((userPan-targetPan)*100);
   let diffStr;
-  if (gameMode === 'width') {
-    const diffPct = Math.round((userPan - targetPan) * 100);
-    diffStr = diffPct === 0 ? 'exact' : (diffPct > 0 ? '+' : '') + diffPct + '% off';
-  } else {
-    const diffPct = Math.round((userPan - targetPan) * 100);
-    diffStr = diffPct === 0 ? 'exact' : (diffPct > 0 ? 'R +' : 'L ') + Math.abs(diffPct) + '% off';
+  if(gameMode==='width') diffStr=diffPct===0?'exact':(diffPct>0?'+':'')+diffPct+'%';
+  else diffStr=diffPct===0?'exact':(diffPct>0?'R +':'L ')+Math.abs(diffPct);
+  $('promptText').innerHTML=`${msgs[tier]} &nbsp;·&nbsp; Target: <span>${fmtPan(targetPan)}</span> &nbsp;·&nbsp; Yours: <span>${fmtPan(userPan)}</span> &nbsp;·&nbsp; Diff: <span>${diffStr}</span>`;
+
+  $('errorWrap').classList.add('visible');
+  $('errorFill').style.background=pts>=65?'var(--green)':pts>=40?'var(--amber)':'var(--red)';
+  $('errorPct').textContent=Math.round(errPct)+'% off';
+  setTimeout(()=>{ $('errorFill').style.width=Math.min(100,errPct*1.5)+'%'; },60);
+
+  addHistory(tier); drawField();
+
+  const delay=pts>=65?1900:2700;
+  $('nextBar').style.display='block';
+  $('nextFill').style.transition='none'; $('nextFill').style.width='100%';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ $('nextFill').style.transition=`width ${delay}ms linear`; $('nextFill').style.width='0%'; }));
+  window._nextTimeout=setTimeout(startRound, delay);
+}
+
+function addHistory(tier){ const s=$('historyStrip'); const d=document.createElement('div'); d.className=`hist-dot ${tier}`; s.appendChild(d); while(s.children.length>40) s.removeChild(s.firstChild); }
+
+// ════════════════════ STEREO FIELD (straight-line beam) ════════════════════
+function xOf(p,W){ return ((p+1)/2)*W; }
+function cssVar(name,fb){ const v=getComputedStyle(document.body).getPropertyValue(name).trim(); return v||fb; }
+function hexA(hex,a){ hex=hex.replace('#',''); if(hex.length===3) hex=hex.split('').map(x=>x+x).join(''); const r=parseInt(hex.slice(0,2),16),g=parseInt(hex.slice(2,4),16),b=parseInt(hex.slice(4,6),16); return `rgba(${r},${g},${b},${a})`; }
+
+function drawField(){
+  const cv=$('scopeCanvas');
+  const dpr=Math.min(2,window.devicePixelRatio||1);
+  const W=cv.clientWidth||800, H=cv.clientHeight||360;
+  if(cv.width!==Math.round(W*dpr)){ cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); }
+  const c=cv.getContext('2d'); c.setTransform(dpr,0,0,dpr,0,0); c.clearRect(0,0,W,H);
+
+  // faint L / R orientation wash
+  let g=c.createLinearGradient(0,0,W,0);
+  g.addColorStop(0,'rgba(244,101,95,0.06)'); g.addColorStop(0.5,'rgba(244,101,95,0)');
+  c.fillStyle=g; c.fillRect(0,0,W,H);
+  g=c.createLinearGradient(0,0,W,0);
+  g.addColorStop(0.5,'rgba(62,207,142,0)'); g.addColorStop(1,'rgba(62,207,142,0.06)');
+  c.fillStyle=g; c.fillRect(0,0,W,H);
+
+  // horizontal guide lines (straight)
+  c.strokeStyle='rgba(255,255,255,0.04)'; c.lineWidth=1;
+  for(let k=1;k<=3;k++){ const y=(k/4)*H; c.beginPath(); c.moveTo(0,y); c.lineTo(W,y); c.stroke(); }
+
+  // vertical gridlines at tick positions (straight)
+  const ticks=[-1,-0.75,-0.5,-0.25,0,0.25,0.5,0.75,1];
+  ticks.forEach(v=>{
+    const x=xOf(v,W);
+    if(v===0){ c.strokeStyle='rgba(245,166,35,0.3)'; c.lineWidth=1.5; c.setLineDash([4,5]); }
+    else { c.strokeStyle='rgba(255,255,255,0.06)'; c.lineWidth=1; c.setLineDash([]); }
+    c.beginPath(); c.moveTo(x,0); c.lineTo(x,H); c.stroke();
+  });
+  c.setLineDash([]);
+
+  // corner labels
+  c.font='700 11px "IBM Plex Mono", monospace'; c.textBaseline='top';
+  c.fillStyle='rgba(244,101,95,0.7)'; c.textAlign='left'; c.fillText('L', 12, 12);
+  c.fillStyle='rgba(62,207,142,0.7)'; c.textAlign='right'; c.fillText('R', W-12, 12);
+
+  const acc=cssVar('--accent2','#5fd9f1'), tgt=cssVar('--tgt2','#87a0ff');
+
+  // hover guide
+  if(hoverX!=null && !answered){
+    c.strokeStyle=hexA(acc,0.45); c.lineWidth=1.5;
+    c.beginPath(); c.moveTo(hoverX,0); c.lineTo(hoverX,H); c.stroke();
+    if(gameMode==='width'){ const mx=W-hoverX; c.strokeStyle=hexA(acc,0.25); c.setLineDash([4,4]); c.beginPath(); c.moveTo(mx,0); c.lineTo(mx,H); c.stroke(); c.setLineDash([]); }
   }
-  document.getElementById('promptText').innerHTML =
-    `${msgs[tier]} &nbsp;·&nbsp; Target: <span>${fmtPan(targetPan)}</span> &nbsp;·&nbsp; Yours: <span>${fmtPan(userPan)}</span> &nbsp;·&nbsp; Diff: <span>${diffStr}</span>`;
 
-  const ew = document.getElementById('errorWrap');
-  const ef = document.getElementById('errorFill');
-  const ep = document.getElementById('errorPct');
-  ew.classList.add('visible');
-  ef.style.background = pts>=65?'var(--green)':pts>=40?'var(--amber)':'var(--red)';
-  ep.textContent = Math.round(errPct) + '% off';
-  setTimeout(()=>{ ef.style.width = Math.min(100, errPct*1.5) + '%'; }, 60);
-
-  addHistory(tier);
-
-  const delay = pts >= 65 ? 1800 : 2600;
-  const bar = document.getElementById('nextBar');
-  const fill= document.getElementById('nextFill');
-  bar.style.display = 'block';
-  fill.style.transition='none'; fill.style.width='100%';
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    fill.style.transition=`width ${delay}ms linear`; fill.style.width='0%';
-  }));
-  window._nextTimeout = setTimeout(startRound, delay);
+  if(gameMode==='width'){
+    drawBand(c, xOf(-userPan,W), xOf(userPan,W), H, acc);
+    if(answered) drawGhostEdges(c, [xOf(-targetPan,W), xOf(targetPan,W)], H, tgt);
+  } else {
+    drawBeam(c, xOf(userPan,W), H, acc);
+    if(answered) drawGhostEdges(c, [xOf(targetPan,W)], H, tgt);
+  }
 }
 
-// ── History ───────────────────────────────────────────────────────────────────
-function addHistory(tier) {
-  const strip = document.getElementById('historyStrip');
-  const dot   = document.createElement('div');
-  dot.className = `hist-dot ${tier}`;
-  strip.appendChild(dot);
-  while (strip.children.length > 40) strip.removeChild(strip.firstChild);
+// Straight vertical beam at the handle position
+function drawBeam(c, ax, H, color){
+  const halfW=26;
+  const g=c.createLinearGradient(ax-halfW,0,ax+halfW,0);
+  g.addColorStop(0,hexA(color,0)); g.addColorStop(0.5,hexA(color,0.30)); g.addColorStop(1,hexA(color,0));
+  c.fillStyle=g; c.fillRect(ax-halfW,0,halfW*2,H);
+  c.strokeStyle=hexA(color,0.95); c.lineWidth=2.5; c.shadowColor=color; c.shadowBlur=12;
+  c.beginPath(); c.moveTo(ax,0); c.lineTo(ax,H); c.stroke(); c.shadowBlur=0;
+  c.fillStyle=color; c.shadowColor=color; c.shadowBlur=14;
+  c.beginPath(); c.arc(ax,H-4,5,0,Math.PI*2); c.fill(); c.shadowBlur=0;
 }
 
-// ── Audio ─────────────────────────────────────────────────────────────────────
-function initAudio() {
-  if (audioCtx) return;
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+// Width band: whole span from one edge to the other lit up (straight edges)
+function drawBand(c, x1, x2, H, color){
+  if(x2<x1){ const t=x1; x1=x2; x2=t; }
+  const g=c.createLinearGradient(x1,0,x2,0);
+  g.addColorStop(0,hexA(color,0.12)); g.addColorStop(0.5,hexA(color,0.34)); g.addColorStop(1,hexA(color,0.12));
+  c.fillStyle=g; c.fillRect(x1,0,Math.max(2,x2-x1),H);
+  c.strokeStyle=hexA(color,0.95); c.lineWidth=2.5; c.shadowColor=color; c.shadowBlur=12;
+  [x1,x2].forEach(x=>{ c.beginPath(); c.moveTo(x,0); c.lineTo(x,H); c.stroke(); });
+  c.shadowBlur=0; c.fillStyle=color; c.shadowColor=color; c.shadowBlur=12;
+  [x1,x2].forEach(x=>{ c.beginPath(); c.arc(x,H-4,5,0,Math.PI*2); c.fill(); });
+  c.shadowBlur=0;
 }
 
-function makePinkNoise(secs) {
+// Ghost (target) — dashed straight vertical lines
+function drawGhostEdges(c, xs, H, color){
+  c.strokeStyle=hexA(color,0.75); c.lineWidth=1.8; c.setLineDash([5,5]);
+  xs.forEach(x=>{ c.beginPath(); c.moveTo(x,0); c.lineTo(x,H); c.stroke(); });
+  c.setLineDash([]);
+  c.fillStyle=color;
+  xs.forEach(x=>{ c.beginPath(); c.arc(x,H-4,4,0,Math.PI*2); c.fill(); });
+}
+
+// ── Audio ──
+function initAudio(){ if(audioCtx) return; audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }
+function makePinkNoise(secs){
   const rate=audioCtx.sampleRate, len=Math.ceil(rate*secs);
-  const buf=audioCtx.createBuffer(1,len,rate);
-  const d=buf.getChannelData(0);
+  const buf=audioCtx.createBuffer(1,len,rate); const d=buf.getChannelData(0);
   let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
-  for(let i=0;i<len;i++){
-    const w=Math.random()*2-1;
-    b0=0.99886*b0+w*0.0555179;b1=0.99332*b1+w*0.0750759;
-    b2=0.96900*b2+w*0.1538520;b3=0.86650*b3+w*0.3104856;
-    b4=0.55000*b4+w*0.5329522;b5=-0.7616*b5-w*0.0168980;
-    d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11;
-    b6=w*0.115926;
-  }
-  const src=audioCtx.createBufferSource();
-  src.buffer=buf; src.loop=true; return src;
+  for(let i=0;i<len;i++){ const w=Math.random()*2-1;
+    b0=0.99886*b0+w*0.0555179;b1=0.99332*b1+w*0.0750759;b2=0.96900*b2+w*0.1538520;b3=0.86650*b3+w*0.3104856;
+    b4=0.55000*b4+w*0.5329522;b5=-0.7616*b5-w*0.0168980; d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11; b6=w*0.115926; }
+  const src=audioCtx.createBufferSource(); src.buffer=buf; src.loop=true; return src;
 }
-
-function startAudio() {
-  stopAudio();
-  initAudio();
-  if (audioCtx.state==='suspended') audioCtx.resume();
-
-  outGain = audioCtx.createGain(); outGain.gain.value = 0.6;
-  outGain.connect(audioCtx.destination);
-
-  if (gameMode === 'width' && !isCenter) {
-    // Width mode: two sources at ±targetPan
-    pannerNode  = audioCtx.createStereoPanner();
-    pannerNode.pan.value  = -targetPan;
-    pannerNodeR = audioCtx.createStereoPanner();
-    pannerNodeR.pan.value = targetPan;
-    pannerNode.connect(outGain);
-    pannerNodeR.connect(outGain);
-    outGain.gain.value = 0.4;
-
-    if (sourceType === 'oneShot') {
-      startOneShotWidth();
-    } else if (sourceType === 'loop' && loopFileNames.length > 0) {
-      buildLoopStreamSource(pannerNode, pannerNodeR);
-    } else if (sourceType === 'custom' && customFiles.length > 0) {
-      buildCustomStreamSource(pannerNode, pannerNodeR);
-    } else {
-      // Pink noise
-      const srcL = makePinkNoise(5); const srcR = makePinkNoise(5);
-      srcL.connect(pannerNode);  srcL.start(0);
-      srcR.connect(pannerNodeR); srcR.start(0);
-      noiseSource = srcL; noiseSourceR = srcR;
-    }
+function startAudio(){
+  stopAudio(); initAudio(); if(audioCtx.state==='suspended') audioCtx.resume();
+  outGain=audioCtx.createGain(); outGain.gain.value=0.6; outGain.connect(audioCtx.destination);
+  if(gameMode==='width' && !isCenter){
+    pannerNode=audioCtx.createStereoPanner(); pannerNode.pan.value=-targetPan;
+    pannerNodeR=audioCtx.createStereoPanner(); pannerNodeR.pan.value=targetPan;
+    pannerNode.connect(outGain); pannerNodeR.connect(outGain); outGain.gain.value=0.4;
+    if(sourceType==='oneShot') startOneShotWidth();
+    else if(sourceType==='loop'&&loopFileNames.length>0) buildLoopStreamSource(pannerNode,pannerNodeR);
+    else if(sourceType==='custom'&&customFiles.length>0) buildCustomStreamSource(pannerNode,pannerNodeR);
+    else { const sL=makePinkNoise(5),sR=makePinkNoise(5); sL.connect(pannerNode);sL.start(0); sR.connect(pannerNodeR);sR.start(0); noiseSource=sL; noiseSourceR=sR; }
   } else {
-    // Panning mode (or center reference): single panner
-    pannerNode = audioCtx.createStereoPanner();
-    pannerNode.pan.value = isCenter ? 0 : targetPan;
-    pannerNode.connect(outGain);
-
-    if (sourceType === 'oneShot') {
-      startOneShotPanning();
-    } else if (sourceType === 'loop' && loopFileNames.length > 0) {
-      buildLoopStreamSource(pannerNode, null);
-    } else if (sourceType === 'custom' && customFiles.length > 0) {
-      buildCustomStreamSource(pannerNode, null);
-    } else {
-      const src = makePinkNoise(5);
-      src.connect(pannerNode); src.start(0);
-      noiseSource = src;
-    }
+    pannerNode=audioCtx.createStereoPanner(); pannerNode.pan.value=isCenter?0:targetPan; pannerNode.connect(outGain);
+    if(sourceType==='oneShot') startOneShotPanning();
+    else if(sourceType==='loop'&&loopFileNames.length>0) buildLoopStreamSource(pannerNode,null);
+    else if(sourceType==='custom'&&customFiles.length>0) buildCustomStreamSource(pannerNode,null);
+    else { const src=makePinkNoise(5); src.connect(pannerNode); src.start(0); noiseSource=src; }
   }
-
-  isPlaying = true;
-  const pp=document.getElementById('btnPlayPause'); if(pp){pp.innerHTML='⏸ Pause'; pp.classList.add('playing'); pp.classList.remove('is-paused');}
+  isPlaying=true; const pp=$('btnPlayPause'); if(pp){ pp.querySelector('.bp-label').textContent='Pause'; pp.classList.add('playing'); pp.classList.remove('is-paused'); }
+}
+function startOneShotPanning(){
+  if(!oneShotBuffers.length) return;
+  const fire=()=>{ if(!isPlaying||sourceType!=='oneShot') return; const s=oneShotBuffers[oneShotIdx%oneShotBuffers.length]; const src=audioCtx.createBufferSource(); src.buffer=s.buffer; src.connect(pannerNode); src.start(0); currentShotSrc=src; };
+  fire(); shotLoopTimer=setInterval(fire,5000);
+}
+function startOneShotWidth(){
+  if(!oneShotBuffers.length) return;
+  const fire=()=>{ if(!isPlaying||sourceType!=='oneShot') return; const s=oneShotBuffers[oneShotIdx%oneShotBuffers.length]; const sL=audioCtx.createBufferSource();sL.buffer=s.buffer; const sR=audioCtx.createBufferSource();sR.buffer=s.buffer; if(pannerNode)sL.connect(pannerNode); if(pannerNodeR)sR.connect(pannerNodeR); sL.start(0);sR.start(0); currentShotSrc=sL; };
+  fire(); shotLoopTimer=setInterval(fire,5000);
+}
+function buildLoopStreamSource(destA,destB){
+  if(!loopFileNames.length) return;
+  if(!loopAudioEl){ loopAudioEl=new Audio(); loopAudioEl.loop=true; }
+  if(!loopMediaSrc){ loopMediaSrc=audioCtx.createMediaElementSource(loopAudioEl); }
+  const fname=loopFileNames[loopIdx%loopFileNames.length];
+  if(loopAudioEl._currentFname!==fname){ loopAudioEl.src=`../samples/loops/${fname}`; loopAudioEl._currentFname=fname; }
+  loopMediaSrc.connect(destA); if(destB) loopMediaSrc.connect(destB);
+  loopAudioEl.play().catch(e=>console.warn('Loop autoplay blocked:',e)); noiseSource=loopMediaSrc;
+}
+function buildCustomStreamSource(destA,destB){
+  if(!customFiles.length) return;
+  if(!customAudioEl){ customAudioEl=new Audio(); customAudioEl.loop=true; }
+  if(!customMediaSrc){ customMediaSrc=audioCtx.createMediaElementSource(customAudioEl); }
+  const file=customFiles[customIdx%customFiles.length];
+  if(customAudioEl._currentFile!==file){ if(customAudioEl._objectUrl) URL.revokeObjectURL(customAudioEl._objectUrl); const url=URL.createObjectURL(file); customAudioEl._objectUrl=url; customAudioEl._currentFile=file; customAudioEl.src=url; }
+  customMediaSrc.connect(destA); if(destB) customMediaSrc.connect(destB);
+  customAudioEl.play().catch(e=>console.warn('Custom autoplay blocked:',e)); noiseSource=customMediaSrc;
+}
+function stopAudio(){
+  if(shotLoopTimer){ clearInterval(shotLoopTimer); shotLoopTimer=null; }
+  if(noiseSource&&noiseSource!==loopMediaSrc&&noiseSource!==customMediaSrc){ try{noiseSource.stop();}catch(e){} }
+  if(noiseSourceR&&noiseSourceR!==loopMediaSrc&&noiseSourceR!==customMediaSrc){ try{noiseSourceR.stop();}catch(e){} }
+  noiseSource=null; noiseSourceR=null;
+  if(loopAudioEl) loopAudioEl.pause(); if(customAudioEl) customAudioEl.pause();
+  if(loopMediaSrc){ try{loopMediaSrc.disconnect();}catch(e){} }
+  if(customMediaSrc){ try{customMediaSrc.disconnect();}catch(e){} }
+  if(currentShotSrc){ try{currentShotSrc.stop();}catch(e){} currentShotSrc=null; }
+  if(pannerNode){ try{pannerNode.disconnect();}catch(e){} pannerNode=null; }
+  if(pannerNodeR){ try{pannerNodeR.disconnect();}catch(e){} pannerNodeR=null; }
+  if(outGain){ try{outGain.disconnect();}catch(e){} outGain=null; }
+  isPlaying=false; const pp=$('btnPlayPause'); if(pp){ pp.querySelector('.bp-label').textContent='Play'; pp.classList.remove('playing','is-paused'); }
 }
 
-// ── One-shot source builders ──────────────────────────────────────────────────
-function startOneShotPanning() {
-  if (!oneShotBuffers.length) return;
-  const fire = () => {
-    if (!isPlaying || sourceType !== 'oneShot') return;
-    const s = oneShotBuffers[oneShotIdx % oneShotBuffers.length];
-    const src = audioCtx.createBufferSource();
-    src.buffer = s.buffer;
-    src.connect(pannerNode);
-    src.start(0);
-    currentShotSrc = src;
-  };
-  fire(); shotLoopTimer = setInterval(fire, 5000);
+// ── Center / pause / restart ──
+function toggleCenter(){
+  if(!roundActive) return;
+  isCenter=!isCenter; const btn=$('btnCenter'); btn.classList.toggle('center-active',isCenter);
+  if(gameMode==='width'){ btn.textContent=isCenter?'Wide':'Mono Ref'; startAudio(); return; }
+  btn.textContent=isCenter?'Panned':'Center';
+  if(pannerNode&&audioCtx) pannerNode.pan.setTargetAtTime(isCenter?0:targetPan, audioCtx.currentTime, 0.02);
 }
-
-function startOneShotWidth() {
-  if (!oneShotBuffers.length) return;
-  const fire = () => {
-    if (!isPlaying || sourceType !== 'oneShot') return;
-    const s = oneShotBuffers[oneShotIdx % oneShotBuffers.length];
-    const sL = audioCtx.createBufferSource(); sL.buffer = s.buffer;
-    const sR = audioCtx.createBufferSource(); sR.buffer = s.buffer;
-    if (pannerNode)  sL.connect(pannerNode);
-    if (pannerNodeR) sR.connect(pannerNodeR);
-    sL.start(0); sR.start(0);
-    currentShotSrc = sL;
-  };
-  fire(); shotLoopTimer = setInterval(fire, 5000);
+function togglePlayPause(){ if(!isPlaying){ startRound(); return; } togglePause(); }
+function togglePause(){
+  if(!roundActive||!audioCtx) return; const btn=$('btnPlayPause');
+  if(isPaused){ audioCtx.resume().then(()=>{ isPaused=false; btn.querySelector('.bp-label').textContent='Pause'; btn.classList.remove('is-paused'); if(sourceType==='oneShot'&&isPlaying){ if(shotLoopTimer) clearInterval(shotLoopTimer); (gameMode==='width'?startOneShotWidth:startOneShotPanning)(); } }); }
+  else { if(shotLoopTimer){ clearInterval(shotLoopTimer); shotLoopTimer=null; } audioCtx.suspend().then(()=>{ isPaused=true; btn.querySelector('.bp-label').textContent='Play'; btn.classList.add('is-paused'); }); }
 }
-
-// ── Streaming source builders ─────────────────────────────────────────────────
-// One <audio> element feeds one or two panners — no pre-decode wait.
-function buildLoopStreamSource(destA, destB) {
-  if (!loopFileNames.length) return;
-  if (!loopAudioEl) { loopAudioEl = new Audio(); loopAudioEl.loop = true; }
-  if (!loopMediaSrc) { loopMediaSrc = audioCtx.createMediaElementSource(loopAudioEl); }
-  const fname = loopFileNames[loopIdx % loopFileNames.length];
-  if (loopAudioEl._currentFname !== fname) {
-    loopAudioEl.src = `../samples/loops/${fname}`;
-    loopAudioEl._currentFname = fname;
-  }
-  loopMediaSrc.connect(destA);
-  if (destB) loopMediaSrc.connect(destB);
-  loopAudioEl.play().catch(e => console.warn('Loop autoplay blocked:', e));
-  noiseSource = loopMediaSrc;
-}
-
-function buildCustomStreamSource(destA, destB) {
-  if (!customFiles.length) return;
-  if (!customAudioEl) { customAudioEl = new Audio(); customAudioEl.loop = true; }
-  if (!customMediaSrc) { customMediaSrc = audioCtx.createMediaElementSource(customAudioEl); }
-  const file = customFiles[customIdx % customFiles.length];
-  if (customAudioEl._currentFile !== file) {
-    if (customAudioEl._objectUrl) URL.revokeObjectURL(customAudioEl._objectUrl);
-    const url = URL.createObjectURL(file);
-    customAudioEl._objectUrl = url;
-    customAudioEl._currentFile = file;
-    customAudioEl.src = url;
-  }
-  customMediaSrc.connect(destA);
-  if (destB) customMediaSrc.connect(destB);
-  customAudioEl.play().catch(e => console.warn('Custom autoplay blocked:', e));
-  noiseSource = customMediaSrc;
-}
-
-// ── Stop audio ────────────────────────────────────────────────────────────────
-function stopAudio() {
-  if (shotLoopTimer)  { clearInterval(shotLoopTimer); shotLoopTimer = null; }
-  // Stop buffer-based sources (pink noise, one-shots)
-  if (noiseSource && noiseSource !== loopMediaSrc && noiseSource !== customMediaSrc) {
-    try { noiseSource.stop(); } catch(e){}
-  }
-  if (noiseSourceR && noiseSourceR !== loopMediaSrc && noiseSourceR !== customMediaSrc) {
-    try { noiseSourceR.stop(); } catch(e){}
-  }
-  noiseSource = null; noiseSourceR = null;
-  // Pause streaming elements, disconnect from graph
-  if (loopAudioEl)    loopAudioEl.pause();
-  if (customAudioEl)  customAudioEl.pause();
-  if (loopMediaSrc)   { try { loopMediaSrc.disconnect();   } catch(e){} }
-  if (customMediaSrc) { try { customMediaSrc.disconnect(); } catch(e){} }
-  if (currentShotSrc) { try { currentShotSrc.stop(); } catch(e){} currentShotSrc = null; }
-  if (pannerNode)     { try { pannerNode.disconnect();  } catch(e){} pannerNode  = null; }
-  if (pannerNodeR)    { try { pannerNodeR.disconnect(); } catch(e){} pannerNodeR = null; }
-  if (outGain)        { try { outGain.disconnect();     } catch(e){} outGain     = null; }
-  isPlaying = false;
-  const pp=document.getElementById('btnPlayPause'); if(pp){pp.innerHTML='▶ Play'; pp.classList.remove('playing','is-paused');}
-}
-
-// ── Center / Pause / Restart ──────────────────────────────────────────────────
-function toggleCenter() {
-  if (!roundActive) return;
-  isCenter = !isCenter;
-  const btn = document.getElementById('btnCenter');
-  btn.classList.toggle('center-active', isCenter);
-  if (gameMode === 'width') {
-    btn.textContent = isCenter ? 'Wide' : 'Mono Ref';
-  } else {
-    btn.textContent = isCenter ? 'Panned' : 'Center';
-  }
-  if (gameMode === 'width') { startAudio(); return; }
-  if (pannerNode && audioCtx) {
-    pannerNode.pan.setTargetAtTime(isCenter ? 0 : targetPan, audioCtx.currentTime, 0.02);
-  }
-}
-
-function togglePlayPause() {
-  if (!isPlaying) { startRound(); return; }
-  togglePause();
-}
-
-function togglePause() {
-  if (!roundActive || !audioCtx) return;
-  const btn = document.getElementById('btnPlayPause');
-  if (isPaused) {
-    audioCtx.resume().then(()=>{
-      isPaused=false; btn.innerHTML='⏸ Pause'; btn.classList.remove('is-paused');
-      // Restart interval-based sources after resume
-      if (sourceType === 'oneShot' && isPlaying) {
-        if (shotLoopTimer) clearInterval(shotLoopTimer);
-        const fireFn = gameMode === 'width' ? startOneShotWidth : startOneShotPanning;
-        fireFn();
-      }
-    });
-  } else {
-    if (shotLoopTimer) { clearInterval(shotLoopTimer); shotLoopTimer=null; }
-    audioCtx.suspend().then(()=>{isPaused=true;btn.innerHTML='▶ Play';btn.classList.add('is-paused');});
-  }
-}
-
-function restartAudio() {
-  if (!roundActive) return;
-  if (isPaused && audioCtx){audioCtx.resume();isPaused=false;const pp=document.getElementById('btnPlayPause');if(pp){pp.innerHTML='⏸ Pause';pp.classList.remove('is-paused');}}
+function restartAudio(){
+  if(!roundActive) return;
+  if(isPaused&&audioCtx){ audioCtx.resume(); isPaused=false; const pp=$('btnPlayPause'); if(pp){ pp.querySelector('.bp-label').textContent='Pause'; pp.classList.remove('is-paused'); } }
   startAudio(); showToast('Restarted');
 }
-
-// ── Seek (loop / custom, ±10s) ────────────────────────────────────────────────
-function seekMusic(deltaSecs) {
-  if (!isPlaying || !audioCtx) return;
-  if (sourceType === 'loop' && loopAudioEl) {
-    const dur = loopAudioEl.duration || 0;
-    if (dur > 0) loopAudioEl.currentTime = ((loopAudioEl.currentTime + deltaSecs) % dur + dur) % dur;
-    showToast(`${deltaSecs > 0 ? '+' : ''}${deltaSecs}s`);
-  } else if (sourceType === 'custom' && customAudioEl) {
-    customAudioEl.currentTime = Math.max(0, (customAudioEl.currentTime || 0) + deltaSecs);
-    showToast(`${deltaSecs > 0 ? '+' : ''}${deltaSecs}s`);
-  }
+function seekMusic(d){
+  if(!isPlaying||!audioCtx) return;
+  if(sourceType==='loop'&&loopAudioEl){ const dur=loopAudioEl.duration||0; if(dur>0) loopAudioEl.currentTime=((loopAudioEl.currentTime+d)%dur+dur)%dur; showToast(`${d>0?'+':''}${d}s`); }
+  else if(sourceType==='custom'&&customAudioEl){ customAudioEl.currentTime=Math.max(0,(customAudioEl.currentTime||0)+d); showToast(`${d>0?'+':''}${d}s`); }
+}
+function skipTrack(delta){
+  if(!isPlaying||!audioCtx) return;
+  if(sourceType==='oneShot'&&oneShotBuffers.length>0){ oneShotIdx=((oneShotIdx+delta)%oneShotBuffers.length+oneShotBuffers.length)%oneShotBuffers.length; if(shotLoopTimer){clearInterval(shotLoopTimer);shotLoopTimer=null;} if(currentShotSrc){try{currentShotSrc.stop();}catch(e){}currentShotSrc=null;} (gameMode==='width'&&!isCenter?startOneShotWidth:startOneShotPanning)(); showToast(`Shot ${oneShotIdx+1} / ${oneShotBuffers.length}`); return; }
+  if(sourceType==='loop'&&loopFileNames.length>0){ loopIdx=((loopIdx+delta)%loopFileNames.length+loopFileNames.length)%loopFileNames.length; if(loopAudioEl) loopAudioEl._currentFname=null; startAudio(); showToast(`Loop ${loopIdx+1} / ${loopFileNames.length}`); return; }
+  if(sourceType==='custom'&&customFiles.length>0){ customIdx=((customIdx+delta)%customFiles.length+customFiles.length)%customFiles.length; if(customAudioEl) customAudioEl._currentFile=null; startAudio(); showToast(`Track ${customIdx+1} / ${customFiles.length}`); }
 }
 
-// ── Skip track ────────────────────────────────────────────────────────────────
-function skipTrack(delta) {
-  if (!isPlaying || !audioCtx) return;
-
-  if (sourceType === 'oneShot' && oneShotBuffers.length > 0) {
-    oneShotIdx = ((oneShotIdx + delta) % oneShotBuffers.length + oneShotBuffers.length) % oneShotBuffers.length;
-    if (shotLoopTimer) { clearInterval(shotLoopTimer); shotLoopTimer = null; }
-    if (currentShotSrc) { try { currentShotSrc.stop(); } catch(e){} currentShotSrc = null; }
-    if (gameMode === 'width' && !isCenter) startOneShotWidth();
-    else startOneShotPanning();
-    showToast(`Shot ${oneShotIdx + 1} / ${oneShotBuffers.length}`);
-    return;
-  }
-
-  if (sourceType === 'loop' && loopFileNames.length > 0) {
-    loopIdx = ((loopIdx + delta) % loopFileNames.length + loopFileNames.length) % loopFileNames.length;
-    if (loopAudioEl) { loopAudioEl._currentFname = null; } // force reload
-    startAudio();
-    showToast(`Loop ${loopIdx + 1} / ${loopFileNames.length}`);
-    return;
-  }
-
-  if (sourceType === 'custom' && customFiles.length > 0) {
-    customIdx = ((customIdx + delta) % customFiles.length + customFiles.length) % customFiles.length;
-    if (customAudioEl) { customAudioEl._currentFile = null; } // force reload
-    startAudio();
-    showToast(`Track ${customIdx + 1} / ${customFiles.length}`);
-  }
+// ── Sources ──
+function setSource(type){
+  if(type==='oneShot'&&!oneShotLoaded){ loadOneShotSamples().then(()=>{ if(oneShotLoaded){ sourceType='oneShot'; updateSourceUI(); if(roundActive&&isPlaying) startAudio(); } }); return; }
+  if(type==='loop'&&!loopManifestLoaded){ loadLoopSamples().then(()=>{ if(loopManifestLoaded){ sourceType='loop'; updateSourceUI(); if(roundActive&&isPlaying) startAudio(); } }); return; }
+  sourceType=type; updateSourceUI(); if(roundActive&&isPlaying) startAudio();
+}
+function updateSourceUI(){ ['pink','oneShot','loop','custom'].forEach(t=>$('src'+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle('active', sourceType===t)); }
+function triggerUpload(){ if(customFiles.length>0){ setSource('custom'); return; } $('folderInput').click(); }
+async function handleFolderUpload(e){
+  const files=Array.from(e.target.files).filter(f=>f.type.startsWith('audio/'));
+  if(!files.length) return; initAudio(); customFiles=files; customIdx=0;
+  if(customAudioEl){ if(customAudioEl._objectUrl){ URL.revokeObjectURL(customAudioEl._objectUrl); customAudioEl._objectUrl=null; } customAudioEl._currentFile=null; }
+  $('uploadLabel').textContent=`📁 ${customFiles.length} tracks`; setLoadStatus(`${customFiles.length} tracks ready`,false); setSource('custom'); showToast('Music loaded!');
+}
+async function loadOneShotSamples(){
+  if(oneShotLoaded) return; initAudio(); oneShotBuffers=[]; setLoadStatus('Loading one-shots…',true);
+  const manifest=await getManifest();
+  await Promise.all(manifest.oneShots.map(async fname=>{ try{ const r=await fetch(`../samples/one-shots/${fname}`); if(!r.ok) throw new Error(); oneShotBuffers.push({name:fname.replace(/\.\w+$/,''),buffer:await audioCtx.decodeAudioData(await r.arrayBuffer())}); }catch(e){ console.warn('Could not load',fname); } }));
+  oneShotBuffers.sort((a,b)=>a.name.localeCompare(b.name)); oneShotLoaded=oneShotBuffers.length>0;
+  if(oneShotLoaded){ oneShotIdx=Math.floor(Math.random()*oneShotBuffers.length); setLoadStatus(`${oneShotBuffers.length} one-shots ready`,false); }
+  else { setLoadStatus('No one-shots found',false); showToast('No one-shots found'); sourceType='pink'; updateSourceUI(); }
+}
+async function loadLoopSamples(){
+  if(loopManifestLoaded) return; initAudio(); const manifest=await getManifest();
+  loopFileNames=(manifest.loops||[]).slice().sort(); loopManifestLoaded=loopFileNames.length>0;
+  if(loopManifestLoaded){ loopIdx=Math.floor(Math.random()*loopFileNames.length); setLoadStatus(`${loopFileNames.length} loops ready`,false); }
+  else { setLoadStatus('No loops found',false); showToast('No loops found'); sourceType='pink'; updateSourceUI(); }
 }
 
-// ── Source management ─────────────────────────────────────────────────────────
-function setSource(type) {
-  if (type === 'oneShot' && !oneShotLoaded) {
-    loadOneShotSamples().then(() => {
-      if (oneShotLoaded) { sourceType = 'oneShot'; updateSourceUI(); if (roundActive && isPlaying) startAudio(); }
-    });
-    return;
-  }
-  if (type === 'loop' && !loopManifestLoaded) {
-    loadLoopSamples().then(() => {
-      if (loopManifestLoaded) { sourceType = 'loop'; updateSourceUI(); if (roundActive && isPlaying) startAudio(); }
-    });
-    return;
-  }
-  sourceType = type; updateSourceUI();
-  if (roundActive && isPlaying) startAudio();
-}
-
-function updateSourceUI() {
-  document.getElementById('srcPink').classList.toggle('active',    sourceType === 'pink');
-  document.getElementById('srcOneShot').classList.toggle('active', sourceType === 'oneShot');
-  document.getElementById('srcLoop').classList.toggle('active',    sourceType === 'loop');
-  document.getElementById('srcCustom').classList.toggle('active',  sourceType === 'custom');
-}
-
-function triggerUpload() {
-  if (customFiles.length > 0) { setSource('custom'); return; }
-  document.getElementById('folderInput').click();
-}
-
-async function handleFolderUpload(e) {
-  const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
-  if (!files.length) return;
-  initAudio();
-  customFiles = files;
-  customIdx = 0;
-  // Reset streaming element so next play loads the new file
-  if (customAudioEl) {
-    if (customAudioEl._objectUrl) { URL.revokeObjectURL(customAudioEl._objectUrl); customAudioEl._objectUrl = null; }
-    customAudioEl._currentFile = null;
-  }
-  document.getElementById('uploadLabel').textContent = `📁 Folder (${customFiles.length} tracks)`;
-  setLoadStatus(`${customFiles.length} tracks ready`, false);
-  setSource('custom');
-  showToast('Music loaded!');
-}
-
-// ── Sample loaders ────────────────────────────────────────────────────────────
-async function loadOneShotSamples() {
-  if (oneShotLoaded) return;
-  initAudio(); oneShotBuffers = [];
-  setLoadStatus('Loading one-shots…', true);
-  const manifest = await getManifest();
-  await Promise.all(manifest.oneShots.map(async fname => {
-    try {
-      const r = await fetch(`../samples/one-shots/${fname}`);
-      if (!r.ok) throw new Error();
-      oneShotBuffers.push({ name: fname.replace(/\.\w+$/, ''), buffer: await audioCtx.decodeAudioData(await r.arrayBuffer()) });
-    } catch(e) { console.warn('Could not load', fname); }
-  }));
-  oneShotBuffers.sort((a, b) => a.name.localeCompare(b.name));
-  oneShotLoaded = oneShotBuffers.length > 0;
-  if (oneShotLoaded) oneShotIdx = Math.floor(Math.random() * oneShotBuffers.length);
-  if (!oneShotLoaded) {
-    setLoadStatus('No one-shots found', false);
-    showToast('No one-shots found');
-    sourceType = 'pink'; updateSourceUI();
-  } else {
-    setLoadStatus(`${oneShotBuffers.length} one-shots ready`, false);
-  }
-}
-
-async function loadLoopSamples() {
-  if (loopManifestLoaded) return;
-  initAudio();
-  const manifest = await getManifest();
-  loopFileNames = (manifest.loops || []).slice().sort();
-  loopManifestLoaded = loopFileNames.length > 0;
-  if (loopManifestLoaded) loopIdx = Math.floor(Math.random() * loopFileNames.length);
-  if (!loopManifestLoaded) {
-    setLoadStatus('No loops found', false);
-    showToast('No loops found');
-    sourceType = 'pink'; updateSourceUI();
-  } else {
-    setLoadStatus(`${loopFileNames.length} loops ready`, false);
-  }
-}
-
-// ── Keyboard ──────────────────────────────────────────────────────────────────
-window.addEventListener('keydown', e => {
-  if (e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
-  if (e.code!=='KeyP' && audioCtx && audioCtx.state==='suspended') audioCtx.resume();
-  if (e.code==='Space')      { e.preventDefault(); toggleCenter(); }
-  if (e.code==='KeyD')       { e.preventDefault(); toggleCenter(); }
-  if (e.code==='KeyP')       { e.preventDefault(); togglePause(); }
-  if (e.code==='KeyF')       { e.preventDefault(); restartAudio(); }
-  if (e.code==='Enter')      { startRound(); }
-  if (e.code==='ArrowLeft')  { e.preventDefault(); seekMusic(-10); }
-  if (e.code==='ArrowRight') { e.preventDefault(); seekMusic(+10); }
-  if (e.code==='ArrowUp')    { e.preventDefault(); skipTrack(+1); }
-  if (e.code==='ArrowDown')  { e.preventDefault(); skipTrack(-1); }
+// ── Keyboard ──
+window.addEventListener('keydown', e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
+  if(e.code!=='KeyP'&&audioCtx&&audioCtx.state==='suspended') audioCtx.resume();
+  if(e.code==='Space'){ e.preventDefault(); toggleCenter(); }
+  if(e.code==='KeyD'){ e.preventDefault(); toggleCenter(); }
+  if(e.code==='KeyP'){ e.preventDefault(); togglePause(); }
+  if(e.code==='KeyF'){ e.preventDefault(); restartAudio(); }
+  if(e.code==='Enter'){ startRound(); }
+  if(e.code==='ArrowLeft'){ e.preventDefault(); seekMusic(-10); }
+  if(e.code==='ArrowRight'){ e.preventDefault(); seekMusic(+10); }
+  if(e.code==='ArrowUp'){ e.preventDefault(); skipTrack(+1); }
+  if(e.code==='ArrowDown'){ e.preventDefault(); skipTrack(-1); }
 });
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
+function showToast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
 
-// ── Init ──────────────────────────────────────────────────────────────────────
-buildTicks();
-updatePanUI(0);
-updateMultBadge();
+// ── Init ──
+buildTicks(); updatePanUI(0); updateMultBadge(); drawField();
+window.addEventListener('resize', drawField);
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').then(()=>{}).catch(()=>{});
-  });
-}
+if('serviceWorker' in navigator){ window.addEventListener('load', ()=>{ navigator.serviceWorker.register('./sw.js').then(()=>{}).catch(()=>{}); }); }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="../supabase-client.js"></script>
+
 <!-- Auth modal -->
 <div class="modal-overlay" id="authModal">
   <div class="modal">
@@ -1634,7 +847,7 @@ if ('serviceWorker' in navigator) {
     </div>
   </div>
 </div>
-<!-- Footer -->
+
 <footer>
   <div class="footer-left">
     <a href="/">SonicSandbox</a>
@@ -1647,6 +860,7 @@ if ('serviceWorker' in navigator) {
     <span>© 2025 Zach Snider</span>
   </div>
 </footer>
+
 <script>
   // ── Auth modal ────────────────────────────────────────────
   const authModal = document.getElementById('authModal');
@@ -1715,7 +929,6 @@ if ('serviceWorker' in navigator) {
     else { msg.textContent = 'Check your email to confirm your account.'; msg.className = 'modal-msg success'; }
   });
 
-  // ── Auth state ────────────────────────────────────────────
   document.addEventListener('ss:authchange', async e => {
     const user = e.detail;
     if (user) {
