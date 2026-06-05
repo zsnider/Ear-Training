@@ -8,446 +8,388 @@
 <meta name="description" content="Two signals play — one compressed, one dry. Identify the compressed audio by ear in quick A/B rounds.">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quick Compress — SonicSandbox</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../daw-ui.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
 <style>
-  :root {
-    --bg:       #080c0a;
-    --bg2:      #0b0f0d;
-    --surface:  #101a14;
-    --surface2: #172019;
-    --surface3: #1e2a20;
-    --border:   rgba(255,255,255,0.07);
-    --border2:  rgba(255,255,255,0.13);
-    --text:     #ddf0e4;
-    --muted:    #4a6054;
-    --accent:   #2dd4a0;
-    --accent2:  #5eefc0;
-    --a-col:    #5b8fff;
-    --a-col2:   #8ab4ff;
-    --b-col:    #e8a030;
-    --b-col2:   #f0c060;
-    --green:    #3ecf8e;
-    --red:      #f45b69;
-    --amber:    #f5a623;
-  }
 
-  * { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg:#080c0a; --bg2:#0b0f0d;
+  --surface:#101a14; --surface2:#172019; --surface3:#1e2a20;
+  --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.13);
+  --text:#ddf0e4; --muted:#5b7468;
+  --accent:#2dd4a0; --accent2:#5eefc0;
+  --a-col:#5b8fff; --a-col2:#8ab4ff;
+  --b-col:#e8a030; --b-col2:#f0c060;
+  --green:#3ecf8e; --red:#f45b69; --amber:#f5a623;
+  /* DAW faceplate tokens */
+  --metal-1:#1d2620; --metal-2:#131a16;
+  --well:#060907; --well-edge:rgba(0,0,0,0.6);
+  --panel-hi:rgba(255,255,255,0.05);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'IBM Plex Sans', sans-serif;
+  background:
+    radial-gradient(1100px 560px at 50% -200px, #12201a 0%, transparent 60%),
+    var(--bg);
+  color:var(--text); min-height:100vh;
+  display:flex; flex-direction:column; align-items:center;
+  --accent:#2dd4a0; --accent2:#5eefc0;
+  user-select:none;
+}
 
-  body {
-    font-family:'IBM Plex Sans',sans-serif;
-    background:var(--bg); color:var(--text);
-    min-height:100vh;
-    display:flex; flex-direction:column; align-items:center;
+/* ── Site nav + game bar ─────────────────────────────────────── */
+nav.site-nav { width:100%; padding:14px 28px; display:flex; align-items:center; border-bottom:1px solid var(--border); }
+.game-bar {
+  width:100%; max-width:960px; margin:0 auto;
+  padding:12px 24px; display:flex; align-items:center; justify-content:space-between;
+  gap:16px; border-bottom:1px solid var(--border);
+}
+.game-bar-left { display:flex; align-items:center; }
+.brand { display:flex; align-items:center; gap:11px; }
+.brand-icon {
+  width:30px; height:30px; border-radius:8px;
+  background:linear-gradient(160deg, var(--accent2), var(--accent));
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  box-shadow:0 2px 10px -2px var(--accent), inset 0 1px 0 rgba(255,255,255,0.25);
+}
+.brand-name { font-family:'IBM Plex Mono', monospace; font-size:14px; font-weight:600; color:var(--text); letter-spacing:0.02em; }
+.game-bar-right { display:flex; flex-direction:column; align-items:flex-end; gap:3px; }
+.score-row { display:flex; align-items:center; gap:18px; }
+.stat { text-align:center; }
+.stat-val { font-family:'IBM Plex Mono', monospace; font-size:19px; font-weight:700; color:var(--accent2); line-height:1; }
+.stat-label { font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-top:3px; }
+.vdiv { width:1px; height:22px; background:var(--border2); }
+.mult-badge { font-family:'IBM Plex Mono', monospace; font-size:9px; color:var(--muted); letter-spacing:0.06em; opacity:0.75; }
 
-    user-select:none;
-  }
+/* ── Main ────────────────────────────────────────────────────── */
+.main { width:100%; max-width:960px; padding:18px 24px 0; display:flex; flex-direction:column; gap:14px; }
 
-  header {
-    width:100%; max-width:780px;
-    padding:20px 24px 0;
-    display:flex; align-items:center; justify-content:space-between;
-  }
+/* shared matte-metal panel */
+.settings-card, .player-card, .prompt-bar, .gr-row, .history-card {
+  background:linear-gradient(180deg, var(--metal-1), var(--metal-2));
+  border:1px solid var(--border); border-radius:14px;
+  box-shadow:0 1px 0 var(--panel-hi) inset, 0 14px 40px -28px #000;
+}
 
-  .header-left { display:flex; align-items:center; gap:14px; }
+/* ── Settings ────────────────────────────────────────────────── */
+.settings-card { padding:12px 16px; display:flex; flex-direction:column; gap:11px; }
+.settings-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.settings-divider { height:1px; background:var(--border); margin:1px 0; }
+.btn-group { display:flex; gap:6px; flex-wrap:wrap; }
+.label { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; white-space:nowrap; flex-shrink:0; }
+.new-round-btn {
+  margin-left:auto;
+  font-family:'IBM Plex Sans', sans-serif; font-size:13px; font-weight:700; letter-spacing:0.02em;
+  padding:9px 20px; border:none; border-radius:10px; cursor:pointer; transition:all 0.15s;
+  background:linear-gradient(180deg, var(--accent2), var(--accent)); color:#06120d;
+  box-shadow:0 6px 20px -8px var(--accent), inset 0 1px 0 rgba(255,255,255,0.35);
+}
+.new-round-btn:hover { filter:brightness(1.08); transform:translateY(-1px); }
 
-  .brand { display:flex; align-items:center; gap:10px; }
-  .brand-icon {
-    width:32px; height:32px; background:var(--accent);
-    border-radius:8px; display:flex; align-items:center; justify-content:center;
-  }
-  .brand-name {
-    font-family:'IBM Plex Mono',monospace;
-    font-size:15px; font-weight:700; letter-spacing:0.06em;
-  }
-  .brand-name span { color:var(--accent2); }
+/* ── Player card ─────────────────────────────────────────────── */
+.player-card { padding:11px 16px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.monitor-group {
+  display:flex; gap:6px; background:var(--well);
+  border:1px solid var(--well-edge); border-radius:14px; padding:6px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.5) inset;
+}
+.player-controls { display:flex; gap:8px; align-items:center; }
+.monitor-hint { font-size:11px; color:var(--muted); font-style:italic; margin-left:auto; }
+.pulse-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); box-shadow:0 0 6px var(--accent); animation:pulseDot 1s ease-in-out infinite; display:inline-block; }
+@keyframes pulseDot { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+select {
+  background:var(--surface2); color:var(--text);
+  border:1px solid var(--border2); padding:6px 11px; border-radius:8px;
+  font-family:'IBM Plex Mono', monospace; font-size:12px; outline:none; cursor:pointer;
+}
+select:hover, select:focus { border-color:var(--accent); }
+kbd { font-family:'IBM Plex Mono', monospace; font-size:10px; background:var(--surface2); border:1px solid var(--border2); border-radius:4px; padding:1px 5px; color:var(--muted); }
 
-  .score-row { display:flex; gap:18px; align-items:center; }
-  .stat { text-align:center; }
-  .stat-val { font-family:'IBM Plex Mono',monospace; font-size:20px; font-weight:700; color:var(--accent2); }
-  .stat-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; }
-  .vdiv { width:1px; height:20px; background:var(--border2); }
+.shortcuts-wrap { position:relative; }
+.shortcuts-btn {
+  display:flex; align-items:center; gap:5px;
+  background:rgba(255,255,255,0.03); border:1px solid var(--border2);
+  border-radius:8px; color:var(--muted);
+  font-family:inherit; font-size:12px; font-weight:500;
+  padding:6px 12px; cursor:pointer; transition:all 0.15s; white-space:nowrap;
+}
+.shortcuts-btn:hover { border-color:var(--accent); color:var(--text); }
+.shortcuts-popover {
+  display:none; position:absolute; top:calc(100% + 8px); right:0;
+  background:var(--metal-1); border:1px solid var(--border2);
+  border-radius:12px; padding:14px 18px; z-index:50; min-width:260px;
+  box-shadow:0 20px 50px -20px #000;
+}
+.shortcuts-popover.open { display:block; }
+.shortcut-row { display:flex; justify-content:space-between; align-items:center; gap:16px; font-size:12px; color:var(--muted); padding:5px 0; border-bottom:0.5px solid var(--border); }
+.shortcut-row:last-child { border-bottom:none; }
+.shortcut-keys { display:flex; gap:4px; flex-shrink:0; }
 
-  .main {
-    width:100%; max-width:780px;
-    padding:14px 24px 0;
-    display:flex; flex-direction:column; gap:14px;
-  }
+/* ── Prompt bar ──────────────────────────────────────────────── */
+.prompt-bar { padding:13px 18px; min-height:58px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; transition:border-color 0.4s, box-shadow 0.4s; }
+.prompt-bar.correct-flash { border-color:rgba(62,207,142,0.55); box-shadow:0 0 22px -6px rgba(62,207,142,0.4), 0 1px 0 var(--panel-hi) inset; }
+.prompt-bar.wrong-flash   { border-color:rgba(244,91,105,0.55); box-shadow:0 0 22px -6px rgba(244,91,105,0.35), 0 1px 0 var(--panel-hi) inset; }
+.prompt-text { font-size:14.5px; color:var(--text); flex:1; line-height:1.45; }
+.prompt-text span { color:var(--accent2); font-family:'IBM Plex Mono', monospace; font-weight:600; }
+.result-inline { font-family:'IBM Plex Mono', monospace; font-size:17px; font-weight:700; opacity:0; transition:opacity 0.2s; white-space:nowrap; }
+.result-inline.good { opacity:1; color:var(--green); }
+.result-inline.bad  { opacity:1; color:var(--red); }
+.next-bar { height:3px; background:var(--well); border-radius:99px; overflow:hidden; margin-top:8px; }
+.next-fill { height:100%; border-radius:99px; background:linear-gradient(90deg, var(--accent2), var(--accent)); width:100%; transition:none; }
 
-  .settings-row {
-    display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-    background:var(--surface); border:1px solid var(--border);
-    padding:7px 14px; border-radius:12px;
-  }
+/* ── A / B selectable plugin cards ───────────────────────────── */
+.ab-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.ab-btn {
+  --card:var(--a-col); --card2:var(--a-col2);
+  border:none; background:none; padding:0; cursor:pointer;
+  font-family:'IBM Plex Sans', sans-serif;
+  -webkit-tap-highlight-color:transparent;
+}
+.ab-btn.btn-a { --card:var(--a-col); --card2:var(--a-col2); }
+.ab-btn.btn-b { --card:var(--b-col); --card2:var(--b-col2); }
+.ab-btn:disabled { cursor:not-allowed; }
 
-  .label {
-    font-size:11px; font-weight:600; color:var(--muted);
-    text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap;
-  }
+.ab-btn-inner {
+  position:relative; width:100%;
+  display:flex; flex-direction:column; gap:11px;
+  padding:14px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,0.09);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.04), transparent 18%),
+    linear-gradient(180deg, var(--metal-1) 0%, var(--metal-2) 100%);
+  box-shadow:0 1px 0 var(--panel-hi) inset, 0 -1px 0 rgba(0,0,0,0.5) inset, 0 24px 60px -36px #000;
+  transition:transform 0.18s cubic-bezier(0.16,1,0.3,1), box-shadow 0.18s, border-color 0.18s, filter 0.45s ease, opacity 0.45s ease;
+}
+.ab-btn-inner::before {
+  content:""; position:absolute; left:14px; right:14px; top:0; height:2px;
+  background:linear-gradient(90deg, transparent, var(--card), transparent);
+  opacity:0.45; transition:opacity 0.18s; border-radius:2px;
+}
+/* hover (enabled, before answer) */
+.ab-btn:not(:disabled):hover .ab-btn-inner {
+  border-color:color-mix(in srgb,var(--card) 70%,transparent);
+  transform:translateY(-3px);
+  box-shadow:0 1px 0 var(--panel-hi) inset,
+             0 0 0 1px color-mix(in srgb,var(--card) 55%,transparent),
+             0 0 30px -6px color-mix(in srgb,var(--card) 60%,transparent),
+             0 26px 60px -34px #000;
+}
+.ab-btn:not(:disabled):hover .ab-btn-inner::before { opacity:1; }
+.ab-btn:not(:disabled):active .ab-btn-inner { transform:translateY(-1px) scale(0.996); }
+.ab-btn:disabled .ab-btn-inner { opacity:0.5; }
 
-  select {
-    background:var(--surface2); color:var(--text);
-    border:1px solid var(--border2);
-    padding:5px 10px; border-radius:8px;
-    font-family:'IBM Plex Sans',sans-serif;
-    font-size:12px; outline:none; cursor:pointer;
-  }
-  select:focus { border-color:var(--accent); }
+/* now-auditioning ("active/selected") state */
+.ab-btn.playing .ab-btn-inner {
+  border-color:var(--card);
+  box-shadow:0 1px 0 var(--panel-hi) inset,
+             0 0 0 1px var(--card),
+             0 0 32px -6px color-mix(in srgb,var(--card) 70%,transparent),
+             0 26px 60px -34px #000;
+}
+.ab-btn.playing .ab-btn-inner::before { opacity:1; }
 
-  kbd {
-    font-family:'IBM Plex Mono',monospace; font-size:10px;
-    background:var(--surface2); border:1px solid var(--border2);
-    border-radius:4px; padding:1px 5px; color:var(--muted);
-  }
+/* card header */
+.ab-card-top { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.ab-id { display:flex; align-items:center; gap:9px; white-space:nowrap; font-family:'IBM Plex Mono', monospace; font-size:12px; font-weight:700; letter-spacing:0.14em; color:var(--card2); }
+.ab-dot { width:9px; height:9px; border-radius:50%; background:var(--card); box-shadow:0 0 10px var(--card); flex-shrink:0; }
+.ab-status { display:flex; align-items:center; gap:7px; font-family:'IBM Plex Mono', monospace; font-size:10px; font-weight:700; letter-spacing:0.16em; color:var(--card2); opacity:0; transition:opacity 0.2s; }
+.ab-btn.playing .ab-status { opacity:1; }
+.pulse-ring { width:9px; height:9px; border-radius:50%; background:var(--card); }
+.ab-btn.playing .pulse-ring { animation:pring 1.1s infinite; }
+@keyframes pring { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.3;transform:scale(0.6);} }
 
-  /* ── Prompt bar ── */
-  .prompt-bar {
-    background:var(--surface); border:1px solid var(--border);
-    border-radius:12px; padding:12px 18px;
-    min-height:58px; display:flex; align-items:center; gap:14px;
-    transition:border-color 0.3s, box-shadow 0.3s;
-    flex-wrap:wrap;
-  }
-  .prompt-bar.correct-flash { border-color:var(--green); box-shadow:0 0 16px rgba(62,207,142,0.14); }
-  .prompt-bar.wrong-flash   { border-color:var(--red);   box-shadow:0 0 14px rgba(244,91,105,0.12); }
+/* display well + big letter + meter */
+.ab-well {
+  position:relative; border-radius:12px; overflow:hidden;
+  background:
+    radial-gradient(120% 100% at 50% 0%, rgba(255,255,255,0.02), transparent 55%),
+    var(--well);
+  border:1px solid var(--well-edge);
+  box-shadow:0 3px 12px rgba(0,0,0,0.55) inset, 0 1px 0 rgba(255,255,255,0.03);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
+  padding:24px 16px 18px; min-height:150px;
+  transition:box-shadow 0.4s ease;
+}
+.ab-letter { font-family:'IBM Plex Mono', monospace; font-size:62px; font-weight:700; line-height:1; color:var(--card2); transition:color 0.3s; text-shadow:0 0 28px color-mix(in srgb,var(--card) 35%,transparent); }
+.ab-meter { display:flex; align-items:flex-end; justify-content:center; gap:3px; height:26px; width:100%; }
+.ab-meter i { display:block; width:4px; border-radius:2px; background:var(--card); opacity:0.2; transform-origin:bottom; transform:scaleY(0.45); transition:opacity 0.25s; }
+.ab-btn.playing .ab-meter i { opacity:0.9; animation:vu 0.8s ease-in-out infinite; }
+.ab-meter i:nth-child(1){height:50%; animation-delay:0.00s;}
+.ab-meter i:nth-child(2){height:80%; animation-delay:0.12s;}
+.ab-meter i:nth-child(3){height:100%;animation-delay:0.05s;}
+.ab-meter i:nth-child(4){height:65%; animation-delay:0.20s;}
+.ab-meter i:nth-child(5){height:90%; animation-delay:0.09s;}
+.ab-meter i:nth-child(6){height:55%; animation-delay:0.16s;}
+.ab-meter i:nth-child(7){height:100%;animation-delay:0.02s;}
+.ab-meter i:nth-child(8){height:72%; animation-delay:0.22s;}
+.ab-meter i:nth-child(9){height:88%; animation-delay:0.07s;}
+.ab-meter i:nth-child(10){height:52%;animation-delay:0.18s;}
+.ab-meter i:nth-child(11){height:78%;animation-delay:0.11s;}
+.ab-meter i:nth-child(12){height:60%;animation-delay:0.25s;}
+@keyframes vu { 0%,100%{transform:scaleY(0.35);} 50%{transform:scaleY(1);} }
 
-  .prompt-text { font-size:15px; color:var(--text); flex:1; line-height:1.4; }
-  .prompt-text span { color:var(--accent2); font-family:'IBM Plex Mono',monospace; font-weight:600; }
+/* footer */
+.ab-foot { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:0 2px; }
+.ab-sub { font-family:'IBM Plex Sans', sans-serif; font-size:12px; color:var(--muted); font-weight:500; letter-spacing:0.04em; transition:color 0.15s; }
+.ab-btn:not(:disabled):hover .ab-sub { color:var(--card2); }
+.ab-key { font-family:'IBM Plex Mono', monospace; font-size:10px; font-weight:600; color:var(--muted); background:rgba(255,255,255,0.04); border:1px solid var(--border2); border-radius:5px; padding:2px 7px; }
 
-  .result-inline {
-    font-family:'IBM Plex Mono',monospace; font-size:18px; font-weight:700;
-    opacity:0; transition:opacity 0.15s; white-space:nowrap;
-  }
-  .result-inline.good { opacity:1; color:var(--green); }
-  .result-inline.bad  { opacity:1; color:var(--red); }
+/* result badge (top-right, revealed after answer) */
+.ab-result-badge {
+  position:absolute; top:12px; right:12px;
+  font-family:'IBM Plex Mono', monospace; font-size:11px; font-weight:700; letter-spacing:0.02em;
+  padding:4px 9px; border-radius:7px; opacity:0; transition:opacity 0.35s ease; pointer-events:none;
+}
+.ab-btn.dimmed .ab-result-badge { opacity:1; background:rgba(255,255,255,0.06); color:var(--muted); }
+.ab-btn.dimmed .ab-result-badge::after { content:'DRY'; }
+.ab-btn.correct .ab-result-badge { opacity:1; background:rgba(62,207,142,0.18); color:var(--green); }
+.ab-btn.correct .ab-result-badge::after { content:'\2713 COMPRESSED'; }
+.ab-btn.wrong .ab-result-badge { opacity:1; background:rgba(244,91,105,0.16); color:var(--red); }
+.ab-btn.wrong .ab-result-badge::after { content:'\2717 INCORRECT'; }
 
-  .next-bar { height:3px; background:var(--border2); border-radius:2px; overflow:hidden; margin-top:6px; }
-  .next-fill { height:100%; border-radius:2px; background:var(--accent); width:100%; transition:none; }
+/* tier badge (bottom of well) */
+.tier-badge { font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:0.04em; text-transform:uppercase; opacity:0; transition:opacity 0.3s; padding:3px 9px; border-radius:6px; color:var(--accent2); background:rgba(45,212,160,0.1); align-self:center; }
+.tier-badge:empty { display:none; }
 
-  /* ── AB Buttons ── */
-  .ab-row {
-    display:grid; grid-template-columns:1fr 1fr; gap:16px;
-  }
+/* ── reveal: CORRECT (compressed) ─────────────────────────────── */
+.ab-btn.correct .ab-btn-inner {
+  border-color:var(--green) !important;
+  box-shadow:0 1px 0 var(--panel-hi) inset,
+             0 0 0 1px var(--green),
+             0 0 38px -6px color-mix(in srgb,var(--green) 78%,transparent),
+             0 26px 60px -34px #000 !important;
+  animation:cardWin 1.05s cubic-bezier(0.16,1,0.3,1);
+}
+.ab-btn.correct .ab-btn-inner::before { opacity:0; }
+.ab-btn.correct .ab-well { box-shadow:0 3px 12px rgba(0,0,0,0.55) inset, 0 0 0 1px color-mix(in srgb,var(--green) 45%,transparent) inset; }
+.ab-btn.correct .ab-letter { color:var(--green); text-shadow:0 0 30px color-mix(in srgb,var(--green) 45%,transparent); }
+@keyframes cardWin { 0%{transform:scale(1);} 32%{transform:scale(1.02);} 100%{transform:scale(1);} }
 
-  .ab-btn {
-    border:none; border-radius:16px;
-    font-family:'IBM Plex Sans',sans-serif;
-    cursor:pointer; transition:all 0.15s;
-    padding:0;
-    display:flex; flex-direction:column; align-items:center;
-    position:relative; overflow:hidden;
-  }
-  .ab-btn:disabled { opacity:0.4; cursor:not-allowed; }
+/* ── reveal: DRY decoy — dim & desaturate ─────────────────────── */
+.ab-btn.dimmed .ab-btn-inner { filter:grayscale(0.7) brightness(0.66); opacity:0.6; }
 
-  .ab-btn-inner {
-    width:100%; padding:32px 20px 20px;
-    display:flex; flex-direction:column; align-items:center; gap:12px;
-    border-radius:16px;
-    border:2px solid transparent;
-    transition:all 0.15s;
-    background:var(--surface);
-  }
+/* ── reveal: WRONG pick — un-dim, red ring, shake (overrides dimmed) ── */
+.ab-btn.wrong .ab-btn-inner {
+  filter:none; opacity:1;
+  border-color:var(--red) !important;
+  box-shadow:0 1px 0 var(--panel-hi) inset, 0 0 0 1px var(--red), 0 0 26px -8px var(--red), 0 26px 60px -40px #000 !important;
+  animation:cardShake 0.45s cubic-bezier(0.36,0.07,0.19,0.97);
+}
+.ab-btn.wrong .ab-letter { color:var(--red); text-shadow:none; }
+@keyframes cardShake {
+  10%,90% { transform:translateX(-2px); }
+  20%,80% { transform:translateX(4px); }
+  30%,50%,70% { transform:translateX(-8px); }
+  40%,60% { transform:translateX(8px); }
+}
 
-  .ab-btn.btn-a .ab-btn-inner {
-    border-color:rgba(91,143,255,0.3);
-  }
-  .ab-btn.btn-b .ab-btn-inner {
-    border-color:rgba(232,160,48,0.3);
-  }
+/* ── Gain-reduction meter (DAW LED ladder) ───────────────────── */
+.gr-row { display:flex; gap:12px; align-items:center; padding:11px 16px; }
+.gr-label { font-family:'IBM Plex Mono', monospace; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); width:110px; flex-shrink:0; }
+.gr-track { flex:1; position:relative; height:12px; background:var(--well); border:1px solid var(--well-edge); border-radius:5px; overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,0.55) inset; }
+.gr-fill { height:100%; border-radius:3px; background:linear-gradient(to right, var(--accent), var(--accent2)); transition:width 0.08s; }
+.gr-track::after { content:""; position:absolute; inset:0; pointer-events:none; background:repeating-linear-gradient(to right, transparent 0 6px, rgba(0,0,0,0.8) 6px 8px); }
+.gr-val { font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--text); width:56px; text-align:right; flex-shrink:0; }
 
-  .ab-btn.btn-a:hover:not(:disabled) .ab-btn-inner {
-    background:rgba(91,143,255,0.08);
-    border-color:rgba(91,143,255,0.7);
-    transform:translateY(-2px);
-  }
-  .ab-btn.btn-b:hover:not(:disabled) .ab-btn-inner {
-    background:rgba(232,160,48,0.08);
-    border-color:rgba(232,160,48,0.7);
-    transform:translateY(-2px);
-  }
+/* ── History ─────────────────────────────────────────────────── */
+.history-card { padding:11px 16px; display:flex; align-items:center; gap:14px; }
+.history-strip { display:flex; gap:5px; flex-wrap:wrap; min-height:10px; flex:1; }
+.hist-dot { width:10px; height:10px; border-radius:50%; }
+.hist-dot.c { background:var(--green); box-shadow:0 0 8px -2px var(--green); }
+.hist-dot.w { background:var(--red);   box-shadow:0 0 8px -2px var(--red); }
 
-  /* Playing state */
-  .ab-btn.playing.btn-a .ab-btn-inner {
-    background:rgba(91,143,255,0.12);
-    border-color:var(--a-col);
-    box-shadow:0 0 24px rgba(91,143,255,0.15);
-  }
-  .ab-btn.playing.btn-b .ab-btn-inner {
-    background:rgba(232,160,48,0.12);
-    border-color:var(--b-col);
-    box-shadow:0 0 24px rgba(232,160,48,0.15);
-  }
+/* ── Audio transport ─────────────────────────────────────────── */
+.audio-bar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+button.ctrl {
+  border:1px solid var(--border2); border-radius:10px;
+  font-family:'IBM Plex Sans', sans-serif; font-size:13px; font-weight:500;
+  cursor:pointer; padding:10px 15px; transition:all 0.15s;
+  display:flex; align-items:center; gap:6px;
+  background:rgba(255,255,255,0.03); color:var(--text);
+}
+.btn-action:hover:not(:disabled) { border-color:var(--accent); color:var(--accent2); }
+.btn-action.paused { background:rgba(244,91,105,0.1); border-color:var(--red); color:var(--red); }
+.btn-action:disabled { opacity:0.35; cursor:not-allowed; }
 
-  /* Correct reveal */
-  .ab-btn.correct .ab-btn-inner {
-    background:rgba(62,207,142,0.1);
-    border-color:var(--green);
-    box-shadow:0 0 20px rgba(62,207,142,0.2);
-  }
-  .ab-btn.wrong .ab-btn-inner {
-    background:rgba(244,91,105,0.08);
-    border-color:var(--red);
-  }
-  .ab-btn.dimmed .ab-btn-inner {
-    opacity:0.35;
-  }
+/* listen bars (Play A / Play B monitor buttons) */
+.listen-bars { display:flex; align-items:flex-end; gap:2.5px; height:14px; }
+.listen-bar { width:3px; border-radius:2px; background:currentColor; opacity:0.3; transition:opacity 0.15s; flex-shrink:0; }
+.listen-bar:nth-child(1){height:5px;  animation-delay:0s;}
+.listen-bar:nth-child(2){height:10px; animation-delay:0.12s;}
+.listen-bar:nth-child(3){height:14px; animation-delay:0.06s;}
+.listen-bar:nth-child(4){height:9px;  animation-delay:0.18s;}
+.listen-bar:nth-child(5){height:6px;  animation-delay:0.09s;}
+@keyframes barBounce { 0%,100%{transform:scaleY(1);} 50%{transform:scaleY(0.3);} }
+/* monitor buttons sit inside the inset well — borderless until active */
+.btn-play-ab {
+  flex-direction:column; align-items:center; justify-content:center; gap:7px;
+  padding:9px 24px; min-width:104px; border-radius:9px;
+  background:transparent; border:1px solid transparent; color:var(--muted);
+}
+.btn-play-ab:hover:not(:disabled) { background:rgba(255,255,255,0.04); border-color:transparent; color:var(--text); }
+.btn-play-ab .listen-btn-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; }
+.btn-play-ab.active .listen-bar { opacity:1; animation:barBounce 0.75s ease-in-out infinite; }
+#btnPlayA.active { color:var(--a-col2); border-color:rgba(91,143,255,0.55); background:rgba(91,143,255,0.14); box-shadow:0 0 16px -5px var(--a-col); }
+#btnPlayB.active { color:var(--b-col2); border-color:rgba(232,160,48,0.55);  background:rgba(232,160,48,0.14); box-shadow:0 0 16px -5px var(--b-col); }
 
-  .ab-letter {
-    font-family:'IBM Plex Mono',monospace;
-    font-size:52px; font-weight:700; line-height:1;
-  }
-  .btn-a .ab-letter { color:var(--a-col2); }
-  .btn-b .ab-letter { color:var(--b-col2); }
-  .ab-btn.correct .ab-letter { color:var(--green); }
-  .ab-btn.wrong   .ab-letter { color:var(--red); }
+/* source buttons (segmented, matched to Quick EQ) */
+.source-pill { background:rgba(255,255,255,0.025); border:1px solid var(--border2); border-radius:8px; padding:6px 13px; font-size:12px; font-family:'IBM Plex Mono', monospace; color:var(--muted); cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+.source-pill:hover { border-color:var(--accent); color:var(--text); }
+.source-pill.active { border-color:var(--accent); color:var(--accent2); background:linear-gradient(180deg, color-mix(in srgb,var(--accent) 20%,transparent), color-mix(in srgb,var(--accent) 6%,transparent)); }
 
-  .ab-sub {
-    font-size:12px; color:var(--muted); font-weight:500;
-    letter-spacing:0.05em; text-transform:uppercase;
-  }
+/* ── Toast ───────────────────────────────────────────────────── */
+.toast {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(12px);
+  background:var(--metal-1); border:1px solid var(--border2);
+  border-radius:10px; padding:10px 18px; font-size:13px; color:var(--text);
+  font-family:'IBM Plex Mono', monospace;
+  opacity:0; transition:all 0.22s; pointer-events:none; z-index:999; white-space:nowrap;
+  box-shadow:0 16px 40px -16px #000;
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
-  .pulse-ring {
-    position:absolute; top:12px; right:12px;
-    width:10px; height:10px; border-radius:50%;
-    opacity:0; transition:opacity 0.2s;
-  }
-  .btn-a .pulse-ring { background:var(--a-col); }
-  .btn-b .pulse-ring { background:var(--b-col); }
-  .ab-btn.playing .pulse-ring {
-    opacity:1;
-    animation:pring 1.1s infinite;
-  }
-  @keyframes pring { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.3;transform:scale(0.6);} }
-
-  /* Result badge on button */
-  .ab-result-badge {
-    position:absolute; top:12px; left:12px;
-    font-family:'IBM Plex Mono',monospace;
-    font-size:11px; font-weight:700;
-    padding:3px 8px; border-radius:6px;
-    opacity:0; transition:opacity 0.2s;
-  }
-  .ab-btn.correct .ab-result-badge { opacity:1; background:rgba(62,207,142,0.2); color:var(--green); }
-  .ab-btn.correct .ab-result-badge::after { content:'✓ Compressed'; }
-  .ab-btn.wrong   .ab-result-badge { opacity:1; background:rgba(244,91,105,0.15); color:var(--red); }
-  .ab-btn.wrong   .ab-result-badge::after { content:'✗ Incorrect'; }
-  .ab-btn.dimmed  .ab-result-badge { opacity:1; background:rgba(255,255,255,0.06); color:var(--muted); }
-  .ab-btn.dimmed  .ab-result-badge::after { content:'Dry'; }
-
-  /* Compression tier indicator */
-  .tier-badge {
-    position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
-    font-family:'IBM Plex Mono',monospace; font-size:10px;
-    opacity:0; transition:opacity 0.3s; white-space:nowrap;
-    padding:2px 8px; border-radius:4px;
-  }
-  .ab-btn.correct .tier-badge { opacity:1; color:var(--accent2); background:rgba(45,212,160,0.1); }
-
-  /* ── GR meter ── */
-  .gr-row {
-    display:flex; gap:10px; align-items:center;
-    background:var(--surface); border:1px solid var(--border);
-    border-radius:12px; padding:10px 16px;
-  }
-  .gr-label { font-size:11px; color:var(--muted); width:80px; flex-shrink:0; }
-  .gr-track { flex:1; height:8px; background:var(--surface3); border-radius:4px; overflow:hidden; }
-  .gr-fill   { height:100%; border-radius:4px; background:linear-gradient(to right,var(--accent),var(--accent2)); transition:width 0.08s; }
-  .gr-val    { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text); width:48px; text-align:right; flex-shrink:0; }
-
-  /* ── History ── */
-  .history-strip { display:flex; gap:5px; flex-wrap:wrap; min-height:14px; }
-  .hist-dot { width:10px; height:10px; border-radius:50%; }
-  .hist-dot.c { background:var(--green); }
-  .hist-dot.w { background:var(--red); }
-
-  /* ── Audio controls ── */
-  .audio-bar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-
-  button.ctrl {
-    border:none; border-radius:10px;
-    font-family:'IBM Plex Sans',sans-serif;
-    font-size:12px; font-weight:500;
-    cursor:pointer; padding:8px 14px; transition:all 0.15s;
-    display:flex; align-items:center; gap:5px;
-  }
-  /* ── Listen bars (Play A / Play B) ── */
-  .listen-bars { display:flex; align-items:flex-end; gap:2.5px; height:14px; }
-  .listen-bar {
-    width:3px; border-radius:2px; background:currentColor;
-    opacity:0.3; transition:opacity 0.15s; flex-shrink:0;
-  }
-  .listen-bar:nth-child(1){height:5px;  animation-delay:0s;}
-  .listen-bar:nth-child(2){height:10px; animation-delay:0.12s;}
-  .listen-bar:nth-child(3){height:14px; animation-delay:0.06s;}
-  .listen-bar:nth-child(4){height:9px;  animation-delay:0.18s;}
-  .listen-bar:nth-child(5){height:6px;  animation-delay:0.09s;}
-  @keyframes barBounce { 0%,100%{transform:scaleY(1);} 50%{transform:scaleY(0.3);} }
-
-  .btn-play-ab {
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important;
-    padding: 10px 18px !important;
-    min-height: 62px;
-  }
-  .btn-play-ab .listen-btn-label {
-    font-size: 11px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.07em;
-  }
-  .btn-play-ab.active .listen-bar { opacity:1; animation:barBounce 0.75s ease-in-out infinite; }
-  /* A and B tints when active */
-  #btnPlayA.active { color:var(--a-col2); border-color:rgba(91,143,255,0.6); background:rgba(91,143,255,0.08); }
-  #btnPlayB.active { color:var(--b-col2); border-color:rgba(232,160,48,0.6);  background:rgba(232,160,48,0.08);  }
-
-  .btn-action {
-    background:var(--surface2); color:var(--muted);
-    border:1px solid var(--border2);
-  }
-  .btn-action:hover { border-color:var(--accent); color:var(--accent); }
-  .btn-action.paused { background:rgba(244,91,105,0.08); border-color:var(--red); color:var(--red); }
-  .btn-action:disabled { opacity:0.35; cursor:not-allowed; }
-
-  .source-wrap {
-    display:flex; align-items:center; gap:5px; margin-left:auto;
-  }
-  .source-pill {
-    background:var(--surface2); border:1px solid var(--border2);
-    border-radius:7px; padding:4px 9px; font-size:11px;
-    color:var(--muted); cursor:pointer; transition:all 0.15s; white-space:nowrap;
-  }
-  .source-pill:hover { border-color:var(--accent); color:var(--text); }
-  .source-pill.active { border-color:var(--accent2); color:var(--accent2); background:rgba(45,212,160,0.07); }
-
-  /* ── Toast ── */
-  .toast {
-    position:fixed; bottom:24px; left:50%;
-    transform:translateX(-50%) translateY(12px);
-    background:var(--surface2); border:1px solid var(--border2);
-    border-radius:10px; padding:10px 16px; font-size:13px; color:var(--text);
-    opacity:0; transition:all 0.2s; pointer-events:none; z-index:999; white-space:nowrap;
-  }
-  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
-
-/* ── Help Section ── */
+/* ── Help ────────────────────────────────────────────────────── */
 .help-toggle {
-  display: flex; align-items: center; gap: 8px;
-  background: none; border: 1px solid var(--border);
-  border-radius: 10px; color: var(--muted);
-  font-family: 'IBM Plex Sans', sans-serif; font-size: 13px;
-  padding: 9px 16px; cursor: pointer; transition: all 0.15s;
-  margin-top: 4px; margin-left: 24px; width: fit-content;
+  display:flex; align-items:center; gap:8px;
+  background:none; border:1px solid var(--border); border-radius:10px; color:var(--muted);
+  font-family:'IBM Plex Sans', sans-serif; font-size:13px;
+  padding:10px 16px; cursor:pointer; transition:all 0.15s; margin-top:4px; margin-left:24px; width:fit-content;
 }
-.help-toggle:hover { border-color: var(--border2); color: var(--text); }
-.help-toggle .toggle-arrow { font-size: 10px; transition: transform 0.2s; display: inline-block; }
-.help-toggle.open .toggle-arrow { transform: rotate(90deg); }
-
+.help-toggle:hover { border-color:var(--border2); color:var(--text); }
+.help-toggle .toggle-arrow { font-size:10px; transition:transform 0.2s; display:inline-block; }
+.help-toggle.open .toggle-arrow { transform:rotate(90deg); }
 .help-section {
-  display: none; width: calc(100% - 48px);
-  background: var(--surface);
-  border: 1px solid var(--border); border-radius: 14px;
-  padding: 28px 32px; gap: 28px; flex-direction: column;
+  display:none; width:calc(100% - 48px); max-width:960px; margin:0 24px;
+  background:linear-gradient(180deg, var(--metal-1), var(--metal-2));
+  border:1px solid var(--border); border-radius:14px;
+  padding:28px 32px; gap:24px; flex-direction:column;
 }
-.help-section.visible { display: flex; }
+.help-section.visible { display:flex; }
+.help-section h2 { font-size:15px; font-weight:600; color:var(--text); letter-spacing:0.02em; margin-bottom:2px; }
+.help-section p { font-size:13.5px; color:var(--muted); line-height:1.65; }
+.help-section p strong { color:var(--text); font-weight:500; }
+.help-block { display:flex; flex-direction:column; gap:8px; }
+.help-divider { border:none; border-top:1px solid var(--border); }
 
-.help-section h2 {
-  font-size: 15px; font-weight: 600; color: var(--text);
-  letter-spacing: 0.02em; margin-bottom: 2px;
+.forgot-pw-link { display:block; width:100%; text-align:center; margin-top:12px; font-size:12px; color:var(--muted); background:none; border:none; cursor:pointer; font-family:inherit; }
+.forgot-pw-link:hover { color:var(--text); }
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 620px) {
+  nav.site-nav { padding:12px 16px; }
+  .game-bar { padding:8px 16px; }
+  .main { padding-left:16px; padding-right:16px; }
+  .stat-val { font-size:15px; }
+  .score-row { gap:10px; }
+  .score-row .stat:nth-child(n+5) { display:none; }
+  .ab-letter { font-size:50px; }
 }
-.help-section p { font-size: 13.5px; color: var(--muted); line-height: 1.65; }
-.help-section p strong { color: var(--text); font-weight: 500; }
-.help-block { display: flex; flex-direction: column; gap: 8px; }
-.help-divider { border: none; border-top: 1px solid var(--border); }
 
-    /* ── Game bar (site context + score row) ─────────────── */
-  nav.site-nav {
-    width: 100%;
-    padding: 14px 24px;
-    display: flex; align-items: center;
-    border-bottom: 1px solid var(--border);
-  }
-  .game-bar {
-    width: 100%; max-width: 780px;
-    padding: 10px 24px;
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 16px;
-    border-bottom: 1px solid var(--border);
-    background-image: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
-    background-size: 28px 28px;
-  }
-  .game-bar-left { display: flex; align-items: center; }
-  .brand { display: flex; align-items: center; gap: 10px; }
-  .brand-icon {
-    width: 28px; height: 28px; border-radius: 7px;
-    background: var(--accent);
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-  .brand-name {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 13px; font-weight: 600;
-    color: var(--text); letter-spacing: -0.01em;
-  }
-  .game-bar-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
-  .score-row { display: flex; align-items: center; gap: 16px; }
-  .stat { text-align: center; }
-  .stat-val {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 18px; font-weight: 700;
-    color: var(--accent2); line-height: 1;
-  }
-  .stat-label {
-    font-size: 9px; color: var(--muted);
-    text-transform: uppercase; letter-spacing: 0.08em;
-    margin-top: 2px;
-  }
-  .vdiv { width: 1px; height: 20px; background: var(--border2); }
-  .mult-badge {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 8px; color: var(--muted);
-    letter-spacing: 0.04em; opacity: 0.7;
-  }
-  @media (max-width: 600px) {
-    nav.site-nav { padding: 12px 16px; }
-    .game-bar { padding: 8px 16px; }
-    .stat-val { font-size: 15px; }
-    .score-row { gap: 10px; }
-  }
-
-  .forgot-pw-link {
-    display: block; width: 100%; text-align: center;
-    margin-top: 12px; font-size: 12px; color: var(--muted);
-    background: none; border: none; cursor: pointer; font-family: inherit;
-  }
-  .forgot-pw-link:hover { color: var(--text); }
-
-
-  .shortcuts-wrap { position: relative; }
-  .shortcuts-btn {
-    display: flex; align-items: center; gap: 5px;
-    background: var(--surface2); border: 0.5px solid var(--border2);
-    border-radius: 8px; color: var(--muted);
-    font-family: inherit; font-size: 12px; font-weight: 500;
-    padding: 5px 11px; cursor: pointer; transition: all 0.15s;
-    white-space: nowrap;
-  }
-  .shortcuts-btn:hover { border-color: var(--accent); color: var(--text); }
-  .shortcuts-popover {
-    display: none; position: absolute; top: calc(100% + 8px); right: 0;
-    background: var(--surface); border: 1px solid var(--border2);
-    border-radius: 12px; padding: 14px 18px;
-    z-index: 50; min-width: 260px;
-  }
-  .shortcuts-popover.open { display: block; }
-  .shortcut-row {
-    display: flex; justify-content: space-between; align-items: center;
-    gap: 16px; font-size: 12px; color: var(--muted); padding: 5px 0;
-    border-bottom: 0.5px solid var(--border);
-  }
-  .shortcut-row:last-child { border-bottom: none; }
-  .shortcut-keys { display: flex; gap: 4px; flex-shrink: 0; }
 </style>
   <script src="../scoring.js"></script>
 
@@ -523,19 +465,35 @@
 
 <div class="main">
 
-  <!-- Settings -->
-  <div class="settings-row">
-    <span class="label">Compression</span>
-    <select id="tierSelect" onchange="setTier(this.value)">
-      <option value="easy" selected>Easy (20:1)</option>
-      <option value="medium">Medium (8:1)</option>
-      <option value="hard">Hard (4:1)</option>
-      <option value="subtle">Subtle (2.5:1)</option>
-    </select>
-    <div class="vdiv"></div>
-    <span id="tierDesc" style="font-size:11px;color:var(--muted);">Ratio 8:1 · Threshold −24dB · Attack 5ms · Release 50ms</span>
-    <div class="vdiv" style="margin-left:auto;"></div>
-    <div style="margin-left:auto; position:relative;" class="shortcuts-wrap">
+  <!-- Prompt -->
+  <div class="prompt-bar" id="promptBar">
+    <div style="flex:1;">
+      <div class="prompt-text" id="promptText">
+        Click <span>Play</span> to start — then click <span>A</span> or <span>B</span> to pick the compressed signal
+      </div>
+      <div class="next-bar" id="nextBar" style="display:none;"><div class="next-fill" id="nextFill"></div></div>
+    </div>
+    <div class="result-inline" id="resultInline"></div>
+  </div>
+
+  <!-- Player / transport -->
+  <div class="player-card">
+    <div class="monitor-group">
+      <button class="btn-play-ab" id="btnPlayA" onclick="listenTo('A')" disabled>
+        <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
+        <span class="listen-btn-label">Play A</span>
+      </button>
+      <button class="btn-play-ab" id="btnPlayB" onclick="listenTo('B')" disabled>
+        <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
+        <span class="listen-btn-label">Play B</span>
+      </button>
+    </div>
+    <div class="player-controls">
+      <button class="ctrl btn-action" id="btnPause"   onclick="togglePause()"  disabled>⏸ Pause</button>
+      <button class="ctrl btn-action" id="btnRestart" onclick="restartAudio()" disabled>↺ Restart</button>
+    </div>
+    <span class="monitor-hint">Toggle A / B, then click a card to guess</span>
+    <div class="shortcuts-wrap">
       <button class="shortcuts-btn" onclick="toggleShortcuts(event)">&#9000; Shortcuts</button>
       <div class="shortcuts-popover" id="shortcutsPopover">
         <div class="shortcut-row"><span>Rotate A / B</span><div class="shortcut-keys"><kbd>Space</kbd></div></div>
@@ -550,36 +508,43 @@
     </div>
   </div>
 
-  <!-- Prompt -->
-  <div class="prompt-bar" id="promptBar">
-    <div style="flex:1;">
-      <div class="prompt-text" id="promptText">
-        Click <span>Play</span> to start — then click <span>A</span> or <span>B</span> to pick the compressed signal
-      </div>
-      <div class="next-bar" id="nextBar" style="display:none;"><div class="next-fill" id="nextFill"></div></div>
-    </div>
-    <div class="result-inline" id="resultInline"></div>
-  </div>
-
   <!-- A / B buttons -->
   <div class="ab-row">
     <button class="ab-btn btn-a" id="btnA" onclick="selectAnswer('A')" disabled>
-      <div class="pulse-ring"></div>
-      <div class="ab-result-badge"></div>
       <div class="ab-btn-inner">
-        <div class="ab-letter">A</div>
-        <div class="ab-sub">Click to select</div>
+        <div class="ab-result-badge"></div>
+        <div class="ab-card-top">
+          <span class="ab-id"><span class="ab-dot"></span>SIGNAL A</span>
+          <span class="ab-status"><span class="pulse-ring"></span>LIVE</span>
+        </div>
+        <div class="ab-well">
+          <div class="ab-letter">A</div>
+          <div class="ab-meter"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="tier-badge" id="tierBadgeA"></div>
+        <div class="ab-foot">
+          <span class="ab-sub">Click to select</span>
+          <span class="ab-key">A</span>
+        </div>
       </div>
-      <div class="tier-badge" id="tierBadgeA"></div>
     </button>
     <button class="ab-btn btn-b" id="btnB" onclick="selectAnswer('B')" disabled>
-      <div class="pulse-ring"></div>
-      <div class="ab-result-badge"></div>
       <div class="ab-btn-inner">
-        <div class="ab-letter">B</div>
-        <div class="ab-sub">Click to select</div>
+        <div class="ab-result-badge"></div>
+        <div class="ab-card-top">
+          <span class="ab-id"><span class="ab-dot"></span>SIGNAL B</span>
+          <span class="ab-status"><span class="pulse-ring"></span>LIVE</span>
+        </div>
+        <div class="ab-well">
+          <div class="ab-letter">B</div>
+          <div class="ab-meter"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="tier-badge" id="tierBadgeB"></div>
+        <div class="ab-foot">
+          <span class="ab-sub">Click to select</span>
+          <span class="ab-key">B</span>
+        </div>
       </div>
-      <div class="tier-badge" id="tierBadgeB"></div>
     </button>
   </div>
 
@@ -590,33 +555,39 @@
     <span class="gr-val" id="grVal">— dB</span>
   </div>
 
-  <!-- History -->
-  <div class="history-strip" id="historyStrip"></div>
-
-  <!-- Audio controls -->
-  <div class="audio-bar">
-    <button class="ctrl btn-action btn-play-ab" id="btnPlayA" onclick="listenTo('A')" disabled>
-      <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
-      <span class="listen-btn-label">Play A</span>
-    </button>
-    <button class="ctrl btn-action btn-play-ab" id="btnPlayB" onclick="listenTo('B')" disabled>
-      <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
-      <span class="listen-btn-label">Play B</span>
-    </button>
-    <button class="ctrl btn-action" id="btnPause"   onclick="togglePause()"  disabled>⏸ Pause</button>
-    <button class="ctrl btn-action" id="btnRestart" onclick="restartAudio()" disabled>↺ Restart</button>
-    <button class="ctrl btn-action" id="btnNew"     onclick="newRound()">⟳ New Round</button>
-
-    <div class="source-wrap">
-      <div class="source-pill active" id="srcPink"    onclick="setSource('pink')">Pink</div>
-      <div class="source-pill"        id="srcOneShot" onclick="setSource('oneshot')">One-shots</div>
-      <div class="source-pill"        id="srcLoop"    onclick="setSource('loop')">Loops</div>
-      <div class="source-pill"        id="srcCustom"  onclick="triggerUpload()" style="border-style:dashed;">
-        <span id="uploadLabel">Upload Folder</span>
-      </div>
-      <input type="file" id="folderInput" webkitdirectory directory multiple
-             onchange="handleFolderUpload(event)" style="display:none;">
+  <!-- Settings -->
+  <div class="settings-card">
+    <div class="settings-row">
+      <span class="label">Compression</span>
+      <select id="tierSelect" onchange="setTier(this.value)">
+        <option value="easy" selected>Easy (20:1)</option>
+        <option value="medium">Medium (8:1)</option>
+        <option value="hard">Hard (4:1)</option>
+        <option value="subtle">Subtle (2.5:1)</option>
+      </select>
+      <span id="tierDesc" style="font-size:11px;color:var(--muted);">Ratio 8:1 · Threshold −24dB · Attack 5ms · Release 50ms</span>
+      <button class="new-round-btn" onclick="newRound()">⟳ New Round</button>
     </div>
+    <div class="settings-divider"></div>
+    <div class="settings-row">
+      <span class="label">Source</span>
+      <div class="btn-group">
+        <div class="source-pill active" id="srcPink"    onclick="setSource('pink')">Pink</div>
+        <div class="source-pill"        id="srcOneShot" onclick="setSource('oneshot')">One-shots</div>
+        <div class="source-pill"        id="srcLoop"    onclick="setSource('loop')">Loops</div>
+        <div class="source-pill"        id="srcCustom"  onclick="triggerUpload()" style="border-style:dashed;">
+          <span id="uploadLabel">Upload Folder</span>
+        </div>
+        <input type="file" id="folderInput" webkitdirectory directory multiple
+               onchange="handleFolderUpload(event)" style="display:none;">
+      </div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="history-card">
+    <span class="label">Recent</span>
+    <div class="history-strip" id="historyStrip"></div>
   </div>
 
 </div>
