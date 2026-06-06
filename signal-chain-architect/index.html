@@ -687,7 +687,11 @@ function stopPlayback() {
   noiseSource=null;
   if (loopAudioEl) loopAudioEl.pause();
   if (loopMediaSrc){ try{loopMediaSrc.disconnect();}catch(e){} }
-  if (customSrc){ try{customSrc.stop();}catch(e){} customSrc=null; customSrcOffset=0; }
+  if (customSrc){
+    const _buf=customBuffers.length?customBuffers[customIdx%customBuffers.length]:null;
+    if(_buf&&customSrcStartTime) customSrcOffset=((audioCtx.currentTime-customSrcStartTime)+customSrcOffset)%_buf.duration;
+    try{customSrc.stop();}catch(e){} customSrc=null;
+  }
   if (currentShotSrc){ try{currentShotSrc.stop();}catch(e){} currentShotSrc=null; }
   for (const eff of chainNodeRefs){ for(const n of eff.nodes){ try{n.disconnect();}catch(e){} } }
   chainNodeRefs=[];
@@ -787,12 +791,12 @@ function skipTrack(delta) {
   if (!roundActive||!isPlaying||!audioCtx) return;
   if (sourceType==='oneShot' && oneShotBuffers.length>0) { oneShotIdx=((oneShotIdx+delta)%oneShotBuffers.length+oneShotBuffers.length)%oneShotBuffers.length; if(shotLoopTimer){clearInterval(shotLoopTimer);shotLoopTimer=null;} if(currentShotSrc){try{currentShotSrc.stop();}catch(e){}currentShotSrc=null;} stopPlayback(); playCurrentRound(); showToast(`Shot ${oneShotIdx+1} / ${oneShotBuffers.length}`); }
   else if (sourceType==='loop' && loopFileNames.length>0) { loopIdx=((loopIdx+delta)%loopFileNames.length+loopFileNames.length)%loopFileNames.length; if(loopAudioEl){ loopAudioEl.src=`../samples/loops/${loopFileNames[loopIdx]}`; loopAudioEl._cur=loopFileNames[loopIdx]; loopAudioEl.play().catch(()=>{}); } showToast(`Loop ${loopIdx+1} / ${loopFileNames.length}`); }
-  else if (sourceType==='custom' && customBuffers.filter(Boolean).length>0) { customIdx=((customIdx+delta)%customBuffers.length+customBuffers.length)%customBuffers.length; customSrcOffset=0; startAudio(); showToast(`Track ${customIdx+1} / ${customBuffers.filter(Boolean).length}`); }
+  else if (sourceType==='custom' && customBuffers.filter(Boolean).length>0) { customIdx=((customIdx+delta)%customBuffers.length+customBuffers.length)%customBuffers.length; customSrcOffset=0; playCurrentRound(); showToast(`Track ${customIdx+1} / ${customBuffers.filter(Boolean).length}`); }
 }
 function seekMusic(delta) {
   if (!roundActive||!isPlaying) return;
   if (sourceType==='loop'&&loopAudioEl){ loopAudioEl.currentTime=Math.max(0,loopAudioEl.currentTime+delta); showToast(`${delta>0?'+':''}${delta}s`); }
-  else if (sourceType==='custom'&&customSrc){ const scb=customBuffers[customIdx%customBuffers.length]; if(scb){const el=audioCtx.currentTime-customSrcStartTime; customSrcOffset=Math.max(0,(customSrcOffset+el+delta))%scb.duration; customSrcStartTime=audioCtx.currentTime; startAudio();} showToast(`${delta>0?'+':''}${delta}s`); }
+  else if (sourceType==='custom'&&customSrc){ const scb=customBuffers[customIdx%customBuffers.length]; if(scb){ customSrcOffset=Math.max(0,(((audioCtx.currentTime-customSrcStartTime)+customSrcOffset)+delta))%scb.duration; playCurrentRound();} showToast(`${delta>0?'+':''}${delta}s`); }
 }
 
 // ── Submit / reveal ──

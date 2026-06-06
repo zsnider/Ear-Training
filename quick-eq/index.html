@@ -1335,7 +1335,12 @@ function stopPlayback() {
   noiseSource = null;
   if (loopAudioEl)    loopAudioEl.pause();
   if (loopMediaSrc)   { try { loopMediaSrc.disconnect();   } catch(e) {} }
-  if (customSrc) { try { customSrc.stop(); } catch(e){} customSrc = null; customSrcOffset = 0; }
+  if (customSrc) {
+    // Save playback position so monitor/EQ switches don't restart the track
+    const _buf = customBuffers.length ? customBuffers[customIdx % customBuffers.length] : null;
+    if (_buf && customSrcStartTime) customSrcOffset = ((audioCtx.currentTime - customSrcStartTime) + customSrcOffset) % _buf.duration;
+    try { customSrc.stop(); } catch(e){} customSrc = null;
+  }
   if (currentShotSrc) { try { currentShotSrc.stop(); } catch(e) {} currentShotSrc = null; }
   chainNodes.forEach(n => { try { n.disconnect(); } catch(e) {} });
   chainNodes = [];

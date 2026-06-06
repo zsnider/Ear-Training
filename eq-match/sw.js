@@ -1,7 +1,7 @@
 // ── EQ Match Service Worker ─────────────────────────────────────────────────
 // Bump CACHE_NAME whenever you deploy an updated version of the app.
 // This forces old caches to be cleared and the new files to be fetched.
-const CACHE_NAME = 'eq-mirror-v2';
+const CACHE_NAME = 'eq-mirror-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -26,7 +26,7 @@ self.addEventListener('activate', event => {
     caches.keys().then(keys =>
       Promise.all(
         keys
-          .filter(key => key !== CACHE_NAME)
+          .filter(key => key.startsWith('eq-mirror-') && key !== CACHE_NAME)
           .map(key => caches.delete(key))
       )
     )
