@@ -1,5 +1,5 @@
 // ── Delay Master Service Worker ───────────────────────────────────────────────
-const CACHE_NAME = 'delay-master-v1';
+const CACHE_NAME = 'delay-master-v2';
 
 const ASSETS = [
   './',

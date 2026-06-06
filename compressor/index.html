@@ -223,8 +223,8 @@
         <div class="source-pill" id="srcLoop" onclick="setSource('loop')">Loops</div>
         <div class="source-pill" id="srcCustom" onclick="triggerUpload()" style="border-style:dashed;">
           <span id="uploadLabel">Upload Folder</span>
-          <input type="file" id="folderInput" webkitdirectory directory multiple onchange="handleFolderUpload(event)">
         </div>
+        <input type="file" id="folderInput" webkitdirectory directory multiple onchange="handleFolderUpload(event)" style="display:none;">
       </div>
 
       <div class="rack-panel">
@@ -882,7 +882,7 @@ function buildCustomStreamSources() {
     customAudioEl.src = url;
   }
   customMediaSrc.connect(sourceBus);
-  customAudioEl.play().catch(e => console.warn('Custom autoplay blocked:', e));
+  audioCtx.resume().then(() => { customAudioEl.play().catch(e => console.warn('Custom autoplay blocked:', e)); });
 }
 
 function buildOneShotSources() {
@@ -966,7 +966,7 @@ function togglePause() {
   const btn = document.getElementById('btnPause');
   if (isPaused) {
     if (loopAudioEl   && sourceType==='loop')   loopAudioEl.play().catch(()=>{});
-    if (customAudioEl && sourceType==='custom') customAudioEl.play().catch(()=>{});
+    if (customAudioEl && sourceType==='custom') audioCtx.resume().then(()=>{ customAudioEl.play().catch(()=>{}); });
     audioCtx.resume().then(() => {
       isPaused = false;
       btn.textContent = '⏸ Pause';
@@ -1020,7 +1020,7 @@ function skipTrack(delta) {
       customAudioEl._objectUrl = url;
       customAudioEl._currentFile = file;
       customAudioEl.src = url;
-      customAudioEl.play().catch(()=>{});
+      audioCtx.resume().then(()=>{ customAudioEl.play().catch(()=>{}); });
     }
     updateListenBtns();
     showToast(`Track ${customIdx + 1} / ${customFiles.length}`);

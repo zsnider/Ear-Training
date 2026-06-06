@@ -230,8 +230,8 @@
         <div class="source-pill" id="srcLoop" onclick="setSource('loop')">Loops</div>
         <div class="source-pill" id="srcCustom" onclick="triggerUpload()" style="border-style:dashed;">
           <span id="uploadLabel">Upload Folder</span>
-          <input type="file" id="folderInput" webkitdirectory directory multiple onchange="handleFolderUpload(event)">
         </div>
+        <input type="file" id="folderInput" webkitdirectory directory multiple onchange="handleFolderUpload(event)" style="display:none;">
         <span id="sourceLoadStatus"></span>
       </div>
 
@@ -1017,7 +1017,7 @@ function togglePause() {
   const btn = document.getElementById('btnPause');
   if (isPaused) {
     if (loopAudioEl   && sourceType==='loop')   loopAudioEl.play().catch(()=>{});
-    if (customAudioEl && sourceType==='custom') customAudioEl.play().catch(()=>{});
+    if (customAudioEl && sourceType==='custom') audioCtx.resume().then(()=>{ customAudioEl.play().catch(()=>{}); });
     audioCtx.resume().then(() => {
       isPaused=false; btn.innerHTML='&#9646;&#9646; Pause'; btn.classList.remove('paused');
       if (sourceType === 'oneShot') startOneShotLoop();
@@ -1090,7 +1090,7 @@ function skipTrack(delta) {
       customAudioEl._objectUrl = url;
       customAudioEl._currentFile = file;
       customAudioEl.src = url;
-      customAudioEl.play().catch(()=>{});
+      audioCtx.resume().then(()=>{ customAudioEl.play().catch(()=>{}); });
     }
     showToast(`Track ${customIdx+1} / ${customFiles.length}`);
   }

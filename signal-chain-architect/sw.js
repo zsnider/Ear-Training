@@ -1,5 +1,5 @@
 // ── Signal Chain Architect Service Worker ─────────────────────────────────────
-const CACHE_NAME = 'signal-chain-architect-v1';
+const CACHE_NAME = 'signal-chain-architect-v2';
 
 const ASSETS = [
   './',

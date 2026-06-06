@@ -1,6 +1,6 @@
 // ── Reverb Master Service Worker ─────────────────────────────────────────────
 // Bump CACHE_NAME when you deploy updates or add new samples.
-const CACHE_NAME = 'reverb-master-v1';
+const CACHE_NAME = 'reverb-master-v2';
 
 const ASSETS = [
   './',

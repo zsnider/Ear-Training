@@ -993,7 +993,7 @@ function playNoiseBurst() {
       customAudioEl.src = url;
     }
     customMediaSrc.connect(eqFilter);
-    customAudioEl.play().catch(e => console.warn('Custom autoplay blocked:', e));
+    audioCtx.resume().then(() => { customAudioEl.play().catch(e => console.warn('Custom autoplay blocked:', e)); });
     noiseSource = customMediaSrc;
 
   } else {
@@ -1075,7 +1075,7 @@ function skipTrack(delta) {
       customAudioEl._objectUrl = url;
       customAudioEl._currentFile = file;
       customAudioEl.src = url;
-      customAudioEl.play().catch(()=>{});
+      audioCtx.resume().then(()=>{ customAudioEl.play().catch(()=>{}); });
     }
     showToast(`Track ${customIdx + 1} / ${customFiles.length}`);
   }
@@ -1245,7 +1245,7 @@ function togglePause() {
   const btn = document.getElementById('btnPause');
   if (isPaused) {
     if (loopAudioEl   && sourceType==='loop')   loopAudioEl.play().catch(()=>{});
-    if (customAudioEl && sourceType==='custom') customAudioEl.play().catch(()=>{});
+    if (customAudioEl && sourceType==='custom') audioCtx.resume().then(()=>{ customAudioEl.play().catch(()=>{}); });
     audioCtx.resume().then(() => {
       isPaused = false;
       btn.innerHTML = '&#9646;&#9646; Pause'; btn.classList.remove('paused');

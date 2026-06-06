@@ -1,7 +1,7 @@
 // ── Compressor Service Worker ─────────────────────────────────────────────────
 // Bump CACHE_NAME whenever you deploy an updated version of the app.
 // This forces old caches to be cleared and the new files to be fetched.
-const CACHE_NAME = 'compressor-v1';
+const CACHE_NAME = 'compressor-v2';
 
 const ASSETS = [
   './',

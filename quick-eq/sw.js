@@ -1,5 +1,5 @@
 // ── QuickEQ Service Worker ────────────────────────────────────────────────────
-const CACHE_NAME = 'quick-eq-v1';
+const CACHE_NAME = 'quick-eq-v2';
 
 const ASSETS = [
   './',

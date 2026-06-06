@@ -1,4 +1,4 @@
-const CACHE_NAME = 'quick-compress-v2';
+const CACHE_NAME = 'quick-compress-v3';
 const ASSETS = [
   './',
   './index.html',

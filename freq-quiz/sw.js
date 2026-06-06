@@ -1,5 +1,5 @@
 // ── Freq Quiz Service Worker ──────────────────────────────────────────────────
-const CACHE_NAME = 'freq-quiz-v1';
+const CACHE_NAME = 'freq-quiz-v2';
 
 const ASSETS = [
   './',

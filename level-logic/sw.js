@@ -1,5 +1,5 @@
 // ── Level Logic Service Worker ─────────────────────────────────────────────────
-const CACHE_NAME = 'level-logic-v1';
+const CACHE_NAME = 'level-logic-v2';
 
 const ASSETS = [
   './',

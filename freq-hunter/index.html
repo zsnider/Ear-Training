@@ -218,8 +218,8 @@
       <div class="source-pill"        id="srcLoop"    onclick="setSource('loop')">Loops</div>
       <div class="source-pill"        id="srcCustom"  onclick="triggerUpload()" style="border-style:dashed;">
         <span id="uploadLabel">Upload Folder</span>
-        <input type="file" id="folderInput" webkitdirectory directory multiple onchange="handleFolderUpload(event)">
       </div>
+      <input type="file" id="folderInput" webkitdirectory directory multiple onchange="handleFolderUpload(event)" style="display:none;">
       <span id="sourceLoadStatus"></span>
     </div>
   </div>
@@ -676,7 +676,7 @@ function startAudio(){
     if(!customMediaSrc){ customMediaSrc=audioCtx.createMediaElementSource(customAudioEl); }
     const file=customFiles[customIdx%customFiles.length];
     if(customAudioEl._currentFile!==file){ if(customAudioEl._objectUrl) URL.revokeObjectURL(customAudioEl._objectUrl); const url=URL.createObjectURL(file); customAudioEl._objectUrl=url; customAudioEl._currentFile=file; customAudioEl.src=url; }
-    customMediaSrc.connect(bpFilter); customAudioEl.play().catch(e=>console.warn('Custom autoplay blocked:',e)); noiseSource=customMediaSrc;
+    customMediaSrc.connect(bpFilter); audioCtx.resume().then(()=>{ customAudioEl.play().catch(e=>console.warn('Custom autoplay blocked:',e)); }); noiseSource=customMediaSrc;
   } else { const src=makePinkNoise(5); src.connect(bpFilter); src.start(0); noiseSource=src; }
 
   isPlaying=true; const pp=document.getElementById('btnPlayPause'); if(pp){ pp.querySelector('.bp-label').textContent='Pause'; pp.classList.add('playing'); pp.classList.remove('is-paused'); }
