@@ -343,7 +343,7 @@ let musicOffset=0;
 // Audio
 let audioCtx=null, noiseSource=null, bpFilter=null, pannerNode=null, outGain=null;
 let isDry=false, isPaused=false, isPlaying=false, shotLoopTimer=null, sourceType='pink';
-let customFiles=[], customIdx=0, customAudioEl=null, customMediaSrc=null;
+let customFiles=[], customIdx=0; let customBuffers=[], customSrc=null, customSrcOffset=0, customSrcStartTime=0;
 let oneShotBuffers=[], oneShotLoaded=false, oneShotIdx=0, currentShotSrc=null;
 let loopFileNames=[], loopManifestLoaded=false, loopIdx=0, loopAudioEl=null, loopMediaSrc=null;
 
@@ -672,11 +672,7 @@ function startAudio(){
   if(sourceType==='oneshot' && oneShotBuffers.length>0){ buildOneShotSource(); }
   else if(sourceType==='loop' && loopFileNames.length>0){ buildLoopSource(); }
   else if(sourceType==='custom' && customFiles.length>0){
-    if(!customAudioEl){ customAudioEl=new Audio(); customAudioEl.crossOrigin='anonymous'; customAudioEl.loop=true; }
-    if(!customMediaSrc){ customMediaSrc=audioCtx.createMediaElementSource(customAudioEl); }
-    const file=customFiles[customIdx%customFiles.length];
-    if(customAudioEl._currentFile!==file){ if(customAudioEl._objectUrl) URL.revokeObjectURL(customAudioEl._objectUrl); const url=URL.createObjectURL(file); customAudioEl._objectUrl=url; customAudioEl._currentFile=file; customAudioEl.src=url; }
-    customMediaSrc.connect(bpFilter); customAudioEl.play().catch(e=>console.warn('Custom autoplay blocked:',e)); noiseSource=customMediaSrc;
+    const buf=customBuffers[customIdx%customBuffers.length]; if(buf){ if(customSrc){try{customSrc.stop();}catch(e){} customSrc=null;} customSrc=audioCtx.createBufferSource(); customSrc.buffer=buf; customSrc.loop=true; customSrc.connect(bpFilter); customSrc.start(0,customSrcOffset%buf.duration); customSrcStartTime=audioCtx.currentTime; noiseSource=customSrc; }
   } else { const src=makePinkNoise(5); src.connect(bpFilter); src.start(0); noiseSource=src; }
 
   isPlaying=true; const pp=document.getElementById('btnPlayPause'); if(pp){ pp.querySelector('.bp-label').textContent='Pause'; pp.classList.add('playing'); pp.classList.remove('is-paused'); }
@@ -695,11 +691,11 @@ function buildLoopSource(){
 }
 function stopAudio(){
   if(shotLoopTimer){ clearInterval(shotLoopTimer); shotLoopTimer=null; }
-  if(noiseSource && noiseSource!==loopMediaSrc && noiseSource!==customMediaSrc){ try{noiseSource.stop();}catch(e){} }
+  if(noiseSource && noiseSource!==loopMediaSrc && noiseSource!==customSrc){ try{noiseSource.stop();}catch(e){} }
   noiseSource=null;
-  if(loopAudioEl) loopAudioEl.pause(); if(customAudioEl) customAudioEl.pause();
+  if(loopAudioEl) loopAudioEl.pause();
   if(loopMediaSrc){ try{loopMediaSrc.disconnect();}catch(e){} }
-  if(customMediaSrc){ try{customMediaSrc.disconnect();}catch(e){} }
+  if(customSrc){ try{customSrc.stop();}catch(e){} customSrc=null; customSrcOffset=0; }
   if(currentShotSrc){ try{currentShotSrc.stop();}catch(e){} currentShotSrc=null; }
   if(bpFilter){ try{bpFilter.disconnect();}catch(e){} bpFilter=null; }
   if(pannerNode){ try{pannerNode.disconnect();}catch(e){} pannerNode=null; }
@@ -731,11 +727,11 @@ function restartAudio(){
 }
 function seekMusic(delta){
   if(!audioCtx || !roundActive) return;
-  if(sourceType==='custom' && customAudioEl){ customAudioEl.currentTime=Math.max(0,(customAudioEl.currentTime||0)+delta); showToast(`${delta>0?'+':''}${delta}s`); }
+  if(sourceType==='custom' && customSrc){ const buf=customBuffers[customIdx%customBuffers.length]; if(buf){ const elapsed=audioCtx.currentTime-customSrcStartTime; customSrcOffset=Math.max(0,(customSrcOffset+elapsed+delta))%buf.duration; customSrcStartTime=audioCtx.currentTime; try{customSrc.stop();}catch(e){} customSrc=audioCtx.createBufferSource(); customSrc.buffer=buf; customSrc.loop=true; customSrc.connect(bpFilter); customSrc.start(0,customSrcOffset); noiseSource=customSrc; } showToast(`${delta>0?'+':''}${delta}s`); }
   else if(sourceType==='loop' && loopAudioEl){ const dur=loopAudioEl.duration||0; if(dur>0) loopAudioEl.currentTime=((loopAudioEl.currentTime+delta)%dur+dur)%dur; showToast(`${delta>0?'+':''}${delta}s`); }
 }
 function skipTrack(delta){
-  if(sourceType==='custom' && customFiles.length>0){ customIdx=((customIdx+delta)%customFiles.length+customFiles.length)%customFiles.length; if(customAudioEl) customAudioEl._currentFile=null; if(roundActive&&isPlaying) startAudio(); showToast(`Track ${customIdx+1} / ${customFiles.length}`); }
+  if(sourceType==='custom'&&customBuffers.filter(Boolean).length>0){ customIdx=((customIdx+delta)%customBuffers.length+customBuffers.length)%customBuffers.length; customSrcOffset=0; if(roundActive&&isPlaying) startAudio(); showToast(`Track ${customIdx+1} / ${customBuffers.filter(Boolean).length}`); }
   else if(sourceType==='oneshot' && oneShotBuffers.length>0){ oneShotIdx=((oneShotIdx+delta)%oneShotBuffers.length+oneShotBuffers.length)%oneShotBuffers.length; if(roundActive&&isPlaying) startAudio(); showToast(`Sample ${oneShotIdx+1} / ${oneShotBuffers.length}`); }
   else if(sourceType==='loop' && loopFileNames.length>0){ loopIdx=((loopIdx+delta)%loopFileNames.length+loopFileNames.length)%loopFileNames.length; if(loopAudioEl) loopAudioEl._currentFname=null; if(roundActive&&isPlaying) startAudio(); showToast(`Loop ${loopIdx+1} / ${loopFileNames.length}`); }
 }
@@ -757,12 +753,26 @@ function updateSourceUI(){
   if(customFiles.length>0) document.getElementById('uploadLabel').textContent=`📁 ${customFiles.length} tracks`;
 }
 function triggerUpload(){ if(customFiles.length>0){ setSource('custom'); return; } document.getElementById('folderInput').click(); }
-async function handleFolderUpload(e){
-  const files=Array.from(e.target.files).filter(f=>f.type.startsWith('audio/'));
-  if(!files.length) return; initAudio(); customFiles=files; customIdx=0;
-  if(customAudioEl){ if(customAudioEl._objectUrl){ URL.revokeObjectURL(customAudioEl._objectUrl); customAudioEl._objectUrl=null; } customAudioEl._currentFile=null; }
-  document.getElementById('uploadLabel').textContent=`📁 ${customFiles.length} tracks`;
-  setSource('custom'); setLoadStatus(`${customFiles.length} tracks ready`,false); setTimeout(()=>setLoadStatus(null),2500); showToast('Music loaded!');
+async function handleFolderUpload(e) {
+  const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/') || /\.(mp3|wav|ogg|aac|flac|m4a)$/i.test(f.name));
+  if (!files.length) return;
+  initAudio();
+  customFiles = files; customIdx = 0; customBuffers = [];
+  const label = document.getElementById('uploadLabel') || document.getElementById('folderLabel');
+  if (label) label.textContent = '⧗ Loading...';
+  let loaded = 0;
+  Promise.all(files.map((f, i) =>
+    f.arrayBuffer()
+      .then(ab => audioCtx.decodeAudioData(ab))
+      .then(buf => { customBuffers[i] = buf; loaded++; if (label) label.textContent = '⧗ ' + loaded + '/' + files.length; })
+      .catch(err => { console.warn('Could not decode', f.name, err); customBuffers[i] = null; loaded++; })
+  )).then(() => {
+    const n = customBuffers.filter(Boolean).length;
+    if (label) label.textContent = '📁 ' + n + ' tracks';
+    setSource('custom');
+    if (typeof showToast === 'function') showToast(n + ' tracks ready');
+    if (typeof setLoadStatus === 'function') { setLoadStatus(n + ' tracks ready', false); setTimeout(() => setLoadStatus(null), 2500); }
+  });
 }
 async function loadOneShotSamples(){
   if(oneShotLoaded) return; initAudio(); oneShotBuffers=[]; const manifest=await getManifest();
