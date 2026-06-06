@@ -305,12 +305,6 @@
 </head>
 <body>
 
-<!-- Mobile banner (only shown to mobile users who have opted out of auto-redirect) -->
-<div id="mobileBanner">
-  📱 Playing on mobile? <a href="/mobile/">Try the mobile version →</a>
-  <button class="banner-dismiss" id="bannerDismiss" title="Dismiss">×</button>
-</div>
-
 <!-- Nav -->
 <nav>
   <div class="nav-logo-wrap">
@@ -833,27 +827,6 @@
     if (el) el.textContent = '@' + username;
   }
 
-  // ── Mobile detection ──────────────────────────────────────
-  (function() {
-    const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
-      (('ontouchstart' in window || navigator.maxTouchPoints > 0) &&
-       window.matchMedia('(max-width: 820px)').matches);
-    const prefersDesktop = localStorage.getItem('ss_prefer_desktop') === '1';
-
-    if (isMobile && !prefersDesktop) {
-      window.location.replace('/mobile/');
-      return;
-    }
-
-    if (isMobile && !sessionStorage.getItem('ss_banner_dismissed')) {
-      const banner = document.getElementById('mobileBanner');
-      banner.style.display = 'flex';
-      document.getElementById('bannerDismiss').addEventListener('click', () => {
-        banner.style.display = 'none';
-        sessionStorage.setItem('ss_banner_dismissed', '1');
-      });
-    }
-  })();
 
   // ── Rec-card scroll fade-in ───────────────────────────────
   const cardObserver = new IntersectionObserver(entries => {

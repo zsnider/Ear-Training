@@ -375,7 +375,9 @@
     <a class="nav-link" href="/stats/">Stats</a>
   </div>
   <div class="nav-right">
-    <div id="authArea"></div>
+    <div id="authArea">
+      <button class="auth-btn" id="openAuthBtn">Sign in</button>
+    </div>
   </div>
 </nav>
 
@@ -1017,6 +1019,59 @@
 </div>
 
 <!-- Footer -->
+<!-- Auth modal -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" id="closeAuthBtn">&times;</button>
+    <div class="modal-tabs">
+      <button class="modal-tab active" data-tab="signin">Sign in</button>
+      <button class="modal-tab" data-tab="signup">Create account</button>
+    </div>
+    <div id="tabSignin">
+      <label>Email</label>
+      <input type="email" id="siEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label>
+      <input type="password" id="siPassword" placeholder="••••••••" autocomplete="current-password">
+      <button class="modal-submit" id="siSubmit">Sign in</button>
+      <div class="modal-msg" id="siMsg"></div>
+      <button class="forgot-pw-link" id="forgotPwBtn" type="button">Forgot password?</button>
+    </div>
+    <div id="tabForgot" style="display:none;">
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:18px;">Enter your email and we'll send you a reset link.</p>
+      <label>Email</label>
+      <input type="email" id="fpEmail" placeholder="you@example.com" autocomplete="email">
+      <button class="modal-submit" id="fpSubmit">Send reset link</button>
+      <div class="modal-msg" id="fpMsg"></div>
+      <button class="forgot-pw-link" id="backToSigninBtn" type="button">← Back to sign in</button>
+    </div>
+    <div id="tabSignup" style="display:none;">
+      <label>Email</label>
+      <input type="email" id="suEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label>
+      <input type="password" id="suPassword" placeholder="At least 6 characters" autocomplete="new-password">
+      <button class="modal-submit" id="suSubmit">Create account</button>
+      <div class="modal-msg" id="suMsg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Username setup modal -->
+<div class="modal-overlay" id="usernameModal">
+  <div class="modal">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent2);margin-bottom:8px;">Welcome</div>
+    <h2 style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;margin-bottom:10px;">Choose a username</h2>
+    <p style="font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:26px;">Your username will appear on leaderboards and game stats. You can change it later.</p>
+    <label for="usernameInput">Username</label>
+    <input type="text" id="usernameInput" placeholder="e.g. basshead42" maxlength="20"
+           autocomplete="off" autocapitalize="off" spellcheck="false">
+    <div class="username-check" id="usernameCheck"></div>
+    <p class="username-hint">3–20 characters · Letters, numbers, _ and - only</p>
+    <button class="modal-submit" id="usernameSubmit">Set username</button>
+    <div class="modal-msg" id="usernameMsg"></div>
+    <button class="username-skip" id="usernameSkip">Skip for now</button>
+  </div>
+</div>
+
 <footer>
   <div class="footer-left">
     <a href="/">SonicSandbox</a>
@@ -1033,8 +1088,127 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="../supabase-client.js"></script>
 <script>
-(function() {
-  const authArea = document.getElementById('authArea');
+  const authModal  = document.getElementById('authModal');
+  const authArea   = document.getElementById('authArea');
+  const closeBtn   = document.getElementById('closeAuthBtn');
+  const tabs       = document.querySelectorAll('.modal-tab');
+  const tabSignin  = document.getElementById('tabSignin');
+  const tabSignup  = document.getElementById('tabSignup');
+  const tabForgot  = document.getElementById('tabForgot');
+  const usernameModal  = document.getElementById('usernameModal');
+  const usernameInput  = document.getElementById('usernameInput');
+  const usernameCheck  = document.getElementById('usernameCheck');
+  const usernameSubmit = document.getElementById('usernameSubmit');
+  const usernameMsg    = document.getElementById('usernameMsg');
+
+  function openAuthModal() { authModal.classList.add('open'); }
+  function closeAuthModal() { authModal.classList.remove('open'); showSigninPanel(); }
+
+  document.getElementById('openAuthBtn').addEventListener('click', openAuthModal);
+  closeBtn.addEventListener('click', closeAuthModal);
+  authModal.addEventListener('click', e => { if (e.target === authModal) closeAuthModal(); });
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      tabSignin.style.display = tab.dataset.tab === 'signin' ? '' : 'none';
+      tabSignup.style.display = tab.dataset.tab === 'signup' ? '' : 'none';
+      tabForgot.style.display = 'none';
+    });
+  });
+
+  function showForgotPanel() {
+    tabSignin.style.display = 'none';
+    tabForgot.style.display = '';
+    const existingEmail = document.getElementById('siEmail').value.trim();
+    if (existingEmail) document.getElementById('fpEmail').value = existingEmail;
+    document.getElementById('fpMsg').textContent = '';
+  }
+  function showSigninPanel() { tabForgot.style.display = 'none'; tabSignin.style.display = ''; }
+
+  document.getElementById('forgotPwBtn').addEventListener('click', showForgotPanel);
+  document.getElementById('backToSigninBtn').addEventListener('click', showSigninPanel);
+
+  document.getElementById('siSubmit').addEventListener('click', async () => {
+    const msg = document.getElementById('siMsg');
+    msg.textContent = 'Signing in…'; msg.className = 'modal-msg';
+    const { error } = await SonicSandbox.signIn(
+      document.getElementById('siEmail').value.trim(),
+      document.getElementById('siPassword').value
+    );
+    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+    else { closeAuthModal(); }
+  });
+
+  document.getElementById('fpSubmit').addEventListener('click', async () => {
+    const email = document.getElementById('fpEmail').value.trim();
+    const msg   = document.getElementById('fpMsg');
+    if (!email) { msg.textContent = 'Please enter your email.'; msg.className = 'modal-msg error'; return; }
+    msg.textContent = 'Sending…'; msg.className = 'modal-msg';
+    const { error } = await SonicSandbox.resetPasswordForEmail(email);
+    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+    else { msg.textContent = 'Reset link sent! Check your inbox.'; msg.className = 'modal-msg success'; document.getElementById('fpSubmit').disabled = true; }
+  });
+
+  document.getElementById('suSubmit').addEventListener('click', async () => {
+    const msg = document.getElementById('suMsg');
+    msg.textContent = 'Creating account…'; msg.className = 'modal-msg';
+    const { error } = await SonicSandbox.signUp(
+      document.getElementById('suEmail').value.trim(),
+      document.getElementById('suPassword').value
+    );
+    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+    else { msg.textContent = 'Check your email to confirm your account.'; msg.className = 'modal-msg success'; }
+  });
+
+  // ── Username modal ────────────────────────────────────────
+  function validateUsername(val) {
+    if (val.length < 3)  return 'Too short — min 3 characters';
+    if (val.length > 20) return 'Too long — max 20 characters';
+    if (!/^[a-zA-Z0-9_-]+$/.test(val)) return 'Letters, numbers, _ and - only';
+    return null;
+  }
+  function openUsernameModal() {
+    usernameInput.value = ''; usernameCheck.textContent = '';
+    usernameCheck.className = 'username-check'; usernameMsg.textContent = '';
+    usernameModal.classList.add('open');
+    setTimeout(() => usernameInput.focus(), 50);
+  }
+  let _unCheckTimer;
+  usernameInput.addEventListener('input', () => {
+    const val = usernameInput.value.trim();
+    clearTimeout(_unCheckTimer);
+    const err = validateUsername(val);
+    if (err) { usernameCheck.textContent = val.length > 0 ? err : ''; usernameCheck.className = 'username-check'; return; }
+    usernameCheck.textContent = 'Checking…'; usernameCheck.className = 'username-check';
+    _unCheckTimer = setTimeout(async () => {
+      const taken = await SonicSandbox.isUsernameTaken(val);
+      if (usernameInput.value.trim() !== val) return;
+      usernameCheck.textContent = taken ? `"${val}" is already taken` : `"${val}" is available ✓`;
+      usernameCheck.className = taken ? 'username-check taken' : 'username-check available';
+    }, 500);
+  });
+  usernameSubmit.addEventListener('click', async () => {
+    const val = usernameInput.value.trim();
+    const err = validateUsername(val);
+    if (err) { usernameMsg.textContent = err; usernameMsg.className = 'modal-msg error'; return; }
+    usernameMsg.textContent = 'Saving…'; usernameMsg.className = 'modal-msg';
+    const { error } = await SonicSandbox.setUsername(val);
+    if (error) {
+      const isConflict = error.message?.toLowerCase().includes('duplicate') || error.message?.toLowerCase().includes('unique') || error.code === '23505';
+      usernameMsg.textContent = isConflict ? `"${val}" is already taken — try another.` : error.message;
+      usernameMsg.className = 'modal-msg error';
+    } else {
+      usernameModal.classList.remove('open');
+      const el = authArea.querySelector('.username-display');
+      if (el) el.textContent = '@' + val;
+    }
+  });
+  document.getElementById('usernameSkip').addEventListener('click', () => usernameModal.classList.remove('open'));
+  usernameModal.addEventListener('click', e => { if (e.target === usernameModal) usernameModal.classList.remove('open'); });
+
+  // ── Auth state → update nav ───────────────────────────────
   document.addEventListener('ss:authchange', async e => {
     const user = e.detail;
     if (user) {
@@ -1045,13 +1219,13 @@
       if (profile?.username) {
         el.outerHTML = `<a class="set-username-link" href="/account/">@${profile.username}</a>`;
       } else {
-        el.outerHTML = `<a class="set-username-link" href="/account/">Set username</a>`;
+        el.outerHTML = `<a class="set-username-link" id="setUsernameBtn" href="/account/">Set username</a>`;
       }
     } else {
-      authArea.innerHTML = `<a class="auth-btn" href="/">Sign in</a>`;
+      authArea.innerHTML = `<button class="auth-btn" id="openAuthBtn">Sign in</button>`;
+      document.getElementById('openAuthBtn').addEventListener('click', openAuthModal);
     }
   });
-})();
 </script>
 
 </body>

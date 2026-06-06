@@ -252,22 +252,4 @@ footer {
   font-family: inherit; text-decoration: underline; padding: 0;
 }
 .forgot-pw-link:hover { color: var(--text); }
-
-/* ── Mobile banner ──────────────────────────────────────────────── */
-#mobileBanner {
-  display: none;
-  width: 100%; background: rgba(91,106,255,0.07);
-  border-bottom: 1px solid rgba(91,106,255,0.18);
-  padding: 10px 24px;
-  align-items: center; justify-content: center; gap: 10px;
-  font-size: 13px; color: var(--muted);
-}
-#mobileBanner a {
-  color: var(--accent2); text-decoration: none; font-weight: 500;
-}
-#mobileBanner a:hover { text-decoration: underline; }
-.banner-dismiss {
-  background: none; border: none; color: var(--muted);
-  font-size: 16px; cursor: pointer; padding: 0 0 0 4px; line-height: 1;
-}
 .banner-dismiss:hover { color: var(--text); }

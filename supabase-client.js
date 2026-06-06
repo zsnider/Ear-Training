@@ -9,19 +9,22 @@ const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let _currentUser = null;
 
-// Restore session on load
-_sb.auth.getSession().then(({ data: { session } }) => {
-  _currentUser = session?.user ?? null;
-  document.dispatchEvent(new CustomEvent('ss:authchange', { detail: _currentUser }));
-});
-
-// Keep in sync as auth state changes
+// Keep in sync as auth state changes.
+// We wrap dispatches in setTimeout(0) so ss:authchange always fires as a
+// macrotask — after every page's inline <script> has had a chance to attach
+// its listener.  Without this, Supabase's INITIAL_SESSION (and the old
+// getSession().then()) resolves as a microtask between <script> tags, so
+// listeners set up in the very next <script> block miss the event entirely.
 _sb.auth.onAuthStateChange((_event, session) => {
   _currentUser = session?.user ?? null;
-  document.dispatchEvent(new CustomEvent('ss:authchange', { detail: _currentUser }));
-  if (_event === 'PASSWORD_RECOVERY') {
-    document.dispatchEvent(new CustomEvent('ss:passwordrecovery', { detail: _currentUser }));
-  }
+  const user = _currentUser;   // capture before the timeout fires
+  const evt  = _event;
+  setTimeout(() => {
+    document.dispatchEvent(new CustomEvent('ss:authchange', { detail: user }));
+    if (evt === 'PASSWORD_RECOVERY') {
+      document.dispatchEvent(new CustomEvent('ss:passwordrecovery', { detail: user }));
+    }
+  }, 0);
 });
 
 window.SonicSandbox = {

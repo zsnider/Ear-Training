@@ -258,7 +258,7 @@ nav {
     <a class="nav-link" href="/stats/">Stats</a>
   </div>
     <div class="nav-right">
-    <div id="authArea"></div>
+    <div id="authArea"><a class="auth-btn" href="/learn/" style="text-decoration:none;">Sign in</a></div>
   </div>
 </nav>
 
@@ -331,7 +331,7 @@ nav {
         el.outerHTML = `<a class="set-username-link" href="/account/">Set username</a>`;
       }
     } else {
-      authArea.innerHTML = `<a class="auth-btn" href="/" style="text-decoration:none;">Sign in</a>`;
+      authArea.innerHTML = `<a class="auth-btn" href="/learn/" style="text-decoration:none;">Sign in</a>`;
     }
   });
 })();
