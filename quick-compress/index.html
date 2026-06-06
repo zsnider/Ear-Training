@@ -1051,7 +1051,7 @@ function buildContinuousSources() {
 // One <audio> element feeds both signal paths — no pre-decode wait.
 function buildCustomStreamSources() {
   if (!customAudioEl) {
-    customAudioEl = new Audio();
+    customAudioEl = new Audio(); customAudioEl.crossOrigin = 'anonymous';
     customAudioEl.loop = true;
   }
   if (!customMediaSrc) {
@@ -1071,7 +1071,7 @@ function buildCustomStreamSources() {
   const pgB = audioCtx.createGain(); pgB.gain.value = 0.18;
   customMediaSrc.connect(pgA); pgA.connect(sourceBusA);
   customMediaSrc.connect(pgB); pgB.connect(sourceBusB);
-  audioCtx.resume().then(() => { customAudioEl.play().catch(e => console.warn('Custom autoplay blocked:', e)); });
+  customAudioEl.play().catch(e => console.warn('Custom autoplay blocked:', e));
 }
 
 // ── One-shot sources (samples/one-shots/) — replayed every 4 s ───────────────
@@ -1177,7 +1177,7 @@ function togglePause() {
   const btn = document.getElementById('btnPause');
   if (isPaused) {
     if (loopAudioEl   && sourceType==='loop')   loopAudioEl.play().catch(()=>{});
-    if (customAudioEl && sourceType==='custom') audioCtx.resume().then(()=>{ customAudioEl.play().catch(()=>{}); });
+    if (customAudioEl && sourceType==='custom') customAudioEl.play().catch(()=>{});
     audioCtx.resume().then(() => {
       isPaused = false; btn.textContent = '⏸ Pause'; btn.classList.remove('paused');
       if (sourceType==='oneshot' && roundActive) buildOneShotSources();
@@ -1224,7 +1224,7 @@ function skipTrack(delta) {
     customAudioEl._objectUrl = url;
     customAudioEl._currentFile = file;
     customAudioEl.src = url;
-    audioCtx.resume().then(()=>{ customAudioEl.play().catch(()=>{}); });
+    customAudioEl.play().catch(()=>{});
   }
   updateListenBtns();
   showToast(`Track ${customIdx+1} / ${customFiles.length}`);

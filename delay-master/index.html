@@ -821,7 +821,7 @@ function buildAudioGraph() {
     currentSource = loopMediaSrc;
     isStreaming = true;
   } else if (sourceType === 'custom' && customFiles.length > 0) {
-    if (!customAudioEl) { customAudioEl = new Audio(); customAudioEl.loop = true; }
+    if (!customAudioEl) { customAudioEl = new Audio(); customAudioEl.crossOrigin = 'anonymous'; customAudioEl.loop = true; }
     if (!customMediaSrc) { customMediaSrc = audioCtx.createMediaElementSource(customAudioEl); }
     const file = customFiles[customIdx % customFiles.length];
     if (customAudioEl._currentFile !== file) {
@@ -1017,7 +1017,7 @@ function togglePause() {
   const btn = document.getElementById('btnPause');
   if (isPaused) {
     if (loopAudioEl   && sourceType==='loop')   loopAudioEl.play().catch(()=>{});
-    if (customAudioEl && sourceType==='custom') audioCtx.resume().then(()=>{ customAudioEl.play().catch(()=>{}); });
+    if (customAudioEl && sourceType==='custom') customAudioEl.play().catch(()=>{});
     audioCtx.resume().then(() => {
       isPaused=false; btn.innerHTML='&#9646;&#9646; Pause'; btn.classList.remove('paused');
       if (sourceType === 'oneShot') startOneShotLoop();
@@ -1090,7 +1090,7 @@ function skipTrack(delta) {
       customAudioEl._objectUrl = url;
       customAudioEl._currentFile = file;
       customAudioEl.src = url;
-      audioCtx.resume().then(()=>{ customAudioEl.play().catch(()=>{}); });
+      customAudioEl.play().catch(()=>{});
     }
     showToast(`Track ${customIdx+1} / ${customFiles.length}`);
   }

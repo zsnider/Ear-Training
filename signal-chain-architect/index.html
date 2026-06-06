@@ -706,11 +706,11 @@ function playContinuousSource(dest) {
     if(loopAudioEl._cur!==fname){ loopAudioEl.src=`../samples/loops/${fname}`; loopAudioEl._cur=fname; }
     loopMediaSrc.connect(dest); loopAudioEl.play().catch(()=>{}); noiseSource=loopMediaSrc;
   } else if (sourceType==='custom' && customFiles.length>0) {
-    if(!customAudioEl){ customAudioEl=new Audio(); customAudioEl.loop=true; }
+    if(!customAudioEl){ customAudioEl=new Audio(); customAudioEl.crossOrigin='anonymous'; customAudioEl.loop=true; }
     if(!customMediaSrc) customMediaSrc=audioCtx.createMediaElementSource(customAudioEl);
     const file=customFiles[customIdx%customFiles.length];
     if(customAudioEl._curFile!==file){ if(customAudioEl._objUrl) URL.revokeObjectURL(customAudioEl._objUrl); const url=URL.createObjectURL(file); customAudioEl._objUrl=url; customAudioEl._curFile=file; customAudioEl.src=url; }
-    customMediaSrc.connect(dest); audioCtx.resume().then(()=>{ customAudioEl.play().catch(()=>{}); }); noiseSource=customMediaSrc;
+    customMediaSrc.connect(dest); customAudioEl.play().catch(()=>{}); noiseSource=customMediaSrc;
   } else { const src=makePinkNoise(8); src.connect(dest); src.start(0); noiseSource=src; }
 }
 function togglePlayPause() { if(!roundActive) return; if(!isPlaying){ playCurrentRound(); return; } togglePause(); }
@@ -718,7 +718,7 @@ function togglePause() {
   if (!roundActive||!audioCtx) return; const btn=document.getElementById('btnPlayPause');
   if (isPaused) {
     if(loopAudioEl&&sourceType==='loop') loopAudioEl.play().catch(()=>{});
-    if(customAudioEl&&sourceType==='custom') audioCtx.resume().then(()=>{ customAudioEl.play().catch(()=>{}); });
+    if(customAudioEl&&sourceType==='custom') customAudioEl.play().catch(()=>{});
     audioCtx.resume().then(()=>{ isPaused=false; btn.textContent='⏸ Pause'; btn.classList.remove('is-paused'); setFlowing(true); if(sourceType==='oneShot'&&isPlaying){ stopPlayback(); playCurrentRound(); } });
   } else {
     if(loopAudioEl&&sourceType==='loop') loopAudioEl.pause();
@@ -775,7 +775,7 @@ function skipTrack(delta) {
   if (!roundActive||!isPlaying||!audioCtx) return;
   if (sourceType==='oneShot' && oneShotBuffers.length>0) { oneShotIdx=((oneShotIdx+delta)%oneShotBuffers.length+oneShotBuffers.length)%oneShotBuffers.length; if(shotLoopTimer){clearInterval(shotLoopTimer);shotLoopTimer=null;} if(currentShotSrc){try{currentShotSrc.stop();}catch(e){}currentShotSrc=null;} stopPlayback(); playCurrentRound(); showToast(`Shot ${oneShotIdx+1} / ${oneShotBuffers.length}`); }
   else if (sourceType==='loop' && loopFileNames.length>0) { loopIdx=((loopIdx+delta)%loopFileNames.length+loopFileNames.length)%loopFileNames.length; if(loopAudioEl){ loopAudioEl.src=`../samples/loops/${loopFileNames[loopIdx]}`; loopAudioEl._cur=loopFileNames[loopIdx]; loopAudioEl.play().catch(()=>{}); } showToast(`Loop ${loopIdx+1} / ${loopFileNames.length}`); }
-  else if (sourceType==='custom' && customFiles.length>0) { customIdx=((customIdx+delta)%customFiles.length+customFiles.length)%customFiles.length; if(customAudioEl&&customMediaSrc){ if(customAudioEl._objUrl) URL.revokeObjectURL(customAudioEl._objUrl); const file=customFiles[customIdx]; const url=URL.createObjectURL(file); customAudioEl._objUrl=url; customAudioEl._curFile=file; customAudioEl.src=url; audioCtx.resume().then(()=>{ customAudioEl.play().catch(()=>{}); }); } showToast(`Track ${customIdx+1} / ${customFiles.length}`); }
+  else if (sourceType==='custom' && customFiles.length>0) { customIdx=((customIdx+delta)%customFiles.length+customFiles.length)%customFiles.length; if(customAudioEl&&customMediaSrc){ if(customAudioEl._objUrl) URL.revokeObjectURL(customAudioEl._objUrl); const file=customFiles[customIdx]; const url=URL.createObjectURL(file); customAudioEl._objUrl=url; customAudioEl._curFile=file; customAudioEl.src=url; customAudioEl.play().catch(()=>{}); } showToast(`Track ${customIdx+1} / ${customFiles.length}`); }
 }
 function seekMusic(delta) {
   if (!roundActive||!isPlaying) return;
