@@ -5,8 +5,10 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cloud.umami.is 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://aolaxmmrmvovbzumlybe.supabase.co wss://aolaxmmrmvovbzumlybe.supabase.co https://cloud.umami.is; img-src 'self' data:; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Compression — Learn — SonicSandbox</title>
-<meta name="description" content="Learn how audio compression works — threshold, ratio, attack, release, and knee explained for producers and engineers.">
+<link rel="canonical" href="https://sonicsandbox.app/learn/compression/">
+
+<title>How Audio Compression Works — Learn | SonicSandbox</title>
+<meta name="description" content="Learn how audio compression works — threshold, ratio, attack, release, and knee explained for producers and engineers. Free interactive ear training guide.">
   <link rel="stylesheet" href="/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -406,15 +408,32 @@
   <!-- Open Graph / Social -->
   <meta property="og:type"        content="website">
   <meta property="og:url"         content="https://sonicsandbox.app/learn/compression/">
-  <meta property="og:title"       content="Compression — Learn — SonicSandbox">
-  <meta property="og:description" content="Learn how audio compression works — threshold, ratio, attack, release, and knee explained for producers and engineers.">
+  <meta property="og:title"       content="How Audio Compression Works — Learn | SonicSandbox">
+  <meta property="og:description" content="Learn how audio compression works — threshold, ratio, attack, release, and knee explained for producers and engineers. Free interactive ear training guide.">
   <meta property="og:image"       content="https://sonicsandbox.app/og-image.png">
   <!-- Twitter Card -->
   <meta name="twitter:card"        content="summary_large_image">
-  <meta name="twitter:title"       content="Compression — Learn — SonicSandbox">
-  <meta name="twitter:description" content="Learn how audio compression works — threshold, ratio, attack, release, and knee explained for producers and engineers.">
+  <meta name="twitter:title"       content="How Audio Compression Works — Learn | SonicSandbox">
+  <meta name="twitter:description" content="Learn how audio compression works — threshold, ratio, attack, release, and knee explained for producers and engineers. Free interactive ear training guide.">
   <meta name="twitter:image"       content="https://sonicsandbox.app/og-image.png">
   <script defer src="https://cloud.umami.is/script.js" data-website-id="a4e7fbcc-763c-4844-8f4f-669cf411e799"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LearningResource",
+    "name": "Compression — Learn How Audio Compression Works",
+    "url": "https://sonicsandbox.app/learn/compression/",
+    "description": "Learn how audio compression works — threshold, ratio, attack, release, and knee explained for producers and engineers. Free interactive ear training guide.",
+    "teaches": "Audio compression, dynamics processing, mixing",
+    "educationalLevel": "Beginner",
+    "isAccessibleForFree": true,
+    "provider": {
+      "@type": "Organization",
+      "name": "SonicSandbox",
+      "url": "https://sonicsandbox.app/"
+    }
+  }
+  </script>
 </head>
 <body>
 
@@ -476,6 +495,21 @@
 
 </div>
 
+
+<!-- Static SEO content — visually hidden, crawlable -->
+<article class="seo-article" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;">
+  <h2>How Audio Compression Works — A Guide for Producers and Engineers</h2>
+  Audio compression reduces the dynamic range of a signal by automatically attenuating audio that exceeds a defined threshold. It is one of the most-used tools in music production, mixing, and mastering.
+
+The key parameters of a compressor are: threshold (the level at which gain reduction begins), ratio (how aggressively the signal above threshold is reduced), attack (how quickly the compressor responds to a peak crossing the threshold), release (how quickly the compressor stops attenuating after the signal drops back below the threshold), knee (how gradually the compression begins around the threshold), and makeup gain (added after compression to restore overall loudness).
+
+A ratio of 2:1 means that for every 2 dB above threshold, only 1 dB passes through — a gentle setting. A ratio of 10:1 or higher approaches limiting, where the signal is nearly clamped to the threshold level.
+
+Fast attack times (1–5 ms) clamp transients tightly, reducing punch and snap. Slow attack times (20–100 ms) allow the initial transient to pass through before compression engages, preserving punch. Release time affects how natural the compression sounds — too fast causes pumping; too slow causes the compressor to not fully recover between hits.
+
+Compression ear training involves learning to hear the effect of threshold, ratio, attack, and release on audio — skills developed through games like SonicSandbox's Compressor game.
+</article>
+
 <!-- Footer -->
 <footer>
   <div class="footer-left">
@@ -486,7 +520,7 @@
     &nbsp;·&nbsp; <a href="/support/">Support</a>
   </div>
   <div class="footer-right">
-    <span>© 2025 Zach Snider</span>
+    <span>© 2026 Zach Snider</span>
   </div>
 </footer>
 

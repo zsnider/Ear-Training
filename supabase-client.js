@@ -8,6 +8,7 @@ const SUPABASE_KEY = 'sb_publishable_C36QQ0xF6HUcnGVliS4dnw_eRc0VKfb';
 const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let _currentUser = null;
+let _initialSessionFired = false;
 
 // Keep in sync as auth state changes.
 // We wrap dispatches in setTimeout(0) so ss:authchange always fires as a
@@ -17,6 +18,7 @@ let _currentUser = null;
 // listeners set up in the very next <script> block miss the event entirely.
 _sb.auth.onAuthStateChange((_event, session) => {
   _currentUser = session?.user ?? null;
+  if (_event === 'INITIAL_SESSION') _initialSessionFired = true;
   const user = _currentUser;   // capture before the timeout fires
   const evt  = _event;
   setTimeout(() => {
@@ -27,10 +29,30 @@ _sb.auth.onAuthStateChange((_event, session) => {
   }, 0);
 });
 
+// Belt-and-suspenders: also dispatch via a direct getSession() call.
+// In some Supabase v2 versions the INITIAL_SESSION event can be missed
+// (e.g. when the inline listener is registered in a later script block).
+// This ensures ss:authchange always fires on every page load, regardless
+// of whether onAuthStateChange's INITIAL_SESSION beat the listener.
+_sb.auth.getSession().then(({ data: { session } }) => {
+  _currentUser = session?.user ?? null;
+  if (!_initialSessionFired) {
+    const user = _currentUser;
+    setTimeout(() => {
+      document.dispatchEvent(new CustomEvent('ss:authchange', { detail: user }));
+    }, 0);
+  }
+});
+
 window.SonicSandbox = {
 
   getUser() {
     return _currentUser;
+  },
+
+  async getSession() {
+    const { data: { session } } = await _sb.auth.getSession();
+    return session;
   },
 
   async signUp(email, password) {
