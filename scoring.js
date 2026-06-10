@@ -149,6 +149,14 @@ window.ScoringEngine = (() => {
         return dm * cm;
       }
 
+      // ── Music Theory games ────────────────────────────────────────────────────
+
+      // Chord Quiz — keyed by difficulty; more chord types = harder = more points
+      case 'chord-quiz': {
+        const CHORD_QUIZ = { beginner: 1.0, intermediate: 1.5, advanced: 2.5 };
+        return CHORD_QUIZ[settings.difficulty] ?? 1.0;
+      }
+
       // ── Mobile iOS games ──────────────────────────────────────────────────────
 
       case 'freq-quiz-ios':
