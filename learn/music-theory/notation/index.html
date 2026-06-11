@@ -305,7 +305,7 @@ function staffSVG({ clef = 'treble', notes = [], ledger = [], width = 640, showM
   const middleCSVG = showMiddleC ? `
     <line x1="105" y1="${middleCy}" x2="145" y2="${middleCy}" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>
     <ellipse cx="125" cy="${middleCy}" rx="10" ry="7" fill="${ACCENT}" fill-opacity="0.85" transform="rotate(-15 125 ${middleCy})"/>
-    <text x="125" y="${middleCy + 22}" text-anchor="middle" font-size="11" font-family="IBM Plex Mono, monospace" font-weight="600" fill="${ACCENT}">C4</text>
+    <text x="125" y="${middleCy + 22}" text-anchor="middle" font-size="11" font-family="IBM Plex Mono, monospace" font-weight="600" fill="${ACCENT}">C3</text>
   ` : '';
 
   return `<svg viewBox="0 0 ${width} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:${width}px;display:block;">
@@ -314,34 +314,34 @@ function staffSVG({ clef = 'treble', notes = [], ledger = [], width = 640, showM
   </svg>`;
 }
 
-// Treble clef notes: lines bottom-to-top = E4,G4,B4,D5,F5; spaces = F4,A4,C5,E5
+// Treble clef notes: lines bottom-to-top = E3,G3,B3,D4,F4; spaces = F3,A3,C4,E4
 function trebleStaffSVG() {
   const notes = [
-    {x:130, line:0, label:'E4'},  // bottom line
-    {x:165, line:1, label:'F4'},  // first space
-    {x:200, line:2, label:'G4'},  // second line
-    {x:235, line:3, label:'A4'},  // second space
-    {x:270, line:4, label:'B4'},  // third line
-    {x:305, line:5, label:'C5'},  // third space
-    {x:340, line:6, label:'D5'},  // fourth line
-    {x:375, line:7, label:'E5'},  // fourth space
-    {x:410, line:8, label:'F5'},  // top line
+    {x:130, line:0, label:'E3'},  // bottom line
+    {x:165, line:1, label:'F3'},  // first space
+    {x:200, line:2, label:'G3'},  // second line
+    {x:235, line:3, label:'A3'},  // second space
+    {x:270, line:4, label:'B3'},  // third line
+    {x:305, line:5, label:'C4'},  // third space
+    {x:340, line:6, label:'D4'},  // fourth line
+    {x:375, line:7, label:'E4'},  // fourth space
+    {x:410, line:8, label:'F4'},  // top line
   ];
   return staffSVG({ clef: 'treble', notes, width: 480 });
 }
 
 function bassStaffSVG() {
-  // Bass clef lines bottom-to-top: G2, B2, D3, F3, A3; spaces: A2, C3, E3, G3
+  // Bass clef lines bottom-to-top: G1, B1, D2, F2, A2; spaces: A1, C2, E2, G2
   const notes = [
-    {x:130, line:0, label:'G2'},
-    {x:165, line:1, label:'A2'},
-    {x:200, line:2, label:'B2'},
-    {x:235, line:3, label:'C3'},
-    {x:270, line:4, label:'D3'},
-    {x:305, line:5, label:'E3'},
-    {x:340, line:6, label:'F3'},
-    {x:375, line:7, label:'G3'},
-    {x:410, line:8, label:'A3'},
+    {x:130, line:0, label:'G1'},
+    {x:165, line:1, label:'A1'},
+    {x:200, line:2, label:'B1'},
+    {x:235, line:3, label:'C2'},
+    {x:270, line:4, label:'D2'},
+    {x:305, line:5, label:'E2'},
+    {x:340, line:6, label:'F2'},
+    {x:375, line:7, label:'G2'},
+    {x:410, line:8, label:'A2'},
   ];
   return staffSVG({ clef: 'bass', notes, width: 480 });
 }
@@ -366,7 +366,7 @@ function ledgerLineSVG() {
   const midY = (firstLineTreble + 16 + (firstLineBass - 16 * 4)) / 2 + 4;
   out += `<line x1="90" y1="${midY}" x2="130" y2="${midY}" stroke="rgba(255,255,255,0.5)" stroke-width="1.4"/>`;
   out += `<ellipse cx="110" cy="${midY}" rx="10" ry="7" fill="${ACCENT}" fill-opacity="0.9" transform="rotate(-15 110 ${midY})"/>`;
-  out += `<text x="110" y="${midY + 20}" text-anchor="middle" font-size="12" font-family="IBM Plex Mono,monospace" font-weight="700" fill="${ACCENT}">Middle C (C4)</text>`;
+  out += `<text x="110" y="${midY + 20}" text-anchor="middle" font-size="12" font-family="IBM Plex Mono,monospace" font-weight="700" fill="${ACCENT}">Middle C (C3)</text>`;
   out += `<text x="${staffLeft - 4}" y="${firstLineTreble + 6}" text-anchor="end" font-size="10" font-family="IBM Plex Mono,monospace" fill="rgba(255,255,255,0.35)">Treble</text>`;
   out += `<text x="${staffLeft - 4}" y="${firstLineBass + 6}" text-anchor="end" font-size="10" font-family="IBM Plex Mono,monospace" fill="rgba(255,255,255,0.35)">Bass</text>`;
   out += '</svg>';
@@ -395,7 +395,7 @@ const steps = [
   {
     title: 'Treble Clef Notes',
     number: 'Step 02 — Reading the Treble',
-    body: `In treble clef, the <strong>lines</strong> from bottom to top hold the notes <em>E, G, B, D, F</em>. The <strong>spaces</strong> from bottom to top hold <em>F, A, C, E</em>. Together these give you a continuous ascending sequence from E4 at the bottom line to F5 at the top.
+    body: `In treble clef, the <strong>lines</strong> from bottom to top hold the notes <em>E, G, B, D, F</em>. The <strong>spaces</strong> from bottom to top hold <em>F, A, C, E</em>. Together these give you a continuous ascending sequence from E3 at the bottom line to F4 at the top.
 
 <br><br>Memorization tricks that have helped musicians for generations:
 <br><br>For the <strong>lines</strong>: <em>"Every Good Boy Does Fine"</em> — E, G, B, D, F.
@@ -410,12 +410,12 @@ const steps = [
       { note:'D', word:'Does',   pos:'4th line' },
       { note:'F', word:'Fine',   pos:'Top line (5th)' },
     ]},
-    audio: { desc:'E4 up to F5 — all the treble clef line notes ascending.', fn:()=>mtPlaySeq(['E3','G3','B3','D4','F4'],0.50) },
+    audio: { desc:'E3 up to F4 — all the treble clef line notes ascending.', fn:()=>mtPlaySeq(['E3','G3','B3','D4','F4'],0.50) },
     keyPoints: [
       {strong:'Lines (bottom→top)', rest:' — E G B D F ("Every Good Boy Does Fine")'},
       {strong:'Spaces (bottom→top)', rest:' — F A C E (spells "FACE")'},
       {strong:'G clef',             rest:' — the treble clef curls around the G line (2nd from bottom)'},
-      {strong:'Range',              rest:' — staff covers roughly E4 to F5 without ledger lines'},
+      {strong:'Range',              rest:' — staff covers roughly E3 to F4 without ledger lines'},
     ],
   },
   {
@@ -429,7 +429,7 @@ const steps = [
 
 <br><br>The bass clef symbol (𝄢) places two dots around the <em>F line</em> — the fourth line from the bottom — which is why it's also called the <em>F clef</em>. This anchors the clef just as the G anchor works in treble.
 
-<br><br>A crucial overlap: <em>middle C (C4)</em> sits on a ledger line just above the bass staff and just below the treble staff. It's the shared reference point between both clefs and one of the most important notes to identify on sight.`,
+<br><br>A crucial overlap: <em>middle C (C3)</em> sits on a ledger line just above the bass staff and just below the treble staff. It's the shared reference point between both clefs and one of the most important notes to identify on sight.`,
     diagram: 'bass',
     mnemonic: { label: 'Lines — "Good Boys Do Fine Always"', items: [
       { note:'G', word:'Good',   pos:'Bottom line (1st)' },
@@ -438,12 +438,12 @@ const steps = [
       { note:'F', word:'Fine',   pos:'4th line (F clef anchor)' },
       { note:'A', word:'Always', pos:'Top line (5th)' },
     ]},
-    audio: { desc:'G2 up to A3 — all the bass clef line notes ascending.', fn:()=>mtPlaySeq(['G2','B2','D3','F3','A3'],0.50) },
+    audio: { desc:'G1 up to A2 — all the bass clef line notes ascending.', fn:()=>mtPlaySeq(['G2','B2','D3','F3','A3'],0.50) },
     keyPoints: [
       {strong:'Lines (bottom→top)', rest:' — G B D F A ("Good Boys Do Fine Always")'},
       {strong:'Spaces (bottom→top)', rest:' — A C E G ("All Cows Eat Grass")'},
       {strong:'F clef',             rest:' — the two dots bracket the F line (4th from bottom)'},
-      {strong:'Range',              rest:' — staff covers roughly G2 to A3 without ledger lines'},
+      {strong:'Range',              rest:' — staff covers roughly G1 to A2 without ledger lines'},
     ],
   },
   {
@@ -453,13 +453,13 @@ const steps = [
 
 <br><br>Notes sit on or between ledger lines the same way they do on regular staff lines. A note two ledger lines above the treble staff is A5. A note one ledger line below the bass staff is F2. You simply keep counting the pattern (line-space-line-space) outward from the staff.
 
-<br><br>The most important ledger line note in all of music theory is <em>Middle C — C4</em>. It sits on its own single ledger line exactly in the middle: one ledger line below the treble clef, and one ledger line above the bass clef. When you see piano music written on both staves, middle C is the shared reference point between the two.`,
+<br><br>The most important ledger line note in all of music theory is <em>Middle C — C3</em>. It sits on its own single ledger line exactly in the middle: one ledger line below the treble clef, and one ledger line above the bass clef. When you see piano music written on both staves, middle C is the shared reference point between the two.`,
     diagram: 'ledger',
-    audio: { desc:'C4 (middle C) — the central reference pitch of the grand staff.', fn:()=>mtPlaySeq(['C4'],1.5) },
+    audio: { desc:'C3 (middle C) — the central reference pitch of the grand staff.', fn:()=>mtPlaySeq(['C4'],1.5) },
     keyPoints: [
       {strong:'Ledger lines', rest:' — short extra lines above/below the staff for out-of-range notes'},
       {strong:'Count outward', rest:' — same line-space-line pattern extends beyond the staff'},
-      {strong:'Middle C (C4)', rest:' — sits on a ledger line between the treble and bass staves'},
+      {strong:'Middle C (C3)', rest:' — sits on a ledger line between the treble and bass staves'},
       {strong:'Grand staff',   rest:' — middle C is the shared note; it belongs to both clefs'},
     ],
   },
@@ -504,17 +504,31 @@ const steps = [
 let currentStep = 0;
 
 function noteshapesHTML() {
+  const ac = ACCENT, bg = 'var(--surface2)';
+  const sv = {
+    'Whole Note':   `<svg viewBox="0 0 46 28" style="width:44px;height:27px;display:block;margin:0 auto 10px;"><ellipse cx="23" cy="14" rx="16" ry="11" fill="none" stroke="${ac}" stroke-width="2.5" transform="rotate(-12,23,14)"/><ellipse cx="23" cy="14" rx="9" ry="5" fill="${bg}" transform="rotate(-12,23,14)"/></svg>`,
+    'Half Note':    `<svg viewBox="0 0 38 62" style="width:30px;height:47px;display:block;margin:0 auto 10px;"><ellipse cx="15" cy="49" rx="14" ry="10" fill="none" stroke="${ac}" stroke-width="2.5" transform="rotate(-12,15,49)"/><ellipse cx="15" cy="49" rx="7" ry="4.5" fill="${bg}" transform="rotate(-12,15,49)"/><line x1="27" y1="45" x2="27" y2="9" stroke="${ac}" stroke-width="2.5"/></svg>`,
+    'Quarter Note': `<svg viewBox="0 0 38 62" style="width:30px;height:47px;display:block;margin:0 auto 10px;"><ellipse cx="15" cy="49" rx="14" ry="10" fill="${ac}" transform="rotate(-12,15,49)"/><line x1="27" y1="44" x2="27" y2="8" stroke="${ac}" stroke-width="2.5"/></svg>`,
+    'Eighth Note':  `<svg viewBox="0 0 44 62" style="width:34px;height:47px;display:block;margin:0 auto 10px;"><ellipse cx="15" cy="51" rx="14" ry="10" fill="${ac}" transform="rotate(-12,15,51)"/><line x1="27" y1="46" x2="27" y2="8" stroke="${ac}" stroke-width="2.5"/><path d="M27,8 C42,16 42,34 27,40" fill="${ac}"/></svg>`,
+    '16th Note':    `<svg viewBox="0 0 44 70" style="width:34px;height:53px;display:block;margin:0 auto 10px;"><ellipse cx="15" cy="59" rx="14" ry="10" fill="${ac}" transform="rotate(-12,15,59)"/><line x1="27" y1="54" x2="27" y2="8" stroke="${ac}" stroke-width="2.5"/><path d="M27,8 C42,16 42,32 27,38" fill="${ac}"/><path d="M27,22 C42,30 42,46 27,52" fill="${ac}"/></svg>`,
+    'Whole Rest':   `<svg viewBox="0 0 48 32" style="width:42px;height:28px;display:block;margin:0 auto 10px;"><line x1="8" y1="10" x2="40" y2="10" stroke="${ac}" stroke-width="1.5"/><rect x="10" y="10" width="28" height="13" rx="1" fill="${ac}"/></svg>`,
+    'Half Rest':    `<svg viewBox="0 0 48 32" style="width:42px;height:28px;display:block;margin:0 auto 10px;"><rect x="10" y="8" width="28" height="13" rx="1" fill="${ac}"/><line x1="8" y1="21" x2="40" y2="21" stroke="${ac}" stroke-width="1.5"/></svg>`,
+    'Quarter Rest': `<svg viewBox="0 0 32 60" style="width:26px;height:46px;display:block;margin:0 auto 10px;"><path d="M22,6 L10,20 L24,29 L10,38 L16,52" fill="none" stroke="${ac}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  };
   const shapes = [
-    { sym:'𝅝', name:'Whole Note', dur:'4 beats', desc:'Open oval, no stem' },
-    { sym:'𝅗𝅥', name:'Half Note', dur:'2 beats', desc:'Open oval + stem' },
-    { sym:'♩', name:'Quarter Note', dur:'1 beat', desc:'Filled oval + stem' },
-    { sym:'♪', name:'Eighth Note', dur:'½ beat', desc:'Filled oval + flag/beam' },
-    { sym:'𝅘𝅥𝅯', name:'16th Note', dur:'¼ beat', desc:'Filled oval + 2 flags' },
+    { key:'Whole Note',   dur:'4 beats',        desc:'Open oval, no stem' },
+    { key:'Half Note',    dur:'2 beats',         desc:'Open oval + stem' },
+    { key:'Quarter Note', dur:'1 beat',          desc:'Filled oval + stem' },
+    { key:'Eighth Note',  dur:'½ beat',          desc:'Filled oval + flag/beam' },
+    { key:'16th Note',    dur:'¼ beat',          desc:'Filled oval + 2 flags' },
+    { key:'Whole Rest',   dur:'4 beats silence', desc:'Filled rect, hangs below line' },
+    { key:'Half Rest',    dur:'2 beats silence', desc:'Filled rect, sits on line' },
+    { key:'Quarter Rest', dur:'1 beat silence',  desc:'Zigzag symbol' },
   ];
   return `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-bottom:24px;">
     ${shapes.map(s=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px 12px;text-align:center;">
-      <div style="font-size:36px;line-height:1;margin-bottom:8px;color:var(--mt-accent);">${s.sym}</div>
-      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--text);margin-bottom:4px;">${s.name}</div>
+      ${sv[s.key]}
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--text);margin-bottom:4px;">${s.key}</div>
       <div style="font-size:11px;color:var(--muted);">${s.dur}</div>
       <div style="font-size:10px;color:rgba(107,114,128,0.7);margin-top:3px;">${s.desc}</div>
     </div>`).join('')}
@@ -561,15 +575,15 @@ function renderStep(idx) {
   let diagramHTML = '';
   if (step.diagram === 'clefs') {
     diagramHTML = `<div class="diagram-wrap"><div class="diagram-label">Treble Clef — Lines and Spaces</div>
-      ${staffSVG({clef:'treble', notes:[{x:160,line:0,label:'E4'},{x:200,line:2,label:'G4'},{x:240,line:4,label:'B4'},{x:280,line:6,label:'D5'},{x:320,line:8,label:'F5'}], width:480})}
+      ${staffSVG({clef:'treble', notes:[{x:160,line:0,label:'E3'},{x:200,line:2,label:'G3'},{x:240,line:4,label:'B3'},{x:280,line:6,label:'D4'},{x:320,line:8,label:'F4'}], width:480})}
     </div>
     <div class="diagram-wrap" style="margin-bottom:0;"><div class="diagram-label">Bass Clef — Lines and Spaces</div>
-      ${staffSVG({clef:'bass', notes:[{x:160,line:0,label:'G2'},{x:200,line:2,label:'B2'},{x:240,line:4,label:'D3'},{x:280,line:6,label:'F3'},{x:320,line:8,label:'A3'}], width:480})}
+      ${staffSVG({clef:'bass', notes:[{x:160,line:0,label:'G1'},{x:200,line:2,label:'B1'},{x:240,line:4,label:'D2'},{x:280,line:6,label:'F2'},{x:320,line:8,label:'A2'}], width:480})}
     </div>`;
   } else if (step.diagram === 'treble') {
-    diagramHTML = `<div class="diagram-wrap"><div class="diagram-label">Treble Clef — All Lines and Spaces (E4 → F5)</div>${trebleStaffSVG()}</div>`;
+    diagramHTML = `<div class="diagram-wrap"><div class="diagram-label">Treble Clef — All Lines and Spaces (E3 → F4)</div>${trebleStaffSVG()}</div>`;
   } else if (step.diagram === 'bass') {
-    diagramHTML = `<div class="diagram-wrap"><div class="diagram-label">Bass Clef — All Lines and Spaces (G2 → A3)</div>${bassStaffSVG()}</div>`;
+    diagramHTML = `<div class="diagram-wrap"><div class="diagram-label">Bass Clef — All Lines and Spaces (G1 → A2)</div>${bassStaffSVG()}</div>`;
   } else if (step.diagram === 'ledger') {
     diagramHTML = `<div class="diagram-wrap"><div class="diagram-label">Middle C — The Shared Ledger Line Note</div>${ledgerLineSVG()}</div>`;
   }
