@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cloud.umami.is 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://aolaxmmrmvovbzumlybe.supabase.co wss://aolaxmmrmvovbzumlybe.supabase.co https://cloud.umami.is; img-src 'self' data:; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="canonical" href="https://sonicsandbox.app/learn/signal-chain/">
+
+<title>Signal Chain Order — EQ, Compression, Reverb for Mixing | SonicSandbox</title>
+<meta name="description" content="Learn signal chain order — how to sequence EQ, compression, reverb, and other effects in your mix for professional results.">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
+<style>
+  /* ── Critical fallback (duplicates style.css; ensures dark theme
+     even when /style.css fails to load, e.g. file:// preview) ── */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg:      #0a0b0d;
+    --surface: #13151a;
+    --surface2:#1a1d24;
+    --surface3:#21252f;
+    --border:  rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text:    #dde2ee;
+    --muted:   #6b7280;
+    --accent:  #5b6aff;
+    --accent2: #8892ff;
+    --green: #3ecf8e; --amber: #f59e0b; --red: #f45b69;
+    --eq-accent:    #5b6aff;  --eq-accent2:    #8892ff;
+    --comp-accent:  #e8865a;  --comp-accent2:  #f0a882;
+    --rev-accent:   #5b3fd4;  --rev-accent2:   #8b6fff;
+    --dist-accent:  #d44a2a;  --dist-accent2:  #f07050;
+    --fq-accent:    #00d4ff;  --fq-accent2:    #60e8ff;
+    --fh-accent:    #00e5cc;  --fh-accent2:    #50f0d8;
+    --pan-accent:   #7c5cfc;  --pan-accent2:   #a58aff;
+    --qc-accent:    #2dd4a0;  --qc-accent2:    #5eefc0;
+    --delay-accent: #f97316;  --delay-accent2: #fb923c;
+    --ll-accent:    #f0b429;  --ll-accent2:    #ffd166;
+    --qeq-accent:   #818cf8;  --qeq-accent2:   #a5b4fc;
+    --sca-accent:   #39d353;  --sca-accent2:   #7ce88f;
+    --sidebar-w: 264px;
+    --learn-accent: #22d3ee; --learn-accent2: #67e8f9;
+    --sc-accent: #22d3ee; --sc-accent2: #67e8f9;
+  }
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+  }
+
+nav { width: 100%; padding: 20px 32px; display: flex; align-items: center; }
+.nav-logo span { color: var(--sc-accent2); }
+@media (max-width: 600px) { nav { padding: 16px 20px; }
+}
+.page-header { width: 100%; max-width: 1280px; padding: 52px 24px 40px; text-align: center; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px); background-size: 28px 28px; }
+  .page-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 18px; }
+  .page-title { font-family: 'IBM Plex Mono', monospace; font-size: clamp(26px,4vw,44px); font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; color: var(--text); margin-bottom: 14px; }
+  .page-sub { font-size: 15px; color: var(--muted); font-weight: 300; max-width: 520px; margin: 0 auto; line-height: 1.7; }
+
+  .tool-selector-wrap { width: 100%; max-width: 900px; padding: 32px 24px 40px; }
+  .tool-selector-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+  .tool-selector { display: flex; gap: 10px; flex-wrap: wrap; }
+  .tool-btn { display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; border: 1px solid var(--border2); background: var(--surface2); font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; text-decoration: none; transition: border-color 0.18s, color 0.18s, background 0.18s, transform 0.18s; }
+  .tool-btn.active { border-color: var(--sc-accent); color: var(--sc-accent2); background: rgba(8,145,178,0.10); }
+  .tool-btn.disabled { opacity: 0.38; cursor: not-allowed; pointer-events: none; }
+  .tool-btn:not(.disabled):not(.active):hover { color: var(--text); background: var(--surface3); transform: translateY(-1px); }
+  .tool-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: 0.7; flex-shrink: 0; }
+
+  .module-wrap { width: 100%; max-width: 860px; padding: 36px 24px 80px; }
+  .progress-bar-wrap { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+  .progress-dots { display: flex; gap: 6px; flex-wrap: wrap; }
+  .progress-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border2); transition: background 0.2s, transform 0.2s; cursor: pointer; }
+  .progress-dot.done { background: rgba(8,145,178,0.45); }
+  .progress-dot.active { background: var(--sc-accent2); transform: scale(1.3); }
+  .progress-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-left: auto; }
+
+  .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 0 0 32px; position: relative; overflow: hidden; }
+  .step-card::before { content: ''; position: absolute; inset: 0; border-radius: 20px; background: radial-gradient(ellipse at top left, rgba(8,145,178,0.07), transparent 55%); pointer-events: none; }
+
+  .diagram-wrap { width: 100%; border-radius: 20px 20px 0 0; overflow: hidden; padding: 24px 28px 16px; background: rgba(8,145,178,0.03); border-bottom: 1px solid var(--border); }
+  .diagram-wrap svg { width: 100%; height: auto; display: block; }
+
+  .step-inner { padding: 28px 36px 0; }
+  .step-number { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--sc-accent); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .step-number::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .step-title { font-family: 'IBM Plex Mono', monospace; font-size: clamp(18px,2.8vw,26px); font-weight: 600; letter-spacing: -0.02em; color: var(--text); margin-bottom: 16px; line-height: 1.25; }
+  .step-body { font-size: 15px; color: var(--muted); line-height: 1.75; font-weight: 300; margin-bottom: 24px; }
+  .step-body strong { color: var(--text); font-weight: 500; }
+  .step-body em { color: var(--sc-accent2); font-style: normal; font-weight: 500; }
+
+  .key-points { background: rgba(8,145,178,0.05); border: 1px solid rgba(8,145,178,0.22); border-radius: 12px; padding: 18px 20px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 10px; }
+  .key-points-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sc-accent); margin-bottom: 4px; }
+  .key-point { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--muted); line-height: 1.55; }
+  .key-point::before { content: '→'; color: var(--sc-accent2); font-family: 'IBM Plex Mono', monospace; font-size: 12px; margin-top: 1px; flex-shrink: 0; }
+  .key-point strong { color: var(--text); font-weight: 500; }
+
+  .audio-demo { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin-bottom: 4px; }
+  .audio-demo-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .audio-demo-desc { font-size: 13px; color: var(--muted); line-height: 1.55; margin-bottom: 14px; }
+  .demo-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  .play-btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border-radius: 8px; background: var(--sc-accent); border: none; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; color: #fff; cursor: pointer; transition: transform 0.15s, opacity 0.15s; flex-shrink: 0; }
+  .play-btn svg { pointer-events: none; }
+  .play-btn:hover { transform: scale(1.04); opacity: 0.9; }
+  .play-btn.playing { background: rgba(8,145,178,0.2); border: 1.5px solid var(--sc-accent); color: var(--sc-accent2); }
+
+  .vol-wrap { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  input[type=range].vol-slider { -webkit-appearance: none; appearance: none; width: 72px; height: 3px; border-radius: 2px; background: var(--border2); outline: none; cursor: pointer; }
+  input[type=range].vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%; background: var(--sc-accent2); cursor: pointer; }
+
+  .step-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; }
+  .nav-btn { display: flex; align-items: center; gap: 8px; padding: 11px 22px; border-radius: 10px; border: 1px solid var(--border2); background: var(--surface2); font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; transition: border-color 0.15s, color 0.15s, transform 0.15s; text-decoration: none; }
+  .nav-btn:hover { color: var(--text); transform: translateY(-1px); }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+  .nav-btn.primary { background: var(--sc-accent); border-color: var(--sc-accent); color: #fff; }
+  .nav-btn.primary:hover { opacity: 0.88; }
+  .nav-btn.finish { background: rgba(8,145,178,0.15); border-color: var(--sc-accent); color: var(--sc-accent2); }
+  .step-counter { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--muted); }
+
+  .completion-card { text-align: center; padding: 56px 36px; }
+  .completion-title { font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
+  .completion-sub { font-size: 15px; color: var(--muted); line-height: 1.7; max-width: 440px; margin: 0 auto 32px; }
+  .completion-cta { display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; border-radius: 10px; background: var(--sc-accent); color: #fff; font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600; text-decoration: none; transition: opacity 0.15s, transform 0.15s; }
+  .completion-cta:hover { opacity: 0.88; transform: translateY(-1px); }
+  .completion-restart { display: block; margin: 18px auto 0; background: none; border: none; color: var(--muted); font-size: 13px; cursor: pointer; text-decoration: underline; font-family: inherit; }
+  .completion-restart:hover { color: var(--text); }
+@media (max-width: 600px) {
+    .step-inner { padding: 20px 20px 0; }
+    .diagram-wrap { padding: 18px 16px 12px; }
+    .module-wrap { padding: 0 16px 60px; }
+    .tool-selector-wrap { padding: 0 16px 32px; }
+    .page-header { padding: 32px 16px 24px; }
+    .step-nav { flex-direction: column; }
+    .nav-btn { width: 100%; justify-content: center; }
+  }
+
+  /* ── Learn layout ───────────────────────────────────────── */
+  .learn-layout { flex: 1; display: flex; align-items: flex-start; }
+  .learn-sidebar {
+    width: var(--sidebar-w); flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    position: sticky; top: 61px; height: calc(100vh - 61px);
+    overflow-y: auto; background: var(--bg);
+    scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.08) transparent; z-index: 10;
+  }
+  .learn-sidebar::-webkit-scrollbar { width: 4px; }
+  .learn-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+  .sidebar-header { padding: 16px 20px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--bg); z-index: 1; }
+  .sidebar-header-label { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+  .sidebar-close-btn { display: none; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 20px; line-height: 1; padding: 0 2px; }
+  .sidebar-close-btn:hover { color: var(--text); }
+  .sidebar-body { padding: 10px 0 48px; }
+  .sidebar-section { margin-bottom: 2px; }
+  .sidebar-section-label { display: flex; align-items: center; gap: 8px; padding: 12px 20px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.28); }
+  .section-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+  .sidebar-divider { height: 1px; background: var(--border); margin: 10px 0 6px; }
+  .course-hdr { display: flex; align-items: center; gap: 8px; padding: 7px 20px; cursor: pointer; transition: background 0.14s; user-select: none; }
+  .course-hdr:hover { background: rgba(255,255,255,0.035); }
+  .course-n { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; color: var(--muted); min-width: 18px; flex-shrink: 0; }
+  .course-label { font-size: 12.5px; font-weight: 500; color: var(--text); flex: 1; line-height: 1.3; }
+  .course-soon-badge { font-family: 'IBM Plex Mono', monospace; font-size: 7.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.22); padding: 2px 5px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
+  .course-chevron { color: var(--muted); font-size: 12px; flex-shrink: 0; transition: transform 0.18s; }
+  .sidebar-course.is-open .course-chevron { transform: rotate(90deg); }
+  .course-lessons { display: none; padding: 1px 0 4px; border-left: 2px solid var(--border); margin-left: 28px; }
+  .sidebar-course.is-open .course-lessons { display: block; }
+  .lesson-row { display: flex; align-items: flex-start; gap: 8px; padding: 4px 16px 4px 12px; cursor: pointer; transition: background 0.12s; border-left: 2px solid transparent; margin-left: -2px; text-decoration: none; }
+  .lesson-row:hover:not(.lesson-soon) { background: rgba(255,255,255,0.035); }
+  .lesson-row.is-active { background: rgba(255,255,255,0.05); }
+  .lesson-n { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--muted); min-width: 28px; flex-shrink: 0; padding-top: 1px; }
+  .lesson-label { font-size: 11.5px; color: var(--muted); line-height: 1.45; font-weight: 300; }
+  .lesson-row.is-active .lesson-label { color: var(--text); font-weight: 400; }
+  .lesson-row.lesson-soon { opacity: 0.38; cursor: not-allowed; }
+  .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 30; backdrop-filter: blur(1px); }
+  .sidebar-overlay.is-open { display: block; }
+  .learn-main { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; }
+  .learn-breadcrumb { width: 100%; padding: 13px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .breadcrumb-toggle { display: none; align-items: center; gap: 7px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 7px; padding: 6px 11px; cursor: pointer; font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; color: var(--muted); flex-shrink: 0; }
+  .breadcrumb-toggle:hover { color: var(--text); }
+  .bc-path { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.04em; display: flex; align-items: center; gap: 6px; }
+  .bc-path a { color: var(--muted); text-decoration: none; }
+  .bc-path a:hover { color: var(--text); }
+  .bc-sep { opacity: 0.35; }
+  .bc-current { color: var(--text); font-weight: 500; }
+  @media (max-width: 900px) {
+    .learn-sidebar { position: fixed; top: 0; left: 0; height: 100vh; transform: translateX(-100%); transition: transform 0.24s cubic-bezier(0.4,0,0.2,1); z-index: 50; box-shadow: 4px 0 24px rgba(0,0,0,0.5); border-right: 1px solid var(--border2); }
+    .learn-sidebar.is-open { transform: translateX(0); }
+    .sidebar-close-btn { display: block; }
+    .breadcrumb-toggle { display: flex; }
+    .learn-main { width: 100%; }
+  }
+
+</style>
+
+  <!-- Open Graph / Social -->
+  <meta property="og:type"        content="website">
+  <meta property="og:url"         content="https://sonicsandbox.app/learn/signal-chain/">
+  <meta property="og:title"       content="Signal Chain Order — EQ, Compression, Reverb for Mixing | SonicSandbox">
+  <meta property="og:description" content="Learn signal chain order — how to sequence EQ, compression, reverb, and other effects in your mix for professional results.">
+  <meta property="og:image"       content="https://sonicsandbox.app/og-image.png">
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:title"       content="Signal Chain Order — EQ, Compression, Reverb for Mixing | SonicSandbox">
+  <meta name="twitter:description" content="Learn signal chain order — how to sequence EQ, compression, reverb, and other effects in your mix for professional results.">
+  <meta name="twitter:image"       content="https://sonicsandbox.app/og-image.png">
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="a4e7fbcc-763c-4844-8f4f-669cf411e799"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LearningResource",
+    "name": "Signal Chain — Learn Signal Chain Order for Mixing",
+    "url": "https://sonicsandbox.app/learn/signal-chain/",
+    "description": "Learn signal chain order — how to sequence EQ, compression, reverb, and other effects in your mix for professional results.",
+    "teaches": "Signal chain, mixing order, audio processing",
+    "educationalLevel": "Beginner",
+    "isAccessibleForFree": true,
+    "provider": {
+      "@type": "Organization",
+      "name": "SonicSandbox",
+      "url": "https://sonicsandbox.app/"
+    }
+  }
+  </script>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo-wrap">
+    <a class="nav-logo" href="/">Sonic<span>Sandbox</span></a>
+  </div>
+    <div class="nav-center">
+    <a class="nav-link" href="/">Home</a>
+    <a class="nav-link" href="/games/">Games</a>
+    <a class="nav-link active" href="/learn/">Learn</a>
+    <a class="nav-link" href="/stats/">Stats</a>
+  </div>
+    <div class="nav-right">
+    <div id="authArea"><button class="auth-btn" id="openAuthBtn">Sign in</button></div>
+  </div>
+</nav>
+<div class="learn-layout">
+
+  <aside class="learn-sidebar" id="learnSidebar" aria-label="Course navigation">
+    <div class="sidebar-header">
+      <span class="sidebar-header-label">Learning Center</span>
+      <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close menu">✕</button>
+    </div>
+    <div class="sidebar-body" id="sidebarBody"></div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <main class="learn-main">
+
+    <div class="learn-breadcrumb">
+      <button class="breadcrumb-toggle" id="sidebarToggleBtn" aria-label="Open course menu">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <rect y="1" width="14" height="1.5" rx="0.75" fill="currentColor"/>
+          <rect y="6" width="10" height="1.5" rx="0.75" fill="currentColor"/>
+          <rect y="11" width="12" height="1.5" rx="0.75" fill="currentColor"/>
+        </svg>
+        Courses
+      </button>
+      <div class="bc-path">
+        <a href="/learn/">Learn</a>
+        <span class="bc-sep">›</span>
+        <span>Audio Engineering</span>
+        <span class="bc-sep">›</span>
+        <span class="bc-current">Signal Chain</span>
+      </div>
+    </div>
+
+<div class="module-wrap">
+  <div class="progress-bar-wrap">
+    <div class="progress-dots" id="progressDots"></div>
+    <div class="progress-label" id="progressLabel">Step 1 of 9</div>
+  </div>
+  <div class="step-card" id="stepCard"></div>
+  <div class="step-nav" id="stepNav" style="margin-top:20px;">
+    <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>← Previous</button>
+    <span class="step-counter" id="stepCounter"></span>
+    <button class="nav-btn primary" id="nextBtn" onclick="navigate(1)">Next →</button>
+  </div>
+</div>
+
+
+  </main>
+</div><!-- /learn-layout -->
+
+<footer>
+  <div class="footer-left">
+    <a href="/">SonicSandbox</a>
+    &nbsp;·&nbsp; Ear training for producers, engineers, &amp; musicians
+    &nbsp;·&nbsp; <a href="/about/">About</a>
+    &nbsp;·&nbsp; <a href="/privacy/">Privacy Policy</a>
+    &nbsp;·&nbsp; <a href="/support/">Support</a>
+  </div>
+  <div class="footer-right">
+    <span>© 2026 Zach Snider</span>
+  </div>
+</footer>
+
+<!-- ── Auth modal ────────────────────────────────────────── -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" id="closeAuthBtn">&times;</button>
+    <div class="modal-tabs">
+      <button class="modal-tab active" data-tab="signin">Sign in</button>
+      <button class="modal-tab" data-tab="signup">Create account</button>
+    </div>
+    <div id="tabSignin">
+      <label>Email</label>
+      <input type="email" id="siEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label>
+      <input type="password" id="siPassword" placeholder="••••••••" autocomplete="current-password">
+      <button class="modal-submit" id="siSubmit">Sign in</button>
+      <div class="modal-msg" id="siMsg"></div>
+      <button class="forgot-pw-link" id="forgotPwBtn" type="button">Forgot password?</button>
+    </div>
+    <div id="tabForgot" style="display:none;">
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:18px;">Enter your email and we'll send you a reset link.</p>
+      <label>Email</label>
+      <input type="email" id="fpEmail" placeholder="you@example.com" autocomplete="email">
+      <button class="modal-submit" id="fpSubmit">Send reset link</button>
+      <div class="modal-msg" id="fpMsg"></div>
+      <button class="forgot-pw-link" id="backToSigninBtn" type="button">← Back to sign in</button>
+    </div>
+    <div id="tabSignup" style="display:none;">
+      <label>Email</label>
+      <input type="email" id="suEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label>
+      <input type="password" id="suPassword" placeholder="At least 6 characters" autocomplete="new-password">
+      <button class="modal-submit" id="suSubmit">Create account</button>
+      <div class="modal-msg" id="suMsg"></div>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="usernameModal">
+  <div class="modal">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent2);margin-bottom:8px;">Welcome</div>
+    <h2 style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;margin-bottom:10px;">Choose a username</h2>
+    <p style="font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:26px;">Your username will appear on leaderboards and game stats.</p>
+    <label for="usernameInput">Username</label>
+    <input type="text" id="usernameInput" placeholder="e.g. basshead42" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <div class="username-check" id="usernameCheck"></div>
+    <p class="username-hint">3–20 characters · Letters, numbers, _ and - only</p>
+    <button class="modal-submit" id="usernameSubmit">Set username</button>
+    <div class="modal-msg" id="usernameMsg"></div>
+    <button class="username-skip" id="usernameSkip">Skip for now</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/supabase-client.js"></script>
+<script>
+// ── Auth modal ────────────────────────────────────────────────
+const authModal=document.getElementById('authModal'),authArea=document.getElementById('authArea');
+const closeBtn=document.getElementById('closeAuthBtn'),tabs=document.querySelectorAll('.modal-tab');
+const tabSignin=document.getElementById('tabSignin'),tabSignup=document.getElementById('tabSignup'),tabForgot=document.getElementById('tabForgot');
+function openAuthModal(){authModal.classList.add('open');}function closeAuthModal(){authModal.classList.remove('open');showSigninPanel();}
+document.getElementById('openAuthBtn').addEventListener('click',openAuthModal);
+closeBtn.addEventListener('click',closeAuthModal);
+authModal.addEventListener('click',e=>{if(e.target===authModal)closeAuthModal();});
+tabs.forEach(tab=>{tab.addEventListener('click',()=>{tabs.forEach(t=>t.classList.remove('active'));tab.classList.add('active');tabSignin.style.display=tab.dataset.tab==='signin'?'':'none';tabSignup.style.display=tab.dataset.tab==='signup'?'':'none';tabForgot.style.display='none';});});
+function showForgotPanel(){tabSignin.style.display='none';tabForgot.style.display='';const e=document.getElementById('siEmail').value.trim();if(e)document.getElementById('fpEmail').value=e;document.getElementById('fpMsg').textContent='';}
+function showSigninPanel(){tabForgot.style.display='none';tabSignin.style.display='';}
+document.getElementById('forgotPwBtn').addEventListener('click',showForgotPanel);
+document.getElementById('backToSigninBtn').addEventListener('click',showSigninPanel);
+document.getElementById('siSubmit').addEventListener('click',async()=>{const msg=document.getElementById('siMsg');msg.textContent='Signing in…';msg.className='modal-msg';const{error}=await SonicSandbox.signIn(document.getElementById('siEmail').value.trim(),document.getElementById('siPassword').value);if(error){msg.textContent=error.message;msg.className='modal-msg error';}else{closeAuthModal();}});
+document.getElementById('fpSubmit').addEventListener('click',async()=>{const email=document.getElementById('fpEmail').value.trim(),msg=document.getElementById('fpMsg');if(!email){msg.textContent='Please enter your email.';msg.className='modal-msg error';return;}msg.textContent='Sending…';msg.className='modal-msg';const{error}=await SonicSandbox.resetPasswordForEmail(email);if(error){msg.textContent=error.message;msg.className='modal-msg error';}else{msg.textContent='Reset link sent!';msg.className='modal-msg success';document.getElementById('fpSubmit').disabled=true;}});
+document.getElementById('suSubmit').addEventListener('click',async()=>{const msg=document.getElementById('suMsg');msg.textContent='Creating account…';msg.className='modal-msg';const{error}=await SonicSandbox.signUp(document.getElementById('suEmail').value.trim(),document.getElementById('suPassword').value);if(error){msg.textContent=error.message;msg.className='modal-msg error';}else{msg.textContent='Check your email to confirm.';msg.className='modal-msg success';}});
+function validateUsername(val){if(val.length<3)return'Too short';if(val.length>20)return'Too long';if(!/^[a-zA-Z0-9_-]+$/.test(val))return'Letters, numbers, _ and - only';return null;}
+let _unCheckTimer;
+document.getElementById('usernameInput').addEventListener('input',()=>{const val=document.getElementById('usernameInput').value.trim();clearTimeout(_unCheckTimer);const err=validateUsername(val);if(err){document.getElementById('usernameCheck').textContent=val.length>0?err:'';document.getElementById('usernameCheck').className='username-check';return;}document.getElementById('usernameCheck').textContent='Checking…';document.getElementById('usernameCheck').className='username-check';_unCheckTimer=setTimeout(async()=>{const taken=await SonicSandbox.isUsernameTaken(val);document.getElementById('usernameCheck').textContent=taken?`"${val}" is already taken`:`"${val}" is available ✓`;document.getElementById('usernameCheck').className=taken?'username-check taken':'username-check available';},500);});
+document.getElementById('usernameSubmit').addEventListener('click',async()=>{const val=document.getElementById('usernameInput').value.trim(),err=validateUsername(val);if(err){document.getElementById('usernameMsg').textContent=err;document.getElementById('usernameMsg').className='modal-msg error';return;}document.getElementById('usernameMsg').textContent='Saving…';document.getElementById('usernameMsg').className='modal-msg';const{error}=await SonicSandbox.setUsername(val);if(error){document.getElementById('usernameMsg').textContent=error.message;document.getElementById('usernameMsg').className='modal-msg error';}else{document.getElementById('usernameModal').classList.remove('open');}});
+document.getElementById('usernameSkip').addEventListener('click',()=>document.getElementById('usernameModal').classList.remove('open'));
+document.getElementById('usernameModal').addEventListener('click',e=>{if(e.target===document.getElementById('usernameModal'))document.getElementById('usernameModal').classList.remove('open');});
+document.addEventListener('ss:authchange',async e=>{const user=e.detail;if(user){authArea.innerHTML=`<div class="user-pill"><span class="username-display" style="color:var(--muted);font-size:12px;">${user.email}</span></div>`;const profile=await SonicSandbox.getProfile();const el=authArea.querySelector('.username-display');if(!el)return;if(profile?.username){el.outerHTML=`<a class="set-username-link" href="/account/">@${profile.username}</a>`;}else{el.outerHTML=`<a class="set-username-link" href="/account/">Set username</a>`;}}else{authArea.innerHTML=`<button class="auth-btn" id="openAuthBtn">Sign in</button>`;document.getElementById('openAuthBtn').addEventListener('click',openAuthModal);}});
+</script>
+<script src="/learn/ae-shared.js"></script>
+
+
+<script>
+// ─────────────────────────────────────────────────────────────
+//  SVG DIAGRAM BUILDERS
+// ─────────────────────────────────────────────────────────────
+
+function buildDiagram_intro() {
+  const W = 640, H = 112;
+  const BW = 100, BH = 44, BY = 28;
+  const boxes = [
+    { x: 10,  label: 'SOURCE',  sub: 'raw signal',    color: 'rgba(34,211,238,0.28)' },
+    { x: 140, label: 'GATE',    sub: 'noise floor',   color: 'rgba(34,211,238,0.22)' },
+    { x: 270, label: 'EQ',      sub: 'tonal shaping', color: 'rgba(34,211,238,0.22)' },
+    { x: 400, label: 'COMP',    sub: 'dynamics',      color: 'rgba(34,211,238,0.22)' },
+    { x: 530, label: 'OUTPUT',  sub: 'bus / master',  color: 'rgba(34,211,238,0.28)' },
+  ];
+  let rects = '', labels = '', arrows = '';
+  boxes.forEach((b, i) => {
+    const cx = b.x + BW / 2, cy = BY + BH / 2;
+    rects  += `<rect x="${b.x}" y="${BY}" width="${BW}" height="${BH}" rx="8" fill="rgba(8,145,178,0.08)" stroke="${b.color}" stroke-width="1"/>`;
+    labels += `<text x="${cx}" y="${cy - 5}" text-anchor="middle" font-size="9.5" font-weight="600" letter-spacing="0.1em" fill="rgba(34,211,238,0.88)">${b.label}</text>`;
+    labels += `<text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="8" fill="rgba(107,114,128,0.85)">${b.sub}</text>`;
+    if (i < boxes.length - 1) {
+      const ax = b.x + BW + 3, nx = boxes[i+1].x - 3, ay = BY + BH / 2;
+      arrows += `<line x1="${ax}" y1="${ay}" x2="${nx - 7}" y2="${ay}" stroke="rgba(34,211,238,0.35)" stroke-width="1.5"/>`;
+      arrows += `<polygon points="${nx-7},${ay-4} ${nx},${ay} ${nx-7},${ay+4}" fill="rgba(34,211,238,0.5)"/>`;
+    }
+  });
+  const foot = `<text x="${W/2}" y="${H - 3}" text-anchor="middle" font-size="8.5" fill="rgba(107,114,128,0.5)" letter-spacing="0.07em">SIGNAL FLOWS LEFT TO RIGHT — ORDER SHAPES THE FINAL SOUND</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">${rects}${arrows}${labels}${foot}</svg>`;
+}
+
+function buildDiagram_ordermatters() {
+  const W = 640, H = 148;
+  // Two rows showing different orderings
+  const BW = 108, BH = 38, gap = 8;
+  const row1 = [
+    { label: 'EQ', sub: 'cut mud' },
+    { label: 'COMP', sub: 'squash' },
+    { label: 'SAT', sub: 'color' },
+  ];
+  const row2 = [
+    { label: 'COMP', sub: 'squash' },
+    { label: 'EQ', sub: 'cut mud' },
+    { label: 'SAT', sub: 'color' },
+  ];
+  const startX = 24;
+  const row1Y = 14, row2Y = 82;
+  let out = '';
+  const drawRow = (boxes, rowY, labelText, result, resultColor) => {
+    boxes.forEach((b, i) => {
+      const bx = startX + i * (BW + gap);
+      const cx = bx + BW / 2, cy = rowY + BH / 2;
+      out += `<rect x="${bx}" y="${rowY}" width="${BW}" height="${BH}" rx="7" fill="rgba(8,145,178,0.07)" stroke="rgba(34,211,238,0.22)" stroke-width="1"/>`;
+      out += `<text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="9.5" font-weight="600" letter-spacing="0.08em" fill="rgba(34,211,238,0.85)">${b.label}</text>`;
+      out += `<text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="8" fill="rgba(107,114,128,0.8)">${b.sub}</text>`;
+      if (i < boxes.length - 1) {
+        const ax = bx + BW + 2, nx = startX + (i+1)*(BW+gap) - 2, ay = rowY + BH/2;
+        out += `<line x1="${ax}" y1="${ay}" x2="${nx-6}" y2="${ay}" stroke="rgba(34,211,238,0.3)" stroke-width="1.2"/>`;
+        out += `<polygon points="${nx-6},${ay-3.5} ${nx},${ay} ${nx-6},${ay+3.5}" fill="rgba(34,211,238,0.4)"/>`;
+      }
+    });
+    const labelX = startX + boxes.length * (BW + gap) + 14;
+    const resultX = labelX + 80;
+    out += `<text x="${labelX}" y="${rowY + BH/2 - 5}" font-size="8.5" fill="rgba(107,114,128,0.6)" letter-spacing="0.06em">${labelText}</text>`;
+    out += `<text x="${labelX}" y="${rowY + BH/2 + 10}" font-size="9" font-weight="600" fill="${resultColor}">${result}</text>`;
+  };
+  drawRow(row1, row1Y, 'RESULT:', 'CLEAN + TIGHT', 'rgba(34,211,238,0.8)');
+  drawRow(row2, row2Y, 'RESULT:', 'PUMPING MUDD', 'rgba(248,113,113,0.75)');
+  // divider
+  out += `<line x1="20" y1="70" x2="${W-20}" y2="70" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+  out += `<text x="${W/2}" y="${H - 3}" text-anchor="middle" font-size="8.5" fill="rgba(107,114,128,0.5)" letter-spacing="0.07em">SAME PLUGINS — DIFFERENT ORDER — DIFFERENT RESULT</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">${out}</svg>`;
+}
+
+function buildDiagram_gate() {
+  const W = 640, H = 112;
+  const BW = 100, BH = 44, BY = 22;
+  // Noise floor diagram with gate
+  let out = '';
+  // Waveform area
+  const wx = 20, wy = 16, ww = 260, wh = 76;
+  out += `<rect x="${wx}" y="${wy}" width="${ww}" height="${wh}" rx="6" fill="rgba(8,145,178,0.04)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+  out += `<text x="${wx + ww/2}" y="${wy - 4}" text-anchor="middle" font-size="8" fill="rgba(107,114,128,0.5)" letter-spacing="0.07em">WITHOUT GATE</text>`;
+  // Draw noisy signal
+  const points = [];
+  for (let i = 0; i <= 40; i++) {
+    const px = wx + (i / 40) * ww;
+    const noise = (Math.sin(i * 2.3) * 6 + Math.sin(i * 5.1) * 3 + Math.sin(i * 8.7) * 1.5);
+    const signal = i >= 10 && i <= 30 ? Math.sin((i - 10) * 0.6) * 28 : 0;
+    points.push(`${px.toFixed(1)},${(wy + wh/2 - noise - signal).toFixed(1)}`);
+  }
+  out += `<polyline points="${points.join(' ')}" fill="none" stroke="rgba(34,211,238,0.4)" stroke-width="1.5"/>`;
+  // noise floor line
+  out += `<line x1="${wx}" y1="${wy + wh*0.72}" x2="${wx+ww}" y2="${wy + wh*0.72}" stroke="rgba(248,113,113,0.45)" stroke-width="1" stroke-dasharray="4,3"/>`;
+  out += `<text x="${wx + 4}" y="${wy + wh*0.72 - 4}" font-size="7.5" fill="rgba(248,113,113,0.55)">noise floor</text>`;
+
+  // After gate
+  const wx2 = 310, wy2 = 16, ww2 = 260, wh2 = 76;
+  out += `<rect x="${wx2}" y="${wy2}" width="${ww2}" height="${wh2}" rx="6" fill="rgba(8,145,178,0.04)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+  out += `<text x="${wx2 + ww2/2}" y="${wy2 - 4}" text-anchor="middle" font-size="8" fill="rgba(107,114,128,0.5)" letter-spacing="0.07em">WITH GATE</text>`;
+  const points2 = [];
+  for (let i = 0; i <= 40; i++) {
+    const px = wx2 + (i / 40) * ww2;
+    const signal = i >= 10 && i <= 30 ? Math.sin((i - 10) * 0.6) * 28 : 0;
+    points2.push(`${px.toFixed(1)},${(wy2 + wh2/2 - signal).toFixed(1)}`);
+  }
+  out += `<polyline points="${points2.join(' ')}" fill="none" stroke="rgba(34,211,238,0.7)" stroke-width="1.5"/>`;
+  out += `<line x1="${wx2}" y1="${wy2 + wh2*0.72}" x2="${wx2+ww2}" y2="${wy2 + wh2*0.72}" stroke="rgba(34,211,238,0.25)" stroke-width="1" stroke-dasharray="4,3"/>`;
+  out += `<text x="${wx2 + 4}" y="${wy2 + wh2*0.72 - 4}" font-size="7.5" fill="rgba(34,211,238,0.4)">silenced</text>`;
+
+  // Arrow between panels
+  out += `<line x1="285" y1="${wy + wh/2}" x2="303" y2="${wy + wh/2}" stroke="rgba(34,211,238,0.3)" stroke-width="1.5"/>`;
+  out += `<polygon points="303,${wy + wh/2 - 4} 310,${wy + wh/2} 303,${wy + wh/2 + 4}" fill="rgba(34,211,238,0.4)"/>`;
+  out += `<text x="297" y="${wy + wh/2 - 6}" text-anchor="middle" font-size="7.5" fill="rgba(34,211,238,0.5)">GATE</text>`;
+
+  out += `<text x="${W/2}" y="${H - 2}" text-anchor="middle" font-size="8.5" fill="rgba(107,114,128,0.5)" letter-spacing="0.07em">GATE FIRST — CLEAN SIGNAL INTO EVERY PLUGIN DOWNSTREAM</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">${out}</svg>`;
+}
+
+function buildDiagram_eqcomp() {
+  const W = 640, H = 138;
+  let out = '';
+  const BW = 110, BH = 42;
+
+  // Option A: EQ → COMP
+  const aY = 16;
+  out += `<text x="10" y="${aY - 3}" font-size="8.5" font-weight="600" fill="rgba(34,211,238,0.7)" letter-spacing="0.1em">OPTION A — EQ BEFORE COMP</text>`;
+  const optA = [{label:'EQ',sub:'shape first',x:10},{label:'COMP',sub:'compress shaped',x:140},{label:'OUT',sub:'clean & tight',x:270}];
+  optA.forEach((b, i) => {
+    const cx = b.x + BW/2, cy = aY + BH/2;
+    out += `<rect x="${b.x}" y="${aY}" width="${BW}" height="${BH}" rx="7" fill="rgba(8,145,178,0.08)" stroke="rgba(34,211,238,0.28)" stroke-width="1"/>`;
+    out += `<text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="9.5" font-weight="600" letter-spacing="0.08em" fill="rgba(34,211,238,0.88)">${b.label}</text>`;
+    out += `<text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="7.5" fill="rgba(107,114,128,0.8)">${b.sub}</text>`;
+    if (i < optA.length - 1) {
+      const ax = b.x + BW + 3, nx = optA[i+1].x - 3, ay = aY + BH/2;
+      out += `<line x1="${ax}" y1="${ay}" x2="${nx-6}" y2="${ay}" stroke="rgba(34,211,238,0.3)" stroke-width="1.2"/>`;
+      out += `<polygon points="${nx-6},${ay-3.5} ${nx},${ay} ${nx-6},${ay+3.5}" fill="rgba(34,211,238,0.4)"/>`;
+    }
+  });
+  out += `<rect x="390" y="${aY+2}" width="230" height="${BH-4}" rx="6" fill="rgba(34,211,238,0.04)" stroke="rgba(34,211,238,0.14)" stroke-width="1"/>`;
+  out += `<text x="505" y="${aY + BH/2 - 6}" text-anchor="middle" font-size="9" font-weight="600" fill="rgba(34,211,238,0.75)">BEST FOR MOST SOURCES</text>`;
+  out += `<text x="505" y="${aY + BH/2 + 9}" text-anchor="middle" font-size="8" fill="rgba(107,114,128,0.7)">comp sees what you want it to compress</text>`;
+
+  // Divider
+  out += `<line x1="10" y1="72" x2="${W-10}" y2="72" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+
+  // Option B: COMP → EQ
+  const bY = 82;
+  out += `<text x="10" y="${bY - 3}" font-size="8.5" font-weight="600" fill="rgba(250,204,21,0.55)" letter-spacing="0.1em">OPTION B — COMP BEFORE EQ</text>`;
+  const optB = [{label:'COMP',sub:'compress raw',x:10},{label:'EQ',sub:'shape compressed',x:140},{label:'OUT',sub:'sculpted result',x:270}];
+  optB.forEach((b, i) => {
+    const cx = b.x + BW/2, cy = bY + BH/2;
+    out += `<rect x="${b.x}" y="${bY}" width="${BW}" height="${BH}" rx="7" fill="rgba(113,63,18,0.1)" stroke="rgba(250,204,21,0.2)" stroke-width="1"/>`;
+    out += `<text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="9.5" font-weight="600" letter-spacing="0.08em" fill="rgba(250,204,21,0.75)">${b.label}</text>`;
+    out += `<text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="7.5" fill="rgba(107,114,128,0.8)">${b.sub}</text>`;
+    if (i < optB.length - 1) {
+      const ax = b.x + BW + 3, nx = optB[i+1].x - 3, ay = bY + BH/2;
+      out += `<line x1="${ax}" y1="${ay}" x2="${nx-6}" y2="${ay}" stroke="rgba(250,204,21,0.25)" stroke-width="1.2"/>`;
+      out += `<polygon points="${nx-6},${ay-3.5} ${nx},${ay} ${nx-6},${ay+3.5}" fill="rgba(250,204,21,0.35)"/>`;
+    }
+  });
+  out += `<rect x="390" y="${bY+2}" width="230" height="${BH-4}" rx="6" fill="rgba(113,63,18,0.07)" stroke="rgba(250,204,21,0.14)" stroke-width="1"/>`;
+  out += `<text x="505" y="${bY + BH/2 - 6}" text-anchor="middle" font-size="9" font-weight="600" fill="rgba(250,204,21,0.65)">USE FOR CREATIVE EFFECT</text>`;
+  out += `<text x="505" y="${bY + BH/2 + 9}" text-anchor="middle" font-size="8" fill="rgba(107,114,128,0.7)">great for parallel or parallel-style processing</text>`;
+
+  out += `<text x="${W/2}" y="${H - 2}" text-anchor="middle" font-size="8.5" fill="rgba(107,114,128,0.5)" letter-spacing="0.07em">BOTH ARE VALID — KNOW WHY YOU'RE CHOOSING EACH</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">${out}</svg>`;
+}
+
+function buildDiagram_compsat() {
+  const W = 640, H = 138;
+  let out = '';
+  const BW = 114, BH = 44;
+
+  // Good: COMP → SAT
+  const row1Y = 12;
+  const goodBoxes = [
+    { x: 10,  label: 'COMP',   sub: 'control peaks' },
+    { x: 140, label: 'SAT',    sub: 'add harmonics' },
+    { x: 270, label: 'RESULT', sub: 'consistent color' },
+  ];
+  out += `<text x="${W*0.02}" y="${row1Y - 2}" font-size="8" font-weight="600" fill="rgba(34,211,238,0.6)" letter-spacing="0.09em">✓ COMP → SAT  (PREFERRED)</text>`;
+  goodBoxes.forEach((b, i) => {
+    const cx = b.x + BW/2, cy = row1Y + BH/2;
+    out += `<rect x="${b.x}" y="${row1Y}" width="${BW}" height="${BH}" rx="7" fill="rgba(8,145,178,0.08)" stroke="rgba(34,211,238,0.25)" stroke-width="1"/>`;
+    out += `<text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="9.5" font-weight="600" letter-spacing="0.08em" fill="rgba(34,211,238,0.85)">${b.label}</text>`;
+    out += `<text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="8" fill="rgba(107,114,128,0.8)">${b.sub}</text>`;
+    if (i < goodBoxes.length - 1) {
+      const ax = b.x + BW + 2, nx = goodBoxes[i+1].x - 2, ay = row1Y + BH/2;
+      out += `<line x1="${ax}" y1="${ay}" x2="${nx-6}" y2="${ay}" stroke="rgba(34,211,238,0.3)" stroke-width="1.2"/>`;
+      out += `<polygon points="${nx-6},${ay-3.5} ${nx},${ay} ${nx-6},${ay+3.5}" fill="rgba(34,211,238,0.4)"/>`;
+    }
+  });
+  out += `<text x="400" y="${row1Y + BH/2 + 4}" font-size="9" fill="rgba(34,211,238,0.6)">Saturator sees steady levels</text>`;
+  out += `<text x="400" y="${row1Y + BH/2 + 18}" font-size="8.5" fill="rgba(107,114,128,0.55)">→ even, musical harmonic content</text>`;
+
+  // Divider
+  out += `<line x1="10" y1="${row1Y + BH + 14}" x2="${W - 10}" y2="${row1Y + BH + 14}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+
+  // Bad: SAT → COMP
+  const row2Y = row1Y + BH + 24;
+  const badBoxes = [
+    { x: 10,  label: 'SAT',    sub: 'add harmonics' },
+    { x: 140, label: 'COMP',   sub: 'control peaks' },
+    { x: 270, label: 'RESULT', sub: 'harmonics squashed' },
+  ];
+  out += `<text x="${W*0.02}" y="${row2Y - 2}" font-size="8" font-weight="600" fill="rgba(248,113,113,0.55)" letter-spacing="0.09em">✗ SAT → COMP  (COMPRESSES THE COLOR AWAY)</text>`;
+  badBoxes.forEach((b, i) => {
+    const cx = b.x + BW/2, cy = row2Y + BH/2;
+    out += `<rect x="${b.x}" y="${row2Y}" width="${BW}" height="${BH}" rx="7" fill="rgba(127,29,29,0.08)" stroke="rgba(248,113,113,0.2)" stroke-width="1"/>`;
+    out += `<text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="9.5" font-weight="600" letter-spacing="0.08em" fill="rgba(248,113,113,0.7)">${b.label}</text>`;
+    out += `<text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="8" fill="rgba(107,114,128,0.8)">${b.sub}</text>`;
+    if (i < badBoxes.length - 1) {
+      const ax = b.x + BW + 2, nx = badBoxes[i+1].x - 2, ay = row2Y + BH/2;
+      out += `<line x1="${ax}" y1="${ay}" x2="${nx-6}" y2="${ay}" stroke="rgba(248,113,113,0.25)" stroke-width="1.2"/>`;
+      out += `<polygon points="${nx-6},${ay-3.5} ${nx},${ay} ${nx-6},${ay+3.5}" fill="rgba(248,113,113,0.35)"/>`;
+    }
+  });
+  out += `<text x="400" y="${row2Y + BH/2 + 4}" font-size="9" fill="rgba(248,113,113,0.55)">Compressor sees erratic transients</text>`;
+  out += `<text x="400" y="${row2Y + BH/2 + 18}" font-size="8.5" fill="rgba(107,114,128,0.55)">→ character gets flattened out</text>`;
+
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">${out}</svg>`;
+}
+
+function buildDiagram_insertsends() {
+  const W = 640, H = 128;
+  let out = '';
+
+  // Insert path
+  const iY = 16, iBW = 100, iBH = 40;
+  out += `<text x="10" y="${iY - 4}" font-size="8.5" font-weight="600" fill="rgba(34,211,238,0.65)" letter-spacing="0.09em">INSERT — IN-LINE PROCESSING</text>`;
+  const inserts = [
+    { x: 10,  label: 'CHANNEL', sub: 'input' },
+    { x: 130, label: 'EQ + COMP', sub: 'insert plugins' },
+    { x: 260, label: 'FADER',  sub: 'volume' },
+    { x: 380, label: 'BUS',    sub: 'output' },
+  ];
+  inserts.forEach((b, i) => {
+    const cx = b.x + iBW/2, cy = iY + iBH/2;
+    out += `<rect x="${b.x}" y="${iY}" width="${iBW}" height="${iBH}" rx="6" fill="rgba(8,145,178,0.07)" stroke="rgba(34,211,238,0.22)" stroke-width="1"/>`;
+    out += `<text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="9" font-weight="600" letter-spacing="0.07em" fill="rgba(34,211,238,0.82)">${b.label}</text>`;
+    out += `<text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="7.5" fill="rgba(107,114,128,0.75)">${b.sub}</text>`;
+    if (i < inserts.length - 1) {
+      const ax = b.x + iBW + 2, nx = inserts[i+1].x - 2, ay = iY + iBH/2;
+      out += `<line x1="${ax}" y1="${ay}" x2="${nx-5}" y2="${ay}" stroke="rgba(34,211,238,0.3)" stroke-width="1.2"/>`;
+      out += `<polygon points="${nx-5},${ay-3} ${nx},${ay} ${nx-5},${ay+3}" fill="rgba(34,211,238,0.4)"/>`;
+    }
+  });
+
+  // Divider
+  out += `<line x1="10" y1="70" x2="${W-10}" y2="70" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+
+  // Send/Return path
+  const sY = 82, sBW = 100, sBH = 40;
+  out += `<text x="10" y="${sY - 4}" font-size="8.5" font-weight="600" fill="rgba(167,139,250,0.65)" letter-spacing="0.09em">SEND — PARALLEL PROCESSING</text>`;
+  const sends = [
+    { x: 10,  label: 'CHANNEL', sub: 'dry signal' },
+    { x: 130, label: 'SEND',    sub: 'copy to FX' },
+    { x: 260, label: 'REVERB',  sub: 'FX return' },
+    { x: 380, label: 'MIX BUS', sub: 'wet blend' },
+  ];
+  sends.forEach((b, i) => {
+    const cx = b.x + sBW/2, cy = sY + sBH/2;
+    out += `<rect x="${b.x}" y="${sY}" width="${sBW}" height="${sBH}" rx="6" fill="rgba(124,58,237,0.07)" stroke="rgba(167,139,250,0.2)" stroke-width="1"/>`;
+    out += `<text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="9" font-weight="600" letter-spacing="0.07em" fill="rgba(167,139,250,0.8)">${b.label}</text>`;
+    out += `<text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="7.5" fill="rgba(107,114,128,0.75)">${b.sub}</text>`;
+    if (i < sends.length - 1) {
+      const ax = b.x + sBW + 2, nx = sends[i+1].x - 2, ay = sY + sBH/2;
+      out += `<line x1="${ax}" y1="${ay}" x2="${nx-5}" y2="${ay}" stroke="rgba(167,139,250,0.3)" stroke-width="1.2"/>`;
+      out += `<polygon points="${nx-5},${ay-3} ${nx},${ay} ${nx-5},${ay+3}" fill="rgba(167,139,250,0.4)"/>`;
+    }
+  });
+
+  out += `<text x="500" y="${iY + iBH/2 + 4}" font-size="8.5" fill="rgba(107,114,128,0.55)">100% processed signal</text>`;
+  out += `<text x="500" y="${sY + sBH/2 + 4}" font-size="8.5" fill="rgba(107,114,128,0.55)">dry + wet blend</text>`;
+
+  out += `<text x="${W/2}" y="${H - 2}" text-anchor="middle" font-size="8.5" fill="rgba(107,114,128,0.5)" letter-spacing="0.07em">INSERTS ALTER SIGNAL — SENDS BLEND WET INTO DRY</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">${out}</svg>`;
+}
+
+function buildDiagram_timebased() {
+  const W = 640, H = 108;
+  const BW = 108, BH = 44, BY = 24;
+  let out = '';
+  const boxes = [
+    { x: 8,   label: 'GATE',  sub: 'silence noise',   color: 'rgba(34,211,238,0.25)' },
+    { x: 126, label: 'EQ',    sub: 'tone shaping',    color: 'rgba(34,211,238,0.25)' },
+    { x: 244, label: 'COMP',  sub: 'dynamics',        color: 'rgba(34,211,238,0.25)' },
+    { x: 362, label: 'SAT',   sub: 'harmonic color',  color: 'rgba(34,211,238,0.25)' },
+    { x: 480, label: 'REV/DLY', sub: 'space & time',  color: 'rgba(167,139,250,0.4)' },
+  ];
+  boxes.forEach((b, i) => {
+    const cx = b.x + BW/2, cy = BY + BH/2;
+    const isFX = i === 4;
+    out += `<rect x="${b.x}" y="${BY}" width="${BW}" height="${BH}" rx="8" fill="${isFX ? 'rgba(124,58,237,0.1)' : 'rgba(8,145,178,0.07)'}" stroke="${b.color}" stroke-width="1"/>`;
+    out += `<text x="${cx}" y="${cy - 5}" text-anchor="middle" font-size="9.5" font-weight="600" letter-spacing="0.09em" fill="${isFX ? 'rgba(167,139,250,0.88)' : 'rgba(34,211,238,0.82)'}">${b.label}</text>`;
+    out += `<text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="8" fill="rgba(107,114,128,0.8)">${b.sub}</text>`;
+    if (i < boxes.length - 1) {
+      const ax = b.x + BW + 2, nx = boxes[i+1].x - 2, ay = BY + BH/2;
+      out += `<line x1="${ax}" y1="${ay}" x2="${nx-6}" y2="${ay}" stroke="rgba(34,211,238,0.3)" stroke-width="1.5"/>`;
+      out += `<polygon points="${nx-6},${ay-4} ${nx},${ay} ${nx-6},${ay+4}" fill="rgba(34,211,238,0.4)"/>`;
+    }
+  });
+  out += `<text x="534" y="${BY + BH + 18}" text-anchor="middle" font-size="8" fill="rgba(167,139,250,0.55)" letter-spacing="0.06em">LAST IN CHAIN</text>`;
+  out += `<text x="${W/2}" y="${H - 3}" text-anchor="middle" font-size="8.5" fill="rgba(107,114,128,0.5)" letter-spacing="0.07em">REVERB & DELAY GO LAST — THEY PROCESS THE FINISHED SOUND</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">${out}</svg>`;
+}
+
+function buildDiagram_masterbus() {
+  const W = 640, H = 136;
+  const BW = 108, BH = 44, BY = 24;
+  let out = '';
+  // Show multiple channels summing into master bus chain
+  const chans = [
+    { x: 10, y: 14, w: 80, h: 30, label: 'KICK', col: 'rgba(34,211,238,0.2)' },
+    { x: 10, y: 52, w: 80, h: 30, label: 'SNARE', col: 'rgba(34,211,238,0.2)' },
+    { x: 10, y: 90, w: 80, h: 30, label: 'BASS', col: 'rgba(34,211,238,0.2)' },
+  ];
+  chans.forEach(c => {
+    out += `<rect x="${c.x}" y="${c.y}" width="${c.w}" height="${c.h}" rx="5" fill="rgba(8,145,178,0.06)" stroke="${c.col}" stroke-width="1"/>`;
+    out += `<text x="${c.x + c.w/2}" y="${c.y + c.h/2 + 4}" text-anchor="middle" font-size="9" font-weight="600" letter-spacing="0.07em" fill="rgba(34,211,238,0.7)">${c.label}</text>`;
+  });
+  // Sum arrow
+  const sumX = 100, sumY = 65;
+  chans.forEach(c => {
+    const startY = c.y + c.h/2;
+    out += `<line x1="${c.x + c.w}" y1="${startY}" x2="${sumX + 10}" y2="${sumY}" stroke="rgba(34,211,238,0.2)" stroke-width="1"/>`;
+  });
+  out += `<circle cx="${sumX + 14}" cy="${sumY}" r="10" fill="rgba(8,145,178,0.12)" stroke="rgba(34,211,238,0.3)" stroke-width="1"/>`;
+  out += `<text x="${sumX + 14}" y="${sumY + 4}" text-anchor="middle" font-size="11" fill="rgba(34,211,238,0.7)">Σ</text>`;
+
+  // Master bus chain boxes
+  const mbBoxes = [
+    { x: 130, label: 'EQ',   sub: 'broad sculpt' },
+    { x: 258, label: 'COMP', sub: 'glue' },
+    { x: 386, label: 'SAT',  sub: 'warmth' },
+    { x: 514, label: 'LIMIT',sub: 'ceiling' },
+  ];
+  mbBoxes.forEach((b, i) => {
+    const cx = b.x + BW/2, cy = BY + BH/2;
+    const isLim = i === 3;
+    out += `<rect x="${b.x}" y="${BY}" width="${BW}" height="${BH}" rx="8" fill="${isLim ? 'rgba(239,68,68,0.08)' : 'rgba(8,145,178,0.07)'}" stroke="${isLim ? 'rgba(248,113,113,0.3)' : 'rgba(34,211,238,0.22)'}" stroke-width="1"/>`;
+    out += `<text x="${cx}" y="${cy - 5}" text-anchor="middle" font-size="9.5" font-weight="600" letter-spacing="0.09em" fill="${isLim ? 'rgba(248,113,113,0.8)' : 'rgba(34,211,238,0.82)'}">${b.label}</text>`;
+    out += `<text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="8" fill="rgba(107,114,128,0.8)">${b.sub}</text>`;
+    if (i < mbBoxes.length - 1) {
+      const ax = b.x + BW + 2, nx = mbBoxes[i+1].x - 2, ay = BY + BH/2;
+      out += `<line x1="${ax}" y1="${ay}" x2="${nx-6}" y2="${ay}" stroke="rgba(34,211,238,0.28)" stroke-width="1.5"/>`;
+      out += `<polygon points="${nx-6},${ay-4} ${nx},${ay} ${nx-6},${ay+4}" fill="rgba(34,211,238,0.38)"/>`;
+    }
+  });
+  // Arrow from sum to first box
+  out += `<line x1="${sumX + 24}" y1="${sumY}" x2="123" y2="${BY + BH/2}" stroke="rgba(34,211,238,0.28)" stroke-width="1.5"/>`;
+  out += `<polygon points="123,${BY+BH/2-4} 130,${BY+BH/2} 123,${BY+BH/2+4}" fill="rgba(34,211,238,0.38)"/>`;
+
+  out += `<text x="${W/2 + 60}" y="${H - 3}" text-anchor="middle" font-size="8.5" fill="rgba(107,114,128,0.5)" letter-spacing="0.07em">MASTER BUS: GLUE — NOT RESCUE</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">${out}</svg>`;
+}
+
+function buildDiagram_templates() {
+  const W = 640, H = 174;
+  let out = '';
+  const BW = 72, BH = 36, gap = 5;
+
+  const templates = [
+    {
+      label: 'VOCALS',
+      color: 'rgba(34,211,238,0.7)',
+      fill: 'rgba(8,145,178,0.08)',
+      stroke: 'rgba(34,211,238,0.25)',
+      y: 16,
+      boxes: ['GATE','EQ','COMP','DE-ESS','SAT','REVERB'],
+    },
+    {
+      label: 'DRUMS',
+      color: 'rgba(250,204,21,0.65)',
+      fill: 'rgba(113,63,18,0.07)',
+      stroke: 'rgba(250,204,21,0.2)',
+      y: 72,
+      boxes: ['GATE','EQ','COMP','TRANS','SAT','LIMIT'],
+    },
+    {
+      label: 'GUITAR',
+      color: 'rgba(167,139,250,0.65)',
+      fill: 'rgba(124,58,237,0.06)',
+      stroke: 'rgba(167,139,250,0.2)',
+      y: 128,
+      boxes: ['EQ','COMP','SAT','DELAY','REVERB'],
+    },
+  ];
+
+  templates.forEach(t => {
+    out += `<text x="4" y="${t.y - 2}" font-size="8" font-weight="600" fill="${t.color}" letter-spacing="0.09em">${t.label}</text>`;
+    const totalW = t.boxes.length * (BW + gap) - gap;
+    const startX = 80;
+    t.boxes.forEach((label, i) => {
+      const bx = startX + i * (BW + gap);
+      const cx = bx + BW/2, cy = t.y + BH/2;
+      out += `<rect x="${bx}" y="${t.y}" width="${BW}" height="${BH}" rx="6" fill="${t.fill}" stroke="${t.stroke}" stroke-width="1"/>`;
+      out += `<text x="${cx}" y="${cy + 4}" text-anchor="middle" font-size="8.5" font-weight="600" letter-spacing="0.07em" fill="${t.color}">${label}</text>`;
+      if (i < t.boxes.length - 1) {
+        const ax = bx + BW + 1, nx = startX + (i+1)*(BW+gap) - 1, ay = t.y + BH/2;
+        out += `<line x1="${ax}" y1="${ay}" x2="${nx-4}" y2="${ay}" stroke="${t.stroke}" stroke-width="1"/>`;
+        out += `<polygon points="${nx-4},${ay-3} ${nx},${ay} ${nx-4},${ay+3}" fill="${t.color}" opacity="0.5"/>`;
+      }
+    });
+  });
+
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">${out}</svg>`;
+}
+
+function buildDiagram_fullchain() {
+  const W = 640, H = 112;
+  const BW = 78, BH = 44, BY = 22;
+  const gap = 5;
+  let out = '';
+  const boxes = [
+    { label: 'SOURCE', sub: 'raw input' },
+    { label: 'GATE',   sub: 'noise floor' },
+    { label: 'EQ',     sub: 'tone' },
+    { label: 'COMP',   sub: 'dynamics' },
+    { label: 'SAT',    sub: 'color' },
+    { label: 'DELAY',  sub: 'send' },
+    { label: 'REVERB', sub: 'send' },
+    { label: 'OUTPUT', sub: 'bus' },
+  ];
+  boxes.forEach((b, i) => {
+    const bx = i * (BW + gap);
+    const cx = bx + BW/2, cy = BY + BH/2;
+    const isFX = i === 5 || i === 6;
+    const isFirst = i === 0, isLast = i === boxes.length - 1;
+    out += `<rect x="${bx}" y="${BY}" width="${BW}" height="${BH}" rx="6" fill="${isFX ? 'rgba(124,58,237,0.09)' : 'rgba(8,145,178,0.07)'}" stroke="${isFX ? 'rgba(167,139,250,0.3)' : isFirst || isLast ? 'rgba(34,211,238,0.4)' : 'rgba(34,211,238,0.2)'}" stroke-width="1"/>`;
+    out += `<text x="${cx}" y="${cy - 5}" text-anchor="middle" font-size="8.5" font-weight="600" letter-spacing="0.08em" fill="${isFX ? 'rgba(167,139,250,0.85)' : 'rgba(34,211,238,0.82)'}">${b.label}</text>`;
+    out += `<text x="${cx}" y="${cy + 9}" text-anchor="middle" font-size="7.5" fill="rgba(107,114,128,0.75)">${b.sub}</text>`;
+    if (i < boxes.length - 1) {
+      const ax = bx + BW + 1, nx = (i+1) * (BW+gap) - 1, ay = BY + BH/2;
+      out += `<line x1="${ax}" y1="${ay}" x2="${nx-5}" y2="${ay}" stroke="rgba(34,211,238,0.28)" stroke-width="1.2"/>`;
+      out += `<polygon points="${nx-5},${ay-3} ${nx},${ay} ${nx-5},${ay+3}" fill="rgba(34,211,238,0.38)"/>`;
+    }
+  });
+  out += `<text x="${W/2}" y="${H - 3}" text-anchor="middle" font-size="8.5" fill="rgba(107,114,128,0.5)" letter-spacing="0.07em">THE COMPLETE CHANNEL STRIP — EVERY STAGE IN ORDER</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">${out}</svg>`;
+}
+
+// ─────────────────────────────────────────────────────────────
+//  AUDIO ENGINE — Loop-based demos
+// ─────────────────────────────────────────────────────────────
+
+let audioCtx = null, masterGain = null, activeNodes = [];
+let volumeLevel = 0.72;
+let demoBuffer = null, bufferLoadPromise = null;
+
+const DEMO_LOOP = '/samples/loops/ohpalmusic-passive-hip-hop-beat-90bpm-d-minor-177334.mp3';
+
+function getCtx() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = volumeLevel;
+    masterGain.connect(audioCtx.destination);
+  }
+  return audioCtx;
+}
+
+function stopAudio() {
+  activeNodes.forEach(n => { try { n.stop(); } catch(e) {} });
+  activeNodes = [];
+  document.querySelectorAll('.play-btn').forEach(b => {
+    b.classList.remove('playing');
+    b.innerHTML = playSVG() + ' Play Demo';
+  });
+}
+
+function playSVG() {
+  return `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>`;
+}
+function stopSVGIcon() {
+  return `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="6" height="16"/><rect x="14" y="4" width="6" height="16"/></svg>`;
+}
+
+function loadDemoBuffer() {
+  if (bufferLoadPromise) return bufferLoadPromise;
+  bufferLoadPromise = (async () => {
+    try {
+      const ctx = getCtx();
+      const resp = await fetch(DEMO_LOOP);
+      const ab = await resp.arrayBuffer();
+      demoBuffer = await ctx.decodeAudioData(ab);
+    } catch(e) { console.error('Demo loop failed:', e); }
+    return demoBuffer;
+  })();
+  return bufferLoadPromise;
+}
+
+function makeSrc(nodes) {
+  const src = audioCtx.createBufferSource();
+  src.buffer = demoBuffer; src.loop = true;
+  nodes.push(src);
+  return src;
+}
+
+function makeTanh(amount) {
+  const ws = audioCtx.createWaveShaper();
+  const curve = new Float32Array(512);
+  for (let i = 0; i < 512; i++) {
+    const x = (i * 2) / 512 - 1;
+    curve[i] = Math.tanh(x * amount) / Math.tanh(amount);
+  }
+  ws.curve = curve;
+  return ws;
+}
+
+async function playDemo(type, btn) {
+  const ctx = getCtx();
+  if (ctx.state === 'suspended') ctx.resume();
+  if (btn.classList.contains('playing')) { stopAudio(); return; }
+  stopAudio();
+  btn.classList.add('playing');
+  btn.innerHTML = stopSVGIcon() + ' Loading…';
+  masterGain.gain.value = volumeLevel;
+
+  await loadDemoBuffer();
+  if (!demoBuffer || !btn.classList.contains('playing')) return;
+  btn.innerHTML = stopSVGIcon() + ' Stop';
+
+  const nodes = [];
+  const now = ctx.currentTime;
+
+  if (type === 'clean') {
+    // Loop at a clean, healthy gain — the sound of a well-staged signal chain
+    const src = makeSrc(nodes);
+    const g = ctx.createGain(); g.gain.value = 0.72;
+    src.connect(g); g.connect(masterGain);
+    src.start();
+    setTimeout(() => stopAudio(), 5000);
+  }
+
+  else if (type === 'order_ab') {
+    // A: EQ first → clears mud before comp → clean, open sound (3s)
+    // B: Comp first → reacts to full-spectrum energy → then EQ boosts artifacts (3s)
+    const srcA = makeSrc(nodes);
+    const hpA = ctx.createBiquadFilter();
+    hpA.type = 'highpass'; hpA.frequency.value = 100;
+    const compA = ctx.createDynamicsCompressor();
+    compA.threshold.value = -20; compA.ratio.value = 4; compA.attack.value = 0.01; compA.release.value = 0.12;
+    const gA = ctx.createGain(); gA.gain.value = 0.75;
+    srcA.connect(hpA); hpA.connect(compA); compA.connect(gA); gA.connect(masterGain);
+    srcA.start(); srcA.stop(now + 3.0);
+
+    const srcB = makeSrc(nodes);
+    const compB = ctx.createDynamicsCompressor();
+    compB.threshold.value = -12; compB.ratio.value = 10; compB.attack.value = 0.002; compB.release.value = 0.04;
+    const eqB = ctx.createBiquadFilter();
+    eqB.type = 'peaking'; eqB.frequency.value = 260; eqB.Q.value = 2; eqB.gain.value = 9;
+    const gB = ctx.createGain(); gB.gain.value = 0.65;
+    srcB.connect(compB); compB.connect(eqB); eqB.connect(gB); gB.connect(masterGain);
+    srcB.start(now + 3.2); srcB.stop(now + 6.2);
+    setTimeout(() => stopAudio(), 6500);
+  }
+
+  else if (type === 'gate') {
+    // Loop through a gain envelope that opens and closes rhythmically — simulating a noise gate
+    const src = makeSrc(nodes);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.001, now);
+    // Open gate on every beat (~120 BPM = 0.5s intervals), close quickly between beats
+    const beatLen = 0.5, openDur = 0.30;
+    for (let i = 0; i < 10; i++) {
+      const t = now + i * beatLen;
+      g.gain.setValueAtTime(0.001, t);
+      g.gain.linearRampToValueAtTime(0.78, t + 0.012);
+      g.gain.setValueAtTime(0.78, t + openDur - 0.03);
+      g.gain.linearRampToValueAtTime(0.001, t + openDur);
+    }
+    g.gain.setValueAtTime(0, now + 5.2);
+    src.connect(g); g.connect(masterGain);
+    src.start();
+    setTimeout(() => stopAudio(), 5500);
+  }
+
+  else if (type === 'eqcomp') {
+    // A: EQ (−5 dB at 250 Hz) → comp → clean, controlled (3s)
+    // B: Comp (heavy) → EQ boost → pumping, muddy (3s)
+    const srcA = makeSrc(nodes);
+    const eqA = ctx.createBiquadFilter();
+    eqA.type = 'peaking'; eqA.frequency.value = 250; eqA.Q.value = 1.5; eqA.gain.value = -5;
+    const compA = ctx.createDynamicsCompressor();
+    compA.threshold.value = -20; compA.ratio.value = 4; compA.attack.value = 0.01; compA.release.value = 0.15;
+    const gA = ctx.createGain(); gA.gain.value = 0.75;
+    srcA.connect(eqA); eqA.connect(compA); compA.connect(gA); gA.connect(masterGain);
+    srcA.start(); srcA.stop(now + 3.0);
+
+    const srcB = makeSrc(nodes);
+    const compB = ctx.createDynamicsCompressor();
+    compB.threshold.value = -10; compB.ratio.value = 12; compB.attack.value = 0.001; compB.release.value = 0.04;
+    const eqB = ctx.createBiquadFilter();
+    eqB.type = 'peaking'; eqB.frequency.value = 250; eqB.Q.value = 1.5; eqB.gain.value = 8;
+    const gB = ctx.createGain(); gB.gain.value = 0.65;
+    srcB.connect(compB); compB.connect(eqB); eqB.connect(gB); gB.connect(masterGain);
+    srcB.start(now + 3.2); srcB.stop(now + 6.2);
+    setTimeout(() => stopAudio(), 6500);
+  }
+
+  else if (type === 'compsat') {
+    // Comp → tanh saturation: consistent, warm harmonic colour on a real source
+    const src = makeSrc(nodes);
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -18; comp.ratio.value = 4; comp.attack.value = 0.01; comp.release.value = 0.12;
+    const sat = makeTanh(2.0);
+    const g = ctx.createGain(); g.gain.value = 0.75;
+    src.connect(comp); comp.connect(sat); sat.connect(g); g.connect(masterGain);
+    src.start();
+    setTimeout(() => stopAudio(), 5000);
+  }
+
+  else if (type === 'timebased') {
+    // Dry loop for 3s, then same loop plus delay-network reverb — space added last
+    const srcDry = makeSrc(nodes);
+    const gDry = ctx.createGain(); gDry.gain.value = 0.75;
+    srcDry.connect(gDry); gDry.connect(masterGain);
+    srcDry.start(); srcDry.stop(now + 3.0);
+
+    const srcWet = makeSrc(nodes);
+    const gWet = ctx.createGain(); gWet.gain.value = 0.70;
+    srcWet.connect(gWet); gWet.connect(masterGain);
+    // Delay taps to simulate reverb wash
+    [0.037, 0.071, 0.118, 0.179, 0.260, 0.380, 0.540].forEach((d, i) => {
+      const dly = ctx.createDelay(1.0); dly.delayTime.value = d;
+      const tg = ctx.createGain(); tg.gain.value = 0.16 * Math.pow(0.60, i);
+      gWet.connect(dly); dly.connect(tg); tg.connect(masterGain);
+      nodes.push(dly, tg);
+    });
+    srcWet.start(now + 3.3); srcWet.stop(now + 6.3);
+    setTimeout(() => stopAudio(), 7000);
+  }
+
+  else if (type === 'masterbus') {
+    // Loop → glue compressor → brickwall limiter — the mix bus chain doing its job quietly
+    const src = makeSrc(nodes);
+    const glue = ctx.createDynamicsCompressor();
+    glue.threshold.value = -18; glue.ratio.value = 2.0; glue.knee.value = 8;
+    glue.attack.value = 0.025; glue.release.value = 0.20;
+    const lim = ctx.createDynamicsCompressor();
+    lim.threshold.value = -1; lim.ratio.value = 20; lim.attack.value = 0.001; lim.release.value = 0.08;
+    const g = ctx.createGain(); g.gain.value = 0.80;
+    src.connect(glue); glue.connect(lim); lim.connect(g); g.connect(masterGain);
+    src.start();
+    setTimeout(() => stopAudio(), 5000);
+  }
+
+  else if (type === 'fullchain') {
+    // Full chain: HP filter → comp → saturation → reverb — all stages in sequence
+    const src = makeSrc(nodes);
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass'; hp.frequency.value = 80;
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -20; comp.ratio.value = 3; comp.attack.value = 0.012; comp.release.value = 0.15;
+    const sat = makeTanh(1.5);
+    const g = ctx.createGain(); g.gain.value = 0.75;
+    src.connect(hp); hp.connect(comp); comp.connect(sat); sat.connect(g); g.connect(masterGain);
+    // Reverb taps on the processed signal
+    [0.042, 0.088, 0.148, 0.228, 0.360].forEach((d, i) => {
+      const dly = ctx.createDelay(1.0); dly.delayTime.value = d;
+      const tg = ctx.createGain(); tg.gain.value = 0.10 * Math.pow(0.65, i);
+      g.connect(dly); dly.connect(tg); tg.connect(masterGain);
+      nodes.push(dly, tg);
+    });
+    src.start();
+    setTimeout(() => stopAudio(), 5500);
+  }
+
+  activeNodes = nodes;
+}
+
+// ─────────────────────────────────────────────────────────────
+//  STEPS DATA
+// ─────────────────────────────────────────────────────────────
+
+const steps = [
+  {
+    diagram: buildDiagram_intro,
+    number: 'Step 01 — Introduction',
+    title: 'What Is a Signal Chain?',
+    body: `Your signal chain is the <strong>ordered sequence of processors</strong> that your audio passes through — from its raw source to its final output. Every plugin you insert, every bus it flows into, every effect send it feeds: all of it is your signal chain.<br><br>
+The order of those processors isn't arbitrary. <em>Signal chain is the architecture of your mix.</em> Change the sequence and you change the character of the sound — even if the plugins themselves stay identical.<br><br>
+Understanding signal chain means understanding <strong>cause and effect</strong>: what each processor does to the signal before passing it to the next. A compressor hears whatever you feed it. A reverb prints whatever arrives at its input. Each stage shapes the raw material for every stage that follows.`,
+    keyPoints: [
+      { strong: 'Signal chain', rest: ' — the ordered sequence of processors audio passes through' },
+      { strong: 'Order matters', rest: ' — the same plugins in a different sequence produce a different result' },
+      { strong: 'Each stage', rest: ' shapes the input for every stage that follows it' },
+      { strong: 'Goal', rest: ' — a clean, intentional flow from source to output' },
+    ],
+    audio: { desc: 'A clean reference tone passing through a simple gain chain — the sound of a well-staged signal.', type: 'clean' },
+  },
+  {
+    diagram: buildDiagram_ordermatters,
+    number: 'Step 02 — Core Concept',
+    title: 'Why Order Matters',
+    body: `Think of a signal chain as an assembly line. Each worker (plugin) receives whatever the previous worker produced, and hands its output to the next one. <strong>If the wrong work happens first, every step downstream is compromised.</strong><br><br>
+A classic example: EQ before compression vs. compression before EQ. If you compress first and a low-end buildup is pumping the compressor, cutting that low-end afterwards with EQ doesn't undo the pumping — the compressor already reacted to it. But if you EQ first, removing the buildup <em>before</em> the compressor hears the signal, the compressor responds to a cleaner, more balanced input.<br><br>
+This principle applies everywhere. Think of each plugin as asking: <strong>"What am I receiving?"</strong> — and build your chain so every plugin receives the right input for its purpose.`,
+    keyPoints: [
+      { strong: 'Downstream plugins', rest: ' always process what upstream plugins produce' },
+      { strong: 'You can\'t un-process', rest: ' — fixing a problem after it\'s been processed is harder than preventing it' },
+      { strong: 'Ask for each plugin', rest: ': "What should it be hearing? Am I giving it that?"' },
+      { strong: 'No universal rules', rest: ' — but understanding cause and effect leads to intentional choices' },
+    ],
+    audio: { desc: 'Two versions of the same source: first with a clean, ordered chain; then with a resonant build-up that wasn\'t cleared before compression.', type: 'order_ab' },
+  },
+  {
+    diagram: buildDiagram_gate,
+    number: 'Step 03 — Noise Control',
+    title: 'Dynamics First: Gate & Expander',
+    body: `The <strong>gate</strong> (or expander) almost always belongs at the very start of the chain. Its job is to silence the signal when nothing useful is happening — eliminating breath noise, room hiss, bleed from other instruments, electrical hum, and mic self-noise.<br><br>
+If you let noise through before gating, <em>every plugin downstream processes that noise too</em>. Your EQ will shape it. Your compressor will level it and potentially pump it louder during quiet passages. Your saturation will add harmonics to it. Your reverb will wash it out into a continuous hiss in the tail.<br><br>
+Gate first and you feed <strong>a clean, intentional signal</strong> to every plugin in the rest of the chain. No downstream plugin has to fight the noise floor — they only ever hear what you actually want to process.`,
+    keyPoints: [
+      { strong: 'Gate/Expander', rest: ' — silences the signal below a threshold to remove unwanted noise' },
+      { strong: 'First in chain', rest: ' so no downstream plugin processes noise' },
+      { strong: 'Not always needed', rest: ' — synthesizers and well-recorded sources may not need gating' },
+      { strong: 'Expander', rest: ' — a gentler alternative that reduces rather than cuts' },
+    ],
+    audio: { desc: 'Bursts of tone separated by silence — like a gate opening and closing on a noisy signal, cleaning the gaps between phrases.', type: 'gate' },
+  },
+  {
+    diagram: buildDiagram_eqcomp,
+    number: 'Step 04 — The Great Debate',
+    title: 'EQ → Compression: Which Comes First?',
+    body: `This is the most debated question in mixing signal chains — and the honest answer is: <strong>both orders are valid, with different results.</strong><br><br>
+<strong>EQ before compression</strong> is the most common default. You shape the tone first, then compress the shaped result. The compressor hears a tonally balanced signal and responds to it as a musical whole. Low-end buildup is removed before it can trigger the compressor unevenly. This is clean and predictable.<br><br>
+<strong>Compression before EQ</strong> gives you a different character. The compressor reacts to the raw, unfiltered dynamics — which can produce a punchier, more aggressive result. You then sculpt the compressed sound with EQ. This is great when you <em>want</em> the compressor to react to the full frequency content, or when you're using EQ for creative post-shaping rather than corrective cleanup.<br><br>
+Many engineers run <strong>two EQs</strong>: a corrective EQ before the compressor, and a creative EQ after it.`,
+    keyPoints: [
+      { strong: 'EQ → COMP', rest: ' — cleaner, more predictable compression; compressor hears what you intended' },
+      { strong: 'COMP → EQ', rest: ' — punchier character; great for creative shaping after compression' },
+      { strong: 'Two EQs', rest: ' — corrective before comp, creative after — used by many top engineers' },
+      { strong: 'Listen and decide', rest: ' — try both orders on each source and use what sounds right' },
+    ],
+    audio: { desc: 'Two versions: clean EQ-then-comp chain followed by a comp-then-EQ chain with an exaggerated resonant buildup being compressed.', type: 'eqcomp' },
+  },
+  {
+    diagram: buildDiagram_compsat,
+    number: 'Step 05 — Color and Dynamics',
+    title: 'Compression Before Saturation',
+    body: `When using both compression and saturation, <strong>put compression first in almost every case.</strong><br><br>
+Saturation is a nonlinear process — it adds harmonics in a way that depends on the signal's amplitude. Hit a saturator with a consistent, controlled level and you get <em>even, musical harmonic content</em>. Hit it with wild, uncontrolled peaks and the harmonic content is uneven and often harsh.<br><br>
+The compressor's job is to tame those peaks and bring the signal to a more consistent level. When it hands the signal off to the saturator, the saturator receives a steady, controlled input — and the character it adds is predictable, pleasant, and repeatable.<br><br>
+Saturating first and then compressing is usually counterproductive: the compressor will squash the harmonic content the saturator just added, potentially removing the color you were trying to create.`,
+    keyPoints: [
+      { strong: 'Comp → Sat', rest: ' — saturator receives a controlled signal; even, musical color is added' },
+      { strong: 'Sat → Comp', rest: ' — compressor flattens the harmonics the saturator created; defeats the purpose' },
+      { strong: 'Consistency', rest: ' — saturation is level-dependent; control level first for a predictable result' },
+      { strong: 'Exceptions', rest: ' — creative parallel saturation, or intentional distortion, may break this rule' },
+    ],
+    audio: { desc: 'Compression into saturation — a controlled signal flowing into a tanh waveshaper, adding consistent warmth without erratic peaks.', type: 'compsat' },
+  },
+  {
+    diagram: buildDiagram_insertsends,
+    number: 'Step 06 — Routing',
+    title: 'Inserts vs. Sends',
+    body: `Understanding the difference between <strong>inserts</strong> and <strong>sends</strong> is fundamental to building any signal chain beyond the basics.<br><br>
+<strong>Inserts</strong> are in-line: 100% of the signal passes through the plugin. The processed signal replaces the dry signal entirely. Use inserts for corrective and character processing — EQ, compression, saturation, gating. These need to affect the full signal, not blend with a copy of it.<br><br>
+<strong>Sends</strong> (also called auxiliary sends or FX sends) work differently. They take a copy of the signal and route it to a separate track (the FX return or aux bus). The wet and dry signals are then mixed together. This is the standard approach for <em>time-based effects</em> like reverb and delay — because you want to control the wet/dry ratio, and because it's far more efficient to share one reverb across many tracks than to insert a reverb on every track individually.`,
+    keyPoints: [
+      { strong: 'Insert', rest: ' — in-line; 100% of signal processed; used for EQ, comp, gate, saturation' },
+      { strong: 'Send/Return', rest: ' — parallel; wet blended with dry; used for reverb and delay' },
+      { strong: 'Efficiency', rest: ' — one shared FX return bus vs. a reverb on every channel' },
+      { strong: 'Wet/dry control', rest: ' — sends let you control depth per-channel via send level' },
+    ],
+    audio: { desc: 'A clean dry tone followed by the same tone with a wet blend — simulating the parallel signal path of a send/return effect.', type: 'timebased' },
+  },
+  {
+    diagram: buildDiagram_timebased,
+    number: 'Step 07 — Space and Time',
+    title: 'Time-Based Effects Last',
+    body: `Reverb and delay almost always belong <strong>at the end of the processing chain</strong> — and usually on a send, not an insert.<br><br>
+The reason is simple: reverb and delay print the sound of whatever arrives at their input. Feed them a tonally balanced, dynamically controlled, harmonically shaped signal and they'll print a beautiful, natural-sounding space. Feed them something raw and unprocessed and they'll print the flaws too — muddiness, harshness, noise, and all.<br><br>
+Time-based effects also create <em>sustained tails</em>. If you were to EQ or compress those tails inline, the dynamics of the effect's natural decay would behave unpredictably. Keeping reverb and delay after corrective processing means the tail sits in its own space, naturally, without fighting anything else.<br><br>
+The classic exception: creative reverb or delay <em>before</em> distortion, for shoegaze, ambient, and experimental textures.`,
+    keyPoints: [
+      { strong: 'Reverb and delay last', rest: ' — they print whatever they receive, so give them your best signal' },
+      { strong: 'Use sends', rest: ' — parallel routing for level control and efficiency' },
+      { strong: 'Tails need space', rest: ' — compressing or EQing reverb tails sounds unnatural' },
+      { strong: 'Creative exceptions', rest: ' — reverb before distortion creates intentional wash and texture' },
+    ],
+    audio: { desc: 'A dry transient stab, then the same stab with a long reverb tail — demonstrating why space is added last.', type: 'timebased' },
+  },
+  {
+    diagram: buildDiagram_masterbus,
+    number: 'Step 08 — Summing',
+    title: 'The Master Bus Chain',
+    body: `The <strong>master bus</strong> (or 2-bus) receives the sum of every channel in your mix. Its chain shapes the final character of the entire record — so the approach is different from channel processing.<br><br>
+A typical master bus chain: <strong>broad EQ</strong> for gentle tonal shaping → <strong>glue compression</strong> to knit tracks together → <strong>subtle saturation</strong> for warmth and cohesion → <strong>limiting</strong> to set the ceiling and final loudness.<br><br>
+The key word on the master bus is <em>subtle</em>. Each processor should be doing very little work — you're not correcting problems here, you're adding the final coat of polish. If your master bus compressor is working hard, the problem is in the mix, not on the master bus. Fix it there.<br><br>
+The limiter always comes last — it catches peaks and prevents clipping. Nothing should come after the limiter.`,
+    keyPoints: [
+      { strong: 'Glue EQ', rest: ' — broad, gentle moves to shape the overall tonal balance' },
+      { strong: 'Glue comp', rest: ' — low ratio, slow attack; knits tracks together without audible pumping' },
+      { strong: 'Limiter last', rest: ' — always the final stage; catches peaks and sets loudness ceiling' },
+      { strong: 'Subtle processing', rest: ' — if the master bus is working hard, fix the mix first' },
+    ],
+    audio: { desc: 'Six layered oscillators summing into a gentle glue compressor then a limiter — the sound of a mix bus doing its job quietly.', type: 'masterbus' },
+  },
+  {
+    diagram: buildDiagram_templates,
+    number: 'Step 09 — Putting It Together',
+    title: 'Practical Signal Chain Templates',
+    body: `Now that you understand the principles, here are starting-point templates for common sources. These aren't rigid rules — they're <strong>logical defaults</strong> you can adapt by ear.<br><br>
+<strong>Vocals:</strong> Gate → EQ (corrective) → Comp → De-esser → Sat → send to Reverb &amp; Delay<br><br>
+<strong>Drums:</strong> Gate → EQ → Comp → Transient Shaper → Sat → Limiter on sub-bus<br><br>
+<strong>Guitar:</strong> EQ (no gate needed) → Comp → Sat → send to Delay → send to Reverb<br><br>
+The through-line is always the same: <em>clean first, shape second, color third, space last.</em> Remove noise, control dynamics, add character, then place the sound in a space. Everything else is a variation on that sequence.<br><br>
+Your ears are the final judge. Use these templates as a foundation, then move things around intentionally — and always listen to what each change actually does.`,
+    keyPoints: [
+      { strong: 'Templates are starting points', rest: ' — adapt by ear for every source' },
+      { strong: 'Clean → Shape → Color → Space', rest: ' — the universal signal chain logic' },
+      { strong: 'Noise control first', rest: ' — don\'t let downstream plugins process what you don\'t want' },
+      { strong: 'Time-based effects last', rest: ' — always via sends for control and efficiency' },
+    ],
+    audio: { desc: 'A full processed signal chain: source through filter, compression, saturation, then a natural reverb tail — all the stages in sequence.', type: 'fullchain' },
+  },
+];
+
+// ─────────────────────────────────────────────────────────────
+//  RENDER ENGINE
+// ─────────────────────────────────────────────────────────────
+
+let currentStep = 0;
+
+function renderDots() {
+  const dots = document.getElementById('progressDots');
+  const label = document.getElementById('progressLabel');
+  dots.innerHTML = steps.map((_, i) =>
+    `<div class="progress-dot ${i < currentStep ? 'done' : ''} ${i === currentStep ? 'active' : ''}" onclick="goToStep(${i})"></div>`
+  ).join('');
+  label.textContent = `Step ${currentStep + 1} of ${steps.length}`;
+}
+
+function renderStep(idx) {
+  stopAudio();
+  const step = steps[idx];
+  const card = document.getElementById('stepCard');
+  const kp = step.keyPoints.map(k =>
+    `<div class="key-point"><strong>${k.strong}</strong>${k.rest}</div>`
+  ).join('');
+  card.innerHTML = `
+    <div class="diagram-wrap">${step.diagram()}</div>
+    <div class="step-inner">
+      <div class="step-number">${step.number}</div>
+      <h2 class="step-title">${step.title}</h2>
+      <div class="step-body">${step.body}</div>
+      <div class="key-points">
+        <div class="key-points-label">Key Concepts</div>
+        ${kp}
+      </div>
+      <div class="audio-demo">
+        <div class="audio-demo-label">Audio Demo</div>
+        <div class="audio-demo-desc">${step.audio.desc}</div>
+        <div class="demo-controls">
+          <button class="play-btn" id="demoBtn" onclick="playDemo('${step.audio.type}', this)">
+            ${playSVG()} Play Demo
+          </button>
+          <div class="vol-wrap">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(107,114,128,0.7)" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            <input type="range" class="vol-slider" min="0" max="1" step="0.01" value="${volumeLevel}" oninput="setVolume(this.value)">
+          </div>
+        </div>
+      </div>
+    </div>`;
+  renderDots();
+  renderNav();
+}
+
+function renderNav() {
+  const prev = document.getElementById('prevBtn');
+  const next = document.getElementById('nextBtn');
+  const counter = document.getElementById('stepCounter');
+  prev.disabled = currentStep === 0;
+  counter.textContent = `${currentStep + 1} / ${steps.length}`;
+  if (currentStep === steps.length - 1) {
+    next.textContent = 'Complete ✓';
+    next.classList.add('finish');
+    next.classList.remove('primary');
+    next.onclick = showCompletion;
+  } else {
+    next.textContent = 'Next →';
+    next.classList.remove('finish');
+    next.classList.add('primary');
+    next.onclick = () => navigate(1);
+  }
+}
+
+function navigate(dir) {
+  const next = currentStep + dir;
+  if (next < 0 || next >= steps.length) return;
+  currentStep = next;
+  renderStep(currentStep);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function goToStep(idx) {
+  currentStep = idx;
+  renderStep(currentStep);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function setVolume(v) {
+  volumeLevel = parseFloat(v);
+  if (masterGain) masterGain.gain.value = volumeLevel;
+}
+
+function showCompletion() {
+  stopAudio();
+  const card = document.getElementById('stepCard');
+  const nav = document.getElementById('stepNav');
+  nav.style.display = 'none';
+  card.innerHTML = `
+    <div class="completion-card">
+      <div style="font-size:48px;margin-bottom:20px;">⛓️</div>
+      <div class="completion-title">Signal Chain Complete</div>
+      <p class="completion-sub">You now understand the architecture behind every great mix — clean → shape → color → space, in that order, every time.</p>
+      <a class="completion-cta" href="/signal-chain-architect/">Try Signal Chain Architect →</a>
+      <button class="completion-restart" onclick="restartModule()">↩ Restart module</button>
+    </div>`;
+  const dots = document.getElementById('progressDots');
+  dots.innerHTML = steps.map((_, i) => `<div class="progress-dot done"></div>`).join('');
+  document.getElementById('progressLabel').textContent = 'Complete!';
+}
+
+function restartModule() {
+  currentStep = 0;
+  document.getElementById('stepNav').style.display = '';
+  renderStep(0);
+}
+
+renderStep(0);
+</script>
+<script>
+buildSidebar('signal-chain');
+initMobileSidebar();
+// Wire sidebar active state to navigation
+(function() {
+  var _orig = window.goToStep;
+  if (typeof _orig === 'function') {
+    window.goToStep = function(i) { _orig(i); updateSidebarActive(i, 'signal-chain'); };
+  }
+  var _origNav = window.navigate;
+  if (typeof _origNav === 'function') {
+    window.navigate = function(dir) { _origNav(dir); setTimeout(function(){updateSidebarActive(window.currentStep||0,'signal-chain');},0); };
+  }
+  setTimeout(function(){updateSidebarActive(window.currentStep||0,'signal-chain');},50);
+})();
+</script>
+
+</body>
+</html>

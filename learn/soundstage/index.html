@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cloud.umami.is 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://aolaxmmrmvovbzumlybe.supabase.co wss://aolaxmmrmvovbzumlybe.supabase.co https://cloud.umami.is; img-src 'self' data:; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="canonical" href="https://sonicsandbox.app/learn/soundstage/">
+
+<title>Stereo Imaging and Soundstage — Spatial Mixing Guide | SonicSandbox</title>
+<meta name="description" content="Learn stereo imaging and soundstage — panning, stereo width, mid-side processing, and spatial placement explained for producers and engineers.">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
+<style>
+  /* ── Critical fallback (duplicates style.css; ensures dark theme
+     even when /style.css fails to load, e.g. file:// preview) ── */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg:      #0a0b0d;
+    --surface: #13151a;
+    --surface2:#1a1d24;
+    --surface3:#21252f;
+    --border:  rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text:    #dde2ee;
+    --muted:   #6b7280;
+    --accent:  #5b6aff;
+    --accent2: #8892ff;
+    --green: #3ecf8e; --amber: #f59e0b; --red: #f45b69;
+    --eq-accent:    #5b6aff;  --eq-accent2:    #8892ff;
+    --comp-accent:  #e8865a;  --comp-accent2:  #f0a882;
+    --rev-accent:   #5b3fd4;  --rev-accent2:   #8b6fff;
+    --dist-accent:  #d44a2a;  --dist-accent2:  #f07050;
+    --fq-accent:    #00d4ff;  --fq-accent2:    #60e8ff;
+    --fh-accent:    #00e5cc;  --fh-accent2:    #50f0d8;
+    --pan-accent:   #7c5cfc;  --pan-accent2:   #a58aff;
+    --qc-accent:    #2dd4a0;  --qc-accent2:    #5eefc0;
+    --delay-accent: #f97316;  --delay-accent2: #fb923c;
+    --ll-accent:    #f0b429;  --ll-accent2:    #ffd166;
+    --qeq-accent:   #818cf8;  --qeq-accent2:   #a5b4fc;
+    --sca-accent:   #39d353;  --sca-accent2:   #7ce88f;
+    --sidebar-w: 264px;
+    --learn-accent: #38bdf8; --learn-accent2: #7dd3fc;
+    --stage-accent: #38bdf8; --stage-accent2: #7dd3fc;
+  }
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+  }
+
+nav {
+    width: 100%;
+    padding: 20px 32px;
+    display: flex; align-items: center;
+  }
+.nav-logo span { color: var(--stage-accent2); }
+@media (max-width: 600px) {
+    nav { padding: 16px 20px; }
+}
+.page-header { width: 100%; max-width: 1280px; padding: 52px 24px 40px; text-align: center; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px); background-size: 28px 28px; }
+  .page-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 18px;
+  }
+  .page-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(26px, 4vw, 44px); font-weight: 600;
+    letter-spacing: -0.03em; line-height: 1.15; color: var(--text); margin-bottom: 14px;
+  }
+  .page-sub { font-size: 15px; color: var(--muted); font-weight: 300; max-width: 520px; margin: 0 auto; line-height: 1.7; }
+
+  .tool-selector-wrap { width: 100%; max-width: 900px; padding: 32px 24px 40px; }
+  .tool-selector-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 14px;
+  }
+  .tool-selector { display: flex; gap: 10px; flex-wrap: wrap; }
+  .tool-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 18px; border-radius: 10px;
+    border: 1px solid var(--border2); background: var(--surface2);
+    font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600;
+    color: var(--muted); cursor: pointer; text-decoration: none;
+    transition: border-color 0.18s, color 0.18s, background 0.18s, transform 0.18s;
+  }
+  .tool-btn.active { border-color: var(--stage-accent); color: var(--stage-accent2); background: rgba(14,165,233,0.1); }
+  .tool-btn.disabled { opacity: 0.38; cursor: not-allowed; pointer-events: none; }
+  .tool-btn:not(.disabled):not(.active):hover { color: var(--text); background: var(--surface3); transform: translateY(-1px); }
+  .soon-badge {
+    font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    background: rgba(255,255,255,0.06); color: var(--muted);
+    padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.08);
+  }
+  .tool-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: 0.7; flex-shrink: 0; }
+
+  .module-wrap { width: 100%; max-width: 860px; padding: 36px 24px 80px; }
+
+  .progress-bar-wrap { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+  .progress-dots { display: flex; gap: 6px; flex-wrap: wrap; }
+  .progress-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--border2);
+    transition: background 0.2s, transform 0.2s; cursor: pointer;
+  }
+  .progress-dot.done   { background: rgba(14,165,233,0.45); }
+  .progress-dot.active { background: var(--stage-accent2); transform: scale(1.3); }
+  .progress-label {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-left: auto;
+  }
+
+  .step-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 0 0 32px; position: relative; overflow: hidden;
+  }
+  .step-card::before {
+    content: ''; position: absolute; inset: 0; border-radius: 20px;
+    background: radial-gradient(ellipse at top left, rgba(14,165,233,0.07), transparent 55%);
+    pointer-events: none;
+  }
+
+  /* Visualizer sits at top of card, edge-to-edge */
+  .stage-viz-wrap {
+    width: 100%; border-radius: 20px 20px 0 0;
+    overflow: hidden; position: relative;
+    background: radial-gradient(ellipse at 50% 85%, rgba(14,165,233,0.06) 0%, rgba(10,11,13,0.95) 70%);
+    border-bottom: 1px solid var(--border);
+  }
+  canvas.stage-canvas { width: 100%; display: block; }
+
+  .step-inner { padding: 28px 36px 0; }
+
+  .step-number {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--stage-accent); margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .step-number::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .step-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(18px, 2.8vw, 26px); font-weight: 600;
+    letter-spacing: -0.02em; color: var(--text); margin-bottom: 16px; line-height: 1.25;
+  }
+  .step-body { font-size: 15px; color: var(--muted); line-height: 1.75; font-weight: 300; margin-bottom: 24px; }
+  .step-body strong { color: var(--text); font-weight: 500; }
+  .step-body em { color: var(--stage-accent2); font-style: normal; font-weight: 500; }
+
+  .key-points {
+    background: rgba(14,165,233,0.05); border: 1px solid rgba(14,165,233,0.16);
+    border-radius: 12px; padding: 18px 20px; margin-bottom: 24px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .key-points-label {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--stage-accent); margin-bottom: 4px;
+  }
+  .key-point { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--muted); line-height: 1.55; }
+  .key-point::before { content: '→'; color: var(--stage-accent2); font-family: 'IBM Plex Mono', monospace; font-size: 12px; margin-top: 1px; flex-shrink: 0; }
+  .key-point strong { color: var(--text); font-weight: 500; }
+
+  .audio-demo {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 20px; margin-bottom: 4px;
+  }
+  .audio-demo-label {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+  }
+  .audio-demo-desc { font-size: 13px; color: var(--muted); line-height: 1.55; margin-bottom: 14px; }
+  .demo-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .play-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 9px 18px; border-radius: 8px;
+    background: var(--stage-accent); border: none;
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; color: #fff;
+    cursor: pointer; transition: transform 0.15s, opacity 0.15s; flex-shrink: 0;
+  }
+  .play-btn:hover { transform: scale(1.04); opacity: 0.9; }
+  .play-btn.playing { background: rgba(14,165,233,0.2); border: 1.5px solid var(--stage-accent); color: var(--stage-accent2); }
+  .play-btn.secondary { background: var(--surface3); border: 1px solid var(--border2); color: var(--muted); }
+  .play-btn.secondary:hover { color: var(--text); }
+  .play-btn.secondary.playing { background: rgba(14,165,233,0.1); border-color: var(--stage-accent); color: var(--stage-accent2); }
+
+  .vol-wrap { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  input[type=range].vol-slider {
+    -webkit-appearance: none; appearance: none; width: 72px; height: 3px;
+    border-radius: 2px; background: var(--border2); outline: none; cursor: pointer;
+  }
+  input[type=range].vol-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 13px; height: 13px;
+    border-radius: 50%; background: var(--stage-accent2); cursor: pointer;
+  }
+
+  .step-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; margin-top: 20px;
+  }
+  .nav-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 11px 22px; border-radius: 10px;
+    border: 1px solid var(--border2); background: var(--surface2);
+    font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; color: var(--muted);
+    cursor: pointer; transition: border-color 0.15s, color 0.15s, transform 0.15s; text-decoration: none;
+  }
+  .nav-btn:hover { color: var(--text); transform: translateY(-1px); }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+  .nav-btn.primary { background: var(--stage-accent); border-color: var(--stage-accent); color: #fff; }
+  .nav-btn.primary:hover { opacity: 0.88; }
+  .nav-btn.finish { background: rgba(14,165,233,0.15); border-color: var(--stage-accent); color: var(--stage-accent2); }
+  .step-counter { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--muted); }
+
+  .completion-card { text-align: center; padding: 56px 36px; }
+  .completion-title { font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
+  .completion-sub { font-size: 15px; color: var(--muted); line-height: 1.7; max-width: 440px; margin: 0 auto 32px; }
+  .completion-cta {
+    display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; border-radius: 10px;
+    background: var(--stage-accent); color: #fff; font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px; font-weight: 600; text-decoration: none; transition: opacity 0.15s, transform 0.15s;
+  }
+  .completion-cta:hover { opacity: 0.88; transform: translateY(-1px); }
+  .completion-restart { display: block; margin: 18px auto 0; background: none; border: none; color: var(--muted); font-size: 13px; cursor: pointer; text-decoration: underline; font-family: inherit; }
+  .completion-restart:hover { color: var(--text); }
+@media (max-width: 600px) {
+    .step-inner { padding: 20px 20px 0; }
+    .module-wrap { padding: 0 16px 60px; }
+    .tool-selector-wrap { padding: 0 16px 32px; }
+    .page-header { padding: 32px 16px 24px; }
+    .step-nav { flex-direction: column; }
+    .nav-btn { width: 100%; justify-content: center; }
+  }
+
+  /* ── Learn layout ───────────────────────────────────────── */
+  .learn-layout { flex: 1; display: flex; align-items: flex-start; }
+  .learn-sidebar {
+    width: var(--sidebar-w); flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    position: sticky; top: 61px; height: calc(100vh - 61px);
+    overflow-y: auto; background: var(--bg);
+    scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.08) transparent; z-index: 10;
+  }
+  .learn-sidebar::-webkit-scrollbar { width: 4px; }
+  .learn-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+  .sidebar-header { padding: 16px 20px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--bg); z-index: 1; }
+  .sidebar-header-label { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+  .sidebar-close-btn { display: none; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 20px; line-height: 1; padding: 0 2px; }
+  .sidebar-close-btn:hover { color: var(--text); }
+  .sidebar-body { padding: 10px 0 48px; }
+  .sidebar-section { margin-bottom: 2px; }
+  .sidebar-section-label { display: flex; align-items: center; gap: 8px; padding: 12px 20px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.28); }
+  .section-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+  .sidebar-divider { height: 1px; background: var(--border); margin: 10px 0 6px; }
+  .course-hdr { display: flex; align-items: center; gap: 8px; padding: 7px 20px; cursor: pointer; transition: background 0.14s; user-select: none; }
+  .course-hdr:hover { background: rgba(255,255,255,0.035); }
+  .course-n { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; color: var(--muted); min-width: 18px; flex-shrink: 0; }
+  .course-label { font-size: 12.5px; font-weight: 500; color: var(--text); flex: 1; line-height: 1.3; }
+  .course-soon-badge { font-family: 'IBM Plex Mono', monospace; font-size: 7.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.22); padding: 2px 5px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
+  .course-chevron { color: var(--muted); font-size: 12px; flex-shrink: 0; transition: transform 0.18s; }
+  .sidebar-course.is-open .course-chevron { transform: rotate(90deg); }
+  .course-lessons { display: none; padding: 1px 0 4px; border-left: 2px solid var(--border); margin-left: 28px; }
+  .sidebar-course.is-open .course-lessons { display: block; }
+  .lesson-row { display: flex; align-items: flex-start; gap: 8px; padding: 4px 16px 4px 12px; cursor: pointer; transition: background 0.12s; border-left: 2px solid transparent; margin-left: -2px; text-decoration: none; }
+  .lesson-row:hover:not(.lesson-soon) { background: rgba(255,255,255,0.035); }
+  .lesson-row.is-active { background: rgba(255,255,255,0.05); }
+  .lesson-n { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--muted); min-width: 28px; flex-shrink: 0; padding-top: 1px; }
+  .lesson-label { font-size: 11.5px; color: var(--muted); line-height: 1.45; font-weight: 300; }
+  .lesson-row.is-active .lesson-label { color: var(--text); font-weight: 400; }
+  .lesson-row.lesson-soon { opacity: 0.38; cursor: not-allowed; }
+  .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 30; backdrop-filter: blur(1px); }
+  .sidebar-overlay.is-open { display: block; }
+  .learn-main { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; }
+  .learn-breadcrumb { width: 100%; padding: 13px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .breadcrumb-toggle { display: none; align-items: center; gap: 7px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 7px; padding: 6px 11px; cursor: pointer; font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; color: var(--muted); flex-shrink: 0; }
+  .breadcrumb-toggle:hover { color: var(--text); }
+  .bc-path { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.04em; display: flex; align-items: center; gap: 6px; }
+  .bc-path a { color: var(--muted); text-decoration: none; }
+  .bc-path a:hover { color: var(--text); }
+  .bc-sep { opacity: 0.35; }
+  .bc-current { color: var(--text); font-weight: 500; }
+  @media (max-width: 900px) {
+    .learn-sidebar { position: fixed; top: 0; left: 0; height: 100vh; transform: translateX(-100%); transition: transform 0.24s cubic-bezier(0.4,0,0.2,1); z-index: 50; box-shadow: 4px 0 24px rgba(0,0,0,0.5); border-right: 1px solid var(--border2); }
+    .learn-sidebar.is-open { transform: translateX(0); }
+    .sidebar-close-btn { display: block; }
+    .breadcrumb-toggle { display: flex; }
+    .learn-main { width: 100%; }
+  }
+
+</style>
+
+  <!-- Open Graph / Social -->
+  <meta property="og:type"        content="website">
+  <meta property="og:url"         content="https://sonicsandbox.app/learn/soundstage/">
+  <meta property="og:title"       content="Stereo Imaging and Soundstage — Spatial Mixing Guide | SonicSandbox">
+  <meta property="og:description" content="Learn stereo imaging and soundstage — panning, stereo width, mid-side processing, and spatial placement explained for producers and engineers.">
+  <meta property="og:image"       content="https://sonicsandbox.app/og-image.png">
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:title"       content="Stereo Imaging and Soundstage — Spatial Mixing Guide | SonicSandbox">
+  <meta name="twitter:description" content="Learn stereo imaging and soundstage — panning, stereo width, mid-side processing, and spatial placement explained for producers and engineers.">
+  <meta name="twitter:image"       content="https://sonicsandbox.app/og-image.png">
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="a4e7fbcc-763c-4844-8f4f-669cf411e799"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LearningResource",
+    "name": "Spatial Mixing — Learn Stereo Imaging and Soundstage",
+    "url": "https://sonicsandbox.app/learn/soundstage/",
+    "description": "Learn stereo imaging and soundstage — panning, stereo width, mid-side processing, and spatial placement explained for producers and engineers.",
+    "teaches": "Stereo imaging, panning, spatial mixing",
+    "educationalLevel": "Beginner",
+    "isAccessibleForFree": true,
+    "provider": {
+      "@type": "Organization",
+      "name": "SonicSandbox",
+      "url": "https://sonicsandbox.app/"
+    }
+  }
+  </script>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo-wrap">
+    <a class="nav-logo" href="/">Sonic<span>Sandbox</span></a>
+  </div>
+    <div class="nav-center">
+    <a class="nav-link" href="/">Home</a>
+    <a class="nav-link" href="/games/">Games</a>
+    <a class="nav-link active" href="/learn/">Learn</a>
+    <a class="nav-link" href="/stats/">Stats</a>
+  </div>
+    <div class="nav-right">
+    <div id="authArea"><button class="auth-btn" id="openAuthBtn">Sign in</button></div>
+  </div>
+</nav>
+<div class="learn-layout">
+
+  <aside class="learn-sidebar" id="learnSidebar" aria-label="Course navigation">
+    <div class="sidebar-header">
+      <span class="sidebar-header-label">Learning Center</span>
+      <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close menu">✕</button>
+    </div>
+    <div class="sidebar-body" id="sidebarBody"></div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <main class="learn-main">
+
+    <div class="learn-breadcrumb">
+      <button class="breadcrumb-toggle" id="sidebarToggleBtn" aria-label="Open course menu">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <rect y="1" width="14" height="1.5" rx="0.75" fill="currentColor"/>
+          <rect y="6" width="10" height="1.5" rx="0.75" fill="currentColor"/>
+          <rect y="11" width="12" height="1.5" rx="0.75" fill="currentColor"/>
+        </svg>
+        Courses
+      </button>
+      <div class="bc-path">
+        <a href="/learn/">Learn</a>
+        <span class="bc-sep">›</span>
+        <span>Audio Engineering</span>
+        <span class="bc-sep">›</span>
+        <span class="bc-current">Spatial Mixing</span>
+      </div>
+    </div>
+
+<div class="module-wrap">
+  <div class="progress-bar-wrap">
+    <div class="progress-dots" id="progressDots"></div>
+    <div class="progress-label" id="progressLabel">Step 1 of 10</div>
+  </div>
+  <div class="step-card" id="stepCard"></div>
+  <div class="step-nav" id="stepNav" style="margin-top:20px;">
+    <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>← Previous</button>
+    <span class="step-counter" id="stepCounter"></span>
+    <button class="nav-btn primary" id="nextBtn" onclick="navigate(1)">Next →</button>
+  </div>
+</div>
+
+
+  </main>
+</div><!-- /learn-layout -->
+
+<footer>
+  <div class="footer-left">
+    <a href="/">SonicSandbox</a>
+    &nbsp;·&nbsp; Ear training for producers, engineers, &amp; musicians
+    &nbsp;·&nbsp; <a href="/about/">About</a>
+    &nbsp;·&nbsp; <a href="/privacy/">Privacy Policy</a>
+    &nbsp;·&nbsp; <a href="/support/">Support</a>
+  </div>
+  <div class="footer-right">
+    <span>© 2026 Zach Snider</span>
+  </div>
+</footer>
+
+<!-- ── Auth modal ────────────────────────────────────────── -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" id="closeAuthBtn">&times;</button>
+    <div class="modal-tabs">
+      <button class="modal-tab active" data-tab="signin">Sign in</button>
+      <button class="modal-tab" data-tab="signup">Create account</button>
+    </div>
+    <div id="tabSignin">
+      <label>Email</label>
+      <input type="email" id="siEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label>
+      <input type="password" id="siPassword" placeholder="••••••••" autocomplete="current-password">
+      <button class="modal-submit" id="siSubmit">Sign in</button>
+      <div class="modal-msg" id="siMsg"></div>
+      <button class="forgot-pw-link" id="forgotPwBtn" type="button">Forgot password?</button>
+    </div>
+    <div id="tabForgot" style="display:none;">
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:18px;">Enter your email and we'll send you a reset link.</p>
+      <label>Email</label>
+      <input type="email" id="fpEmail" placeholder="you@example.com" autocomplete="email">
+      <button class="modal-submit" id="fpSubmit">Send reset link</button>
+      <div class="modal-msg" id="fpMsg"></div>
+      <button class="forgot-pw-link" id="backToSigninBtn" type="button">← Back to sign in</button>
+    </div>
+    <div id="tabSignup" style="display:none;">
+      <label>Email</label>
+      <input type="email" id="suEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label>
+      <input type="password" id="suPassword" placeholder="At least 6 characters" autocomplete="new-password">
+      <button class="modal-submit" id="suSubmit">Create account</button>
+      <div class="modal-msg" id="suMsg"></div>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="usernameModal">
+  <div class="modal">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent2);margin-bottom:8px;">Welcome</div>
+    <h2 style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;margin-bottom:10px;">Choose a username</h2>
+    <p style="font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:26px;">Your username will appear on leaderboards and game stats.</p>
+    <label for="usernameInput">Username</label>
+    <input type="text" id="usernameInput" placeholder="e.g. basshead42" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <div class="username-check" id="usernameCheck"></div>
+    <p class="username-hint">3–20 characters · Letters, numbers, _ and - only</p>
+    <button class="modal-submit" id="usernameSubmit">Set username</button>
+    <div class="modal-msg" id="usernameMsg"></div>
+    <button class="username-skip" id="usernameSkip">Skip for now</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/supabase-client.js"></script>
+<script>
+// ── Auth modal ────────────────────────────────────────────────
+const authModal=document.getElementById('authModal'),authArea=document.getElementById('authArea');
+const closeBtn=document.getElementById('closeAuthBtn'),tabs=document.querySelectorAll('.modal-tab');
+const tabSignin=document.getElementById('tabSignin'),tabSignup=document.getElementById('tabSignup'),tabForgot=document.getElementById('tabForgot');
+function openAuthModal(){authModal.classList.add('open');}function closeAuthModal(){authModal.classList.remove('open');showSigninPanel();}
+document.getElementById('openAuthBtn').addEventListener('click',openAuthModal);
+closeBtn.addEventListener('click',closeAuthModal);
+authModal.addEventListener('click',e=>{if(e.target===authModal)closeAuthModal();});
+tabs.forEach(tab=>{tab.addEventListener('click',()=>{tabs.forEach(t=>t.classList.remove('active'));tab.classList.add('active');tabSignin.style.display=tab.dataset.tab==='signin'?'':'none';tabSignup.style.display=tab.dataset.tab==='signup'?'':'none';tabForgot.style.display='none';});});
+function showForgotPanel(){tabSignin.style.display='none';tabForgot.style.display='';const e=document.getElementById('siEmail').value.trim();if(e)document.getElementById('fpEmail').value=e;document.getElementById('fpMsg').textContent='';}
+function showSigninPanel(){tabForgot.style.display='none';tabSignin.style.display='';}
+document.getElementById('forgotPwBtn').addEventListener('click',showForgotPanel);
+document.getElementById('backToSigninBtn').addEventListener('click',showSigninPanel);
+document.getElementById('siSubmit').addEventListener('click',async()=>{const msg=document.getElementById('siMsg');msg.textContent='Signing in…';msg.className='modal-msg';const{error}=await SonicSandbox.signIn(document.getElementById('siEmail').value.trim(),document.getElementById('siPassword').value);if(error){msg.textContent=error.message;msg.className='modal-msg error';}else{closeAuthModal();}});
+document.getElementById('fpSubmit').addEventListener('click',async()=>{const email=document.getElementById('fpEmail').value.trim(),msg=document.getElementById('fpMsg');if(!email){msg.textContent='Please enter your email.';msg.className='modal-msg error';return;}msg.textContent='Sending…';msg.className='modal-msg';const{error}=await SonicSandbox.resetPasswordForEmail(email);if(error){msg.textContent=error.message;msg.className='modal-msg error';}else{msg.textContent='Reset link sent!';msg.className='modal-msg success';document.getElementById('fpSubmit').disabled=true;}});
+document.getElementById('suSubmit').addEventListener('click',async()=>{const msg=document.getElementById('suMsg');msg.textContent='Creating account…';msg.className='modal-msg';const{error}=await SonicSandbox.signUp(document.getElementById('suEmail').value.trim(),document.getElementById('suPassword').value);if(error){msg.textContent=error.message;msg.className='modal-msg error';}else{msg.textContent='Check your email to confirm.';msg.className='modal-msg success';}});
+function validateUsername(val){if(val.length<3)return'Too short';if(val.length>20)return'Too long';if(!/^[a-zA-Z0-9_-]+$/.test(val))return'Letters, numbers, _ and - only';return null;}
+let _unCheckTimer;
+document.getElementById('usernameInput').addEventListener('input',()=>{const val=document.getElementById('usernameInput').value.trim();clearTimeout(_unCheckTimer);const err=validateUsername(val);if(err){document.getElementById('usernameCheck').textContent=val.length>0?err:'';document.getElementById('usernameCheck').className='username-check';return;}document.getElementById('usernameCheck').textContent='Checking…';document.getElementById('usernameCheck').className='username-check';_unCheckTimer=setTimeout(async()=>{const taken=await SonicSandbox.isUsernameTaken(val);document.getElementById('usernameCheck').textContent=taken?`"${val}" is already taken`:`"${val}" is available ✓`;document.getElementById('usernameCheck').className=taken?'username-check taken':'username-check available';},500);});
+document.getElementById('usernameSubmit').addEventListener('click',async()=>{const val=document.getElementById('usernameInput').value.trim(),err=validateUsername(val);if(err){document.getElementById('usernameMsg').textContent=err;document.getElementById('usernameMsg').className='modal-msg error';return;}document.getElementById('usernameMsg').textContent='Saving…';document.getElementById('usernameMsg').className='modal-msg';const{error}=await SonicSandbox.setUsername(val);if(error){document.getElementById('usernameMsg').textContent=error.message;document.getElementById('usernameMsg').className='modal-msg error';}else{document.getElementById('usernameModal').classList.remove('open');}});
+document.getElementById('usernameSkip').addEventListener('click',()=>document.getElementById('usernameModal').classList.remove('open'));
+document.getElementById('usernameModal').addEventListener('click',e=>{if(e.target===document.getElementById('usernameModal'))document.getElementById('usernameModal').classList.remove('open');});
+document.addEventListener('ss:authchange',async e=>{const user=e.detail;if(user){authArea.innerHTML=`<div class="user-pill"><span class="username-display" style="color:var(--muted);font-size:12px;">${user.email}</span></div>`;const profile=await SonicSandbox.getProfile();const el=authArea.querySelector('.username-display');if(!el)return;if(profile?.username){el.outerHTML=`<a class="set-username-link" href="/account/">@${profile.username}</a>`;}else{el.outerHTML=`<a class="set-username-link" href="/account/">Set username</a>`;}}else{authArea.innerHTML=`<button class="auth-btn" id="openAuthBtn">Sign in</button>`;document.getElementById('openAuthBtn').addEventListener('click',openAuthModal);}});
+</script>
+<script src="/learn/ae-shared.js"></script>
+
+
+<script>
+// ─────────────────────────────────────────────────────────────
+//  INSTRUMENT PALETTE
+//  Each instrument: { label, pan, depth, height, width, color }
+//  pan:    -1 (hard L) → +1 (hard R)
+//  depth:   0 (front)  →  1 (back)
+//  height:  0 (bass/floor) → 1 (air/top)
+//  width:   0 (mono point) → 1 (full stereo spread)
+// ─────────────────────────────────────────────────────────────
+
+const C = {
+  vocal:   '#f87171',  // red
+  bass:    '#34d399',  // emerald
+  kick:    '#a78bfa',  // violet
+  snare:   '#fb923c',  // orange
+  guitar:  '#4ade80',  // green
+  keys:    '#fbbf24',  // amber
+  hihat:   '#e879f9',  // pink
+  pad:     '#38bdf8',  // sky
+  reverb:  '#7dd3fc',  // light blue
+  overhead:'#f9a8d4',  // rose
+};
+
+// ─────────────────────────────────────────────────────────────
+//  STEP DATA
+// ─────────────────────────────────────────────────────────────
+
+const steps = [
+
+  // ── Step 1: Introduction ─────────────────────────────────
+  {
+    title: "Spatial Mixing",
+    number: "Step 01 — Introduction",
+    body: `Every mix occupies a three-dimensional space. Even though music plays through speakers or headphones, our ears can perceive <em>depth, width, and height</em> within a recording — and skilled engineers deliberately place each instrument somewhere in that space.
+
+<br><br>The <em>soundstage</em> is the three-dimensional space that surrounds the listener. Every mixing decision — turning up the volume, panning left, adding reverb — moves a sound somewhere in that sphere.
+
+<br><br>The visualizer above is your soundstage. Each colored bubble is an instrument. As you move through this module, you'll learn exactly what controls each axis — and why the best mixes feel <strong>three-dimensional</strong>.`,
+    viz: [
+      { label:'KICK',      pan:  0.00, depth: 0.60, height: 0.12, width: 0.10, color: C.kick,    size: 1.0 },
+      { label:'BASS',      pan:  0.00, depth: 0.55, height: 0.16, width: 0.00, color: C.bass,    size: 1.0 },
+      { label:'SNARE',     pan:  0.00, depth: 0.50, height: 0.38, width: 0.15, color: C.snare,   size: 0.9 },
+      { label:'VOCAL',     pan:  0.00, depth: 0.20, height: 0.65, width: 0.15, color: C.vocal,   size: 1.1 },
+      { label:'GTR L',     pan: -0.60, depth: 0.45, height: 0.52, width: 0.20, color: C.guitar,  size: 0.85 },
+      { label:'GTR R',     pan:  0.60, depth: 0.45, height: 0.52, width: 0.20, color: C.guitar,  size: 0.85 },
+      { label:'HI-HAT',    pan: -0.38, depth: 0.38, height: 0.82, width: 0.20, color: C.hihat,   size: 0.65 },
+      { label:'PAD',       pan:  0.00, depth: 0.82, height: 0.58, width: 0.90, color: C.pad,     size: 1.0 },
+    ],
+    axisHints: { lr: true, fb: true, ud: true },
+    keyPoints: [
+      { strong: "The soundstage", rest: " — a three-dimensional space surrounding the listener where instruments are placed" },
+      { strong: "Three axes", rest: " — left-right (panning), front-back (depth), and up-down (frequency)" },
+      { strong: "Every parameter places sound", rest: " — volume, pan, reverb, and EQ all contribute to 3D position" },
+    ],
+    audio: { type: 'mix', desc: "A simple mix demonstrating all three axes — pan, depth, and frequency height working together." }
+  },
+
+  // ── Step 2: The Three Axes ────────────────────────────────
+  {
+    title: "The Three Axes",
+    number: "Step 02 — Spatial Overview",
+    body: `The soundstage has three axes, each controlled by a different set of tools.
+
+<br><br>The <em>horizontal axis</em> — left to right — is controlled by <strong>panning</strong>. This is the most obvious spatial dimension: a sound panned left appears to come from the left speaker, panned right from the right.
+
+<br><br>The <em>depth axis</em> — front to back — is primarily controlled by <strong>volume</strong> and <strong>reverb</strong>. Louder, drier sounds appear closer. Quieter, wetter sounds recede. This is the axis that most beginners neglect — and mastering it is what separates a flat mix from a three-dimensional one.
+
+<br><br>The <em>vertical axis</em> — up and down — is a perceptual artifact of <strong>frequency content</strong>. Bass-heavy sounds feel grounded at the bottom of the soundstage, while bright, airy sounds float near the top.`,
+    viz: [
+      { label:'KICK',      pan:  0.00, depth: 0.60, height: 0.12, width: 0.10, color: C.kick,   size: 1.0 },
+      { label:'BASS',      pan:  0.00, depth: 0.55, height: 0.16, width: 0.00, color: C.bass,   size: 1.0 },
+      { label:'SNARE',     pan:  0.00, depth: 0.50, height: 0.38, width: 0.15, color: C.snare,  size: 0.9 },
+      { label:'VOCAL',     pan:  0.00, depth: 0.20, height: 0.65, width: 0.15, color: C.vocal,  size: 1.1 },
+      { label:'GTR L',     pan: -0.60, depth: 0.45, height: 0.52, width: 0.20, color: C.guitar, size: 0.85 },
+      { label:'GTR R',     pan:  0.60, depth: 0.45, height: 0.52, width: 0.20, color: C.guitar, size: 0.85 },
+      { label:'HI-HAT',    pan: -0.38, depth: 0.38, height: 0.82, width: 0.20, color: C.hihat,  size: 0.65 },
+      { label:'PAD',       pan:  0.00, depth: 0.82, height: 0.58, width: 0.90, color: C.pad,    size: 1.0 },
+    ],
+    axisHints: { lr: true, fb: true, ud: true },
+    showAxisLabels: true,
+    keyPoints: [
+      { strong: "Left–Right", rest: " — controlled by the pan knob; precise and immediate" },
+      { strong: "Front–Back", rest: " — controlled by volume (louder = closer) and reverb (wetter = further)" },
+      { strong: "Up–Down", rest: " — controlled by frequency content (low = bottom, high = top of stage)" },
+      { strong: "Width", rest: " — a fourth dimension: how wide an instrument's stereo image spreads" },
+    ],
+    audio: { type: 'mix', desc: "Listen with headphones — try to identify where each element sits in the space." }
+  },
+
+  // ── Step 3: Left & Right ─────────────────────────────────
+  {
+    title: "Left & Right — Panning",
+    number: "Step 03 — Horizontal Axis",
+    body: `Panning is the most direct spatial tool. The <strong>pan knob</strong> positions a mono sound anywhere between the left and right speakers, creating the horizontal axis of the soundstage.
+
+<br><br>Convention in most genres: <em>kick, bass, and lead vocal at center</em> — these are the mix's anchor. Guitars, keys, and supporting elements spread outward. Extreme hard-panning (100% left or right) is bold; subtle offsets (15–30%) are common for creating a sense of space without imbalance.
+
+<br><br>Stereo balance matters: if you pan an element hard left, there should usually be something of similar weight on the right — either another instrument, a doubled part, or a wide element like a pad. An <em>imbalanced mix</em> feels like the soundstage is tilting.`,
+    viz: [
+      { label:'KICK',    pan:  0.00, depth: 0.50, height: 0.38, width: 0.05, color: C.kick,   size: 1.0 },
+      { label:'BASS',    pan:  0.00, depth: 0.50, height: 0.38, width: 0.00, color: C.bass,   size: 1.0 },
+      { label:'VOCAL',   pan:  0.00, depth: 0.50, height: 0.38, width: 0.05, color: C.vocal,  size: 1.1 },
+      { label:'GTR L',   pan: -0.70, depth: 0.50, height: 0.38, width: 0.10, color: C.guitar, size: 0.85 },
+      { label:'GTR R',   pan:  0.70, depth: 0.50, height: 0.38, width: 0.10, color: C.guitar, size: 0.85 },
+      { label:'KEYS L',  pan: -0.35, depth: 0.50, height: 0.38, width: 0.10, color: C.keys,   size: 0.75 },
+      { label:'KEYS R',  pan:  0.35, depth: 0.50, height: 0.38, width: 0.10, color: C.keys,   size: 0.75 },
+      { label:'HI-HAT',  pan: -0.40, depth: 0.50, height: 0.38, width: 0.10, color: C.hihat,  size: 0.60 },
+    ],
+    axisHints: { lr: true, fb: false, ud: false },
+    keyPoints: [
+      { strong: "Center (0°)", rest: " — kick, bass, lead vocal, lead synth — the mix's spine" },
+      { strong: "Slight offset (15–40%)", rest: " — supporting elements: rhythm guitar, backing keys, hi-hats" },
+      { strong: "Hard pan (70–100%)", rest: " — wide elements: doubled guitars, percussion, stereo effects" },
+      { strong: "Balance", rest: " — the left and right sides should feel roughly equal in weight" },
+    ],
+    audio: { type: 'pan-sweep', desc: "A sound sweeping slowly from hard left to hard right — then a mix with clearly panned elements." }
+  },
+
+  // ── Step 4: Front & Back ─────────────────────────────────
+  {
+    title: "Front & Back — Volume Creates Depth",
+    number: "Step 04 — Depth Axis (Volume)",
+    body: `<em>Volume is not just loudness — it is distance.</em> Our ears interpret a louder sound as closer and a quieter sound as farther away. This is because sounds attenuate naturally as they travel through air.
+
+<br><br>In a mix, you create a front-to-back depth by deliberately placing elements at different volume levels. The <strong>lead vocal</strong> is front and center — loud, present, and close. <strong>Backing vocals</strong> sit behind it, slightly quieter. <strong>Reverb tails and ambient elements</strong> recede far into the background.
+
+<br><br>This is where many novice engineers go wrong: they try to make <em>everything loud</em>, and the result is a flat, two-dimensional mix where nothing has perspective. <strong>Pulling things back</strong> — not just pushing things forward — is the key to creating depth.`,
+    viz: [
+      { label:'VOCAL',     pan:  0.00, depth: 0.10, height: 0.55, width: 0.10, color: C.vocal,   size: 1.2 },
+      { label:'SNARE',     pan:  0.00, depth: 0.35, height: 0.40, width: 0.10, color: C.snare,   size: 1.0 },
+      { label:'GTR',       pan: -0.50, depth: 0.50, height: 0.50, width: 0.15, color: C.guitar,  size: 0.85 },
+      { label:'GTR',       pan:  0.50, depth: 0.50, height: 0.50, width: 0.15, color: C.guitar,  size: 0.85 },
+      { label:'BK VOCAL',  pan: -0.25, depth: 0.60, height: 0.60, width: 0.15, color: C.overhead,size: 0.70 },
+      { label:'BK VOCAL',  pan:  0.25, depth: 0.60, height: 0.60, width: 0.15, color: C.overhead,size: 0.70 },
+      { label:'PAD',       pan:  0.00, depth: 0.82, height: 0.55, width: 0.85, color: C.pad,     size: 0.80 },
+      { label:'REVERB',    pan:  0.00, depth: 0.95, height: 0.60, width: 1.00, color: C.reverb,  size: 0.60 },
+    ],
+    axisHints: { lr: false, fb: true, ud: false },
+    keyPoints: [
+      { strong: "Louder = closer", rest: " — the brain interprets amplitude as proximity" },
+      { strong: "The front row", rest: " — lead vocal, lead instrument; loud and dry" },
+      { strong: "The middle distance", rest: " — rhythm instruments, supporting harmonies; moderate level" },
+      { strong: "The back row", rest: " — pads, reverb tails, atmosphere; quiet and receding" },
+    ],
+    audio: { type: 'depth', desc: "The same pink noise tone played close (louder) and distant (quieter) — hear how volume alone shifts the sense of proximity." }
+  },
+
+  // ── Step 5: Up & Down ────────────────────────────────────
+  {
+    title: "Up & Down — Frequency as Height",
+    number: "Step 05 — Vertical Axis",
+    body: `The vertical dimension of the soundstage is not controlled by a single parameter — it <em>emerges from frequency content</em>. Bass-heavy instruments feel grounded and low. High-frequency instruments — hi-hats, cymbals, bright synths — seem to float above the mix.
+
+<br><br>This means <strong>EQ shapes vertical position</strong>. A bass guitar with too much upper-midrange energy will feel cluttered and "tall." A vocal with too little top end will feel heavy and sunken. You can think of EQ not just as tone shaping, but as <em>vertical placement</em> of a sound in the mix.`,
+    viz: [
+      { label:'KICK',      pan: -0.10, depth: 0.50, height: 0.08, width: 0.05, color: C.kick,    size: 1.0 },
+      { label:'BASS',      pan:  0.10, depth: 0.52, height: 0.13, width: 0.00, color: C.bass,    size: 1.0 },
+      { label:'SNARE',     pan:  0.00, depth: 0.48, height: 0.38, width: 0.10, color: C.snare,   size: 0.9 },
+      { label:'GTR',       pan: -0.55, depth: 0.46, height: 0.52, width: 0.15, color: C.guitar,  size: 0.85 },
+      { label:'VOCAL',     pan:  0.00, depth: 0.22, height: 0.62, width: 0.10, color: C.vocal,   size: 1.1 },
+      { label:'KEYS',      pan:  0.45, depth: 0.52, height: 0.72, width: 0.20, color: C.keys,    size: 0.80 },
+      { label:'HI-HAT',    pan: -0.38, depth: 0.36, height: 0.88, width: 0.18, color: C.hihat,   size: 0.60 },
+      { label:'OVERHEAD',  pan:  0.00, depth: 0.55, height: 0.82, width: 0.75, color: C.overhead,size: 0.70 },
+    ],
+    axisHints: { lr: false, fb: false, ud: true },
+    keyPoints: [
+      { strong: "Bottom of stage", rest: " — kick drum, bass guitar, low synths (20–200 Hz)" },
+      { strong: "Middle of stage", rest: " — guitars, snare, vocals, most melodic instruments (200 Hz–4 kHz)" },
+      { strong: "Top of stage", rest: " — hi-hats, cymbals, bright synths, air frequencies (4–20 kHz)" },
+      { strong: "EQ as placement", rest: " — boosting highs lifts a sound up; cutting lows grounds it" },
+    ],
+    audio: { type: 'freq-height', desc: "Sub bass tone → midrange tone → high-frequency tone. Notice how each seems to originate from a different vertical position." }
+  },
+
+  // ── Step 6: Width ─────────────────────────────────────────
+  {
+    title: "Width — Mono vs. Stereo Spread",
+    number: "Step 06 — Width Axis",
+    body: `Beyond panning, each instrument also has a <em>stereo width</em> — how wide its image spreads across the left-right field. A mono source (a single microphone, a mono synth) appears as a precise point in space. A wide stereo source (room microphones, a chorus-processed guitar, a wide synthesizer pad) spreads across a range.
+
+<br><br>Width is a powerful creative tool. A <strong>mono kick and bass</strong> feel focused and punchy — the energy is concentrated at center. <strong>Wide pads and reverbs</strong> create a sense of space and air around everything. A <strong>doubled guitar</strong> (tracked twice, panned left and right) creates a wide image while remaining tight.
+
+<br><br>Be cautious with excessive widening: sounds that are very wide can feel diffuse and lose impact. And critically, a sound that is wide in stereo but <em>collapses to silence in mono</em> (due to phase cancellation) will cause serious problems on systems that sum to mono.`,
+    viz: [
+      { label:'KICK',    pan:  0.00, depth: 0.50, height: 0.30, width: 0.00, color: C.kick,    size: 1.0 },
+      { label:'BASS',    pan:  0.00, depth: 0.53, height: 0.20, width: 0.00, color: C.bass,    size: 1.0 },
+      { label:'VOCAL',   pan:  0.00, depth: 0.22, height: 0.62, width: 0.08, color: C.vocal,   size: 1.1 },
+      { label:'GTR',     pan: -0.55, depth: 0.46, height: 0.52, width: 0.55, color: C.guitar,  size: 0.90 },
+      { label:'GTR',     pan:  0.55, depth: 0.46, height: 0.52, width: 0.55, color: C.guitar,  size: 0.90 },
+      { label:'SNARE',   pan:  0.00, depth: 0.46, height: 0.40, width: 0.25, color: C.snare,   size: 0.90 },
+      { label:'OH',      pan:  0.00, depth: 0.55, height: 0.82, width: 0.85, color: C.overhead,size: 0.75 },
+      { label:'PAD',     pan:  0.00, depth: 0.85, height: 0.56, width: 1.00, color: C.pad,     size: 1.0 },
+    ],
+    axisHints: { lr: false, fb: false, ud: false },
+    showWidthAnnotation: true,
+    keyPoints: [
+      { strong: "Mono (width 0)", rest: " — pinpoint, focused; kick, bass, lead vocal" },
+      { strong: "Narrow stereo", rest: " — slight spread; adds subtle space without losing punch" },
+      { strong: "Wide stereo", rest: " — doubled guitars, chorus, wide synths; expansive feel" },
+      { strong: "Mono compatibility", rest: " — always check your wide elements in mono to catch phase cancellation" },
+    ],
+    audio: { type: 'width', desc: "A synth tone in mono vs. wide stereo — notice how the image shifts from a focused point to an expansive spread." }
+  },
+
+  // ── Step 7: Reverb as Depth ───────────────────────────────
+  {
+    title: "Reverb as Depth",
+    number: "Step 07 — Depth Axis (Reverb)",
+    body: `While volume is the primary depth control, <strong>reverb</strong> is its partner. Reverb simulates the acoustic reflections of a physical space — and the amount of reverb on a sound is one of the strongest cues our brain uses to judge distance.
+
+<br><br>A completely <em>dry signal</em> (no reverb) sounds close — intimate, immediate, like the source is right in front of you. As you add reverb, the sound recedes. A heavily reverberant sound feels like it's in a large hall, far away. This is why lead vocals typically have minimal reverb: we want them <em>present and close</em>.
+
+<br><br>The key technique is using <strong>send effects</strong>: run instruments into a shared reverb bus. Elements that need to feel close get a smaller send; elements meant to recede get more. This creates a coherent sense of acoustic space, as if all instruments are in the same room — just at different distances from you.`,
+    viz: [
+      { label:'VOCAL',    pan:  0.00, depth: 0.12, height: 0.65, width: 0.10, color: C.vocal,   size: 1.15 },
+      { label:'SNARE',    pan:  0.00, depth: 0.30, height: 0.40, width: 0.10, color: C.snare,   size: 1.00 },
+      { label:'GTR',      pan: -0.55, depth: 0.45, height: 0.52, width: 0.20, color: C.guitar,  size: 0.85 },
+      { label:'GTR',      pan:  0.55, depth: 0.45, height: 0.52, width: 0.20, color: C.guitar,  size: 0.85 },
+      { label:'BK VOX',   pan:  0.00, depth: 0.58, height: 0.65, width: 0.35, color: C.overhead,size: 0.70 },
+      { label:'ROOM',     pan:  0.00, depth: 0.75, height: 0.52, width: 0.80, color: C.reverb,  size: 0.75 },
+      { label:'HALL REV', pan:  0.00, depth: 0.92, height: 0.56, width: 1.00, color: C.pad,     size: 0.65 },
+    ],
+    axisHints: { lr: false, fb: true, ud: false },
+    keyPoints: [
+      { strong: "Dry = close", rest: " — no reverb; intimate, present, in front" },
+      { strong: "Short reverb", rest: " — adds space without distance; keeps things in the room" },
+      { strong: "Long reverb", rest: " — pushes sounds far back; creates atmosphere and depth" },
+      { strong: "Pre-delay", rest: " — a short delay before reverb onset keeps the initial transient close while the tail recedes" },
+    ],
+    audio: { type: 'reverb-depth', desc: "The same snare hit: completely dry → short room reverb → long hall reverb. Hear it travel from close to distant." }
+  },
+
+  // ── Step 8: Conventional Placement ───────────────────────
+  {
+    title: "Conventional Placement",
+    number: "Step 08 — Standard Positions",
+    body: `Over decades of recorded music, certain instrument placements have become conventional — not because there are rules, but because they work. Understanding convention gives you a starting point before making deliberate departures.
+
+<br><br><strong>Center:</strong> Kick, bass, lead vocal, lead synth, lead guitar solo — the elements that hold the mix together stay at center for balance and impact. <strong>Sides:</strong> Rhythm guitars, percussion, background keys, backing vocals — these spread outward to create width without competing with the center focus. <strong>Back:</strong> Pads, reverb tails, ambient textures — these fill the rear of the soundstage and create the sense of a larger space.
+
+<br><br>A common mistake is <em>panning everything slightly</em> — giving every element a subtle offset "to create width." This results in a mix with no clear center anchor and a diffuse, undefined soundstage. <strong>Contrast matters:</strong> some things should be exactly center, some exactly panned, some wide. The difference between positions is what creates space.`,
+    viz: [
+      { label:'KICK',      pan:  0.00, depth: 0.62, height: 0.12, width: 0.05, color: C.kick,    size: 1.0 },
+      { label:'BASS',      pan:  0.00, depth: 0.58, height: 0.16, width: 0.00, color: C.bass,    size: 1.0 },
+      { label:'SNARE',     pan:  0.00, depth: 0.50, height: 0.38, width: 0.12, color: C.snare,   size: 0.9 },
+      { label:'VOCAL',     pan:  0.00, depth: 0.18, height: 0.66, width: 0.12, color: C.vocal,   size: 1.15 },
+      { label:'GTR L',     pan: -0.75, depth: 0.44, height: 0.52, width: 0.30, color: C.guitar,  size: 0.85 },
+      { label:'GTR R',     pan:  0.75, depth: 0.44, height: 0.52, width: 0.30, color: C.guitar,  size: 0.85 },
+      { label:'KEYS L',    pan: -0.38, depth: 0.55, height: 0.60, width: 0.25, color: C.keys,    size: 0.75 },
+      { label:'KEYS R',    pan:  0.38, depth: 0.55, height: 0.60, width: 0.25, color: C.keys,    size: 0.75 },
+      { label:'HI-HAT',    pan: -0.42, depth: 0.40, height: 0.84, width: 0.18, color: C.hihat,   size: 0.60 },
+      { label:'OH',        pan:  0.00, depth: 0.58, height: 0.80, width: 0.82, color: C.overhead,size: 0.70 },
+      { label:'PAD',       pan:  0.00, depth: 0.85, height: 0.56, width: 0.92, color: C.pad,     size: 0.90 },
+    ],
+    axisHints: { lr: true, fb: true, ud: true },
+    keyPoints: [
+      { strong: "Center core", rest: " — kick, bass, vocal; these anchor the mix's energy and are never panned" },
+      { strong: "Inner spread (25–45%)", rest: " — keys, hi-hat, supporting elements; add subtle width" },
+      { strong: "Outer spread (60–100%)", rest: " — rhythm guitars, wide percussion; bold stereo image" },
+      { strong: "Depth contrast", rest: " — lead elements at front, supporting at mid-distance, ambience at rear" },
+    ],
+    audio: { type: 'mix', desc: "A full mix with conventional placement — listen for the center anchor, the spread of the instruments, and the depth gradient front-to-back." }
+  },
+
+  // ── Step 9: Creating Space ────────────────────────────────
+  {
+    title: "Creating Space — Contrast & Separation",
+    number: "Step 09 — Using the Stage",
+    body: `A great soundstage isn't just about placing instruments in positions — it's about creating <em>meaningful contrast</em> between those positions. Two instruments in the same place compete. Two instruments in clearly different places coexist.
+
+<br><br>When a mix feels cluttered, the problem is usually <strong>collision</strong>: instruments occupying the same region of the soundstage simultaneously. The solutions: pan one away from center, push one back in depth, or EQ one to a different frequency range (vertical position). Often a combination of all three.
+
+<br><br>The best mixes use the full three-dimensional space — some elements at the front corners, some at the back, some floating high, some anchored low. Empty space in one area of the soundstage makes the elements in the filled areas feel more prominent.`,
+    viz: [
+      { label:'KICK',     pan:  0.00, depth: 0.60, height: 0.10, width: 0.05, color: C.kick,    size: 1.0 },
+      { label:'BASS',     pan:  0.00, depth: 0.56, height: 0.16, width: 0.00, color: C.bass,    size: 1.0 },
+      { label:'SNARE',    pan:  0.00, depth: 0.48, height: 0.40, width: 0.10, color: C.snare,   size: 0.9 },
+      { label:'VOCAL',    pan:  0.00, depth: 0.16, height: 0.66, width: 0.10, color: C.vocal,   size: 1.15 },
+      { label:'GTR L',    pan: -0.80, depth: 0.40, height: 0.54, width: 0.28, color: C.guitar,  size: 0.80 },
+      { label:'GTR R',    pan:  0.80, depth: 0.40, height: 0.54, width: 0.28, color: C.guitar,  size: 0.80 },
+      { label:'HI-HAT',   pan: -0.42, depth: 0.36, height: 0.86, width: 0.15, color: C.hihat,   size: 0.58 },
+      { label:'KEYS',     pan:  0.45, depth: 0.62, height: 0.68, width: 0.35, color: C.keys,    size: 0.72 },
+      { label:'PAD',      pan:  0.00, depth: 0.88, height: 0.56, width: 0.95, color: C.pad,     size: 0.85 },
+    ],
+    axisHints: { lr: true, fb: true, ud: true },
+    keyPoints: [
+      { strong: "Collision", rest: " — two elements at the same pan, depth, and frequency; they fight for space" },
+      { strong: "Separation tools", rest: " — pan one left, push one back, EQ one up or down; often all three at once" },
+      { strong: "Negative space", rest: " — empty regions of the soundstage make the filled regions feel more present" },
+      { strong: "Frequency + panning", rest: " — EQ and pan together are the most powerful spatial tools; use both" },
+    ],
+    audio: { type: 'mix', desc: "A mix with good spatial separation — each instrument has its own territory. Notice how you can hear everything distinctly despite a full arrangement." }
+  },
+
+  // ── Step 10: Building Your Mix ────────────────────────────
+  {
+    title: "Building Your Soundstage",
+    number: "Step 10 — Practical Workflow",
+    body: `With the three axes in mind, here is a practical workflow for approaching any mix spatially.
+
+<br><br><strong>1. Start in mono.</strong> Place your kick, bass, and lead vocal first — all at center. These form the spine of the mix. Get their levels and frequencies balanced before adding anything else.
+
+<br><br><strong>2. Add depth layers.</strong> Decide which elements are "front" (loud, dry, present) and which are "back" (quieter, wetter). Resist making everything loud. The contrast between levels is what creates depth.
+
+<br><br><strong>3. Pan for width.</strong> Add rhythm instruments, supporting elements, and texture around the center. Mirror your panning (if guitar is at -60%, put something at +60%). Check mono compatibility.
+
+<br><br><strong>4. Consider the vertical.</strong> If two instruments compete, are they in different frequency ranges? If not, EQ one to occupy a different "height." Bass and kick share the bottom — they need careful EQ carving to coexist without colliding.
+
+<br><br><strong>5. Fill the rear with atmosphere.</strong> Add reverb, pads, and ambient elements to the back of the stage. These are the walls and ceiling of your soundstage — they give the mix a sense of place.`,
+    viz: [
+      { label:'KICK',      pan:  0.00, depth: 0.62, height: 0.10, width: 0.05, color: C.kick,    size: 1.0 },
+      { label:'BASS',      pan:  0.00, depth: 0.58, height: 0.16, width: 0.00, color: C.bass,    size: 1.05 },
+      { label:'SNARE',     pan:  0.00, depth: 0.50, height: 0.38, width: 0.12, color: C.snare,   size: 0.9 },
+      { label:'VOCAL',     pan:  0.00, depth: 0.16, height: 0.66, width: 0.12, color: C.vocal,   size: 1.2 },
+      { label:'GTR L',     pan: -0.75, depth: 0.42, height: 0.54, width: 0.30, color: C.guitar,  size: 0.85 },
+      { label:'GTR R',     pan:  0.75, depth: 0.42, height: 0.54, width: 0.30, color: C.guitar,  size: 0.85 },
+      { label:'KEYS L',    pan: -0.36, depth: 0.56, height: 0.62, width: 0.22, color: C.keys,    size: 0.72 },
+      { label:'KEYS R',    pan:  0.36, depth: 0.56, height: 0.62, width: 0.22, color: C.keys,    size: 0.72 },
+      { label:'HI-HAT',    pan: -0.44, depth: 0.38, height: 0.86, width: 0.18, color: C.hihat,   size: 0.58 },
+      { label:'OH',        pan:  0.00, depth: 0.57, height: 0.82, width: 0.80, color: C.overhead,size: 0.68 },
+      { label:'PAD',       pan:  0.00, depth: 0.86, height: 0.58, width: 0.94, color: C.pad,     size: 0.95 },
+      { label:'REVERB',    pan:  0.00, depth: 0.96, height: 0.62, width: 1.00, color: C.reverb,  size: 0.55 },
+    ],
+    axisHints: { lr: true, fb: true, ud: true },
+    keyPoints: [
+      { strong: "Step 1 — mono first", rest: " — build kick, bass, vocal before widening anything" },
+      { strong: "Step 2 — depth layers", rest: " — choose front/mid/back; use level and reverb to place" },
+      { strong: "Step 3 — pan for width", rest: " — mirror elements; check mono compatibility" },
+      { strong: "Step 4 & 5 — vertical + atmosphere", rest: " — EQ for height, reverb and pads for the rear of the stage" },
+    ],
+    audio: { type: 'mix', desc: "The complete soundstage — all elements placed across three dimensions. Listen for the depth, width, and vertical layering working together." }
+  },
+];
+
+// ─────────────────────────────────────────────────────────────
+//  3D CANVAS VISUALIZER
+// ─────────────────────────────────────────────────────────────
+
+const VIZ_H = 340;   // canvas logical height
+let vizCanvas = null;
+let vizCtx    = null;
+let currentViz   = [];
+let targetViz    = [];
+let vizAnimFrame = null;
+let vizAnimStart = null;
+const VIZ_ANIM_MS = 500;
+
+// Interpolate between two viz arrays by id-matching
+function lerpViz(from, to, t) {
+  const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+  const result = [];
+  to.forEach(tItem => {
+    const fItem = from.find(f => f.label === tItem.label) || { ...tItem, depth: 1, size: 0 };
+    result.push({
+      label:  tItem.label,
+      pan:    fItem.pan    + (tItem.pan    - fItem.pan)    * ease,
+      depth:  fItem.depth  + (tItem.depth  - fItem.depth)  * ease,
+      height: fItem.height + (tItem.height - fItem.height) * ease,
+      width:  fItem.width  + (tItem.width  - fItem.width)  * ease,
+      color:  tItem.color,
+      size:   (fItem.size || 0) + ((tItem.size || 1) - (fItem.size || 0)) * ease,
+    });
+  });
+  return result;
+}
+
+function project3D(pan, depth, height, W, H) {
+  const VPX = W * 0.5;
+  const VPY = H * 0.16;
+  const FRONTY = H * 0.90;
+  const t = depth * depth * 0.45 + depth * 0.55;
+  const floorY = FRONTY - t * (FRONTY - VPY);
+  const horizSpread = W * 0.44;
+  const x = VPX + pan * horizSpread * (1 - t * 0.70);
+  const heightScale = H * 0.58;
+  const y = floorY - height * heightScale * (1 - t * 0.55);
+  const scale = 0.30 + (1 - t) * 0.70;
+  return { x, y, scale };
+}
+
+function drawStage(instruments, step) {
+  if (!vizCanvas || !vizCtx) return;
+  const W = vizCanvas.width  / (window.devicePixelRatio || 1);
+  const H = vizCanvas.height / (window.devicePixelRatio || 1);
+  const ctx = vizCtx;
+  const dpr = window.devicePixelRatio || 1;
+  ctx.save();
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
+
+  const VPX = W * 0.5, VPY = H * 0.16, FRONTY = H * 0.90;
+
+  // ── Floor grid ───────────────────────────────────────────
+  const numCols = 12;
+  ctx.strokeStyle = 'rgba(14,165,233,0.10)';
+  ctx.lineWidth = 0.7;
+  for (let i = 0; i <= numCols; i++) {
+    const frac = i / numCols;
+    const frontX = W * 0.03 + frac * W * 0.94;
+    ctx.beginPath();
+    ctx.moveTo(frontX, FRONTY);
+    ctx.lineTo(VPX, VPY);
+    ctx.stroke();
+  }
+  const depthRings = [0.15, 0.30, 0.50, 0.70, 0.88];
+  depthRings.forEach(d => {
+    const t = d*d*0.45 + d*0.55;
+    const fy = FRONTY - t*(FRONTY-VPY);
+    const hw = W*0.44*(1-t*0.70);
+    ctx.strokeStyle = `rgba(14,165,233,${0.06 + (1-d)*0.06})`;
+    ctx.beginPath();
+    ctx.moveTo(VPX - hw, fy);
+    ctx.lineTo(VPX + hw, fy);
+    ctx.stroke();
+  });
+
+  // ── Axis labels (if step has them) ──────────────────────
+  const hints = step.axisHints || {};
+  ctx.font = `600 10px 'IBM Plex Mono', monospace`;
+  if (hints.lr) {
+    ctx.fillStyle = 'rgba(56,189,248,0.70)';
+    ctx.textAlign = 'left';  ctx.fillText('L', 12, FRONTY + 16);
+    ctx.textAlign = 'right'; ctx.fillText('R', W - 12, FRONTY + 16);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(56,189,248,0.35)';
+    ctx.fillText('← PAN →', VPX, FRONTY + 16);
+  }
+  if (hints.fb) {
+    ctx.fillStyle = 'rgba(56,189,248,0.62)';
+    ctx.textAlign = 'left';
+    ctx.fillText('FRONT', 12, H - 10);
+    ctx.fillStyle = 'rgba(56,189,248,0.42)';
+    ctx.fillText('BACK', 12, VPY + 16);
+  }
+  if (hints.ud) {
+    ctx.fillStyle = 'rgba(56,189,248,0.55)';
+    ctx.textAlign = 'right';
+    ctx.fillText('HIGH FREQ', W - 12, VPY + 16);
+    ctx.fillText('LOW FREQ',  W - 12, H - 10);
+  }
+
+  // ── Width annotation ─────────────────────────────────────
+  if (step.showWidthAnnotation) {
+    ctx.strokeStyle = 'rgba(56,189,248,0.20)';
+    ctx.setLineDash([3,3]);
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(W*0.5, VPY+4); ctx.lineTo(W*0.5, FRONTY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(56,189,248,0.40)';
+    ctx.textAlign = 'center';
+    ctx.font = `600 8px 'IBM Plex Mono', monospace`;
+    ctx.fillText('← WIDTH →', VPX, H - 8);
+  }
+
+  // ── Sort back-to-front (painter's algorithm) ─────────────
+  const sorted = [...instruments].sort((a, b) => b.depth - a.depth);
+
+  // Rounded rect path helper
+  function chipPath(x1, y1, w, h, r) {
+    const rc = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x1 + rc, y1);
+    ctx.lineTo(x1 + w - rc, y1);
+    ctx.arcTo(x1 + w, y1,     x1 + w, y1 + rc,     rc);
+    ctx.lineTo(x1 + w, y1 + h - rc);
+    ctx.arcTo(x1 + w, y1 + h, x1 + w - rc, y1 + h, rc);
+    ctx.lineTo(x1 + rc, y1 + h);
+    ctx.arcTo(x1,     y1 + h, x1,     y1 + h - rc, rc);
+    ctx.lineTo(x1, y1 + rc);
+    ctx.arcTo(x1,     y1,     x1 + rc, y1,          rc);
+    ctx.closePath();
+  }
+
+  // ── Pre-compute all chip sizes ────────────────────────────
+  const chipItems = sorted.map(inst => {
+    const proj = project3D(inst.pan, inst.depth, inst.height, W, H);
+    const sz   = inst.size ?? 1;
+    const s    = proj.scale * sz;
+    const depthAlpha = Math.max(0.18, 0.28 + (1 - inst.depth) * 0.72);
+    // Larger font — significantly increased for legibility
+    const basePx = Math.max(12, 18 * s);
+    ctx.font = `600 ${basePx.toFixed(1)}px 'IBM Plex Mono', monospace`;
+    const textW = ctx.measureText(inst.label).width;
+    const padX       = 14 * s;
+    const widthBonus = inst.width * 52 * s;
+    const chipW = textW + padX * 2 + widthBonus;
+    const chipH = basePx * 2.2;
+    const radius = chipH * 0.36;
+    return { inst, proj, s, basePx, textW, chipW, chipH, radius, depthAlpha,
+             cx: proj.x, cy: proj.y };
+  });
+
+  // ── Collision resolution — gentle nudge for label legibility ─
+  // Chips are allowed to visually overlap; we only nudge enough so labels
+  // are readable. Cap total y-drift so depth relationships stay honest.
+  chipItems.forEach(c => { c.origCy = c.cy; });
+  const MAX_DRIFT = 14; // px — enough to separate text, not enough to mislead depth
+
+  for (let iter = 0; iter < 5; iter++) {
+    let moved = false;
+    for (let i = 0; i < chipItems.length; i++) {
+      for (let j = i + 1; j < chipItems.length; j++) {
+        const a = chipItems[i], b = chipItems[j];
+        const overlapX = Math.min(a.cx + a.chipW/2, b.cx + b.chipW/2) - Math.max(a.cx - a.chipW/2, b.cx - b.chipW/2);
+        const overlapY = Math.min(a.cy + a.chipH/2, b.cy + b.chipH/2) - Math.max(a.cy - a.chipH/2, b.cy - b.chipH/2);
+        if (overlapX > 0 && overlapY > 0) {
+          const push = overlapY * 0.25;
+          a.cy = Math.max(a.origCy - MAX_DRIFT, Math.min(a.origCy + MAX_DRIFT, a.cy - push));
+          b.cy = Math.max(b.origCy - MAX_DRIFT, Math.min(b.origCy + MAX_DRIFT, b.cy + push));
+          moved = true;
+        }
+      }
+    }
+    if (!moved) break;
+  }
+
+  // ── Draw each chip ────────────────────────────────────────
+  chipItems.forEach(({ inst, s, basePx, chipW, chipH, radius, depthAlpha, cx, cy }) => {
+    const col = inst.color;
+    const x1  = cx - chipW / 2;
+    const y1  = cy - chipH / 2;
+
+    ctx.shadowBlur = 0;
+
+    // ── Subtle fill ───────────────────────────────────────
+    ctx.globalAlpha = depthAlpha * 0.15;
+    ctx.fillStyle   = col;
+    chipPath(x1, y1, chipW, chipH, radius);
+    ctx.fill();
+
+    // ── Dashed border in instrument color ─────────────────
+    const dashLen = Math.max(3, 5 * s);
+    const gapLen  = Math.max(2.5, 3.5 * s);
+    ctx.globalAlpha = depthAlpha * 0.85;
+    ctx.strokeStyle = col;
+    ctx.lineWidth   = Math.max(1, 1.6 * s);
+    ctx.setLineDash([dashLen, gapLen]);
+    chipPath(x1, y1, chipW, chipH, radius);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // ── Instrument label ──────────────────────────────────
+    ctx.globalAlpha  = depthAlpha * 0.97;
+    ctx.fillStyle    = col;
+    ctx.font         = `600 ${basePx.toFixed(1)}px 'IBM Plex Mono', monospace`;
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(inst.label, cx, cy);
+    ctx.textBaseline = 'alphabetic';
+
+    ctx.globalAlpha = 1;
+  });
+
+  ctx.restore();
+}
+
+function animateVizTo(newTarget, step) {
+  if (vizAnimFrame) cancelAnimationFrame(vizAnimFrame);
+  const from = currentViz.length ? [...currentViz] : newTarget.map(n => ({ ...n, size: 0, depth: 1 }));
+  targetViz = newTarget;
+  vizAnimStart = null;
+
+  function tick(ts) {
+    if (!vizAnimStart) vizAnimStart = ts;
+    const elapsed = ts - vizAnimStart;
+    const t = Math.min(elapsed / VIZ_ANIM_MS, 1);
+    currentViz = lerpViz(from, targetViz, t);
+    drawStage(currentViz, step);
+    if (t < 1) vizAnimFrame = requestAnimationFrame(tick);
+    else { currentViz = targetViz; vizAnimFrame = null; }
+  }
+  vizAnimFrame = requestAnimationFrame(tick);
+}
+
+function initCanvas() {
+  vizCanvas = document.querySelector('.stage-canvas');
+  if (!vizCanvas) return;
+  vizCtx = vizCanvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = vizCanvas.getBoundingClientRect();
+  const W = rect.width || vizCanvas.offsetWidth || 760;
+  vizCanvas.width  = W * dpr;
+  vizCanvas.height = VIZ_H * dpr;
+  vizCanvas.style.height = VIZ_H + 'px';
+}
+
+// ─────────────────────────────────────────────────────────────
+//  AUDIO ENGINE
+// ─────────────────────────────────────────────────────────────
+
+let audioCtx  = null;
+let activeNodes = [];
+let isPlayingA  = false;
+let isPlayingB  = false;
+
+function getCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function makePinkBuf(ctx, dur) {
+  const n = Math.ceil(ctx.sampleRate * dur);
+  const buf = ctx.createBuffer(1, n, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+  for (let i=0;i<n;i++) {
+    const w=Math.random()*2-1;
+    b0=.99886*b0+w*.0555179; b1=.99332*b1+w*.0750759;
+    b2=.96900*b2+w*.1538520; b3=.86650*b3+w*.3104856;
+    b4=.55000*b4+w*.5329522; b5=-.7616*b5-w*.0168980;
+    d[i]=(b0+b1+b2+b3+b4+b5+b6+w*.5362)/7; b6=w*.115926;
+  }
+  return buf;
+}
+
+function stopAll() {
+  activeNodes.forEach(n => { try { n.stop(); } catch(e){} });
+  activeNodes = [];
+  isPlayingA = false; isPlayingB = false;
+  updateBtnState('A', false);
+  updateBtnState('B', false);
+}
+
+function updateBtnState(side, playing) {
+  const btn = document.getElementById('playBtn' + side);
+  if (!btn) return;
+  if (playing) {
+    btn.classList.add('playing');
+    btn.innerHTML = stopIco() + (btn.dataset['label'+side.toLowerCase()] || 'Stop');
+  } else {
+    btn.classList.remove('playing');
+    btn.innerHTML = playIco() + (btn.dataset['label'+side.toLowerCase()] || 'Play');
+  }
+}
+function playIco() { return `<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>`; }
+function stopIco() { return `<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>`; }
+
+function vol() { return parseFloat(document.querySelector('.vol-slider')?.value ?? 0.55); }
+
+// Mix demo — basic drum+bass+synth pattern with panning
+function playMixDemo() {
+  const ctx = getCtx();
+  const nodes = [];
+  const master = ctx.createGain(); master.gain.value = vol() * 0.45; master.connect(ctx.destination);
+  const bpm = 118, beat = 60/bpm, bars = 6;
+  const now = ctx.currentTime + 0.05;
+
+  function kick(t) {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(42, t+0.07);
+    g.gain.setValueAtTime(1.4, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.32);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t+0.33); nodes.push(o);
+    // click
+    const nb = makePinkBuf(ctx, 0.015), ns = ctx.createBufferSource();
+    ns.buffer = nb; const nhp = ctx.createBiquadFilter(); nhp.type='bandpass'; nhp.frequency.value=3000;
+    const ng = ctx.createGain(); ng.gain.setValueAtTime(0.5,t); ng.gain.exponentialRampToValueAtTime(0.001,t+0.015);
+    ns.connect(nhp); nhp.connect(ng); ng.connect(master); ns.start(t); ns.stop(t+0.016); nodes.push(ns);
+  }
+  function snare(t) {
+    const nb = makePinkBuf(ctx, 0.22), ns = ctx.createBufferSource();
+    ns.buffer = nb; const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=1400;
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.9,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.20);
+    ns.connect(hp); hp.connect(g);
+    const pan = ctx.createStereoPanner(); pan.pan.value = 0;
+    g.connect(pan); pan.connect(master); ns.start(t); ns.stop(t+0.22); nodes.push(ns);
+  }
+  function hat(t, p=0) {
+    const nb = makePinkBuf(ctx, 0.06), ns = ctx.createBufferSource();
+    ns.buffer = nb; const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=8000;
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.32,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.05);
+    ns.connect(hp); hp.connect(g);
+    const pan = ctx.createStereoPanner(); pan.pan.value = p;
+    g.connect(pan); pan.connect(master); ns.start(t); ns.stop(t+0.06); nodes.push(ns);
+  }
+  function bass(t, freq) {
+    const o = ctx.createOscillator(); o.type='sawtooth'; o.frequency.value=freq;
+    const f = ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=300;
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.6,t); g.gain.setValueAtTime(0.6,t+beat*0.9); g.gain.linearRampToValueAtTime(0.001,t+beat);
+    o.connect(f); f.connect(g); g.connect(master); o.start(t); o.stop(t+beat); nodes.push(o);
+  }
+  function synth(t, freq, p=0, dur=beat) {
+    const o = ctx.createOscillator(); o.type='triangle'; o.frequency.value=freq;
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.18,t); g.gain.linearRampToValueAtTime(0.001,t+dur);
+    const pan = ctx.createStereoPanner(); pan.pan.value=p;
+    o.connect(g); g.connect(pan); pan.connect(master); o.start(t); o.stop(t+dur); nodes.push(o);
+  }
+
+  const bassNotes = [55, 55, 65, 55, 49, 55, 65, 73];
+  for (let b=0; b<bars; b++) {
+    const bs = now + b*beat*4;
+    kick(bs); kick(bs+beat*2);
+    snare(bs+beat); snare(bs+beat*3);
+    [0,0.5,1,1.5,2,2.5,3,3.5].forEach((o,i) => hat(bs+o*beat, -0.38));
+    [0,1,2,3].forEach((o,i) => bass(bs+o*beat, bassNotes[i%8]));
+    synth(bs, 220, -0.65, beat*1.5);
+    synth(bs+beat*2, 247, 0.65, beat*1.5);
+    synth(bs+beat*1.5, 330, -0.40, beat*0.4);
+  }
+
+  activeNodes = nodes;
+  isPlayingA = true; updateBtnState('A', true);
+  const endT = now + bars*beat*4;
+  setTimeout(() => { isPlayingA=false; updateBtnState('A',false); }, (endT-ctx.currentTime)*1000+100);
+}
+
+// Pan sweep
+function playPanSweep() {
+  const ctx = getCtx(); const nodes = [];
+  const master = ctx.createGain(); master.gain.value = vol() * 0.5; master.connect(ctx.destination);
+  const panner = ctx.createStereoPanner();
+  const o = ctx.createOscillator(); o.type='triangle'; o.frequency.value=440;
+  const g = ctx.createGain(); g.gain.setValueAtTime(0.5,ctx.currentTime); g.gain.setValueAtTime(0.5,ctx.currentTime+4); g.gain.linearRampToValueAtTime(0,ctx.currentTime+4.5);
+  panner.pan.setValueAtTime(-1, ctx.currentTime);
+  panner.pan.linearRampToValueAtTime(1, ctx.currentTime+4);
+  o.connect(g); g.connect(panner); panner.connect(master);
+  o.start(); o.stop(ctx.currentTime+4.5); nodes.push(o);
+  activeNodes = nodes; isPlayingA=true; updateBtnState('A',true);
+  setTimeout(()=>{ isPlayingA=false; updateBtnState('A',false); }, 4700);
+}
+
+// Depth (volume = distance)
+function playDepth(close) {
+  const ctx = getCtx(); const nodes = [];
+  const vol_ = vol();
+  const master = ctx.createGain(); master.gain.value = close ? vol_*0.55 : vol_*0.14; master.connect(ctx.destination);
+  const nb = makePinkBuf(ctx, 0.3), ns = ctx.createBufferSource(); ns.buffer = nb; ns.loop=true;
+  const bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=2000; bp.Q.value=0.8;
+  const g = ctx.createGain(); g.gain.value=1;
+  ns.connect(bp); bp.connect(g); g.connect(master); ns.start(); ns.stop(ctx.currentTime+3);
+  nodes.push(ns); activeNodes = nodes;
+  const side = close ? 'A' : 'B';
+  if (close) { isPlayingA=true; updateBtnState('A',true); setTimeout(()=>{ isPlayingA=false; updateBtnState('A',false); },3100); }
+  else        { isPlayingB=true; updateBtnState('B',true); setTimeout(()=>{ isPlayingB=false; updateBtnState('B',false); },3100); }
+}
+
+// Frequency height (low → mid → high)
+function playFreqHeight() {
+  const ctx = getCtx(); const nodes = [];
+  const master = ctx.createGain(); master.gain.value = vol()*0.45; master.connect(ctx.destination);
+  const freqs = [55, 440, 8000];
+  const types = ['sine','triangle','sine'];
+  freqs.forEach((f,i) => {
+    const t = ctx.currentTime + i*1.8;
+    const o = ctx.createOscillator(); o.type=types[i]; o.frequency.value=f;
+    const g = ctx.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.7,t+0.05);
+    g.gain.setValueAtTime(0.7,t+1.4); g.gain.linearRampToValueAtTime(0,t+1.7);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t+1.8); nodes.push(o);
+  });
+  activeNodes=nodes; isPlayingA=true; updateBtnState('A',true);
+  setTimeout(()=>{ isPlayingA=false; updateBtnState('A',false); }, 5600);
+}
+
+// Width (mono → wide using Haas effect)
+function playWidth(wide) {
+  const ctx = getCtx(); const nodes = [];
+  const vol_ = vol();
+  const master = ctx.createGain(); master.gain.value = vol_*0.45; master.connect(ctx.destination);
+  const o = ctx.createOscillator(); o.type='sawtooth'; o.frequency.value=220;
+  const f = ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=2000;
+  const g = ctx.createGain(); g.gain.value=0.6;
+  o.connect(f); f.connect(g);
+
+  if (!wide) {
+    g.connect(master);
+  } else {
+    // Haas: left direct, right with slight delay
+    const merger = ctx.createChannelMerger(2);
+    const splitter = ctx.createChannelSplitter(2);
+    // left
+    const gL = ctx.createGain(); gL.gain.value=1; g.connect(gL); gL.connect(merger,0,0);
+    // right: slight delay
+    const delay = ctx.createDelay(0.05); delay.delayTime.value=0.022;
+    const gR = ctx.createGain(); gR.gain.value=0.85; g.connect(delay); delay.connect(gR); gR.connect(merger,0,1);
+    merger.connect(master);
+  }
+  o.start(); o.stop(ctx.currentTime+3.5); nodes.push(o);
+  activeNodes=nodes;
+  const side = wide ? 'B' : 'A';
+  if (!wide) { isPlayingA=true; updateBtnState('A',true); setTimeout(()=>{ isPlayingA=false; updateBtnState('A',false); },3600); }
+  else        { isPlayingB=true; updateBtnState('B',true); setTimeout(()=>{ isPlayingB=false; updateBtnState('B',false); },3600); }
+}
+
+// Reverb depth (dry → short → long)
+function playReverbDepth() {
+  const ctx = getCtx(); const nodes = [];
+  const master = ctx.createGain(); master.gain.value = vol()*0.5; master.connect(ctx.destination);
+
+  function snareHit(t, reverbAmt, reverbDecay) {
+    const nb = makePinkBuf(ctx, 0.25), ns = ctx.createBufferSource(); ns.buffer=nb;
+    const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=1200;
+    const g = ctx.createGain(); g.gain.setValueAtTime(1.0,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.22);
+    ns.connect(hp); hp.connect(g); g.connect(master); ns.start(t); ns.stop(t+0.23); nodes.push(ns);
+
+    if (reverbAmt > 0) {
+      const nb2 = makePinkBuf(ctx, reverbDecay), ns2 = ctx.createBufferSource(); ns2.buffer=nb2;
+      const hp2 = ctx.createBiquadFilter(); hp2.type='bandpass'; hp2.frequency.value=2000; hp2.Q.value=0.5;
+      const gRev = ctx.createGain(); gRev.gain.setValueAtTime(reverbAmt,t+0.02); gRev.gain.exponentialRampToValueAtTime(0.001,t+reverbDecay);
+      const pan = ctx.createStereoPanner(); pan.pan.value=0;
+      ns2.connect(hp2); hp2.connect(gRev); gRev.connect(pan); pan.connect(master); ns2.start(t+0.02); ns2.stop(t+reverbDecay+0.01); nodes.push(ns2);
+    }
+  }
+
+  snareHit(ctx.currentTime+0.2,  0,    0);      // dry
+  snareHit(ctx.currentTime+2.2,  0.4,  0.6);    // short room
+  snareHit(ctx.currentTime+4.5,  0.65, 2.2);    // long hall
+
+  activeNodes=nodes; isPlayingA=true; updateBtnState('A',true);
+  setTimeout(()=>{ isPlayingA=false; updateBtnState('A',false); }, 7000);
+}
+
+function toggleA(type) {
+  if (isPlayingA||isPlayingB) { stopAll(); return; }
+  dispatch(type, 'A');
+}
+function toggleB(type) {
+  if (isPlayingA||isPlayingB) { stopAll(); return; }
+  dispatch(type, 'B');
+}
+
+function dispatch(type, side) {
+  if (type==='mix')          playMixDemo();
+  if (type==='pan-sweep')    playPanSweep();
+  if (type==='depth')        playDepth(side==='A');
+  if (type==='freq-height')  playFreqHeight();
+  if (type==='width')        playWidth(side==='B');
+  if (type==='reverb-depth') playReverbDepth();
+}
+
+// ─────────────────────────────────────────────────────────────
+//  STEP RENDERER
+// ─────────────────────────────────────────────────────────────
+
+let currentStep = 0;
+
+const audioConfig = {
+  'mix':          { buttons: [{ label: 'Play mix', side:'A' }] },
+  'pan-sweep':    { buttons: [{ label: 'Pan sweep', side:'A' }] },
+  'depth':        { buttons: [{ label: 'Close (louder)', side:'A' }, { label: 'Distant (quieter)', side:'B', secondary: true }] },
+  'freq-height':  { buttons: [{ label: 'Low → Mid → High', side:'A' }] },
+  'width':        { buttons: [{ label: 'Mono', side:'A', secondary: true }, { label: 'Wide stereo', side:'B' }] },
+  'reverb-depth': { buttons: [{ label: 'Dry → Room → Hall', side:'A' }] },
+};
+
+function renderStep(idx) {
+  stopAll();
+  const step = steps[idx];
+  const card = document.getElementById('stepCard');
+  const total = steps.length;
+
+  const kpHTML = step.keyPoints.map(kp =>
+    `<div class="key-point"><strong>${kp.strong}</strong>${kp.rest}</div>`
+  ).join('');
+
+  const audio = step.audio;
+  const cfg   = audioConfig[audio.type] || { buttons: [] };
+  const volSlider = `<div class="vol-wrap" style="margin-left:auto;">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="color:var(--muted)">
+      <polygon points="11,5 6,9 2,9 2,15 6,15 11,19" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" fill="none"/>
+      <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+    </svg>
+    <input type="range" class="vol-slider" min="0" max="1" step="0.02" value="0.55" title="Volume">
+  </div>`;
+
+  const btnsHTML = cfg.buttons.map(b =>
+    `<button class="play-btn ${b.secondary?'secondary':''}" id="playBtn${b.side}"
+      data-label${b.side.toLowerCase()}="${b.label}"
+      onclick="toggle${b.side}('${audio.type}')">${playIco()} ${b.label}</button>`
+  ).join('');
+
+  card.innerHTML = `
+    <div class="stage-viz-wrap">
+      <canvas class="stage-canvas"></canvas>
+    </div>
+    <div class="step-inner">
+      <div class="step-number">${step.number}</div>
+      <h2 class="step-title">${step.title}</h2>
+      <div class="step-body">${step.body}</div>
+      <div class="key-points">
+        <div class="key-points-label">Key Takeaways</div>
+        ${kpHTML}
+      </div>
+      <div class="audio-demo">
+        <div class="audio-demo-label">Listen</div>
+        <div class="audio-demo-desc">${audio.desc}</div>
+        <div class="demo-controls">${btnsHTML}${volSlider}</div>
+      </div>
+    </div>
+  `;
+
+  // Init canvas and animate to new viz state
+  initCanvas();
+  animateVizTo(step.viz, step);
+
+  // Progress
+  const dots = document.getElementById('progressDots');
+  dots.innerHTML = steps.map((_,i) =>
+    `<div class="progress-dot ${i<idx?'done':''} ${i===idx?'active':''}"
+      onclick="goToStep(${i})" title="Step ${i+1}"></div>`
+  ).join('');
+  document.getElementById('progressLabel').textContent = `Step ${idx+1} of ${total}`;
+  document.getElementById('stepCounter').textContent   = `${idx+1} / ${total}`;
+
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  prevBtn.disabled = idx === 0;
+  if (idx === total-1) {
+    nextBtn.textContent = 'Complete'; nextBtn.className='nav-btn finish'; nextBtn.onclick=showCompletion;
+  } else {
+    nextBtn.textContent = 'Next →'; nextBtn.className='nav-btn primary'; nextBtn.onclick=()=>navigate(1);
+  }
+}
+
+function navigate(dir) {
+  const next = currentStep + dir;
+  if (next<0 || next>=steps.length) return;
+  currentStep = next;
+  renderStep(currentStep);
+}
+function goToStep(idx) { currentStep=idx; renderStep(currentStep); }
+
+function showCompletion() {
+  stopAll();
+  if (vizAnimFrame) cancelAnimationFrame(vizAnimFrame);
+  const card = document.getElementById('stepCard');
+  card.innerHTML = `
+    <div class="completion-card">
+      <svg width="56" height="56" viewBox="0 0 56 56" fill="none" style="display:block;margin:0 auto 20px;">
+        <circle cx="28" cy="28" r="25" stroke="var(--stage-accent)" stroke-width="1.5" fill="rgba(14,165,233,0.08)"/>
+        <polyline points="17,28 25,36 39,19" stroke="var(--stage-accent2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="completion-title">The Soundstage — Complete!</div>
+      <p class="completion-sub">You now have a mental model of your mix as a three-dimensional space. The next step is applying it — open a session and think spatially about where each element lives.</p>
+      <a class="completion-cta" href="/spatial-specialist/">Try Spatial Specialist →</a>
+      <button class="completion-restart" onclick="restartModule()">← Restart this module</button>
+    </div>
+  `;
+  document.getElementById('stepNav').style.display = 'none';
+  document.getElementById('progressLabel').textContent = 'Complete!';
+  document.getElementById('progressDots').innerHTML = steps.map((_,i) =>
+    `<div class="progress-dot done" onclick="goToStep(${i})" title="Step ${i+1}"></div>`
+  ).join('');
+}
+
+function restartModule() {
+  document.getElementById('stepNav').style.display = '';
+  currentStep = 0; renderStep(0);
+}
+
+// Handle canvas resize
+window.addEventListener('resize', () => {
+  if (!vizCanvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = vizCanvas.offsetWidth;
+  vizCanvas.width  = W * dpr;
+  vizCanvas.height = VIZ_H * dpr;
+  if (currentViz.length) drawStage(currentViz, steps[currentStep]);
+});
+
+// ── Init ─────────────────────────────────────────────────────
+renderStep(0);
+
+document.addEventListener('keydown', e => {
+  if (e.key==='ArrowRight'||e.key==='ArrowDown') navigate(1);
+  if (e.key==='ArrowLeft' ||e.key==='ArrowUp')   navigate(-1);
+  if (e.key===' ') { e.preventDefault(); toggleA(steps[currentStep].audio.type); }
+});
+</script>
+<script>
+buildSidebar('soundstage');
+initMobileSidebar();
+// Wire sidebar active state to navigation
+(function() {
+  var _orig = window.goToStep;
+  if (typeof _orig === 'function') {
+    window.goToStep = function(i) { _orig(i); updateSidebarActive(i, 'soundstage'); };
+  }
+  var _origNav = window.navigate;
+  if (typeof _origNav === 'function') {
+    window.navigate = function(dir) { _origNav(dir); setTimeout(function(){updateSidebarActive(window.currentStep||0,'soundstage');},0); };
+  }
+  setTimeout(function(){updateSidebarActive(window.currentStep||0,'soundstage');},50);
+})();
+</script>
+
+</body>
+</html>
