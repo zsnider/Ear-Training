@@ -39,6 +39,7 @@
     --ll-accent:#f0b429;   --ll-accent2:#ffd166;
     --qeq-accent:#818cf8;  --qeq-accent2:#a5b4fc;
     --sca-accent:#39d353;  --sca-accent2:#7ce88f;
+    --theory-accent:#c4843a; --theory-accent2:#e0a85a;
   }
   body {
     font-family: 'IBM Plex Sans', sans-serif;
@@ -187,13 +188,14 @@
 <!-- Page header -->
 <div class="page-header">
   <h1>All Games</h1>
-  <p>12 ear training games for producers, engineers, and musicians.</p>
+  <p>14 ear training games for producers, engineers, and musicians.</p>
   <div class="filter-bar">
     <button class="filter-btn active" data-filter="all">All</button>
     <button class="filter-btn" data-filter="eq">EQ</button>
     <button class="filter-btn" data-filter="dynamics">Dynamics</button>
     <button class="filter-btn" data-filter="space">Space</button>
     <button class="filter-btn" data-filter="time">Time</button>
+    <button class="filter-btn" data-filter="theory">Theory</button>
   </div>
 </div>
 
@@ -419,6 +421,44 @@
         <span class="game-cat" style="background:rgba(249,115,22,0.08);color:var(--delay-accent2);border:1px solid rgba(249,115,22,0.25)">Time</span>
       </div>
       <div class="game-desc">Match a target delay by ear. Set delay time, feedback, and wet/dry to replicate the processed signal.</div>
+    </div>
+    <div class="game-play">Play</div>
+  </a>
+
+  <!-- Chord Quiz — Theory -->
+  <a class="game-row" href="/chord-quiz/" data-categories="theory">
+    <div class="game-icon" style="background:rgba(196,132,58,0.12)">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M9 18V5l12-2v13" stroke="var(--theory-accent2)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="6"  cy="18" r="3" stroke="var(--theory-accent2)" stroke-width="1.8" fill="none"/>
+        <circle cx="18" cy="16" r="3" stroke="var(--theory-accent2)" stroke-width="1.8" fill="none"/>
+      </svg>
+    </div>
+    <div class="game-body">
+      <div class="game-name-row">
+        <div class="game-name">Chord Quiz</div>
+        <span class="game-cat" style="background:rgba(196,132,58,0.1);color:var(--theory-accent2);border:1px solid rgba(196,132,58,0.25)">Theory</span>
+      </div>
+      <div class="game-desc">A chord plays in a random key. Identify the type — major, minor, dominant 7th, major 7th, diminished, augmented, and more.</div>
+    </div>
+    <div class="game-play">Play</div>
+  </a>
+
+  <!-- Progression Detection — Theory -->
+  <a class="game-row" href="/progression-detection/" data-categories="theory">
+    <div class="game-icon" style="background:rgba(196,132,58,0.12)">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <rect x="2"  y="4"  width="20" height="5" rx="2" stroke="var(--theory-accent2)" stroke-width="1.7" fill="none" opacity="0.5"/>
+        <rect x="2"  y="10" width="20" height="5" rx="2" stroke="var(--theory-accent2)" stroke-width="1.7" fill="none" opacity="0.75"/>
+        <rect x="2"  y="16" width="20" height="5" rx="2" stroke="var(--theory-accent2)" stroke-width="1.7" fill="none"/>
+      </svg>
+    </div>
+    <div class="game-body">
+      <div class="game-name-row">
+        <div class="game-name">Progression Detection</div>
+        <span class="game-cat" style="background:rgba(196,132,58,0.1);color:var(--theory-accent2);border:1px solid rgba(196,132,58,0.25)">Theory</span>
+      </div>
+      <div class="game-desc">Four chords play in sequence. Identify the Roman numeral progression — I–V–vi–IV, ii–V–I, and more across 3 difficulty levels.</div>
     </div>
     <div class="game-play">Play</div>
   </a>

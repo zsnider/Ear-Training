@@ -68,16 +68,6 @@
   .result-msg-inline.show-correct { opacity: 1; color: var(--correct); text-shadow: 0 0 18px rgba(62,207,142,0.5); }
   .result-msg-inline.show-wrong   { opacity: 1; color: var(--wrong);   text-shadow: 0 0 18px rgba(244,91,105,0.45); }
 
-  .next-bar {
-    height: 3px; background: rgba(255,255,255,0.07);
-    border-radius: 2px; overflow: hidden; margin-top: 4px; width: 200px; max-width: 100%;
-  }
-  .next-fill {
-    height: 100%; border-radius: 2px;
-    background: var(--accent2); width: 100%;
-    box-shadow: 0 0 8px var(--accent);
-  }
-
   /* ── Chord answer grid ──────────────────────────────────────── */
   .answer-section { padding: 14px 14px 10px; }
   .chord-grid { display: grid; gap: 9px; }
@@ -184,6 +174,23 @@
   .hist-dot.c { background: var(--correct); box-shadow: 0 0 7px -1px var(--correct); }
   .hist-dot.w { background: var(--wrong); }
 
+  /* ── Continue prompt (appears slowly below history) ─────────── */
+  .continue-prompt {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; letter-spacing: 0.04em; color: var(--muted);
+    padding: 2px 4px; opacity: 0;
+    transition: opacity 0.85s ease;
+    cursor: pointer;
+  }
+  .continue-prompt.show {
+    opacity: 1;
+    animation: subtleBlink 1.6s ease-in-out 0.85s infinite;
+  }
+  @keyframes subtleBlink {
+    0%,100% { opacity: 0.4; }
+    50%      { opacity: 0.85; }
+  }
+
   /* ── Side column ────────────────────────────────────────────── */
   .side-col { display: flex; flex-direction: column; gap: 12px; }
 
@@ -202,6 +209,24 @@
     font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent2);
     margin-top: 8px; text-align: center; letter-spacing: 0.06em; min-height: 16px;
   }
+
+  /* ── Grand staff card (side column) ─────────────────────────── */
+  .grand-staff-card {
+    background: var(--well); border: 1px solid var(--well-edge);
+    border-radius: 14px; padding: 14px 10px 10px;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.55) inset, 0 1px 0 rgba(255,255,255,0.03);
+  }
+  .grand-staff-title {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted);
+    margin-bottom: 10px; padding: 0 2px;
+  }
+  #chordStaffSvg { display: block; width: 100%; }
+  #chordStaffSvg .staff-chords {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  #chordStaffSvg.revealed .staff-chords { opacity: 1; }
 
   /* Info / formula card */
   .info-card {
@@ -230,7 +255,23 @@
   .mini-stat-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
   .mini-vdiv { width: 1px; background: var(--border); }
 
-  /* How to play */
+  /* ── How to Play panel (collapsible) ────────────────────────── */
+  .how-panel {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.35s ease, padding 0.35s ease, border-width 0.35s ease, margin-bottom 0.35s ease;
+    background: linear-gradient(180deg, var(--metal-1), var(--metal-2));
+    border: 0px solid var(--border);
+    border-radius: 14px;
+    padding: 0 18px;
+    margin-bottom: 0;
+  }
+  .how-panel.open {
+    max-height: 220px;
+    padding: 16px 18px;
+    border-width: 1px;
+    margin-bottom: 12px;
+  }
   .how-item { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; }
   .how-item:last-child { margin-bottom: 0; }
   .how-num {
@@ -241,6 +282,19 @@
     flex-shrink: 0; margin-top: 1px;
   }
   .how-text { font-size: 12px; color: var(--muted); line-height: 1.55; }
+
+  /* How to play toggle button */
+  .how-toggle-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: transparent; color: var(--muted);
+    border: 1px solid var(--border2); border-radius: 8px;
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 12px; font-weight: 500;
+    padding: 5px 11px; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .how-toggle-btn:hover { border-color: var(--accent); color: var(--accent2); }
+  .how-toggle-btn.open  { border-color: var(--accent); color: var(--accent2); background: rgba(196,132,58,0.08); }
+  .how-arrow { font-size: 9px; transition: transform 0.25s ease; display: inline-block; }
+  .how-toggle-btn.open .how-arrow { transform: rotate(180deg); }
 
   /* Theory section label */
   .theory-section-tag {
@@ -301,8 +355,8 @@
     .rig { grid-template-columns: 1fr !important; }
     .side-col { flex-direction: row; flex-wrap: wrap; gap: 10px; }
     .keys-well-side { flex: 1; min-width: 200px; }
+    .grand-staff-card { flex: 1; min-width: 200px; }
     .info-card { flex: 1; min-width: 160px; }
-    .how-card  { display: none; }
   }
   @media (max-width: 520px) {
     .chord-grid.cols-3 { grid-template-columns: 1fr 1fr; }
@@ -357,7 +411,6 @@
   <div class="game-bar-left">
     <div class="brand">
       <div class="brand-icon">
-        <!-- Music note icon -->
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
           <path d="M9 18V5l12-2v13" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
           <circle cx="6"  cy="18" r="3" stroke="white" stroke-width="1.8" fill="none"/>
@@ -419,8 +472,12 @@
         <div class="shortcuts-popover" id="shortcutsPopover">
           <div class="shortcut-row"><span>Play / replay chord</span><div class="shortcut-keys"><kbd>Space</kbd></div></div>
           <div class="shortcut-row"><span>Answer 1–9</span><div class="shortcut-keys"><kbd>1</kbd>–<kbd>9</kbd></div></div>
+          <div class="shortcut-row"><span>Continue</span><div class="shortcut-keys"><kbd>Any key</kbd></div></div>
         </div>
       </div>
+      <button class="how-toggle-btn" id="howToggleBtn" onclick="toggleHow()">
+        How to Play <span class="how-arrow">▾</span>
+      </button>
     </div>
     <div class="settings-row-divider"></div>
     <div class="settings-row">
@@ -444,6 +501,26 @@
     </div>
   </div>
 
+  <!-- How to Play (collapsible) -->
+  <div class="how-panel" id="howPanel">
+    <div class="how-item">
+      <div class="how-num">1</div>
+      <div class="how-text">Click <strong>Play Chord</strong> to hear a chord played in a random key.</div>
+    </div>
+    <div class="how-item">
+      <div class="how-num">2</div>
+      <div class="how-text">Identify the chord type — major, minor, 7th, diminished, etc.</div>
+    </div>
+    <div class="how-item">
+      <div class="how-num">3</div>
+      <div class="how-text">Click <strong>Replay</strong> (or press Space) to hear it again before guessing.</div>
+    </div>
+    <div class="how-item">
+      <div class="how-num">4</div>
+      <div class="how-text">After answering, the grand staff reveals the notation. Press any key or click to continue.</div>
+    </div>
+  </div>
+
   <!-- Rig -->
   <div class="rig">
 
@@ -456,9 +533,6 @@
           <div class="readout-left">
             <div class="theory-badge" id="theoryBadge">♩ Music Theory</div>
             <div class="prompt-question" id="promptQuestion">Press <span>Play Chord</span> to begin</div>
-            <div class="next-bar" id="nextBar" style="display:none">
-              <div class="next-fill" id="nextFill" style="width:100%"></div>
-            </div>
           </div>
           <div class="result-msg-inline" id="resultMsg"></div>
         </div>
@@ -489,6 +563,9 @@
             <div class="history-strip" id="historyStrip"></div>
           </div>
         </div>
+        <div class="settings-row" id="continueRow" style="padding-top:4px;display:none">
+          <span class="continue-prompt" id="continuePrompt">↵ Click or press any key to continue</span>
+        </div>
       </div>
 
     </div><!-- /device -->
@@ -501,6 +578,14 @@
         <div class="keys-title">Keyboard</div>
         <div id="pianoKeys"></div>
         <div class="keys-note-label" id="keysLabel">—</div>
+      </div>
+
+      <!-- Grand staff (always visible, notes revealed on answer) -->
+      <div class="grand-staff-card">
+        <div class="grand-staff-title">Grand Staff</div>
+        <svg id="chordStaffSvg" viewBox="0 0 360 175" xmlns="http://www.w3.org/2000/svg" width="100%">
+          <!-- populated by JS -->
+        </svg>
       </div>
 
       <!-- Chord formula (revealed after answer) -->
@@ -528,27 +613,6 @@
             <div class="mini-stat-val green" id="sBest">0</div>
             <div class="mini-stat-lbl">Best Streak</div>
           </div>
-        </div>
-      </div>
-
-      <!-- How to play -->
-      <div class="info-card how-card">
-        <div class="info-card-title">How to Play</div>
-        <div class="how-item">
-          <div class="how-num">1</div>
-          <div class="how-text">Click <strong>Play Chord</strong> to hear a chord synthesized on a piano.</div>
-        </div>
-        <div class="how-item">
-          <div class="how-num">2</div>
-          <div class="how-text">Identify the chord type — major, minor, 7th, diminished, etc.</div>
-        </div>
-        <div class="how-item">
-          <div class="how-num">3</div>
-          <div class="how-text">Click <strong>Replay</strong> (or press Space) to hear it again before guessing.</div>
-        </div>
-        <div class="how-item">
-          <div class="how-num">4</div>
-          <div class="how-text">Increase difficulty to train with more chord types.</div>
         </div>
       </div>
 
@@ -586,21 +650,18 @@ const NOTE_NAMES = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','
 let audioCtx = null, masterGain = null;
 let difficulty      = 'beginner';
 let voicing         = 'harmonic';
-let currentChord    = null;    // { name, root, intervals }
+let currentChord    = null;
 let answered        = false;
 let gameStarted     = false;
+let waitingForAdvance = false;
 let score           = 0;
 let streak          = 0;
 let bestStreak      = 0;
 let totalCorrect    = 0;
 let totalRounds     = 0;
 let history         = [];
-let nextTimer       = null;
 
 // ── Instrument management ─────────────────────────────────────────────────────
-// instruments[key] = { name, buffer, c3Midi, duration, sampleFile }
-// sampleFile is undefined for 'oscillator' (uses synth fallback)
-// duration is the chord sustain length in seconds for each instrument
 const instruments = {
   oscillator: { name: 'Synthesizer',     buffer: null, c3Midi: 48, duration: 1.6 },
   piano:      { name: 'Grand Piano',     buffer: null, c3Midi: 48, duration: 1.6, sampleFile: './samples/piano-c3.wav' },
@@ -616,8 +677,6 @@ function setLoadStatus(msg, cls = 'loading') {
   el.className = 'load-status ' + cls;
 }
 
-// Lazily fetch + decode a preset sample. Requires audioCtx to exist.
-// Safe to call multiple times — skips if already loaded or loading.
 async function loadPresetSample(key) {
   const inst = instruments[key];
   if (!inst?.sampleFile || inst.buffer || inst._loading) return;
@@ -636,12 +695,10 @@ async function loadPresetSample(key) {
   inst._loading = false;
 }
 
-// Called when user picks a file to add a new instrument
 async function loadUserSample(input) {
   const file = input.files[0];
   if (!file) return;
 
-  // Derive a clean key and display name from the filename
   const rawName  = file.name.replace(/\.[^.]+$/, '');
   const key      = rawName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   const dispName = rawName;
@@ -652,7 +709,6 @@ async function loadUserSample(input) {
     const ab = await file.arrayBuffer();
     instruments[key] = { name: dispName, buffer: null, c3Midi: 48, duration: 1.6 };
 
-    // Add option to dropdown before decoding
     const sel = document.getElementById('instrumentSelect');
     if (!sel.querySelector(`option[value="${key}"]`)) {
       const opt = document.createElement('option');
@@ -669,7 +725,6 @@ async function loadUserSample(input) {
         return;
       }
     } else {
-      // Store raw buffer; will be decoded in initAudio
       instruments[key]._rawBuffer = ab;
       setLoadStatus(`${dispName} ready`, 'ready');
     }
@@ -679,14 +734,13 @@ async function loadUserSample(input) {
     setLoadStatus('Error loading sample', 'error');
   }
 
-  input.value = ''; // allow re-selecting same file
+  input.value = '';
 }
 
 function setInstrument(key) {
   currentInstrument = key;
   const sel = document.getElementById('instrumentSelect');
   if (sel.value !== key) sel.value = key;
-  // Start loading the sample in the background if audio is already active
   if (audioCtx && instruments[key]?.sampleFile && !instruments[key].buffer) {
     loadPresetSample(key);
   }
@@ -696,11 +750,9 @@ function setInstrument(key) {
 async function initAudio() {
   if (audioCtx) return;
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
   masterGain = audioCtx.createGain();
   masterGain.gain.value = 0.55;
 
-  // Warm feedback room reverb
   const revDelay = audioCtx.createDelay(0.5);
   revDelay.delayTime.value = 0.05;
   const revFB  = audioCtx.createGain(); revFB.gain.value  = 0.28;
@@ -713,7 +765,6 @@ async function initAudio() {
   revDelay.connect(revOut); revOut.connect(audioCtx.destination);
   masterGain.connect(audioCtx.destination);
 
-  // Decode any user-uploaded instruments that arrived before the context existed
   for (const [key, inst] of Object.entries(instruments)) {
     if (inst._rawBuffer && !inst.buffer) {
       try {
@@ -725,30 +776,24 @@ async function initAudio() {
     }
   }
 
-  // Lazily load the currently selected preset sample
   await loadPresetSample(currentInstrument);
 }
 
 // ── Sample-based note playback ────────────────────────────────────────────────
-// Pitch-shifts the C3 sample to the target MIDI note via playbackRate.
-// Rate = 2^(semitones/12) relative to the sample's root (MIDI 48 = C3).
 function playSampleNote(midi, t, dur, inst) {
   const { buffer, c3Midi = 48 } = inst;
   if (!buffer) { playOscillatorNote(midi, t, dur); return; }
 
   const semitones = midi - c3Midi;
   const rate      = Math.pow(2, semitones / 12);
-
-  // Actual playable duration = sample length / playback rate
-  const maxDur  = (buffer.duration / rate) * 0.97;
-  const playDur = Math.min(dur, maxDur);
-  const fadeLen = Math.min(0.18, playDur * 0.12);
+  const maxDur    = (buffer.duration / rate) * 0.97;
+  const playDur   = Math.min(dur, maxDur);
+  const fadeLen   = Math.min(0.18, playDur * 0.12);
 
   const src = audioCtx.createBufferSource();
   src.buffer = buffer;
   src.playbackRate.value = rate;
 
-  // Envelope: the sample already has its attack; we only need a smooth release
   const env = audioCtx.createGain();
   env.gain.setValueAtTime(0.82, t);
   env.gain.setValueAtTime(0.82, t + playDur - fadeLen);
@@ -760,7 +805,7 @@ function playSampleNote(midi, t, dur, inst) {
   src.stop(t + playDur + 0.05);
 }
 
-// ── Oscillator fallback (synthesizer) ────────────────────────────────────────
+// ── Oscillator fallback ───────────────────────────────────────────────────────
 function playOscillatorNote(midi, t, dur) {
   const freq = 440 * Math.pow(2, (midi - 69) / 12);
 
@@ -797,7 +842,6 @@ function playOscillatorNote(midi, t, dur) {
   osc3.start(t); osc3.stop(stopT);
 }
 
-// ── Unified note dispatch ─────────────────────────────────────────────────────
 function playNote(midi, t, dur) {
   const inst = instruments[currentInstrument];
   if (!inst || currentInstrument === 'oscillator' || !inst.buffer) {
@@ -821,7 +865,6 @@ function playCurrentChord() {
     playNote(currentChord.root + semitones, t, DUR);
   });
 
-  // Animate play button
   const btn = document.getElementById('playBtn');
   btn.classList.add('playing');
   const totalDur = DUR + (voicing === 'arpeggio' ? (currentChord.intervals.length - 1) * AGAP : 0);
@@ -829,35 +872,26 @@ function playCurrentChord() {
 }
 
 // ── Piano SVG keyboard ────────────────────────────────────────────────────────
-// Two octaves: C3–B4 (MIDI 48–71)
 function buildKeyboardSVG(hlMidi = []) {
   const WK = 26, BKW = 16, WKH = 70, BKH = 45;
-  const OW = 7 * WK; // 182px per octave
+  const OW = 7 * WK;
 
-  // White key positions: midi → white-key index (0–13)
   const wPos = { 48:0,50:1,52:2,53:3,55:4,57:5,59:6, 60:7,62:8,64:9,65:10,67:11,69:12,71:13 };
-
-  // Black key center x (in px from left edge)
   const bCX = {
-    49: 0*OW + 0.67*WK,   // C#3
-    51: 0*OW + 1.75*WK,   // D#3
-    54: 0*OW + 3.67*WK,   // F#3
-    56: 0*OW + 4.67*WK,   // G#3
-    58: 0*OW + 5.76*WK,   // A#3
-    61: 1*OW + 0.67*WK,   // C#4
-    63: 1*OW + 1.75*WK,   // D#4
-    66: 1*OW + 3.67*WK,   // F#4
-    68: 1*OW + 4.67*WK,   // G#4
-    70: 1*OW + 5.76*WK,   // A#4
+    49: 0*OW + 0.67*WK,  51: 0*OW + 1.75*WK,
+    54: 0*OW + 3.67*WK,  56: 0*OW + 4.67*WK,
+    58: 0*OW + 5.76*WK,
+    61: 1*OW + 0.67*WK,  63: 1*OW + 1.75*WK,
+    66: 1*OW + 3.67*WK,  68: 1*OW + 4.67*WK,
+    70: 1*OW + 5.76*WK,
   };
 
-  const TW = 14 * WK; // 364px
+  const TW = 14 * WK;
   const hl = new Set(hlMidi);
   const p  = [];
 
   p.push(`<svg viewBox="0 0 ${TW} ${WKH}" xmlns="http://www.w3.org/2000/svg" width="100%">`);
 
-  // White keys
   for (const [midi, pos] of Object.entries(wPos)) {
     const m   = +midi, x = pos * WK;
     const isH = hl.has(m);
@@ -867,7 +901,6 @@ function buildKeyboardSVG(hlMidi = []) {
     if (isH) p.push(`<circle cx="${x+WK/2}" cy="${WKH-10}" r="4" fill="#c4843a" opacity="0.85"/>`);
   }
 
-  // Black keys
   for (const [midi, cx] of Object.entries(bCX)) {
     const m   = +midi, x = cx - BKW/2;
     const isH = hl.has(m);
@@ -885,42 +918,129 @@ function updateKeyboard(midiNotes) {
   document.getElementById('pianoKeys').innerHTML = buildKeyboardSVG(midiNotes);
 }
 
+// ── Grand Staff SVG ───────────────────────────────────────────────────────────
+const T_LINES  = [15, 29, 43, 57, 71];
+const B_LINES  = [99, 113, 127, 141, 155];
+const MID_C_Y  = 85;
+const LINE_SP  = 14;
+const STEP_H   = 7;
+
+const PC_TO_DIATONIC = [0,0,1,1,2,3,3,4,4,5,5,6];
+const IS_ACCIDENTAL  = [0,1,0,1,0,0,1,0,1,0,1,0];
+
+function midiToDiatonicStep(midi) {
+  const octaveOffset = Math.floor(midi / 12) - Math.floor(60 / 12);
+  return octaveOffset * 7 + PC_TO_DIATONIC[midi % 12];
+}
+
+function noteY(midi) { return MID_C_Y - midiToDiatonicStep(midi) * STEP_H; }
+
+function getStaffVoicing(chordRootMidi, intervals) {
+  const TREBLE_MIN = 64, TREBLE_MAX = 79;
+  const trebleNotes = intervals
+    .filter(i => i > 0)
+    .map(i => {
+      let m = chordRootMidi + i;
+      while (m < TREBLE_MIN) m += 12;
+      while (m > TREBLE_MAX) m -= 12;
+      return m;
+    })
+    .sort((a, b) => a - b);
+  return { bassNote: chordRootMidi, trebleNotes };
+}
+
+function renderNote(el, cx, midi, staffLines) {
+  const ny    = noteY(midi);
+  const isAcc = IS_ACCIDENTAL[midi % 12];
+  const NRX = 5.5, NRY = 3.9;
+
+  if (ny < staffLines[0]) {
+    for (let ly = staffLines[0] - LINE_SP; ly >= ny - 1; ly -= LINE_SP)
+      el.push(`<line x1="${cx-9}" y1="${ly}" x2="${cx+9}" y2="${ly}" stroke="var(--accent2)" stroke-width="1.2" opacity="0.85"/>`);
+  }
+  if (ny > staffLines[staffLines.length - 1]) {
+    for (let ly = staffLines[staffLines.length - 1] + LINE_SP; ly <= ny + 1; ly += LINE_SP)
+      el.push(`<line x1="${cx-9}" y1="${ly}" x2="${cx+9}" y2="${ly}" stroke="var(--accent2)" stroke-width="1.2" opacity="0.85"/>`);
+  }
+  if (Math.round(ny) === MID_C_Y)
+    el.push(`<line x1="${cx-9}" y1="${MID_C_Y}" x2="${cx+9}" y2="${MID_C_Y}" stroke="var(--accent2)" stroke-width="1.2" opacity="0.85"/>`);
+
+  if (isAcc)
+    el.push(`<text x="${cx-16}" y="${ny+4}" font-size="13" font-family="'Times New Roman',serif" fill="var(--accent2)" opacity="0.9" style="user-select:none">♯</text>`);
+
+  el.push(`<ellipse cx="${cx}" cy="${ny}" rx="${NRX}" ry="${NRY}" fill="var(--accent2)"/>`);
+}
+
+function buildChordStaff(rootMidi, intervals) {
+  const SVG_W = 360;
+  const SX = 6, EX = SVG_W - 6;
+  const CLEF_END_X = 60;
+  const cx = CLEF_END_X + (SVG_W - CLEF_END_X - 10) / 2;
+  const el = [];
+
+  [...T_LINES, ...B_LINES].forEach(y =>
+    el.push(`<line x1="${SX}" y1="${y}" x2="${EX}" y2="${y}" stroke="currentColor" stroke-width="0.9" opacity="0.28"/>`));
+  el.push(`<line x1="${SX}" y1="${T_LINES[0]}" x2="${SX}" y2="${T_LINES[4]}" stroke="currentColor" stroke-width="1.5" opacity="0.35"/>`);
+  el.push(`<line x1="${SX}" y1="${B_LINES[0]}" x2="${SX}" y2="${B_LINES[4]}" stroke="currentColor" stroke-width="1.5" opacity="0.35"/>`);
+  el.push(`<line x1="${SX-2}" y1="${T_LINES[0]}" x2="${SX-2}" y2="${B_LINES[4]}" stroke="currentColor" stroke-width="3" opacity="0.28" stroke-linecap="round"/>`);
+  el.push(`<text x="9" y="76" font-size="72" font-family="'Times New Roman',serif" fill="currentColor" opacity="0.38" style="user-select:none">𝄞</text>`);
+  el.push(`<text x="12" y="117" font-size="36" font-family="'Times New Roman',serif" fill="currentColor" opacity="0.38" style="user-select:none">𝄢</text>`);
+
+  if (rootMidi !== null && intervals) {
+    const { bassNote, trebleNotes } = getStaffVoicing(rootMidi, intervals);
+    el.push(`<g class="staff-chords">`);
+    renderNote(el, cx, bassNote, B_LINES);
+    trebleNotes.forEach(midi => renderNote(el, cx, midi, T_LINES));
+    el.push(`</g>`);
+  }
+
+  return el.join('');
+}
+
+function renderChordStaff(revealed) {
+  const svg = document.getElementById('chordStaffSvg');
+  if (!svg) return;
+  svg.innerHTML = buildChordStaff(
+    currentChord ? currentChord.root : null,
+    currentChord ? currentChord.intervals : null
+  );
+  if (revealed) {
+    requestAnimationFrame(() => requestAnimationFrame(() => svg.classList.add('revealed')));
+  } else {
+    svg.classList.remove('revealed');
+  }
+}
+
 // ── New round ─────────────────────────────────────────────────────────────────
 function newRound() {
-  clearTimeout(nextTimer);
   answered = false;
+  waitingForAdvance = false;
 
   const set  = DIFFICULTY_SETS[difficulty];
   const name = set[Math.floor(Math.random() * set.length)];
-
-  // Random root: C3–B3 (MIDI 48–59)
   const root = 48 + Math.floor(Math.random() * 12);
   currentChord = { name, root, intervals: CHORD_DEFS[name].intervals };
 
-  // Reset readout
   document.getElementById('theoryBadge').textContent = '♩ Identify the chord';
   document.getElementById('promptQuestion').innerHTML = 'What chord type is this?';
   document.getElementById('resultMsg').className  = 'result-msg-inline';
   document.getElementById('resultMsg').textContent = '';
   document.getElementById('chordReadout').className = 'chord-readout';
-  document.getElementById('nextBar').style.display   = 'none';
   document.getElementById('chordInfoCard').style.display = 'none';
 
-  // Render buttons
-  renderAnswerGrid(set);
+  const cp = document.getElementById('continuePrompt');
+  cp.classList.remove('show');
+  document.getElementById('continueRow').style.display = 'none';
 
-  // Reset keyboard
+  renderAnswerGrid(set);
   updateKeyboard([]);
   document.getElementById('keysLabel').textContent = '—';
-
-  // Enable replay
+  renderChordStaff(false);
   document.getElementById('replayBtn').disabled = false;
 
-  // Update multiplier badge
   const mult = ScoringEngine.rawMultiplier('chord-quiz', { difficulty });
   document.getElementById('multBadge').textContent = mult > 1 ? `×${mult.toFixed(1)}` : '';
 
-  // Auto-play after brief delay
   setTimeout(() => { if (currentChord && !answered) playCurrentChord(); }, 380);
 }
 
@@ -957,8 +1077,7 @@ async function submitAnswer(guess) {
     totalCorrect++;
     streak++;
     if (streak > bestStreak) bestStreak = streak;
-    const pts = ScoringEngine.points('chord-quiz', { difficulty });
-    score += pts;
+    score += ScoringEngine.points('chord-quiz', { difficulty });
   } else {
     streak = 0;
   }
@@ -969,7 +1088,6 @@ async function submitAnswer(guess) {
   updateStats();
   renderHistory();
 
-  // Button feedback
   document.querySelectorAll('.chord-btn').forEach(btn => {
     btn.disabled = true;
     const ch = btn.dataset.chord;
@@ -982,7 +1100,6 @@ async function submitAnswer(guess) {
     }
   });
 
-  // Readout feedback
   const readout = document.getElementById('chordReadout');
   readout.classList.add(isCorrect ? 'correct-flash' : 'wrong-flash');
 
@@ -996,19 +1113,18 @@ async function submitAnswer(guess) {
     ? `That's <span>${rootName} ${currentChord.name}</span> — nice!`
     : `That was <span>${rootName} ${currentChord.name}</span>`;
 
-  // Show chord formula
   const def = CHORD_DEFS[currentChord.name];
   document.getElementById('formulaText').textContent = `${def.symbol.toUpperCase()}: ${def.desc}`;
   document.getElementById('formulaDesc').textContent = def.detail;
   document.getElementById('chordInfoCard').style.display = '';
 
-  // Highlight keys
   const midiNotes = currentChord.intervals.map(s => currentChord.root + s);
   updateKeyboard(midiNotes);
   document.getElementById('keysLabel').textContent =
     midiNotes.map(m => NOTE_NAMES[m % 12]).join(' – ');
 
-  // Log to Supabase
+  renderChordStaff(true);
+
   try {
     if (SonicSandbox.getUser()) {
       SonicSandbox.saveScore({
@@ -1020,21 +1136,30 @@ async function submitAnswer(guess) {
     }
   } catch(e) {}
 
-  // Progress bar then next round
-  const nextBar  = document.getElementById('nextBar');
-  const nextFill = document.getElementById('nextFill');
-  nextBar.style.display = '';
-  nextFill.style.transition = 'none';
-  nextFill.style.width = '100%';
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    nextFill.style.transition = 'width 1.55s linear';
-    nextFill.style.width = '0%';
-  }));
-
-  nextTimer = setTimeout(newRound, 1650);
+  setTimeout(() => {
+    waitingForAdvance = true;
+    document.getElementById('continueRow').style.display = '';
+    requestAnimationFrame(() => document.getElementById('continuePrompt').classList.add('show'));
+  }, 400);
 }
 
-// ── Stats display ─────────────────────────────────────────────────────────────
+// ── Continue ──────────────────────────────────────────────────────────────────
+function handleContinue() {
+  if (!waitingForAdvance) return;
+  waitingForAdvance = false;
+  document.getElementById('continuePrompt').classList.remove('show');
+  newRound();
+}
+
+// ── How to Play toggle ────────────────────────────────────────────────────────
+function toggleHow() {
+  const panel = document.getElementById('howPanel');
+  const btn   = document.getElementById('howToggleBtn');
+  const isOpen = panel.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
 function updateStats() {
   const acc = totalRounds > 0 ? Math.round((totalCorrect / totalRounds) * 100) : null;
   document.getElementById('scoreVal').textContent    = score;
@@ -1050,7 +1175,7 @@ function renderHistory() {
     history.map(v => `<div class="hist-dot ${v ? 'c' : 'w'}"></div>`).join('');
 }
 
-// ── Settings controls ─────────────────────────────────────────────────────────
+// ── Settings ──────────────────────────────────────────────────────────────────
 function setDifficulty(d) {
   difficulty = d;
   ['beginner','intermediate','advanced'].forEach(x => {
@@ -1069,15 +1194,9 @@ function setVoicing(v) {
 // ── Play button ───────────────────────────────────────────────────────────────
 async function handlePlayBtn() {
   await initAudio();
-  if (!gameStarted) {
-    gameStarted = true;
-    updateStats();
-  }
-  if (!currentChord || answered) {
-    newRound();
-  } else {
-    playCurrentChord();
-  }
+  if (!gameStarted) { gameStarted = true; updateStats(); }
+  if (!currentChord || answered) newRound();
+  else playCurrentChord();
 }
 
 async function replayChord() {
@@ -1092,22 +1211,23 @@ function toggleShortcuts(e) {
   e.stopPropagation();
   document.getElementById('shortcutsPopover').classList.toggle('open');
 }
-document.addEventListener('click', () => {
+document.addEventListener('click', (e) => {
   document.getElementById('shortcutsPopover')?.classList.remove('open');
+  if (waitingForAdvance && !e.target.closest('.settings-bar, .how-toggle-btn, .how-panel')) {
+    handleContinue();
+  }
 });
 
 window.addEventListener('keydown', e => {
-  if (e.target.tagName === 'INPUT') return;
-
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (waitingForAdvance) { e.preventDefault(); handleContinue(); return; }
   if (e.code === 'Space') {
     e.preventDefault();
     if (!gameStarted || !currentChord || answered) handlePlayBtn();
     else replayChord();
     return;
   }
-
   if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-
   const num = parseInt(e.key);
   if (num >= 1 && num <= 9 && gameStarted && currentChord && !answered) {
     const set = DIFFICULTY_SETS[difficulty];
@@ -1118,15 +1238,14 @@ window.addEventListener('keydown', e => {
 // ── Toast ─────────────────────────────────────────────────────────────────────
 function showToast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
+  t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2800);
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 updateKeyboard([]);
 updateStats();
-// Pre-render blank grid so there's something visible before first play
+document.getElementById('chordStaffSvg').innerHTML = buildChordStaff(null, null);
 renderAnswerGrid(DIFFICULTY_SETS['beginner']);
 document.querySelectorAll('.chord-btn').forEach(btn => { btn.disabled = true; btn.classList.add('dimmed'); });
 </script>
@@ -1185,7 +1304,6 @@ document.querySelectorAll('.chord-btn').forEach(btn => { btn.disabled = true; bt
   <div class="footer-right"><span>© 2026 Zach Snider</span></div>
 </footer>
 
-<!-- ── Auth script ────────────────────────────────────────────────────────── -->
 <script>
   const authModal = document.getElementById('authModal');
   const authArea  = document.getElementById('authArea');
@@ -1197,82 +1315,6 @@ document.querySelectorAll('.chord-btn').forEach(btn => { btn.disabled = true; bt
   const tabForgot = document.getElementById('tabForgot');
 
   if (openBtn) openBtn.addEventListener('click', () => authModal.classList.add('open'));
-  closeBtn.addEventListener('click', () => { authModal.classList.remove('open'); showSigninPanel(); });
-  authModal.addEventListener('click', e => {
-    if (e.target === authModal) { authModal.classList.remove('open'); showSigninPanel(); }
-  });
-
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      tabSignin.style.display = tab.dataset.tab === 'signin' ? '' : 'none';
-      tabSignup.style.display = tab.dataset.tab === 'signup' ? '' : 'none';
-      tabForgot.style.display = 'none';
-    });
-  });
-
-  function showSigninPanel() { tabForgot.style.display = 'none'; tabSignin.style.display = ''; }
-  function showForgotPanel() {
-    tabSignin.style.display = 'none'; tabForgot.style.display = '';
-    const v = document.getElementById('siEmail').value.trim();
-    if (v) document.getElementById('fpEmail').value = v;
-    document.getElementById('fpMsg').textContent = '';
-  }
-
-  document.getElementById('forgotPwBtn').addEventListener('click', showForgotPanel);
-  document.getElementById('backToSigninBtn').addEventListener('click', showSigninPanel);
-
-  document.getElementById('siSubmit').addEventListener('click', async () => {
-    const msg = document.getElementById('siMsg');
-    msg.textContent = 'Signing in…'; msg.className = 'modal-msg';
-    const { error } = await SonicSandbox.signIn(
-      document.getElementById('siEmail').value.trim(),
-      document.getElementById('siPassword').value
-    );
-    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
-    else { authModal.classList.remove('open'); }
-  });
-
-  document.getElementById('fpSubmit').addEventListener('click', async () => {
-    const email = document.getElementById('fpEmail').value.trim();
-    const msg   = document.getElementById('fpMsg');
-    if (!email) { msg.textContent = 'Please enter your email.'; msg.className = 'modal-msg error'; return; }
-    msg.textContent = 'Sending…'; msg.className = 'modal-msg';
-    const { error } = await SonicSandbox.resetPasswordForEmail(email);
-    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
-    else { msg.textContent = 'Reset link sent! Check your inbox.'; msg.className = 'modal-msg success';
-           document.getElementById('fpSubmit').disabled = true; }
-  });
-
-  document.getElementById('suSubmit').addEventListener('click', async () => {
-    const msg = document.getElementById('suMsg');
-    msg.textContent = 'Creating account…'; msg.className = 'modal-msg';
-    const { error } = await SonicSandbox.signUp(
-      document.getElementById('suEmail').value.trim(),
-      document.getElementById('suPassword').value
-    );
-    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
-    else { msg.textContent = 'Check your email to confirm your account.'; msg.className = 'modal-msg success'; }
-  });
-
-  document.addEventListener('ss:authchange', async e => {
-    const user = e.detail;
-    if (user) {
-      authArea.innerHTML = `<div class="user-pill">
-        <span class="username-display" style="color:var(--muted);font-size:12px;">${user.email}</span>
-      </div>`;
-      const profile = await SonicSandbox.getProfile();
-      if (profile?.username) {
-        const el = document.querySelector('.username-display');
-        if (el) el.outerHTML = `<a class="set-username-link" href="/account/">@${profile.username}</a>`;
-      }
-    } else {
-      authArea.innerHTML = `<button class="auth-btn" id="openAuthBtn">Sign in</button>`;
-      document.getElementById('openAuthBtn').addEventListener('click', () => authModal.classList.add('open'));
-    }
-  });
 </script>
-
 </body>
 </html>
