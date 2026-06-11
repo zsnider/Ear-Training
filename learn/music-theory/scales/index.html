@@ -5,9 +5,9 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cloud.umami.is 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://aolaxmmrmvovbzumlybe.supabase.co wss://aolaxmmrmvovbzumlybe.supabase.co https://cloud.umami.is; img-src 'self' data:; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="canonical" href="https://sonicsandbox.app/learn/music-theory/intervals/">
-<title>Intervals — Music Theory | SonicSandbox</title>
-<meta name="description" content="Learn musical intervals — half steps, whole steps, perfect intervals, major and minor intervals. Free interactive music theory lessons.">
+<link rel="canonical" href="https://sonicsandbox.app/learn/music-theory/scales/">
+<title>Scales — Music Theory | SonicSandbox</title>
+<meta name="description" content="Learn major and minor scales, pentatonic, blues scale, and modes. Interactive music theory lessons with piano keyboard demos.">
 <link rel="stylesheet" href="/style.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,8 +17,8 @@
   :root{
     --bg:#0a0b0d;--surface:#13151a;--surface2:#1a1d24;--surface3:#21252f;
     --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
-    --text:#dde2ee;--muted:#6b7280;--accent:#60e8ff;--accent2:#a5f3ff;
-    --mt-accent:#60e8ff;--mt-accent2:#a5f3ff;
+    --text:#dde2ee;--muted:#6b7280;--accent:#fbbf24;--accent2:#fde68a;
+    --mt-accent:#fbbf24;--mt-accent2:#fde68a;
     --sidebar-w:264px;
   }
   body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
@@ -38,7 +38,7 @@
   .sidebar-divider{height:1px;background:var(--border);margin:10px 0 6px;}
   .course-hdr{display:flex;align-items:center;gap:8px;padding:7px 20px;cursor:pointer;transition:background .14s;user-select:none;}
   .course-hdr:hover{background:rgba(255,255,255,0.035);}
-  .course-hdr.is-active{background:rgba(96,232,255,0.07);}
+  .course-hdr.is-active{background:rgba(251,191,36,0.07);}
   .course-n{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:var(--muted);min-width:18px;flex-shrink:0;}
   .course-label{font-size:12.5px;font-weight:500;color:var(--text);flex:1;line-height:1.3;}
   .course-soon-badge{font-family:'IBM Plex Mono',monospace;font-size:7.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.22);padding:2px 5px;border-radius:3px;border:1px solid rgba(255,255,255,0.06);flex-shrink:0;}
@@ -48,7 +48,7 @@
   .sidebar-course.is-open .course-lessons{display:block;}
   .lesson-row{display:flex;align-items:flex-start;gap:8px;padding:4px 16px 4px 12px;cursor:pointer;transition:background .12s;border-left:2px solid transparent;margin-left:-2px;text-decoration:none;}
   .lesson-row:hover:not(.lesson-soon){background:rgba(255,255,255,0.035);}
-  .lesson-row.is-active{border-left-color:var(--mt-accent);background:rgba(96,232,255,0.08);}
+  .lesson-row.is-active{border-left-color:var(--mt-accent);background:rgba(251,191,36,0.08);}
   .lesson-n{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);min-width:28px;flex-shrink:0;padding-top:1px;}
   .lesson-row.is-active .lesson-n{color:var(--mt-accent);}
   .lesson-label{font-size:11.5px;color:var(--muted);line-height:1.45;font-weight:300;}
@@ -67,11 +67,11 @@
   .progress-bar-wrap{display:flex;align-items:center;gap:12px;margin-bottom:28px;}
   .progress-dots{display:flex;gap:6px;flex-wrap:wrap;}
   .progress-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);transition:background .2s,transform .2s;cursor:pointer;}
-  .progress-dot.done{background:rgba(96,232,255,0.4);}
+  .progress-dot.done{background:rgba(251,191,36,0.4);}
   .progress-dot.active{background:var(--mt-accent2);transform:scale(1.3);}
   .progress-label{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-left:auto;}
   .step-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px 36px 32px;position:relative;overflow:hidden;}
-  .step-card::before{content:'';position:absolute;inset:0;border-radius:20px;background:radial-gradient(ellipse at top left,rgba(96,232,255,0.06),transparent 60%);pointer-events:none;}
+  .step-card::before{content:'';position:absolute;inset:0;border-radius:20px;background:radial-gradient(ellipse at top left,rgba(251,191,36,0.05),transparent 60%);pointer-events:none;}
   .step-number{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--mt-accent);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
   .step-number::after{content:'';flex:1;height:1px;background:var(--border);}
   .step-title{font-family:'IBM Plex Mono',monospace;font-size:clamp(20px,3vw,28px);font-weight:600;letter-spacing:-.02em;color:var(--text);margin-bottom:18px;line-height:1.25;}
@@ -81,14 +81,14 @@
   .piano-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px 20px 16px;margin-bottom:24px;overflow:hidden;}
   .piano-label{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
   .piano-svg-container{overflow-x:auto;padding-bottom:4px;}
-  /* Interval comparison table */
-  .interval-table{width:100%;border-collapse:collapse;margin-bottom:24px;font-size:13px;}
-  .interval-table th{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);text-align:left;}
-  .interval-table td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--muted);line-height:1.4;}
-  .interval-table td:first-child{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--text);}
-  .interval-table tr:last-child td{border-bottom:none;}
-  .interval-table .hl{color:var(--mt-accent);}
-  .key-points{background:rgba(96,232,255,0.05);border:1px solid rgba(96,232,255,0.13);border-radius:12px;padding:18px 20px;margin-bottom:24px;display:flex;flex-direction:column;gap:10px;}
+  /* Scale formula grid */
+  .scale-formula{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px;}
+  .sf-cell{display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .sf-note{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;color:#0a0b0d;background:var(--mt-accent);}
+  .sf-note.dim{background:var(--surface3);color:var(--muted);font-weight:500;}
+  .sf-step{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;color:var(--muted);letter-spacing:.06em;}
+  .sf-arrow{width:20px;height:36px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;flex-shrink:0;}
+  .key-points{background:rgba(251,191,36,0.05);border:1px solid rgba(251,191,36,0.13);border-radius:12px;padding:18px 20px;margin-bottom:24px;display:flex;flex-direction:column;gap:10px;}
   .key-points-label{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--mt-accent);margin-bottom:4px;}
   .key-point{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted);line-height:1.55;}
   .key-point::before{content:'→';color:var(--mt-accent2);font-family:'IBM Plex Mono',monospace;font-size:12px;margin-top:1px;flex-shrink:0;}
@@ -100,14 +100,14 @@
   .play-btn{width:44px;height:44px;border-radius:50%;background:var(--mt-accent);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .15s,opacity .15s;flex-shrink:0;}
   .play-btn:hover{transform:scale(1.08);opacity:.9;}
   .play-btn svg{pointer-events:none;}
-  .play-btn.playing{background:rgba(96,232,255,0.2);border:1.5px solid var(--mt-accent);}
+  .play-btn.playing{background:rgba(251,191,36,0.2);border:1.5px solid var(--mt-accent);}
   .step-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:4px;}
   .nav-btn{display:flex;align-items:center;gap:8px;padding:11px 22px;border-radius:10px;border:1px solid var(--border2);background:var(--surface2);font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:border-color .15s,color .15s,transform .15s;text-decoration:none;}
   .nav-btn:hover{color:var(--text);transform:translateY(-1px);}
   .nav-btn:disabled{opacity:.3;cursor:not-allowed;transform:none;}
   .nav-btn.primary{background:var(--mt-accent);border-color:var(--mt-accent);color:#0a0b0d;}
   .nav-btn.primary:hover{opacity:.88;}
-  .nav-btn.finish{background:rgba(96,232,255,0.12);border-color:var(--mt-accent);color:var(--mt-accent2);}
+  .nav-btn.finish{background:rgba(251,191,36,0.12);border-color:var(--mt-accent);color:var(--mt-accent2);}
   .step-counter{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
   .completion-card{text-align:center;padding:56px 36px;}
   .completion-title{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;color:var(--text);margin-bottom:12px;}
@@ -115,6 +115,13 @@
   .completion-cta{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border-radius:10px;background:var(--mt-accent);color:#0a0b0d;font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;text-decoration:none;transition:opacity .15s,transform .15s;}
   .completion-cta:hover{opacity:.88;transform:translateY(-1px);}
   .completion-restart{display:block;margin:18px auto 0;background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;text-decoration:underline;font-family:inherit;}
+  /* modes table */
+  .modes-table{width:100%;border-collapse:collapse;margin-bottom:24px;font-size:13px;}
+  .modes-table th{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);text-align:left;}
+  .modes-table td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--muted);line-height:1.4;}
+  .modes-table td:first-child{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--text);}
+  .modes-table tr:last-child td{border-bottom:none;}
+  .modes-table .hl{color:var(--mt-accent);}
   @media(max-width:900px){
     .learn-sidebar{position:fixed;top:0;left:0;height:100vh;transform:translateX(-100%);transition:transform .24s cubic-bezier(.4,0,.2,1);z-index:50;box-shadow:4px 0 24px rgba(0,0,0,.5);border-right:1px solid var(--border2);}
     .learn-sidebar.is-open{transform:translateX(0);}
@@ -128,6 +135,8 @@
     .step-nav{flex-direction:column;}
     .nav-btn{width:100%;justify-content:center;}
     .learn-breadcrumb{padding:10px 16px;}
+    .sf-note{width:30px;height:30px;font-size:10px;}
+    .sf-arrow{width:14px;}
   }
 </style>
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a4e7fbcc-763c-4844-8f4f-669cf411e799"></script>
@@ -164,14 +173,14 @@
       <div class="bc-path">
         <a href="/learn/">Learn</a><span class="bc-sep">›</span>
         <span>Music Theory</span><span class="bc-sep">›</span>
-        <span class="bc-current">Intervals</span>
+        <span class="bc-current">Scales</span>
       </div>
     </div>
 
     <div class="module-wrap">
       <div class="progress-bar-wrap">
         <div class="progress-dots" id="progressDots"></div>
-        <div class="progress-label" id="progressLabel">Step 1 of 5</div>
+        <div class="progress-label" id="progressLabel">Step 1 of 6</div>
       </div>
       <div class="step-card" id="stepCard"></div>
       <div class="step-nav" id="stepNav" style="margin-top:20px;">
@@ -267,152 +276,189 @@ document.addEventListener('ss:authchange',async e=>{const user=e.detail;if(user)
 
 <script>
 // ─────────────────────────────────────────────────────────────
-//  MODULE 2: INTERVALS
+//  MODULE 3: SCALES
 // ─────────────────────────────────────────────────────────────
 
-const COURSE_UID = 'mt-intervals';
-const ACCENT = '#60e8ff';
+const COURSE_UID = 'mt-scales';
+const ACCENT = '#fbbf24';
 
-// ── Interval reference table ─────────────────────────────────
-function intervalTableHTML() {
-  const rows = [
-    ['Unison (P1)',     '0',  'C → C',   'Same note'],
-    ['Minor 2nd (m2)',  '1',  'C → C#',  'Very dissonant — clash'],
-    ['Major 2nd (M2)',  '2',  'C → D',   'Stepwise motion'],
-    ['Minor 3rd (m3)',  '3',  'C → Eb',  'Sad, dark character'],
-    ['Major 3rd (M3)',  '4',  'C → E',   'Bright, happy character'],
-    ['Perfect 4th (P4)','5',  'C → F',   'Stable, open'],
-    ['Tritone (A4/d5)', '6',  'C → F#',  'Most dissonant — tense'],
-    ['Perfect 5th (P5)','7',  'C → G',   'Powerful, stable'],
-    ['Minor 6th (m6)',  '8',  'C → Ab',  'Melancholic, yearning'],
-    ['Major 6th (M6)',  '9',  'C → A',   'Bright, open'],
-    ['Minor 7th (m7)',  '10', 'C → Bb',  'Bluesy, unresolved'],
-    ['Major 7th (M7)',  '11', 'C → B',   'Tense, wants to resolve'],
-    ['Octave (P8)',     '12', 'C → C\'', 'Same note, doubled'],
+// ── Scale formula display ────────────────────────────────────
+function scaleFormulaHTML(notes, steps) {
+  // notes: array of note names, steps: array of 'W','H','W'... (between notes)
+  let html = '<div class="scale-formula">';
+  notes.forEach((n, i) => {
+    html += `<div class="sf-cell"><div class="sf-note">${n}</div><div class="sf-step"></div></div>`;
+    if (i < steps.length) {
+      html += `<div class="sf-arrow" title="${steps[i]==='W'?'Whole step':'Half step'}">${steps[i]==='W'?'W':'H'}</div>`;
+    }
+  });
+  html += '</div>';
+  return html;
+}
+
+function modesTableHTML() {
+  const modes = [
+    ['Ionian',     '1',  'W W H W W W H', 'Major scale — bright, happy'],
+    ['Dorian',     '2',  'W H W W W H W', 'Minor + raised 6th — funky, soulful (Daft Punk, Santana)'],
+    ['Phrygian',   '3',  'H W W W H W W', 'Spanish/flamenco flavour — exotic, dark'],
+    ['Lydian',     '4',  'W W W H W W H', 'Major + raised 4th — dreamy, cinematic (film scores)'],
+    ['Mixolydian', '5',  'W W H W W H W', 'Dominant 7th scale — bluesy, rock riffs'],
+    ['Aeolian',    '6',  'W H W W H W W', 'Natural minor — sad, serious'],
+    ['Locrian',    '7',  'H W W H W W W', 'Diminished 5th — unstable, rarely used in melody'],
   ];
-  return `<table class="interval-table">
-    <thead><tr><th>Interval</th><th>Semitones</th><th>Example</th><th>Sound quality</th></tr></thead>
+  return `<table class="modes-table">
+    <thead><tr><th>Mode</th><th>Degree</th><th>Formula</th><th>Character</th></tr></thead>
     <tbody>
-      ${rows.map(([name,semi,ex,q]) => `<tr><td>${name}</td><td class="hl">${semi}</td><td>${ex}</td><td>${q}</td></tr>`).join('')}
+      ${modes.map(([name,deg,formula,char]) =>
+        `<tr><td>${name}</td><td class="hl">${deg}</td><td>${formula}</td><td>${char}</td></tr>`
+      ).join('')}
     </tbody>
   </table>`;
 }
 
 const steps = [
-  // ── Step 1: Half Steps & Whole Steps ────────────────────
+  // ── Step 1: The Major Scale ──────────────────────────────
   {
-    title: 'Half Steps & Whole Steps',
-    number: 'Step 01 — Building Blocks',
-    body: `All musical distances are measured in <strong>intervals</strong> — the gap between two notes. The smallest interval in Western music is the <strong>half step</strong> (also called a semitone): the distance between any two adjacent notes on a piano, whether white or black.
+    title: 'The Major Scale',
+    number: 'Step 01 — The Foundation',
+    body: `A <strong>scale</strong> is an ordered set of notes following a specific pattern of intervals. The <strong>major scale</strong> is the most fundamental scale in Western music — it's the "Do Re Mi" scale you likely already know by ear.
 
-<br><br>A <strong>whole step</strong> is simply two half steps combined. C to D is a whole step (with C# in between). E to F is a half step — they're adjacent, with no black key between them.
+<br><br>The pattern is: <em>Whole Whole Half Whole Whole Whole Half</em> (W W H W W W H). Starting on C and following this pattern gives you <strong>C D E F G A B C</strong> — the C major scale, which uses only white keys on a piano.
 
-<br><br>These are the <em>atoms of music</em>. Every scale, chord, and melody is built by stacking half steps and whole steps in specific patterns. Understanding this is the foundation of all interval recognition.`,
+<br><br>Every major scale follows this same pattern, just starting from a different root note. This creates a characteristic <em>bright, resolved, happy</em> sound that forms the basis of most Western melody and harmony. The seven notes of a major scale are called <strong>scale degrees</strong>, numbered 1–7 (with 1 and 8 being the same note an octave apart).`,
+    formula: { notes:['C','D','E','F','G','A','B','C'], steps:['W','W','H','W','W','W','H'] },
     keyPoints: [
-      { strong:'Half step (semitone)', rest:' — the smallest interval; adjacent piano keys (e.g. C → C#)' },
-      { strong:'Whole step (tone)', rest:' — two half steps (e.g. C → D, with C# in between)' },
-      { strong:'E to F and B to C', rest:' — natural half steps; no black key between them' },
-      { strong:'The building block', rest:' — all scales and chords are patterns of half and whole steps' },
+      { strong:'Formula', rest:' — W W H W W W H (whole and half steps from root)' },
+      { strong:'C major', rest:' — C D E F G A B C · all white keys on the piano' },
+      { strong:'Scale degrees', rest:' — notes are numbered 1–7 from the root' },
+      { strong:'Any key', rest:' — same formula applies from any root note (e.g. G major = G A B C D E F# G)' },
     ],
     piano: {
-      startNote:'C4', endNote:'C5',
-      highlight:['C4','C#4','D4'],
-      label:'C to C# = 1 half step · C to D = 1 whole step (2 half steps)',
+      startNote:'C4', endNote:'C6',
+      highlight:['C4','D4','E4','F4','G4','A4','B4','C5'],
+      label:'C Major Scale — C D E F G A B C',
     },
-    audio: { desc:'Hear a half step (C→C#), then a whole step (C→D). Notice how much smaller the half step sounds.', fn:()=>mtPlaySeq(['C4','C#4','C4','D4'],0.6,0.18) },
+    audio: { desc:'Hear the C major scale ascending, then the full scale played and resolved with a chord.', fn:()=>mtPlaySeqThenChord(['C4','D4','E4','F4','G4','A4','B4','C5'],['C4','E4','G4'],0.32,0.02,2.2) },
   },
 
-  // ── Step 2: Naming Intervals ─────────────────────────────
+  // ── Step 2: Natural Minor Scale ─────────────────────────
   {
-    title: 'Naming Intervals',
-    number: 'Step 02 — Interval Names',
-    body: `Intervals are named by <strong>counting the letter names</strong> spanned, including both the starting and ending note. C to E is a <em>third</em> because it spans three letter names: C, D, E. C to G is a <em>fifth</em>: C, D, E, F, G.
+    title: 'Natural Minor Scale',
+    number: 'Step 02 — The Other Side',
+    body: `If the major scale is the "happy" scale, the <strong>natural minor scale</strong> is the "sad" scale. Its formula is: <em>Whole Half Whole Whole Half Whole Whole</em> (W H W W H W W).
 
-<br><br>This counting is always <em>inclusive</em> — count the note you start on. And it always uses letter names, ignoring sharps and flats for the number part. C to Eb is still a third (C, D, E), and C to E# is still a third — but the quality (major/minor/augmented) changes.
+<br><br>Starting on A gives you <strong>A B C D E F G A</strong> — A natural minor, which also uses only white keys on a piano (the same keys as C major, just starting from A). This relationship — A minor and C major sharing the same notes — makes them <strong>relative major/minor</strong> pairs.
 
-<br><br>The complete set of interval names covers one octave: unison (same note), 2nd, 3rd, 4th, 5th, 6th, 7th, and octave. Each has a specific number of half steps associated with its "default" quality.`,
+<br><br>The key differences between major and minor are at scale degrees <em>3, 6, and 7</em> — these are each a half step lower in natural minor, giving it that darker, more melancholic quality. Natural minor is the most common minor scale and forms the basis of minor chords, keys, and progressions.`,
+    formula: { notes:['A','B','C','D','E','F','G','A'], steps:['W','H','W','W','H','W','W'] },
     keyPoints: [
-      { strong:'Count letter names (inclusive)', rest:' — C to E: C(1) D(2) E(3) = 3rd' },
-      { strong:'Number names', rest:' — unison, 2nd, 3rd, 4th, 5th, 6th, 7th, octave' },
-      { strong:'Sharps/flats don\'t change the number', rest:' — C to Eb is still a 3rd (just minor)' },
-      { strong:'Quality modifies the number', rest:' — major, minor, perfect, augmented, or diminished' },
+      { strong:'Formula', rest:' — W H W W H W W' },
+      { strong:'A natural minor', rest:' — A B C D E F G A · same white keys as C major' },
+      { strong:'Relative minor', rest:' — every major scale has a relative minor starting on scale degree 6' },
+      { strong:'Lowered 3rd', rest:' — the minor 3rd (C in A minor) is what creates the "sad" quality' },
     ],
     piano: {
-      startNote:'C4', endNote:'C5',
-      highlight:['C4','E4','G4'],
-      label:'C to E = Major 3rd · C to G = Perfect 5th',
+      startNote:'C3', endNote:'C5',
+      highlight:['A3','B3','C4','D4','E4','F4','G4','A4'],
+      label:'A Natural Minor Scale — A B C D E F G A',
     },
-    audio: { desc:'Hear each interval from C — a 3rd (C→E), a 5th (C→G), then a 7th (C→B).', fn:()=>mtPlaySeq(['C4','E4','C4','G4','C4','B4'],0.65,0.12) },
+    audio: { desc:'Major scale then minor scale from the same root (C major → C natural minor). Hear the colour shift.', fn:()=>{mtPlaySeq(['C4','D4','E4','F4','G4','A4','B4','C5'],0.30,0.02);setTimeout(()=>mtPlaySeq(['C4','D4','Eb4','F4','G4','Ab4','Bb4','C5'],0.30,0.02),3200);} },
   },
 
-  // ── Step 3: Perfect Intervals ────────────────────────────
+  // ── Step 3: Harmonic & Melodic Minor ────────────────────
   {
-    title: 'Perfect Intervals',
-    number: 'Step 03 — Perfect Quality',
-    body: `Four intervals are called <strong>"perfect"</strong>: the unison (P1), the 4th (P4), the 5th (P5), and the octave (P8). The term "perfect" comes from their particularly <em>stable, pure, consonant</em> sound — they blend so smoothly that the two notes almost feel like one.
+    title: 'Harmonic & Melodic Minor',
+    number: 'Step 03 — Minor Variants',
+    body: `Natural minor has one practical problem: its 7th degree (G in A minor) is a <em>whole step</em> below the tonic. This means it doesn't create the strong "pull" back to the root that composers wanted. Two modified scales solve this.
 
-<br><br>The <strong>perfect 5th</strong> (7 half steps, e.g. C to G) is the most powerful interval in music after the octave. It forms the basis of power chords in rock, the open strings of guitars, and the most foundational harmonies in classical music. The <strong>perfect 4th</strong> (5 half steps, e.g. C to F) is its inversion — equally stable, used constantly in bass lines and melodies.
+<br><br>The <strong>harmonic minor</strong> raises the 7th degree by a half step (G → G# in A minor). This creates a powerful leading tone that wants to resolve upward to A, used constantly in classical harmony and metal. The downside: it creates an unusual gap — an <em>augmented 2nd</em> (3 half steps) between scale degrees 6 and 7, giving it an exotic, Eastern flavour.
 
-<br><br>Perfect intervals don't have major/minor variants — if you lower a perfect interval by a half step, it becomes <em>diminished</em>; raise it and it becomes <em>augmented</em>.`,
+<br><br>The <strong>melodic minor</strong> solves that awkward gap by also raising the 6th degree when ascending (F → F# in A minor), giving smooth stepwise motion. Traditionally, it reverts back to natural minor when descending. Jazz often uses the ascending form in both directions — this "jazz minor" has a distinct, sophisticated sound.`,
+    formula: { notes:['A','B','C','D','E','F','G#','A'], steps:['W','H','W','W','H','A2','H'] },
     keyPoints: [
-      { strong:'Perfect Unison (P1)', rest:' — 0 semitones; the same note' },
-      { strong:'Perfect 4th (P4)', rest:' — 5 semitones; C to F; open, stable' },
-      { strong:'Perfect 5th (P5)', rest:' — 7 semitones; C to G; power chord, pure and strong' },
-      { strong:'Perfect Octave (P8)', rest:' — 12 semitones; same note, twice the frequency' },
+      { strong:'Harmonic minor', rest:' — raises 7th by ½ step · creates leading tone · exotic augmented 2nd gap' },
+      { strong:'Melodic minor (ascending)', rest:' — raises 6th AND 7th · smooth stepwise motion up' },
+      { strong:'Melodic minor (descending)', rest:' — classical: reverts to natural minor going down' },
+      { strong:'Jazz minor', rest:' — uses ascending melodic minor in both directions · sophisticated, modern' },
     ],
     piano: {
-      startNote:'C4', endNote:'C5',
-      highlight:['C4','F4','G4'],
-      label:'Perfect 4th (C→F = 5 semitones) · Perfect 5th (C→G = 7 semitones)',
+      startNote:'C3', endNote:'C5',
+      highlight:['A3','B3','C4','D4','E4','F4','G#4','A4'],
+      label:'A Harmonic Minor — A B C D E F G# A (raised 7th)',
     },
-    audio: { desc:'Hear a perfect 4th (C+F together), then a perfect 5th (C+G). Both sound open and stable.', fn:()=>{mtPlayChord(['C4','F4'],2.0);setTimeout(()=>mtPlayChord(['C4','G4'],2.0),2300);} },
+    audio: { desc:'Natural minor vs. harmonic minor from A — hear how the raised G# "pulls" toward the A.', fn:()=>{mtPlaySeq(['A3','B3','C4','D4','E4','F4','G4','A4'],0.30,0.02);setTimeout(()=>mtPlaySeq(['A3','B3','C4','D4','E4','F4','G#4','A4'],0.30,0.02),3200);} },
   },
 
-  // ── Step 4: Major & Minor Intervals ─────────────────────
+  // ── Step 4: Pentatonic Scales ────────────────────────────
   {
-    title: 'Major & Minor Intervals',
-    number: 'Step 04 — Quality',
-    body: `The 2nd, 3rd, 6th, and 7th come in two flavors: <strong>major</strong> (larger) and <strong>minor</strong> (one half step smaller). Major intervals tend to sound <em>brighter and more resolved</em>; minor intervals sound <em>darker and more tense</em>.
+    title: 'Pentatonic Scales',
+    number: 'Step 04 — Five Notes',
+    body: `The <strong>pentatonic scale</strong> is one of the most universally used scales in music — it appears in blues, rock, folk, country, R&B, and music from every culture on Earth. "Penta" means five: it's a 5-note scale.
 
-<br><br>The most recognizable example is the 3rd: a <strong>major 3rd</strong> (4 half steps, e.g. C to E) is the basis of a major chord's bright, "happy" sound. A <strong>minor 3rd</strong> (3 half steps, e.g. C to Eb) underlies the darker, "sad" character of a minor chord.
+<br><br>The <strong>major pentatonic</strong> is the major scale with scale degrees 4 and 7 removed (C D E G A). Without those notes, you eliminate the two half steps and the tritone — which means <em>almost any combination of pentatonic notes sounds good together</em>. It's forgiving and pleasing in any order.
 
-<br><br>This major/minor distinction extends across all these intervals. The <strong>major 7th</strong> (11 half steps) has a tense, "reaching" quality; the <strong>minor 7th</strong> (10 half steps) is the cornerstone of dominant 7th chords and the blues sound.`,
+<br><br>The <strong>minor pentatonic</strong> removes degrees 2 and 6 from natural minor (A C D E G). This is the scale behind virtually all rock, blues, and R&B guitar solos. The gap between C and D (the minor 3rd) is what gives it that raw, expressive sound. Both pentatonic scales share the same set of notes shifted by a relative major/minor relationship.`,
+    formula: { notes:['A','C','D','E','G','A'], steps:['m3','W','W','m3','W'] },
     keyPoints: [
-      { strong:'Major 3rd (M3)', rest:' — 4 semitones; C to E; bright, "happy"' },
-      { strong:'Minor 3rd (m3)', rest:' — 3 semitones; C to Eb; darker, "sad"' },
-      { strong:'Major 6th (M6)', rest:' — 9 semitones; warm and open' },
-      { strong:'Minor 7th (m7)', rest:' — 10 semitones; bluesy, unresolved — the blues interval' },
+      { strong:'Major pentatonic', rest:' — major scale minus 4th and 7th (C D E G A)' },
+      { strong:'Minor pentatonic', rest:' — natural minor minus 2nd and 6th (A C D E G)' },
+      { strong:'No semitones', rest:' — pentatonic avoids half steps, so notes rarely clash' },
+      { strong:'Universal sound', rest:' — pentatonic appears in virtually every musical culture worldwide' },
     ],
     piano: {
-      startNote:'C4', endNote:'C5',
-      highlight:['C4','Eb4','E4'],
-      label:'Minor 3rd (C→Eb = 3 semitones) vs. Major 3rd (C→E = 4 semitones)',
+      startNote:'C3', endNote:'C5',
+      highlight:['A3','C4','D4','E4','G4','A4'],
+      label:'A Minor Pentatonic — A C D E G A (5 notes)',
     },
-    audio: { desc:'Minor 3rd (C+Eb, darker) vs. Major 3rd (C+E, brighter). One semitone makes a huge emotional difference.', fn:()=>{mtPlayChord(['C4','Eb4'],2.0);setTimeout(()=>mtPlayChord(['C4','E4'],2.0),2400);} },
+    audio: { desc:'Minor pentatonic scale (A C D E G A) — the foundation of rock and blues.', fn:()=>mtPlaySeqThenChord(['A3','C4','D4','E4','G4','A4'],['A3','E4','A4'],0.32,0.02,2.0) },
   },
 
-  // ── Step 5: Augmented & Diminished ──────────────────────
+  // ── Step 5: The Blues Scale ──────────────────────────────
   {
-    title: 'Augmented & Diminished',
-    number: 'Step 05 — Extended Quality',
-    body: `When you raise a major or perfect interval by a half step, it becomes <strong>augmented</strong>. When you lower a minor or perfect interval by a half step, it becomes <strong>diminished</strong>.
+    title: 'The Blues Scale',
+    number: 'Step 05 — The Blue Note',
+    body: `The <strong>blues scale</strong> is the minor pentatonic with one extra note added: the <em>blue note</em>, a diminished 5th (also called a flat 5, or ♭5) above the root. In A, this is the note Eb (or D#).
 
-<br><br>The most important of these is the <strong>tritone</strong> — either an augmented 4th (6 half steps, e.g. C to F#) or a diminished 5th (C to Gb, also 6 half steps). It sits exactly in the middle of the octave and is the most <em>dissonant</em> interval in Western music — it creates maximum tension that wants to resolve.
+<br><br>This note sits at exactly 6 half steps from the root — the <strong>tritone</strong>. It's inherently dissonant and tense, and that tension is precisely the point. Blues music is built on bending between the minor 3rd (C), the blue note (Eb), and the perfect 4th (D) — the area of maximum emotional pull in the scale.
 
-<br><br>The tritone is used in <strong>dominant 7th chords</strong> (e.g. G7 contains B to F — a diminished 5th) and is central to blues, jazz, and Western harmonic tension. Medieval theorists called it <em>diabolus in musica</em> ("the devil in music") for its harsh, unresolved sound.`,
+<br><br>The blues scale is the sound of <em>field hollers, Delta blues, Chicago blues, rock and roll, jazz improvisation, and R&B</em>. It's one of the most important scales in American music history. When players "bend" a note on guitar, they're often bending toward or through the blue note.`,
+    formula: { notes:['A','C','D','Eb','E','G','A'], steps:['m3','W','H','H','m3','W'] },
     keyPoints: [
-      { strong:'Augmented', rest:' — perfect or major interval raised by 1 half step' },
-      { strong:'Diminished', rest:' — perfect or minor interval lowered by 1 half step' },
-      { strong:'Tritone', rest:' — 6 semitones; the most dissonant interval; sits in the middle of the octave' },
-      { strong:'Tritone in dominant 7ths', rest:' — the tension at the heart of jazz and blues harmony' },
+      { strong:'Blues scale', rest:' — minor pentatonic + one added ♭5 (tritone above root)' },
+      { strong:'The blue note', rest:' — in A blues: Eb/D# · creates tension that "wants" to resolve to E or D' },
+      { strong:'Bending', rest:' — guitarists physically bend strings between the ♭3, ♭5, and ♮5 areas' },
+      { strong:'Cultural root', rest:' — the defining sound of American blues, rock, jazz, and R&B' },
     ],
     piano: {
-      startNote:'C4', endNote:'C5',
-      highlight:['C4','F#4'],
-      label:'The tritone — C to F# (augmented 4th / diminished 5th) = 6 semitones',
+      startNote:'C3', endNote:'C5',
+      highlight:['A3','C4','D4','Eb4','E4','G4','A4'],
+      label:'A Blues Scale — A C D Eb E G A (the blue note is Eb)',
     },
-    tableHTML: intervalTableHTML(),
-    audio: { desc:'Hear the tritone (C + F#) — the most dissonant interval, then hear it resolve to a 5th (C + G).', fn:()=>{mtPlayChord(['C4','F#4'],2.0);setTimeout(()=>mtPlayChord(['C4','G4'],2.0),2500);} },
+    audio: { desc:'The blues scale (A C D Eb E G A) — notice the tension and release around the blue note (Eb).', fn:()=>mtPlaySeqThenChord(['A3','C4','D4','Eb4','E4','G4','A4'],['A3','C4','E4'],0.36,0.04,2.0) },
+  },
+
+  // ── Step 6: Modes ────────────────────────────────────────
+  {
+    title: 'Modes of the Major Scale',
+    number: 'Step 06 — Seven Flavours',
+    body: `If you take the major scale and start playing it from a different note — keeping all the same notes — you get a <strong>mode</strong>. The C major scale (C D E F G A B) played starting from D (D E F G A B C D) gives you the <em>Dorian mode</em>. Each of the seven notes of the major scale produces its own mode with a distinct formula and character.
+
+<br><br>These seven modes have been named since ancient Greece. Each has a unique emotional colour and is used extensively in different genres. <em>Dorian</em> is used in funk and soul. <em>Mixolydian</em> is the sound of countless rock riffs and dominant chords. <em>Lydian</em> is the dreamy sound of many film scores. <em>Phrygian</em> has that Spanish/flamenco quality.
+
+<br><br>Understanding modes is the key to understanding <em>why</em> a scale feels the way it does — and to having vocabulary for the specific colours available in improvisation and composition.`,
+    modesTable: true,
+    keyPoints: [
+      { strong:'Mode', rest:' — a rotation of the major scale starting from a different degree' },
+      { strong:'Ionian = Major', rest:' — starting from degree 1; brightest mode' },
+      { strong:'Aeolian = Natural Minor', rest:' — starting from degree 6; darkest common mode' },
+      { strong:'Dorian', rest:' — minor with raised 6th; the sound of Santana, Daft Punk, D\'Angelo' },
+    ],
+    piano: {
+      startNote:'C4', endNote:'C6',
+      highlight:['D4','E4','F4','G4','A4','B4','C5','D5'],
+      label:'D Dorian — D E F G A B C D (same notes as C major, started from D)',
+    },
+    audio: { desc:'D Dorian scale ascending — the same white keys as C major, but starting on D gives it a whole new sound.', fn:()=>mtPlaySeqThenChord(['D4','E4','F4','G4','A4','B4','C5','D5'],['D4','F4','A4'],0.32,0.02,2.0) },
   },
 ];
 
@@ -441,8 +487,12 @@ function renderStep(idx) {
        </div>`
     : '';
 
-  const tableHTML = step.tableHTML
-    ? `<div style="margin-bottom:24px;overflow-x:auto;">${step.tableHTML}</div>`
+  const formulaHTML = step.formula
+    ? `<div style="margin-bottom:24px;">${scaleFormulaHTML(step.formula.notes, step.formula.steps)}</div>`
+    : '';
+
+  const modesHTML = step.modesTable
+    ? `<div style="margin-bottom:24px;overflow-x:auto;">${modesTableHTML()}</div>`
     : '';
 
   card.innerHTML = `
@@ -450,7 +500,8 @@ function renderStep(idx) {
     <h2 class="step-title">${step.title}</h2>
     <div class="step-body">${step.body}</div>
     ${pianoHTML}
-    ${tableHTML}
+    ${formulaHTML}
+    ${modesHTML}
     <div class="key-points">
       <div class="key-points-label">Key Takeaways</div>
       ${kpHTML}
@@ -509,12 +560,12 @@ function showCompletion() {
   document.getElementById('stepCard').innerHTML = `
     <div class="completion-card">
       <svg width="56" height="56" viewBox="0 0 56 56" fill="none" style="display:block;margin:0 auto 20px;">
-        <circle cx="28" cy="28" r="25" stroke="${ACCENT}" stroke-width="1.5" fill="rgba(96,232,255,0.06)"/>
+        <circle cx="28" cy="28" r="25" stroke="${ACCENT}" stroke-width="1.5" fill="rgba(251,191,36,0.06)"/>
         <polyline points="17,28 25,36 39,19" stroke="${ACCENT}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      <div class="completion-title">Intervals Complete!</div>
-      <p class="completion-sub">You can now name and hear every interval in the octave. The best way to lock this in is practice — open Interval Master and test your ears.</p>
-      <a class="completion-cta" href="/interval-master/">Try Interval Master →</a>
+      <div class="completion-title">Scales Complete!</div>
+      <p class="completion-sub">You now know the major, minor, pentatonic, blues, and modal families — the full vocabulary of scales. Put your ears to the test in Scale Quiz.</p>
+      <a class="completion-cta" href="/scale-quiz/">Try Scale Quiz →</a>
       <button class="completion-restart" onclick="jumpToStep(0)">← Restart this module</button>
     </div>`;
   document.getElementById('stepNav').style.display = 'none';
