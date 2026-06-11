@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 //  SonicSandbox — Music Theory Shared Utilities
 //  Provides: sidebar data + renderer, piano SVG builder,
-//            note frequencies, audio synthesis helpers.
+//            note frequencies, audio (grand piano sample + osc fallback).
 //
 //  Each module page must call:
 //    buildSidebar('mt-notes')    ← pass the current course UID
@@ -59,7 +59,6 @@ const MT_COURSES = [
 // ─────────────────────────────────────────────────────────────
 
 function buildSidebar(currentUid) {
-  // currentUid: e.g. 'mt-notes', 'mt-intervals', 'ae-eq'
   const body = document.getElementById('sidebarBody');
   if (!body) return;
 
@@ -150,10 +149,7 @@ function initMobileSidebar() {
   toggleBtn?.addEventListener('click', openSidebar);
   closeBtn?.addEventListener('click', closeSidebar);
   overlay?.addEventListener('click', closeSidebar);
-
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeSidebar();
-  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSidebar(); });
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -176,20 +172,17 @@ const NOTE_FREQ = {
 // ─────────────────────────────────────────────────────────────
 //  PIANO KEYBOARD SVG BUILDER
 // ─────────────────────────────────────────────────────────────
-// opts: { startNote, endNote, highlight, accent }
-// highlight: array of note names e.g. ['C4','E4','G4']
-// accent: CSS color for highlighted keys
+// opts: { startNote, endNote, highlight, accent, showLabels }
 
-const _WK_W = 32;   // white key width
-const _WK_H = 88;   // white key height
-const _WK_G = 1.5;  // gap between white keys
-const _BK_W = 20;   // black key width
-const _BK_H = 54;   // black key height
+const _WK_W = 42;    // white key width
+const _WK_H = 112;   // white key height
+const _WK_G = 2;     // gap between white keys
+const _BK_W = 26;    // black key width
+const _BK_H = 68;    // black key height
 
-// White note → index within octave
 const _WHITE_IDX = { C:0, D:1, E:2, F:3, G:4, A:5, B:6 };
 
-// Black key offset (fractional white-key-widths from the white key it follows)
+// Black key offset in fractional white-key-widths from octave C
 const _BLACK_OFFSET = {
   'C#':0.62,'Db':0.62,
   'D#':1.62,'Eb':1.62,
@@ -200,7 +193,7 @@ const _BLACK_OFFSET = {
 
 function _isBlack(noteName) {
   const n = noteName.replace(/\d/g,'');
-  return n.includes('#') || n.includes('b');
+  return n.includes('#') || (n.length === 2 && n.includes('b'));
 }
 
 function _noteOctave(noteName) {
@@ -212,272 +205,282 @@ function _noteLetter(noteName) {
   return noteName.replace(/\d/g,'');
 }
 
-// Build sorted list of all notes in range
-function _notesInRange(startNote, endNote) {
-  const chromatic = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-  const result = [];
-  let startIdx = chromatic.indexOf(_noteLetter(startNote).replace('b','').replace('Db','C#').replace('Eb','D#').replace('Gb','F#').replace('Ab','G#').replace('Bb','A#'));
-  let oct = _noteOctave(startNote);
-  const endFreq = NOTE_FREQ[endNote] || 1046.50;
-  for (let iter = 0; iter < 200; iter++) {
-    const letter = chromatic[startIdx % 12];
-    const name = letter + oct;
-    const freq = NOTE_FREQ[name];
-    if (!freq || freq > endFreq + 1) break;
-    result.push(name);
-    startIdx++;
-    if (startIdx % 12 === 0) oct++;
-  }
-  return result;
-}
-
 function buildPianoSVG({ startNote='C4', endNote='C5', highlight=[], accent='#3ecf8e', showLabels=true } = {}) {
   const chromatic = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
   const STEP = _WK_W + _WK_G;
   const hlSet = new Set(highlight);
 
-  // Build white key list
   const whiteKeys = [];
   const blackKeys = [];
-  let startIdx = chromatic.indexOf('C');
+  let startIdx = chromatic.indexOf(_noteLetter(startNote));
+  if (startIdx < 0) startIdx = 0;
   let oct = _noteOctave(startNote);
   let wkCount = 0;
 
-  // Start from start note
-  const startLetter = _noteLetter(startNote);
-  startIdx = chromatic.indexOf(startLetter);
-  if (startIdx < 0) startIdx = 0;
-
   const endFreq = (NOTE_FREQ[endNote] || NOTE_FREQ['C5']) + 1;
 
-  // Count white keys from startNote to endNote
   for (let iter = 0; iter < 200; iter++) {
     const letter = chromatic[startIdx % 12];
-    const name = letter + oct;
-    const freq = NOTE_FREQ[name];
+    const name   = letter + oct;
+    const freq   = NOTE_FREQ[name];
     if (!freq || freq > endFreq) break;
     const isB = letter.includes('#');
     if (!isB) { whiteKeys.push({ name, letter, oct, wkIdx: wkCount }); wkCount++; }
-    else { blackKeys.push({ name, letter, oct }); }
+    else       { blackKeys.push({ name, letter, oct }); }
     startIdx++;
     if (startIdx % 12 === 0) oct++;
   }
 
-  const svgW = wkCount * STEP - _WK_G + 2; // +2 for stroke
-  const svgH = _WK_H + (showLabels ? 22 : 6);
+  const svgW = wkCount * STEP - _WK_G + 4; // +4 padding for outer border
+  const svgH = _WK_H + (showLabels ? 24 : 8) + 4;
 
-  // White key rects
+  // Piano body background
+  let svg = `<rect x="1" y="1" width="${svgW-2}" height="${_WK_H + 2}" rx="6" ry="6"
+    fill="#161618" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`;
+
+  // White keys
   let whiteSVG = '';
   whiteKeys.forEach(k => {
-    const x = k.wkIdx * STEP + 0.5;
+    const x = k.wkIdx * STEP + 2; // +2 offset for body padding
     const isHL = hlSet.has(k.name);
-    const fill = isHL ? accent : '#f5f5f5';
-    const stroke = isHL ? accent : '#ccc';
-    whiteSVG += `<rect x="${x}" y="0.5" width="${_WK_W}" height="${_WK_H}" rx="3" ry="3"
-      fill="${fill}" stroke="${stroke}" stroke-width="${isHL?1.5:1}"/>`;
-    if (showLabels && k.letter === 'C') {
-      const labelColor = isHL ? '#fff' : '#aaa';
-      whiteSVG += `<text x="${x + _WK_W/2}" y="${_WK_H + 14}" text-anchor="middle"
-        font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="${labelColor}">${k.name}</text>`;
-    }
+    const fill   = isHL ? accent : '#efefef';
+    const stroke = isHL ? 'rgba(0,0,0,0.3)' : '#b0b0b0';
+    whiteSVG += `<rect x="${x}" y="2" width="${_WK_W}" height="${_WK_H}" rx="3" ry="3"
+      fill="${fill}" stroke="${stroke}" stroke-width="1"/>`;
     if (isHL) {
-      // Dot indicator
-      whiteSVG += `<circle cx="${x + _WK_W/2}" cy="${_WK_H - 12}" r="4" fill="${accent}" opacity="0.9"/>`;
+      // Filled dot at the bottom of the key
+      whiteSVG += `<circle cx="${x + _WK_W/2}" cy="${_WK_H - 14}" r="5" fill="rgba(0,0,0,0.22)"/>`;
+    }
+    if (showLabels && k.letter === 'C') {
+      const labelColor = isHL ? 'rgba(0,0,0,0.5)' : '#999';
+      whiteSVG += `<text x="${x + _WK_W/2}" y="${_WK_H + 20}" text-anchor="middle"
+        font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600" fill="${labelColor}">${k.name}</text>`;
     }
   });
 
-  // Black key rects (draw on top)
+  // Black keys — drawn on top; always have a visible border in both states
   let blackSVG = '';
-  // Need to know the white key index for each octave start
   blackKeys.forEach(k => {
-    const letter = k.letter; // e.g. 'C#'
-    const oct = k.oct;
+    const letter = k.letter;
+    const oct    = k.oct;
     const offset = _BLACK_OFFSET[letter] ?? 0;
-    // Find the octave's C white key index
-    const cKey = whiteKeys.find(w => w.letter==='C' && w.oct===oct);
+    const cKey   = whiteKeys.find(w => w.letter==='C' && w.oct===oct);
     if (!cKey) return;
-    const x = (cKey.wkIdx + offset) * STEP - _BK_W/2 + 0.5;
+    const x    = (cKey.wkIdx + offset) * STEP - _BK_W/2 + 2;
     const isHL = hlSet.has(k.name);
-    const fill = isHL ? accent : '#222';
-    blackSVG += `<rect x="${x}" y="0.5" width="${_BK_W}" height="${_BK_H}" rx="2" ry="2"
-      fill="${fill}" stroke="${isHL?accent:'#111'}" stroke-width="${isHL?1.5:0.5}"/>`;
+
     if (isHL) {
-      blackSVG += `<circle cx="${x + _BK_W/2}" cy="${_BK_H - 8}" r="3.5" fill="rgba(255,255,255,0.9)"/>`;
+      // Highlighted: accent fill with dark border so it reads against white keys
+      blackSVG += `<rect x="${x}" y="2" width="${_BK_W}" height="${_BK_H}" rx="3" ry="3"
+        fill="${accent}" stroke="rgba(0,0,0,0.45)" stroke-width="1.5"/>`;
+      // White dot near bottom
+      blackSVG += `<circle cx="${x + _BK_W/2}" cy="${_BK_H - 10}" r="4" fill="rgba(0,0,0,0.28)"/>`;
+    } else {
+      // Not highlighted: dark fill with subtle light border so it reads against dark bg
+      blackSVG += `<rect x="${x}" y="2" width="${_BK_W}" height="${_BK_H}" rx="3" ry="3"
+        fill="#1a1a1e" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>`;
     }
   });
 
   return `<svg viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg"
     style="width:100%;max-width:${svgW}px;height:auto;display:block;overflow:visible;">
+    ${svg}
     ${whiteSVG}
     ${blackSVG}
   </svg>`;
 }
 
 // ─────────────────────────────────────────────────────────────
-//  AUDIO SYNTHESIS — Music Theory
+//  AUDIO ENGINE — Grand Piano Sample + Oscillator Fallback
 // ─────────────────────────────────────────────────────────────
 
-let _mtCtx = null;
-let _mtNodes = [];
-let _mtPlaying = false;
-let _mtStopTimer = null;
+let _mtCtx          = null;
+let _mtNodes        = [];
+let _mtPlaying      = false;
+let _mtStopTimer    = null;
+let _mtPianoAB      = null;   // raw ArrayBuffer from fetch
+let _mtPianoBuffer  = null;   // decoded AudioBuffer (set after first user gesture)
+const _MT_SAMPLE    = '/learn/music-theory/samples/piano-c3.wav';
+const _MT_C3_MIDI   = 48;     // the sample is tuned to C3
+
+// Fetch the sample file immediately (no AudioContext needed for fetch)
+(async function _mtFetchPiano() {
+  try {
+    const r = await fetch(_MT_SAMPLE);
+    if (r.ok) _mtPianoAB = await r.arrayBuffer();
+  } catch(e) {
+    console.warn('[MT] Piano sample fetch failed — oscillator fallback active', e);
+  }
+})();
 
 function mtGetCtx() {
-  if (!_mtCtx) _mtCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (!_mtCtx) {
+    _mtCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Decode the sample now that we have a context (triggered by user gesture)
+    if (_mtPianoAB && !_mtPianoBuffer) {
+      _mtCtx.decodeAudioData(
+        _mtPianoAB.slice(0), // slice so the buffer isn't detached
+        buf  => { _mtPianoBuffer = buf; },
+        err  => { console.warn('[MT] Piano sample decode failed', err); }
+      );
+    }
+  }
   if (_mtCtx.state === 'suspended') _mtCtx.resume();
   return _mtCtx;
+}
+
+function _mtSetPlayBtn(isPlaying) {
+  const btn = document.querySelector('.play-btn');
+  if (!btn) return;
+  btn.classList.toggle('playing', isPlaying);
+  btn.querySelector('.play-icon').style.display = isPlaying ? 'none' : '';
+  btn.querySelector('.stop-icon').style.display = isPlaying ? '' : 'none';
 }
 
 function mtStop() {
   _mtNodes.forEach(n => { try { n.stop(0); } catch(e){} });
   clearTimeout(_mtStopTimer);
-  _mtNodes = [];
-  _mtPlaying = false;
-  const btn = document.querySelector('.play-btn');
-  if (btn) {
-    btn.classList.remove('playing');
-    btn.querySelector('.play-icon').style.display = '';
-    btn.querySelector('.stop-icon').style.display = 'none';
+  _mtNodes    = [];
+  _mtPlaying  = false;
+  _mtSetPlayBtn(false);
+}
+
+// ── Note playback ────────────────────────────────────────────
+
+function _mtPlayNote(freq, startTime, duration, ctx, master) {
+  if (_mtPianoBuffer) {
+    // ── Sample-based playback ────────────────────────────
+    const semitones = Math.round(69 + 12 * Math.log2(freq / 440)) - _MT_C3_MIDI;
+    const rate      = Math.pow(2, semitones / 12);
+    const maxDur    = (_mtPianoBuffer.duration / rate) * 0.96;
+    const playDur   = Math.min(duration, maxDur);
+    const fadeLen   = Math.min(0.20, playDur * 0.12);
+
+    const src = ctx.createBufferSource();
+    src.buffer = _mtPianoBuffer;
+    src.playbackRate.value = rate;
+
+    const env = ctx.createGain();
+    env.gain.setValueAtTime(0.88, startTime);
+    env.gain.setValueAtTime(0.88, startTime + playDur - fadeLen);
+    env.gain.linearRampToValueAtTime(0, startTime + playDur);
+
+    src.connect(env);
+    env.connect(master);
+    src.start(startTime);
+    src.stop(startTime + playDur + 0.06);
+    _mtNodes.push(src);
+  } else {
+    // ── Oscillator fallback ──────────────────────────────
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const osc3 = ctx.createOscillator();
+    osc1.type = 'triangle';  osc1.frequency.value = freq;
+    osc2.type = 'sawtooth';  osc2.frequency.value = freq * 1.0019;
+    osc3.type = 'triangle';  osc3.frequency.value = freq * 2.001;
+
+    const g1 = ctx.createGain(); g1.gain.value = 0.52;
+    const g2 = ctx.createGain(); g2.gain.value = 0.08;
+    const g3 = ctx.createGain(); g3.gain.value = 0.04;
+
+    const flt = ctx.createBiquadFilter();
+    flt.type = 'lowpass';
+    flt.frequency.value = Math.min(4500, 900 + (Math.round(69 + 12 * Math.log2(freq/440)) - 48) * 65);
+    flt.Q.value = 0.4;
+
+    const env = ctx.createGain();
+    env.gain.setValueAtTime(0, startTime);
+    env.gain.linearRampToValueAtTime(0.42, startTime + 0.008);
+    env.gain.exponentialRampToValueAtTime(0.20, startTime + 0.22);
+    env.gain.setValueAtTime(0.20, startTime + duration - 0.10);
+    env.gain.linearRampToValueAtTime(0, startTime + duration);
+
+    osc1.connect(g1); osc2.connect(g2); osc3.connect(g3);
+    g1.connect(flt); g2.connect(flt); g3.connect(flt);
+    flt.connect(env); env.connect(master);
+
+    const stopT = startTime + duration + 0.06;
+    osc1.start(startTime); osc1.stop(stopT);
+    osc2.start(startTime); osc2.stop(stopT);
+    osc3.start(startTime); osc3.stop(stopT);
+    _mtNodes.push(osc1, osc2, osc3);
   }
 }
 
-// Synthesize a piano-like tone (triangle + detuned sine for warmth)
-function _mtPlayNote(freq, startTime, duration, ctx, master) {
-  const env = ctx.createGain();
-  env.gain.setValueAtTime(0, startTime);
-  env.gain.linearRampToValueAtTime(0.7, startTime + 0.012);
-  env.gain.exponentialRampToValueAtTime(0.3, startTime + 0.18);
-  env.gain.setValueAtTime(0.3, startTime + duration - 0.08);
-  env.gain.linearRampToValueAtTime(0, startTime + duration);
-  env.connect(master);
+// ── Public play helpers ──────────────────────────────────────
 
-  const osc1 = ctx.createOscillator();
-  osc1.type = 'triangle';
-  osc1.frequency.value = freq;
-
-  const osc2 = ctx.createOscillator();
-  osc2.type = 'sine';
-  osc2.frequency.value = freq * 2.002; // slight detune for warmth
-
-  const g2 = ctx.createGain(); g2.gain.value = 0.25;
-  osc2.connect(g2); g2.connect(env);
-  osc1.connect(env);
-
-  osc1.start(startTime); osc1.stop(startTime + duration);
-  osc2.start(startTime); osc2.stop(startTime + duration);
-  _mtNodes.push(osc1, osc2);
-}
-
-// Play a sequence of notes
 function mtPlaySeq(noteNames, noteDur = 0.45, gap = 0.0) {
   const ctx = mtGetCtx();
   mtStop();
   _mtPlaying = true;
+  _mtSetPlayBtn(true);
 
-  const masterGain = ctx.createGain();
-  masterGain.gain.value = 0.35;
-  masterGain.connect(ctx.destination);
+  const master = ctx.createGain();
+  master.gain.value = _mtPianoBuffer ? 0.72 : 0.35;
+  master.connect(ctx.destination);
 
   let t = ctx.currentTime + 0.05;
   noteNames.forEach(name => {
     const freq = NOTE_FREQ[name];
     if (!freq) { t += noteDur + gap; return; }
-    _mtPlayNote(freq, t, noteDur, ctx, masterGain);
+    _mtPlayNote(freq, t, noteDur, ctx, master);
     t += noteDur + gap;
   });
 
-  const totalTime = noteNames.length * (noteDur + gap) + 0.3;
   _mtStopTimer = setTimeout(() => {
     _mtPlaying = false;
-    const btn = document.querySelector('.play-btn');
-    if (btn) {
-      btn.classList.remove('playing');
-      btn.querySelector('.play-icon').style.display = '';
-      btn.querySelector('.stop-icon').style.display = 'none';
-    }
-  }, totalTime * 1000);
-
-  const btn = document.querySelector('.play-btn');
-  if (btn) {
-    btn.classList.add('playing');
-    btn.querySelector('.play-icon').style.display = 'none';
-    btn.querySelector('.stop-icon').style.display = '';
-  }
+    _mtSetPlayBtn(false);
+  }, (noteNames.length * (noteDur + gap) + 0.4) * 1000);
 }
 
-// Play notes simultaneously (chord)
 function mtPlayChord(noteNames, duration = 2.2) {
   const ctx = mtGetCtx();
   mtStop();
   _mtPlaying = true;
+  _mtSetPlayBtn(true);
 
-  const masterGain = ctx.createGain();
-  masterGain.gain.value = 0.28;
-  masterGain.connect(ctx.destination);
+  const master = ctx.createGain();
+  master.gain.value = _mtPianoBuffer ? 0.60 : 0.28;
+  master.connect(ctx.destination);
 
   const t = ctx.currentTime + 0.05;
   noteNames.forEach(name => {
     const freq = NOTE_FREQ[name];
-    if (freq) _mtPlayNote(freq, t, duration, ctx, masterGain);
+    if (freq) _mtPlayNote(freq, t, duration, ctx, master);
   });
 
   _mtStopTimer = setTimeout(() => {
     _mtPlaying = false;
-    const btn = document.querySelector('.play-btn');
-    if (btn) {
-      btn.classList.remove('playing');
-      btn.querySelector('.play-icon').style.display = '';
-      btn.querySelector('.stop-icon').style.display = 'none';
-    }
+    _mtSetPlayBtn(false);
   }, (duration + 0.4) * 1000);
-
-  const btn = document.querySelector('.play-btn');
-  if (btn) {
-    btn.classList.add('playing');
-    btn.querySelector('.play-icon').style.display = 'none';
-    btn.querySelector('.stop-icon').style.display = '';
-  }
 }
 
-// Play sequence then chord (used for scale → chord demos)
 function mtPlaySeqThenChord(seqNotes, chordNotes, noteDur = 0.38, gap = 0.0, chordDur = 1.8) {
   const ctx = mtGetCtx();
   mtStop();
   _mtPlaying = true;
+  _mtSetPlayBtn(true);
 
-  const masterGain = ctx.createGain();
-  masterGain.gain.value = 0.32;
-  masterGain.connect(ctx.destination);
+  const master = ctx.createGain();
+  master.gain.value = _mtPianoBuffer ? 0.68 : 0.32;
+  master.connect(ctx.destination);
 
   let t = ctx.currentTime + 0.05;
   seqNotes.forEach(name => {
     const freq = NOTE_FREQ[name];
-    if (freq) _mtPlayNote(freq, t, noteDur * 0.95, ctx, masterGain);
+    if (freq) _mtPlayNote(freq, t, noteDur * 0.95, ctx, master);
     t += noteDur + gap;
   });
-  t += 0.1;
+  t += 0.10;
   chordNotes.forEach(name => {
     const freq = NOTE_FREQ[name];
-    if (freq) _mtPlayNote(freq, t, chordDur, ctx, masterGain);
+    if (freq) _mtPlayNote(freq, t, chordDur, ctx, master);
   });
 
-  const totalTime = seqNotes.length * (noteDur + gap) + chordDur + 0.6;
   _mtStopTimer = setTimeout(() => {
     _mtPlaying = false;
-    const btn = document.querySelector('.play-btn');
-    if (btn) {
-      btn.classList.remove('playing');
-      btn.querySelector('.play-icon').style.display = '';
-      btn.querySelector('.stop-icon').style.display = 'none';
-    }
-  }, totalTime * 1000);
-
-  const btn = document.querySelector('.play-btn');
-  if (btn) {
-    btn.classList.add('playing');
-    btn.querySelector('.play-icon').style.display = 'none';
-    btn.querySelector('.stop-icon').style.display = '';
-  }
+    _mtSetPlayBtn(false);
+  }, (seqNotes.length * (noteDur + gap) + chordDur + 0.6) * 1000);
 }
 
 function mtTogglePlay(fn) {
