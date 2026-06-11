@@ -157,6 +157,13 @@ window.ScoringEngine = (() => {
         return CHORD_QUIZ[settings.difficulty] ?? 1.0;
       }
 
+      // Staff Specialist — beginner: treble only naturals; intermediate: both clefs;
+      // advanced: both clefs with accidentals (12 chromatic choices)
+      case 'staff-specialist': {
+        const STAFF = { beginner: 1.0, intermediate: 1.4, advanced: 2.2 };
+        return STAFF[settings.difficulty] ?? 1.0;
+      }
+
       // ── Mobile iOS games ──────────────────────────────────────────────────────
 
       case 'freq-quiz-ios':
