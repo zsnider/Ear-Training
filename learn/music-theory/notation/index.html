@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cloud.umami.is 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://aolaxmmrmvovbzumlybe.supabase.co wss://aolaxmmrmvovbzumlybe.supabase.co https://cloud.umami.is; img-src 'self' data:; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="canonical" href="https://sonicsandbox.app/learn/music-theory/notation/">
+<title>Staff Notation — Music Theory | SonicSandbox</title>
+<meta name="description" content="Learn the staff, treble and bass clef notes, ledger lines, note values, and time signatures. Free interactive music theory lessons.">
+<link rel="stylesheet" href="/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  :root{
+    --bg:#0a0b0d;--surface:#13151a;--surface2:#1a1d24;--surface3:#21252f;
+    --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+    --text:#dde2ee;--muted:#6b7280;--accent:#e879f9;--accent2:#f0abfc;
+    --mt-accent:#e879f9;--mt-accent2:#f0abfc;
+    --sidebar-w:264px;
+  }
+  body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+  nav{width:100%;padding:20px 32px;display:flex;align-items:center;border-bottom:1px solid var(--border);flex-shrink:0;position:sticky;top:0;z-index:40;background:var(--bg);}
+  @media(max-width:600px){nav{padding:16px 20px;}}
+  .learn-layout{flex:1;display:flex;align-items:flex-start;}
+  .learn-sidebar{width:var(--sidebar-w);flex-shrink:0;border-right:1px solid var(--border);position:sticky;top:61px;height:calc(100vh - 61px);overflow-y:auto;background:var(--bg);scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.08) transparent;z-index:10;}
+  .learn-sidebar::-webkit-scrollbar{width:4px;}.learn-sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:2px;}
+  .sidebar-header{padding:16px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:1;}
+  .sidebar-header-label{font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);}
+  .sidebar-close-btn{display:none;background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1;padding:0 2px;}
+  .sidebar-close-btn:hover{color:var(--text);}
+  .sidebar-body{padding:10px 0 48px;}
+  .sidebar-section{margin-bottom:2px;}
+  .sidebar-section-label{display:flex;align-items:center;gap:8px;padding:12px 20px 6px;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,0.28);}
+  .section-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+  .sidebar-divider{height:1px;background:var(--border);margin:10px 0 6px;}
+  .course-hdr{display:flex;align-items:center;gap:8px;padding:7px 20px;cursor:pointer;transition:background .14s;user-select:none;}
+  .course-hdr:hover{background:rgba(255,255,255,0.035);}
+  .course-hdr.is-active{background:rgba(232,121,249,0.07);}
+  .course-n{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:var(--muted);min-width:18px;flex-shrink:0;}
+  .course-label{font-size:12.5px;font-weight:500;color:var(--text);flex:1;line-height:1.3;}
+  .course-soon-badge{font-family:'IBM Plex Mono',monospace;font-size:7.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.22);padding:2px 5px;border-radius:3px;border:1px solid rgba(255,255,255,0.06);flex-shrink:0;}
+  .course-chevron{color:var(--muted);font-size:12px;flex-shrink:0;transition:transform .18s;}
+  .sidebar-course.is-open .course-chevron{transform:rotate(90deg);}
+  .course-lessons{display:none;padding:1px 0 4px;border-left:2px solid var(--border);margin-left:28px;}
+  .sidebar-course.is-open .course-lessons{display:block;}
+  .lesson-row{display:flex;align-items:flex-start;gap:8px;padding:4px 16px 4px 12px;cursor:pointer;transition:background .12s;border-left:2px solid transparent;margin-left:-2px;text-decoration:none;}
+  .lesson-row:hover:not(.lesson-soon){background:rgba(255,255,255,0.035);}
+  .lesson-row.is-active{border-left-color:var(--mt-accent);background:rgba(232,121,249,0.08);}
+  .lesson-n{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);min-width:28px;flex-shrink:0;padding-top:1px;}
+  .lesson-row.is-active .lesson-n{color:var(--mt-accent);}
+  .lesson-label{font-size:11.5px;color:var(--muted);line-height:1.45;font-weight:300;}
+  .lesson-row.is-active .lesson-label{color:var(--text);font-weight:400;}
+  .lesson-row.lesson-soon{opacity:.38;cursor:not-allowed;}
+  .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:30;backdrop-filter:blur(1px);}
+  .sidebar-overlay.is-open{display:block;}
+  .learn-main{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;}
+  .learn-breadcrumb{width:100%;padding:13px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0;}
+  .breadcrumb-toggle{display:none;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;padding:6px 11px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--muted);flex-shrink:0;}
+  .breadcrumb-toggle:hover{color:var(--text);}
+  .bc-path{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.04em;display:flex;align-items:center;gap:6px;}
+  .bc-path a{color:var(--muted);text-decoration:none;}.bc-path a:hover{color:var(--text);}
+  .bc-sep{opacity:.35;}.bc-current{color:var(--text);font-weight:500;}
+  .module-wrap{width:100%;max-width:860px;padding:36px 24px 80px;}
+  .progress-bar-wrap{display:flex;align-items:center;gap:12px;margin-bottom:28px;}
+  .progress-dots{display:flex;gap:6px;flex-wrap:wrap;}
+  .progress-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);transition:background .2s,transform .2s;cursor:pointer;}
+  .progress-dot.done{background:rgba(232,121,249,0.4);}
+  .progress-dot.active{background:var(--mt-accent2);transform:scale(1.3);}
+  .progress-label{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-left:auto;}
+  .step-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px 36px 32px;position:relative;overflow:hidden;}
+  .step-card::before{content:'';position:absolute;inset:0;border-radius:20px;background:radial-gradient(ellipse at top left,rgba(232,121,249,0.05),transparent 60%);pointer-events:none;}
+  .step-number{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--mt-accent);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .step-number::after{content:'';flex:1;height:1px;background:var(--border);}
+  .step-title{font-family:'IBM Plex Mono',monospace;font-size:clamp(20px,3vw,28px);font-weight:600;letter-spacing:-.02em;color:var(--text);margin-bottom:18px;line-height:1.25;}
+  .step-body{font-size:15px;color:var(--muted);line-height:1.75;font-weight:300;margin-bottom:28px;}
+  .step-body strong{color:var(--text);font-weight:500;}
+  .step-body em{color:var(--mt-accent2);font-style:normal;font-weight:500;}
+  /* Staff diagram */
+  .diagram-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:24px 20px;margin-bottom:24px;overflow-x:auto;}
+  .diagram-label{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}
+  /* Note name table */
+  .note-table{width:100%;border-collapse:collapse;margin-bottom:24px;font-size:13px;}
+  .note-table th{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);text-align:left;}
+  .note-table td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--muted);vertical-align:middle;}
+  .note-table td:first-child{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:700;color:var(--mt-accent);}
+  .note-table td:nth-child(2){font-family:'IBM Plex Mono',monospace;color:var(--text);}
+  .note-table tr:last-child td{border-bottom:none;}
+  /* Mnemonic */
+  .mnemonic-box{background:rgba(232,121,249,0.06);border:1px solid rgba(232,121,249,0.15);border-radius:10px;padding:16px 20px;margin-bottom:24px;}
+  .mnemonic-label{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--mt-accent);margin-bottom:10px;}
+  .mnemonic-items{display:flex;flex-direction:column;gap:6px;}
+  .mnemonic-item{font-size:13px;color:var(--muted);display:flex;gap:10px;align-items:baseline;}
+  .mnemonic-note{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--mt-accent2);min-width:20px;font-size:15px;}
+  .mnemonic-word{color:var(--text);}
+  .mnemonic-hint{color:var(--muted);}
+  /* Key points */
+  .key-points{background:rgba(232,121,249,0.05);border:1px solid rgba(232,121,249,0.13);border-radius:12px;padding:18px 20px;margin-bottom:24px;display:flex;flex-direction:column;gap:10px;}
+  .key-points-label{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--mt-accent);margin-bottom:4px;}
+  .key-point{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted);line-height:1.55;}
+  .key-point::before{content:'→';color:var(--mt-accent2);font-family:'IBM Plex Mono',monospace;font-size:12px;margin-top:1px;flex-shrink:0;}
+  .key-point strong{color:var(--text);font-weight:500;}
+  /* Audio demo */
+  .audio-demo{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+  .audio-demo-info{flex:1;min-width:200px;}
+  .audio-demo-label{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+  .audio-demo-desc{font-size:13px;color:var(--muted);line-height:1.5;}
+  .play-btn{width:44px;height:44px;border-radius:50%;background:var(--mt-accent);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .15s,opacity .15s;flex-shrink:0;}
+  .play-btn:hover{transform:scale(1.08);opacity:.9;}
+  .play-btn svg{pointer-events:none;}
+  /* Nav */
+  .step-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:4px;}
+  .nav-btn{display:flex;align-items:center;gap:8px;padding:11px 22px;border-radius:10px;border:1px solid var(--border2);background:var(--surface2);font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:border-color .15s,color .15s,transform .15s;text-decoration:none;}
+  .nav-btn:hover{color:var(--text);transform:translateY(-1px);}
+  .nav-btn:disabled{opacity:.3;cursor:not-allowed;transform:none;}
+  .nav-btn.primary{background:var(--mt-accent);border-color:var(--mt-accent);color:#0a0b0d;}
+  .nav-btn.primary:hover{opacity:.88;}
+  .nav-btn.finish{background:rgba(232,121,249,0.12);border-color:var(--mt-accent);color:var(--mt-accent2);}
+  .step-counter{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+  .completion-card{text-align:center;padding:56px 36px;}
+  .completion-title{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;color:var(--text);margin-bottom:12px;}
+  .completion-sub{font-size:15px;color:var(--muted);line-height:1.7;max-width:440px;margin:0 auto 32px;}
+  .completion-cta{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border-radius:10px;background:var(--mt-accent);color:#0a0b0d;font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;text-decoration:none;transition:opacity .15s,transform .15s;}
+  .completion-cta:hover{opacity:.88;transform:translateY(-1px);}
+  .completion-restart{display:block;margin:18px auto 0;background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;text-decoration:underline;font-family:inherit;}
+  @media(max-width:900px){
+    .learn-sidebar{position:fixed;top:0;left:0;height:100vh;transform:translateX(-100%);transition:transform .24s cubic-bezier(.4,0,.2,1);z-index:50;box-shadow:4px 0 24px rgba(0,0,0,.5);border-right:1px solid var(--border2);}
+    .learn-sidebar.is-open{transform:translateX(0);}
+    .sidebar-close-btn{display:block;}
+    .breadcrumb-toggle{display:flex;}
+    .learn-main{width:100%;}
+  }
+  @media(max-width:600px){
+    .step-card{padding:24px 20px 22px;}
+    .module-wrap{padding:24px 16px 60px;}
+    .step-nav{flex-direction:column;}
+    .nav-btn{width:100%;justify-content:center;}
+    .learn-breadcrumb{padding:10px 16px;}
+  }
+</style>
+<script defer src="https://cloud.umami.is/script.js" data-website-id="a4e7fbcc-763c-4844-8f4f-669cf411e799"></script>
+</head>
+<body>
+<nav>
+  <div class="nav-logo-wrap"><a class="nav-logo" href="/">Sonic<span>Sandbox</span></a></div>
+  <div class="nav-center">
+    <a class="nav-link" href="/">Home</a>
+    <a class="nav-link" href="/games/">Games</a>
+    <a class="nav-link active" href="/learn/">Learn</a>
+    <a class="nav-link" href="/stats/">Stats</a>
+  </div>
+  <div class="nav-right"><div id="authArea"><button class="auth-btn" id="openAuthBtn">Sign in</button></div></div>
+</nav>
+
+<div class="learn-layout">
+  <aside class="learn-sidebar" id="learnSidebar" aria-label="Course navigation">
+    <div class="sidebar-header">
+      <span class="sidebar-header-label">Learning Center</span>
+      <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close menu">✕</button>
+    </div>
+    <div class="sidebar-body" id="sidebarBody"></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <main class="learn-main">
+    <div class="learn-breadcrumb">
+      <button class="breadcrumb-toggle" id="sidebarToggleBtn" aria-label="Open courses">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect y="1" width="14" height="1.5" rx=".75" fill="currentColor"/><rect y="6" width="10" height="1.5" rx=".75" fill="currentColor"/><rect y="11" width="12" height="1.5" rx=".75" fill="currentColor"/></svg>
+        Courses
+      </button>
+      <div class="bc-path">
+        <a href="/learn/">Learn</a><span class="bc-sep">›</span>
+        <span>Music Theory</span><span class="bc-sep">›</span>
+        <span class="bc-current">Staff Notation</span>
+      </div>
+    </div>
+    <div class="module-wrap">
+      <div class="progress-bar-wrap">
+        <div class="progress-dots" id="progressDots"></div>
+        <div class="progress-label" id="progressLabel">Step 1 of 6</div>
+      </div>
+      <div class="step-card" id="stepCard"></div>
+      <div class="step-nav" id="stepNav" style="margin-top:20px;">
+        <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>← Previous</button>
+        <span class="step-counter" id="stepCounter"></span>
+        <button class="nav-btn primary" id="nextBtn" onclick="navigate(1)">Next →</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <div class="footer-left">
+    <a href="/">SonicSandbox</a> &nbsp;·&nbsp; Ear training for producers, engineers, &amp; musicians
+    &nbsp;·&nbsp; <a href="/about/">About</a> &nbsp;·&nbsp; <a href="/privacy/">Privacy Policy</a> &nbsp;·&nbsp; <a href="/support/">Support</a>
+  </div>
+  <div class="footer-right"><span>© 2026 Zach Snider</span></div>
+</footer>
+
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" id="closeAuthBtn">&times;</button>
+    <div class="modal-tabs">
+      <button class="modal-tab active" data-tab="signin">Sign in</button>
+      <button class="modal-tab" data-tab="signup">Create account</button>
+    </div>
+    <div id="tabSignin">
+      <label>Email</label><input type="email" id="siEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label><input type="password" id="siPassword" placeholder="••••••••" autocomplete="current-password">
+      <button class="modal-submit" id="siSubmit">Sign in</button>
+      <div class="modal-msg" id="siMsg"></div>
+      <button class="forgot-pw-link" id="forgotPwBtn" type="button">Forgot password?</button>
+    </div>
+    <div id="tabForgot" style="display:none;">
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:18px;">Enter your email and we'll send you a reset link.</p>
+      <label>Email</label><input type="email" id="fpEmail" placeholder="you@example.com" autocomplete="email">
+      <button class="modal-submit" id="fpSubmit">Send reset link</button>
+      <div class="modal-msg" id="fpMsg"></div>
+      <button class="forgot-pw-link" id="backToSigninBtn" type="button">← Back to sign in</button>
+    </div>
+    <div id="tabSignup" style="display:none;">
+      <label>Email</label><input type="email" id="suEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label><input type="password" id="suPassword" placeholder="At least 6 characters" autocomplete="new-password">
+      <button class="modal-submit" id="suSubmit">Create account</button>
+      <div class="modal-msg" id="suMsg"></div>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="usernameModal">
+  <div class="modal">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent2);margin-bottom:8px;">Welcome</div>
+    <h2 style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;margin-bottom:10px;">Choose a username</h2>
+    <p style="font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:26px;">Your username will appear on leaderboards and game stats.</p>
+    <label for="usernameInput">Username</label>
+    <input type="text" id="usernameInput" placeholder="e.g. basshead42" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <div class="username-check" id="usernameCheck"></div>
+    <p class="username-hint">3–20 characters · Letters, numbers, _ and - only</p>
+    <button class="modal-submit" id="usernameSubmit">Set username</button>
+    <div class="modal-msg" id="usernameMsg"></div>
+    <button class="username-skip" id="usernameSkip">Skip for now</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/supabase-client.js"></script>
+<script>
+const authModal=document.getElementById('authModal'),authArea=document.getElementById('authArea');
+const closeBtn=document.getElementById('closeAuthBtn'),tabs=document.querySelectorAll('.modal-tab');
+const tabSignin=document.getElementById('tabSignin'),tabSignup=document.getElementById('tabSignup'),tabForgot=document.getElementById('tabForgot');
+function openAuthModal(){authModal.classList.add('open');}function closeAuthModal(){authModal.classList.remove('open');showSigninPanel();}
+document.getElementById('openAuthBtn').addEventListener('click',openAuthModal);
+closeBtn.addEventListener('click',closeAuthModal);
+authModal.addEventListener('click',e=>{if(e.target===authModal)closeAuthModal();});
+tabs.forEach(tab=>{tab.addEventListener('click',()=>{tabs.forEach(t=>t.classList.remove('active'));tab.classList.add('active');tabSignin.style.display=tab.dataset.tab==='signin'?'':'none';tabSignup.style.display=tab.dataset.tab==='signup'?'':'none';tabForgot.style.display='none';});});
+function showForgotPanel(){tabSignin.style.display='none';tabForgot.style.display='';const e=document.getElementById('siEmail').value.trim();if(e)document.getElementById('fpEmail').value=e;document.getElementById('fpMsg').textContent='';}
+function showSigninPanel(){tabForgot.style.display='none';tabSignin.style.display='';}
+document.getElementById('forgotPwBtn').addEventListener('click',showForgotPanel);
+document.getElementById('backToSigninBtn').addEventListener('click',showSigninPanel);
+document.getElementById('siSubmit').addEventListener('click',async()=>{const msg=document.getElementById('siMsg');msg.textContent='Signing in…';msg.className='modal-msg';const{error}=await SonicSandbox.signIn(document.getElementById('siEmail').value.trim(),document.getElementById('siPassword').value);if(error){msg.textContent=error.message;msg.className='modal-msg error';}else{closeAuthModal();}});
+document.getElementById('fpSubmit').addEventListener('click',async()=>{const email=document.getElementById('fpEmail').value.trim(),msg=document.getElementById('fpMsg');if(!email){msg.textContent='Please enter your email.';msg.className='modal-msg error';return;}msg.textContent='Sending…';msg.className='modal-msg';const{error}=await SonicSandbox.resetPasswordForEmail(email);if(error){msg.textContent=error.message;msg.className='modal-msg error';}else{msg.textContent='Reset link sent!';msg.className='modal-msg success';document.getElementById('fpSubmit').disabled=true;}});
+document.getElementById('suSubmit').addEventListener('click',async()=>{const msg=document.getElementById('suMsg');msg.textContent='Creating account…';msg.className='modal-msg';const{error}=await SonicSandbox.signUp(document.getElementById('suEmail').value.trim(),document.getElementById('suPassword').value);if(error){msg.textContent=error.message;msg.className='modal-msg error';}else{msg.textContent='Check your email to confirm.';msg.className='modal-msg success';}});
+function validateUsername(val){if(val.length<3)return'Too short';if(val.length>20)return'Too long';if(!/^[a-zA-Z0-9_-]+$/.test(val))return'Letters, numbers, _ and - only';return null;}
+let _unCheckTimer;
+document.getElementById('usernameInput').addEventListener('input',()=>{const val=document.getElementById('usernameInput').value.trim();clearTimeout(_unCheckTimer);const err=validateUsername(val);if(err){document.getElementById('usernameCheck').textContent=val.length>0?err:'';document.getElementById('usernameCheck').className='username-check';return;}document.getElementById('usernameCheck').textContent='Checking…';document.getElementById('usernameCheck').className='username-check';_unCheckTimer=setTimeout(async()=>{const taken=await SonicSandbox.isUsernameTaken(val);document.getElementById('usernameCheck').textContent=taken?`"${val}" is already taken`:`"${val}" is available ✓`;document.getElementById('usernameCheck').className=taken?'username-check taken':'username-check available';},500);});
+document.getElementById('usernameSubmit').addEventListener('click',async()=>{const val=document.getElementById('usernameInput').value.trim(),err=validateUsername(val);if(err){document.getElementById('usernameMsg').textContent=err;document.getElementById('usernameMsg').className='modal-msg error';return;}document.getElementById('usernameMsg').textContent='Saving…';document.getElementById('usernameMsg').className='modal-msg';const{error}=await SonicSandbox.setUsername(val);if(error){document.getElementById('usernameMsg').textContent=error.message;document.getElementById('usernameMsg').className='modal-msg error';}else{document.getElementById('usernameModal').classList.remove('open');}});
+document.getElementById('usernameSkip').addEventListener('click',()=>document.getElementById('usernameModal').classList.remove('open'));
+document.getElementById('usernameModal').addEventListener('click',e=>{if(e.target===document.getElementById('usernameModal'))document.getElementById('usernameModal').classList.remove('open');});
+document.addEventListener('ss:authchange',async e=>{const user=e.detail;if(user){authArea.innerHTML=`<div class="user-pill"><span class="username-display" style="color:var(--muted);font-size:12px;">${user.email}</span></div>`;const profile=await SonicSandbox.getProfile();const el=authArea.querySelector('.username-display');if(!el)return;if(profile?.username){el.outerHTML=`<a class="set-username-link" href="/account/">@${profile.username}</a>`;}else{el.outerHTML=`<a class="set-username-link" href="/account/">Set username</a>`;}}else{authArea.innerHTML=`<button class="auth-btn" id="openAuthBtn">Sign in</button>`;document.getElementById('openAuthBtn').addEventListener('click',openAuthModal);}});
+</script>
+<script src="/learn/music-theory/mt-shared.js"></script>
+<script>
+const COURSE_UID = 'mt-notation';
+const ACCENT = '#e879f9';
+
+// Staff SVG builders
+function staffSVG({ clef = 'treble', notes = [], ledger = [], width = 640, showMiddleC = false }) {
+  const H = 140, lineGap = 16, firstLine = 88, staffLeft = 70, staffRight = width - 20;
+  const lines = [0,1,2,3,4].map(i => firstLine - i * lineGap);
+  const noteColor = ACCENT;
+
+  let svgLines = lines.map(y => `<line x1="${staffLeft}" y1="${y}" x2="${staffRight}" y2="${y}" stroke="rgba(255,255,255,0.25)" stroke-width="1.2"/>`).join('');
+
+  // Clef symbol (simple text approximation)
+  let clefSVG = '';
+  if (clef === 'treble') {
+    clefSVG = `<text x="${staffLeft + 4}" y="${firstLine - lineGap + 14}" font-size="72" fill="rgba(255,255,255,0.5)" font-family="serif" dominant-baseline="bottom">𝄞</text>`;
+  } else if (clef === 'bass') {
+    clefSVG = `<text x="${staffLeft + 4}" y="${firstLine - lineGap + 6}" font-size="48" fill="rgba(255,255,255,0.5)" font-family="serif" dominant-baseline="middle">𝄢</text>`;
+  }
+
+  // Draw notes
+  let notesSVG = notes.map(({x, line, label, color}) => {
+    // line 0 = bottom staff line, line 4 = top staff line; 0.5 = first space, etc.
+    const y = firstLine - line * (lineGap / 2);
+    const c = color || noteColor;
+    return `
+      <ellipse cx="${x}" cy="${y}" rx="10" ry="7" fill="${c}" fill-opacity="0.85" transform="rotate(-15 ${x} ${y})"/>
+      ${label ? `<text x="${x}" y="${y + 22}" text-anchor="middle" font-size="11" font-family="IBM Plex Mono, monospace" font-weight="600" fill="${c}">${label}</text>` : ''}
+    `;
+  }).join('');
+
+  // Middle C ledger line
+  const middleCy = firstLine + lineGap; // one line below bottom
+  const middleCSVG = showMiddleC ? `
+    <line x1="105" y1="${middleCy}" x2="145" y2="${middleCy}" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>
+    <ellipse cx="125" cy="${middleCy}" rx="10" ry="7" fill="${ACCENT}" fill-opacity="0.85" transform="rotate(-15 125 ${middleCy})"/>
+    <text x="125" y="${middleCy + 22}" text-anchor="middle" font-size="11" font-family="IBM Plex Mono, monospace" font-weight="600" fill="${ACCENT}">C4</text>
+  ` : '';
+
+  return `<svg viewBox="0 0 ${width} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:${width}px;display:block;">
+    <rect width="${width}" height="${H}" fill="transparent"/>
+    ${svgLines}${clefSVG}${notesSVG}${middleCSVG}
+  </svg>`;
+}
+
+// Treble clef notes: lines bottom-to-top = E4,G4,B4,D5,F5; spaces = F4,A4,C5,E5
+function trebleStaffSVG() {
+  const notes = [
+    {x:130, line:0, label:'E4'},  // bottom line
+    {x:165, line:1, label:'F4'},  // first space
+    {x:200, line:2, label:'G4'},  // second line
+    {x:235, line:3, label:'A4'},  // second space
+    {x:270, line:4, label:'B4'},  // third line
+    {x:305, line:5, label:'C5'},  // third space
+    {x:340, line:6, label:'D5'},  // fourth line
+    {x:375, line:7, label:'E5'},  // fourth space
+    {x:410, line:8, label:'F5'},  // top line
+  ];
+  return staffSVG({ clef: 'treble', notes, width: 480 });
+}
+
+function bassStaffSVG() {
+  // Bass clef lines bottom-to-top: G2, B2, D3, F3, A3; spaces: A2, C3, E3, G3
+  const notes = [
+    {x:130, line:0, label:'G2'},
+    {x:165, line:1, label:'A2'},
+    {x:200, line:2, label:'B2'},
+    {x:235, line:3, label:'C3'},
+    {x:270, line:4, label:'D3'},
+    {x:305, line:5, label:'E3'},
+    {x:340, line:6, label:'F3'},
+    {x:375, line:7, label:'G3'},
+    {x:410, line:8, label:'A3'},
+  ];
+  return staffSVG({ clef: 'bass', notes, width: 480 });
+}
+
+function ledgerLineSVG() {
+  // Show middle C on a small ledger line between treble and bass staves
+  const H = 200, lineGap = 16, firstLineTreble = 150, firstLineBass = 60;
+  const staffLeft = 50, staffRight = 580;
+
+  let out = `<svg viewBox="0 0 600 ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:600px;display:block;">`;
+  // Treble staff (lower half of SVG)
+  [0,1,2,3,4].forEach(i => {
+    const y = firstLineTreble - i * lineGap;
+    out += `<line x1="${staffLeft}" y1="${y}" x2="${staffRight}" y2="${y}" stroke="rgba(255,255,255,0.2)" stroke-width="1.2"/>`;
+  });
+  // Bass staff (upper half)
+  [0,1,2,3,4].forEach(i => {
+    const y = firstLineBass - i * lineGap;
+    out += `<line x1="${staffLeft}" y1="${y}" x2="${staffRight}" y2="${y}" stroke="rgba(255,255,255,0.2)" stroke-width="1.2"/>`;
+  });
+  // Middle C ledger line — exactly between the two staves
+  const midY = (firstLineTreble + 16 + (firstLineBass - 16 * 4)) / 2 + 4;
+  out += `<line x1="90" y1="${midY}" x2="130" y2="${midY}" stroke="rgba(255,255,255,0.5)" stroke-width="1.4"/>`;
+  out += `<ellipse cx="110" cy="${midY}" rx="10" ry="7" fill="${ACCENT}" fill-opacity="0.9" transform="rotate(-15 110 ${midY})"/>`;
+  out += `<text x="110" y="${midY + 20}" text-anchor="middle" font-size="12" font-family="IBM Plex Mono,monospace" font-weight="700" fill="${ACCENT}">Middle C (C4)</text>`;
+  out += `<text x="${staffLeft - 4}" y="${firstLineTreble + 6}" text-anchor="end" font-size="10" font-family="IBM Plex Mono,monospace" fill="rgba(255,255,255,0.35)">Treble</text>`;
+  out += `<text x="${staffLeft - 4}" y="${firstLineBass + 6}" text-anchor="end" font-size="10" font-family="IBM Plex Mono,monospace" fill="rgba(255,255,255,0.35)">Bass</text>`;
+  out += '</svg>';
+  return out;
+}
+
+const steps = [
+  {
+    title: 'The Staff & Clefs',
+    number: 'Step 01 — The Foundation',
+    body: `<strong>Staff notation</strong> is the visual language of Western music — a standardized system for writing pitch and rhythm on paper (or screen) so anyone can read and reproduce a piece exactly. It's been refined over centuries and is used in classical, jazz, pop, and film scoring worldwide.
+
+<br><br>The <strong>staff</strong> is a set of five horizontal lines. Notes sit on lines or in the spaces between them — the higher the note on the staff, the higher the pitch. At the start of every staff is a <strong>clef symbol</strong> that sets the reference point for which lines and spaces correspond to which pitches.
+
+<br><br>The <em>treble clef</em> (𝄞) is used for higher-pitched instruments: violin, flute, piano right hand, and most singers. The <em>bass clef</em> (𝄢) is used for lower-pitched instruments: bass guitar, cello, tuba, piano left hand. Piano music uses both staves together — called the <strong>grand staff</strong>.`,
+    diagram: 'clefs',
+    audio: { desc:'C major scale ascending — the foundational note sequence in Western music.', fn:()=>mtPlaySeq(['C3','D3','E3','F3','G3','A3','B3','C4'],0.38) },
+    keyPoints: [
+      {strong:'Staff',       rest:' — five horizontal lines; notes sit on lines and in spaces'},
+      {strong:'Higher = higher', rest:' — notes placed higher on the staff are higher in pitch'},
+      {strong:'Treble clef', rest:' — 𝄞 symbol; used for higher-pitched parts and instruments'},
+      {strong:'Bass clef',   rest:' — 𝄢 symbol; used for lower-pitched parts'},
+      {strong:'Grand staff', rest:' — treble + bass staff joined; used for piano'},
+    ],
+  },
+  {
+    title: 'Treble Clef Notes',
+    number: 'Step 02 — Reading the Treble',
+    body: `In treble clef, the <strong>lines</strong> from bottom to top hold the notes <em>E, G, B, D, F</em>. The <strong>spaces</strong> from bottom to top hold <em>F, A, C, E</em>. Together these give you a continuous ascending sequence from E4 at the bottom line to F5 at the top.
+
+<br><br>Memorization tricks that have helped musicians for generations:
+<br><br>For the <strong>lines</strong>: <em>"Every Good Boy Does Fine"</em> — E, G, B, D, F.
+<br>For the <strong>spaces</strong>: the spaces simply spell <em>FACE</em> — F, A, C, E.
+
+<br><br>The treble clef's defining feature is the curl at the bottom wrapping around the <em>G line</em> — the second line from the bottom, which anchors the entire clef and gives it its other name: the <em>G clef</em>.`,
+    diagram: 'treble',
+    mnemonic: { label: 'Lines — "Every Good Boy Does Fine"', items: [
+      { note:'E', word:'Every',  pos:'Bottom line (1st)' },
+      { note:'G', word:'Good',   pos:'2nd line (G clef anchor)' },
+      { note:'B', word:'Boy',    pos:'3rd line (middle)' },
+      { note:'D', word:'Does',   pos:'4th line' },
+      { note:'F', word:'Fine',   pos:'Top line (5th)' },
+    ]},
+    audio: { desc:'E4 up to F5 — all the treble clef line notes ascending.', fn:()=>mtPlaySeq(['E3','G3','B3','D4','F4'],0.50) },
+    keyPoints: [
+      {strong:'Lines (bottom→top)', rest:' — E G B D F ("Every Good Boy Does Fine")'},
+      {strong:'Spaces (bottom→top)', rest:' — F A C E (spells "FACE")'},
+      {strong:'G clef',             rest:' — the treble clef curls around the G line (2nd from bottom)'},
+      {strong:'Range',              rest:' — staff covers roughly E4 to F5 without ledger lines'},
+    ],
+  },
+  {
+    title: 'Bass Clef Notes',
+    number: 'Step 03 — Reading the Bass',
+    body: `In bass clef, the lines from bottom to top hold <em>G, B, D, F, A</em>. The spaces hold <em>A, C, E, G</em>.
+
+<br><br>Mnemonics for bass clef:
+<br><br>For the <strong>lines</strong>: <em>"Good Boys Do Fine Always"</em> — G, B, D, F, A.
+<br>For the <strong>spaces</strong>: <em>"All Cows Eat Grass"</em> — A, C, E, G.
+
+<br><br>The bass clef symbol (𝄢) places two dots around the <em>F line</em> — the fourth line from the bottom — which is why it's also called the <em>F clef</em>. This anchors the clef just as the G anchor works in treble.
+
+<br><br>A crucial overlap: <em>middle C (C4)</em> sits on a ledger line just above the bass staff and just below the treble staff. It's the shared reference point between both clefs and one of the most important notes to identify on sight.`,
+    diagram: 'bass',
+    mnemonic: { label: 'Lines — "Good Boys Do Fine Always"', items: [
+      { note:'G', word:'Good',   pos:'Bottom line (1st)' },
+      { note:'B', word:'Boys',   pos:'2nd line' },
+      { note:'D', word:'Do',     pos:'3rd line (middle)' },
+      { note:'F', word:'Fine',   pos:'4th line (F clef anchor)' },
+      { note:'A', word:'Always', pos:'Top line (5th)' },
+    ]},
+    audio: { desc:'G2 up to A3 — all the bass clef line notes ascending.', fn:()=>mtPlaySeq(['G2','B2','D3','F3','A3'],0.50) },
+    keyPoints: [
+      {strong:'Lines (bottom→top)', rest:' — G B D F A ("Good Boys Do Fine Always")'},
+      {strong:'Spaces (bottom→top)', rest:' — A C E G ("All Cows Eat Grass")'},
+      {strong:'F clef',             rest:' — the two dots bracket the F line (4th from bottom)'},
+      {strong:'Range',              rest:' — staff covers roughly G2 to A3 without ledger lines'},
+    ],
+  },
+  {
+    title: 'Ledger Lines & Middle C',
+    number: 'Step 04 — Beyond the Staff',
+    body: `The five staff lines only cover a range of about an octave and a half. For notes above or below that range, we add <strong>ledger lines</strong> — short horizontal lines that extend the staff temporarily, one note at a time.
+
+<br><br>Notes sit on or between ledger lines the same way they do on regular staff lines. A note two ledger lines above the treble staff is A5. A note one ledger line below the bass staff is F2. You simply keep counting the pattern (line-space-line-space) outward from the staff.
+
+<br><br>The most important ledger line note in all of music theory is <em>Middle C — C4</em>. It sits on its own single ledger line exactly in the middle: one ledger line below the treble clef, and one ledger line above the bass clef. When you see piano music written on both staves, middle C is the shared reference point between the two.`,
+    diagram: 'ledger',
+    audio: { desc:'C4 (middle C) — the central reference pitch of the grand staff.', fn:()=>mtPlaySeq(['C4'],1.5) },
+    keyPoints: [
+      {strong:'Ledger lines', rest:' — short extra lines above/below the staff for out-of-range notes'},
+      {strong:'Count outward', rest:' — same line-space-line pattern extends beyond the staff'},
+      {strong:'Middle C (C4)', rest:' — sits on a ledger line between the treble and bass staves'},
+      {strong:'Grand staff',   rest:' — middle C is the shared note; it belongs to both clefs'},
+    ],
+  },
+  {
+    title: 'Note Shapes & Rests',
+    number: 'Step 05 — Duration on the Staff',
+    body: `Once you know where a note is pitched on the staff, its <strong>shape</strong> tells you how long it lasts. The same durational values from the Rhythm module are notated visually on the staff.
+
+<br><br>A <em>whole note</em> is an open oval with no stem. A <em>half note</em> is also an open oval but with a stem. A <em>quarter note</em> is a filled oval with a stem. An <em>eighth note</em> adds a flag to the stem; sixteenth notes get two flags. When multiple flagged notes appear together, their flags are joined into <strong>beams</strong> — the thick bars connecting eighth and sixteenth notes in groups. Beaming follows the beat divisions of the time signature, making the rhythmic structure visually clear.
+
+<br><br>Every note value has a matching <strong>rest</strong> symbol. A whole rest hangs below a staff line (like a hat upside down). A half rest sits on top (right-side up). A quarter rest is a squiggly line. Learning rests is just as important as learning note shapes — both define the rhythm.`,
+    noteshapes: true,
+    audio: { desc:'Four quarter notes — feel the steady quarter-note pulse on C3.', fn:()=>mtPlaySeq(['C3','C3','C3','C3'],0.5) },
+    keyPoints: [
+      {strong:'Whole note',   rest:' — open oval, no stem; 4 beats'},
+      {strong:'Half note',    rest:' — open oval + stem; 2 beats'},
+      {strong:'Quarter note', rest:' — filled oval + stem; 1 beat'},
+      {strong:'Eighth note',  rest:' — filled oval + stem + flag (or beam); ½ beat'},
+      {strong:'Beaming',      rest:' — flags joined together; shows beat groupings visually'},
+    ],
+  },
+  {
+    title: 'Time Signatures & Bar Lines',
+    number: 'Step 06 — Organizing the Staff',
+    body: `The staff isn't just a collection of notes — it's organized into <strong>measures</strong> (also called bars), each separated by a vertical line called a <strong>bar line</strong>. Measures group notes into repeating time units. A <strong>double bar line</strong> (thin-thick) marks the end of a piece or section.
+
+<br><br>The <strong>time signature</strong> appears at the very beginning, right after the clef and key signature. It stays in effect until it changes — you don't rewrite it every measure. A <em>repeat sign</em> (two dots before a double bar) tells the performer to go back and play the section again.
+
+<br><br>The last ingredient is the <strong>key signature</strong> — sharps or flats written immediately after the clef, before the time signature, telling you which notes are raised or lowered throughout. A key signature of two sharps (F♯ and C♯) means the piece is in D major (or B minor). Together, clef + key signature + time signature at the start of a staff give you everything you need to read the music correctly.`,
+    staffFull: true,
+    audio: { desc:'C major scale — the notes you\'d read on a treble-clef staff in C major (no key signature).', fn:()=>mtPlaySeq(['C3','D3','E3','F3','G3','A3','B3','C4'],0.38) },
+    keyPoints: [
+      {strong:'Measure / Bar',   rest:' — notes grouped between bar lines; one time unit'},
+      {strong:'Bar line',        rest:' — vertical line separating measures'},
+      {strong:'Double bar line', rest:' — thin-thick; end of piece or major section'},
+      {strong:'Key signature',   rest:' — sharps/flats after the clef, before the time signature; applies throughout'},
+      {strong:'Repeat sign',     rest:' — two dots before a double bar; play the section again'},
+    ],
+  },
+];
+
+let currentStep = 0;
+
+function noteshapesHTML() {
+  const shapes = [
+    { sym:'𝅝', name:'Whole Note', dur:'4 beats', desc:'Open oval, no stem' },
+    { sym:'𝅗𝅥', name:'Half Note', dur:'2 beats', desc:'Open oval + stem' },
+    { sym:'♩', name:'Quarter Note', dur:'1 beat', desc:'Filled oval + stem' },
+    { sym:'♪', name:'Eighth Note', dur:'½ beat', desc:'Filled oval + flag/beam' },
+    { sym:'𝅘𝅥𝅯', name:'16th Note', dur:'¼ beat', desc:'Filled oval + 2 flags' },
+  ];
+  return `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-bottom:24px;">
+    ${shapes.map(s=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px 12px;text-align:center;">
+      <div style="font-size:36px;line-height:1;margin-bottom:8px;color:var(--mt-accent);">${s.sym}</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--text);margin-bottom:4px;">${s.name}</div>
+      <div style="font-size:11px;color:var(--muted);">${s.dur}</div>
+      <div style="font-size:10px;color:rgba(107,114,128,0.7);margin-top:3px;">${s.desc}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function staffFullHTML() {
+  const H = 110, lineGap = 16, firstLine = 78, staffLeft = 60, staffRight = 700;
+  const lines = [0,1,2,3,4].map(i => firstLine - i * lineGap);
+  let svgLines = lines.map(y => `<line x1="${staffLeft}" y1="${y}" x2="${staffRight}" y2="${y}" stroke="rgba(255,255,255,0.22)" stroke-width="1.2"/>`).join('');
+  // Bar lines
+  const bars = [160, 280, 420, 560];
+  let barLines = bars.map(x=>`<line x1="${x}" y1="${firstLine}" x2="${x}" y2="${firstLine - 4*lineGap}" stroke="rgba(255,255,255,0.3)" stroke-width="1.2"/>`).join('');
+  // Double bar at end
+  barLines += `<line x1="${staffRight-6}" y1="${firstLine}" x2="${staffRight-6}" y2="${firstLine-4*lineGap}" stroke="rgba(255,255,255,0.3)" stroke-width="1.2"/>`;
+  barLines += `<line x1="${staffRight}" y1="${firstLine}" x2="${staffRight}" y2="${firstLine-4*lineGap}" stroke="rgba(255,255,255,0.5)" stroke-width="4"/>`;
+  // Clef
+  const clef = `<text x="${staffLeft+2}" y="${firstLine-lineGap+14}" font-size="68" fill="rgba(255,255,255,0.4)" font-family="serif" dominant-baseline="bottom">𝄞</text>`;
+  // Time sig 4/4
+  const timeSig = `<text x="140" y="${firstLine-lineGap*2+5}" text-anchor="middle" font-size="24" font-weight="700" fill="rgba(255,255,255,0.6)" font-family="IBM Plex Mono,monospace">4</text><text x="140" y="${firstLine-lineGap*1+5}" text-anchor="middle" font-size="24" font-weight="700" fill="rgba(255,255,255,0.6)" font-family="IBM Plex Mono,monospace">4</text>`;
+  // Labels
+  const labels = `
+    <text x="175" y="${firstLine+22}" font-size="10" fill="rgba(107,114,128,0.6)" font-family="IBM Plex Mono,monospace" text-anchor="middle">measure 1</text>
+    <text x="350" y="${firstLine+22}" font-size="10" fill="rgba(107,114,128,0.6)" font-family="IBM Plex Mono,monospace" text-anchor="middle">measure 2</text>
+    <text x="490" y="${firstLine+22}" font-size="10" fill="rgba(107,114,128,0.6)" font-family="IBM Plex Mono,monospace" text-anchor="middle">measure 3</text>
+    <text x="630" y="${firstLine+22}" font-size="10" fill="rgba(107,114,128,0.6)" font-family="IBM Plex Mono,monospace" text-anchor="middle">final bar</text>
+    <text x="70" y="${firstLine+22}" font-size="10" fill="rgba(107,114,128,0.6)" font-family="IBM Plex Mono,monospace">clef + time sig</text>
+  `;
+  return `<div class="diagram-wrap"><div class="diagram-label">Grand Staff Anatomy — Bar Lines, Measures, Double Bar</div>
+    <svg viewBox="0 0 720 ${H+40}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;display:block;">
+      ${svgLines}${clef}${timeSig}${barLines}${labels}
+    </svg>
+  </div>`;
+}
+
+function renderStep(idx) {
+  mtStop();
+  const step = steps[idx];
+  const total = steps.length;
+  const card = document.getElementById('stepCard');
+
+  const kpHTML = step.keyPoints.map(kp=>`<div class="key-point"><strong>${kp.strong}</strong>${kp.rest}</div>`).join('');
+
+  let diagramHTML = '';
+  if (step.diagram === 'clefs') {
+    diagramHTML = `<div class="diagram-wrap"><div class="diagram-label">Treble Clef — Lines and Spaces</div>
+      ${staffSVG({clef:'treble', notes:[{x:160,line:0,label:'E4'},{x:200,line:2,label:'G4'},{x:240,line:4,label:'B4'},{x:280,line:6,label:'D5'},{x:320,line:8,label:'F5'}], width:480})}
+    </div>
+    <div class="diagram-wrap" style="margin-bottom:0;"><div class="diagram-label">Bass Clef — Lines and Spaces</div>
+      ${staffSVG({clef:'bass', notes:[{x:160,line:0,label:'G2'},{x:200,line:2,label:'B2'},{x:240,line:4,label:'D3'},{x:280,line:6,label:'F3'},{x:320,line:8,label:'A3'}], width:480})}
+    </div>`;
+  } else if (step.diagram === 'treble') {
+    diagramHTML = `<div class="diagram-wrap"><div class="diagram-label">Treble Clef — All Lines and Spaces (E4 → F5)</div>${trebleStaffSVG()}</div>`;
+  } else if (step.diagram === 'bass') {
+    diagramHTML = `<div class="diagram-wrap"><div class="diagram-label">Bass Clef — All Lines and Spaces (G2 → A3)</div>${bassStaffSVG()}</div>`;
+  } else if (step.diagram === 'ledger') {
+    diagramHTML = `<div class="diagram-wrap"><div class="diagram-label">Middle C — The Shared Ledger Line Note</div>${ledgerLineSVG()}</div>`;
+  }
+
+  const mnemonicHTML = step.mnemonic ? `<div class="mnemonic-box">
+    <div class="mnemonic-label">${step.mnemonic.label}</div>
+    <div class="mnemonic-items">${step.mnemonic.items.map(it=>`<div class="mnemonic-item"><span class="mnemonic-note">${it.note}</span><span class="mnemonic-word">${it.word}</span><span class="mnemonic-hint" style="margin-left:8px;font-size:11px;">— ${it.pos}</span></div>`).join('')}</div>
+  </div>` : '';
+
+  const noteshapesHTMLOut = step.noteshapes ? noteshapesHTML() : '';
+  const staffFullHTMLOut = step.staffFull ? staffFullHTML() : '';
+
+  card.innerHTML = `
+    <div class="step-number">${step.number}</div>
+    <h2 class="step-title">${step.title}</h2>
+    <div class="step-body">${step.body}</div>
+    ${diagramHTML}${mnemonicHTML}${noteshapesHTMLOut}${staffFullHTMLOut}
+    <div class="key-points"><div class="key-points-label">Key Takeaways</div>${kpHTML}</div>
+    <div class="audio-demo">
+      <div class="audio-demo-info">
+        <div class="audio-demo-label">Listen</div>
+        <div class="audio-demo-desc">${step.audio.desc}</div>
+      </div>
+      <button class="play-btn" id="playBtn" onclick="handlePlay()" title="Play / Stop">
+        <svg class="play-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"><polygon points="6,4 20,12 6,20" fill="#0a0b0d"/></svg>
+        <svg class="stop-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" style="display:none"><rect x="5" y="5" width="14" height="14" rx="2" fill="#0a0b0d"/></svg>
+      </button>
+    </div>
+  `;
+
+  document.getElementById('progressDots').innerHTML = steps.map((_,i)=>`<div class="progress-dot ${i<idx?'done':''} ${i===idx?'active':''}" onclick="jumpToStep(${i})" title="Step ${i+1}"></div>`).join('');
+  document.getElementById('progressLabel').textContent = `Step ${idx+1} of ${total}`;
+  document.getElementById('stepCounter').textContent = `${idx+1} / ${total}`;
+  document.getElementById('prevBtn').disabled = idx === 0;
+  const nextBtn = document.getElementById('nextBtn');
+  if (idx === total - 1) { nextBtn.textContent='Complete ✓'; nextBtn.className='nav-btn finish'; nextBtn.onclick=showCompletion; }
+  else { nextBtn.textContent='Next →'; nextBtn.className='nav-btn primary'; nextBtn.onclick=()=>navigate(1); }
+  updateSidebarActive(idx, COURSE_UID);
+}
+
+function handlePlay() {
+  const fn = steps[currentStep]?.audio?.fn;
+  if (!fn) return;
+  if (_mtPlaying) { mtStop(); return; }
+  fn();
+}
+
+function jumpToStep(idx) {
+  if (idx < 0 || idx >= steps.length) return;
+  currentStep = idx;
+  renderStep(currentStep);
+  history.replaceState(null,'','#'+(idx+1));
+  window.scrollTo({top:document.getElementById('stepCard').offsetTop-90,behavior:'smooth'});
+  if (window.innerWidth<=900) { document.getElementById('learnSidebar').classList.remove('is-open'); document.getElementById('sidebarOverlay').classList.remove('is-open'); }
+}
+
+function navigate(dir) { jumpToStep(currentStep + dir); }
+
+function showCompletion() {
+  mtStop();
+  document.getElementById('stepCard').innerHTML = `
+    <div class="completion-card">
+      <svg width="56" height="56" viewBox="0 0 56 56" fill="none" style="display:block;margin:0 auto 20px;">
+        <circle cx="28" cy="28" r="25" stroke="${ACCENT}" stroke-width="1.5" fill="rgba(232,121,249,0.06)"/>
+        <polyline points="17,28 25,36 39,19" stroke="${ACCENT}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="completion-title">Music Theory Complete!</div>
+      <p class="completion-sub">You've finished all 8 music theory modules — from notes and intervals through chords, keys, progressions, rhythm, and staff notation. You now have a solid theoretical foundation for understanding and creating music.</p>
+      <a class="completion-cta" href="/learn/">Back to Learning Center →</a>
+      <button class="completion-restart" onclick="jumpToStep(0)">← Restart this module</button>
+    </div>`;
+  document.getElementById('stepNav').style.display='none';
+  document.getElementById('progressLabel').textContent='Complete!';
+  document.getElementById('progressDots').innerHTML=steps.map((_,i)=>`<div class="progress-dot done" onclick="jumpToStep(${i})" title="Step ${i+1}"></div>`).join('');
+}
+
+buildSidebar(COURSE_UID);
+initMobileSidebar();
+const hashStep = parseInt(location.hash.replace('#','')) - 1;
+currentStep = (!isNaN(hashStep) && hashStep >= 0 && hashStep < steps.length) ? hashStep : 0;
+renderStep(currentStep);
+document.addEventListener('keydown', e => {
+  if (e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+  if (e.key==='ArrowRight'||e.key==='ArrowDown') navigate(1);
+  if (e.key==='ArrowLeft'||e.key==='ArrowUp') navigate(-1);
+  if (e.key===' ') { e.preventDefault(); handlePlay(); }
+});
+</script>
+</body>
+</html>
