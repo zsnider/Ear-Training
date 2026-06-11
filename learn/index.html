@@ -6,7 +6,6 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cloud.umami.is 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://aolaxmmrmvovbzumlybe.supabase.co wss://aolaxmmrmvovbzumlybe.supabase.co https://cloud.umami.is; img-src 'self' data:; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="canonical" href="https://sonicsandbox.app/learn/">
-
 <title>EQ Ear Training — Learn How EQ Works | SonicSandbox</title>
 <meta name="description" content="Learn how EQ works — frequency ranges, parametric EQ, shelves, high-pass filters, and Q explained with interactive examples. Free ear training for producers and engineers.">
   <link rel="stylesheet" href="/style.css">
@@ -14,8 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
 <style>
-  /* ── Critical fallback (duplicates style.css; ensures dark theme
-     even when /style.css fails to load, e.g. file:// preview) ── */
+  /* ── Base reset & theme ─────────────────────────────────── */
   * { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
     --bg:      #0a0b0d;
@@ -29,127 +27,237 @@
     --accent:  #5b6aff;
     --accent2: #8892ff;
     --green: #3ecf8e; --amber: #f59e0b; --red: #f45b69;
-    --eq-accent:    #5b6aff;  --eq-accent2:    #8892ff;
-    --comp-accent:  #e8865a;  --comp-accent2:  #f0a882;
-    --rev-accent:   #5b3fd4;  --rev-accent2:   #8b6fff;
-    --dist-accent:  #d44a2a;  --dist-accent2:  #f07050;
-    --fq-accent:    #00d4ff;  --fq-accent2:    #60e8ff;
-    --fh-accent:    #00e5cc;  --fh-accent2:    #50f0d8;
-    --pan-accent:   #7c5cfc;  --pan-accent2:   #a58aff;
-    --qc-accent:    #2dd4a0;  --qc-accent2:    #5eefc0;
-    --delay-accent: #f97316;  --delay-accent2: #fb923c;
-    --ll-accent:    #f0b429;  --ll-accent2:    #ffd166;
-    --qeq-accent:   #818cf8;  --qeq-accent2:   #a5b4fc;
-    --sca-accent:   #39d353;  --sca-accent2:   #7ce88f;
+    --eq-accent: #5b6aff; --eq-accent2: #8892ff;
+    --comp-accent: #e8865a; --comp-accent2: #f0a882;
+    --rev-accent: #5b3fd4; --rev-accent2: #8b6fff;
+    --dist-accent: #d44a2a; --dist-accent2: #f07050;
+    --fq-accent: #00d4ff; --fq-accent2: #60e8ff;
+    --fh-accent: #00e5cc; --fh-accent2: #50f0d8;
+    --pan-accent: #7c5cfc; --pan-accent2: #a58aff;
+    --qc-accent: #2dd4a0; --qc-accent2: #5eefc0;
+    --delay-accent: #f97316; --delay-accent2: #fb923c;
+    --ll-accent: #f0b429; --ll-accent2: #ffd166;
+    --qeq-accent: #818cf8; --qeq-accent2: #a5b4fc;
+    --sca-accent: #39d353; --sca-accent2: #7ce88f;
+    --sidebar-w: 264px;
   }
   body {
     font-family: 'IBM Plex Sans', sans-serif;
     background: var(--bg); color: var(--text);
     min-height: 100vh;
-    display: flex; flex-direction: column; align-items: center;
+    display: flex; flex-direction: column;
   }
 
   nav {
     width: 100%;
-    padding: 20px  32px;
+    padding: 20px 32px;
     display: flex; align-items: center;
-  }
-@media (max-width: 600px) {
-    nav { padding: 16px 20px; }
-}
-/* ── Page header ───────────────────────────────────────── */
-  .page-header {
-    width: 100%; max-width: 1280px;
-    padding: 52px 24px 40px;
-    text-align: center;
-    border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
-    background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px);
-    background-size: 28px 28px;
+    flex-shrink: 0;
+    position: sticky; top: 0; z-index: 40;
+    background: var(--bg);
   }
-  .page-eyebrow {
+  @media (max-width: 600px) { nav { padding: 16px 20px; } }
+
+  /* ── Learn layout ───────────────────────────────────────── */
+  .learn-layout {
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    min-height: 0;
+  }
+
+  /* ── Sidebar ────────────────────────────────────────────── */
+  .learn-sidebar {
+    width: var(--sidebar-w);
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 61px; /* nav height */
+    height: calc(100vh - 61px);
+    overflow-y: auto;
+    background: var(--bg);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.08) transparent;
+    z-index: 10;
+  }
+  .learn-sidebar::-webkit-scrollbar { width: 4px; }
+  .learn-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+
+  .sidebar-header {
+    padding: 16px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; background: var(--bg); z-index: 1;
+  }
+  .sidebar-header-label {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px; font-weight: 600;
+    font-size: 9.5px; font-weight: 600;
     letter-spacing: 0.18em; text-transform: uppercase;
-    color: var(--muted); margin-bottom: 18px;
-  }
-  .page-title {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: clamp(26px, 4vw, 44px);
-    font-weight: 600; letter-spacing: -0.03em; line-height: 1.15;
-    color: var(--text); margin-bottom: 14px;
-  }
-  .page-sub {
-    font-size: 15px; color: var(--muted); font-weight: 300;
-    max-width: 480px; margin: 0 auto; line-height: 1.7;
-  }
-
-  /* ── Tool Selector ─────────────────────────────────────── */
-  .tool-selector-wrap {
-    width: 100%; max-width: 900px;
-    padding: 32px 24px 40px;
-  }
-  .tool-selector-label {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px; font-weight: 600;
-    letter-spacing: 0.16em; text-transform: uppercase;
-    color: var(--muted); margin-bottom: 14px;
-  }
-  .tool-selector {
-    display: flex; gap: 10px; flex-wrap: wrap;
-  }
-  .tool-btn {
-    display: flex; align-items: center; gap: 8px;
-    padding: 10px 18px; border-radius: 10px;
-    border: 1px solid var(--border2);
-    background: var(--surface2);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 13px; font-weight: 600;
     color: var(--muted);
-    cursor: pointer; text-decoration: none;
-    transition: border-color 0.18s, color 0.18s, background 0.18s, transform 0.18s;
-    position: relative;
   }
-  .tool-btn.active {
-    border-color: var(--eq-accent);
-    color: var(--eq-accent2);
-    background: rgba(91,106,255,0.1);
+  .sidebar-close-btn {
+    display: none;
+    background: none; border: none;
+    color: var(--muted); cursor: pointer;
+    font-size: 20px; line-height: 1; padding: 0 2px;
+    transition: color 0.15s;
   }
-  .tool-btn.disabled {
-    opacity: 0.38; cursor: not-allowed; pointer-events: none;
-  }
-  .tool-btn:not(.disabled):not(.active):hover {
-    border-color: var(--border2);
-    color: var(--text);
-    background: var(--surface3);
-    transform: translateY(-1px);
-  }
-  .soon-badge {
+  .sidebar-close-btn:hover { color: var(--text); }
+
+  .sidebar-body { padding: 10px 0 48px; }
+
+  .sidebar-section { margin-bottom: 2px; }
+
+  .sidebar-section-label {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 20px 6px;
+    font-family: 'IBM Plex Mono', monospace;
     font-size: 9px; font-weight: 600;
-    letter-spacing: 0.08em; text-transform: uppercase;
-    background: rgba(255,255,255,0.06); color: var(--muted);
-    padding: 2px 6px; border-radius: 4px;
-    border: 1px solid rgba(255,255,255,0.08);
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: rgba(255,255,255,0.28);
   }
-  .tool-dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: currentColor; opacity: 0.7; flex-shrink: 0;
+  .section-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    flex-shrink: 0;
   }
 
-  /* ── Module container ──────────────────────────────────── */
-  .module-wrap {
-    width: 100%; max-width: 860px;
-    padding: 0 24px 80px;
+  .sidebar-divider {
+    height: 1px; background: var(--border);
+    margin: 10px 0 6px;
   }
 
-  /* ── Step progress bar ─────────────────────────────────── */
+  /* Course */
+  .sidebar-course {}
+  .course-hdr {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 20px;
+    cursor: pointer; transition: background 0.14s;
+    user-select: none;
+  }
+  .course-hdr:hover { background: rgba(255,255,255,0.035); }
+  .course-hdr.is-active { background: rgba(91,106,255,0.07); }
+  .course-n {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    color: var(--muted); min-width: 18px; flex-shrink: 0;
+  }
+  .course-label {
+    font-size: 12.5px; font-weight: 500;
+    color: var(--text); flex: 1; line-height: 1.3;
+  }
+  .course-soon-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 7.5px; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    background: rgba(255,255,255,0.04);
+    color: rgba(255,255,255,0.22);
+    padding: 2px 5px; border-radius: 3px;
+    border: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0;
+  }
+  .course-chevron {
+    color: var(--muted); font-size: 12px;
+    font-weight: 400; line-height: 1;
+    flex-shrink: 0;
+    transition: transform 0.18s;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .sidebar-course.is-open .course-chevron { transform: rotate(90deg); }
+
+  /* Lessons */
+  .course-lessons {
+    display: none;
+    padding: 1px 0 4px;
+    border-left: 2px solid var(--border);
+    margin-left: 28px;
+  }
+  .sidebar-course.is-open .course-lessons { display: block; }
+
+  .lesson-row {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 4px 16px 4px 12px;
+    cursor: pointer;
+    transition: background 0.12s;
+    border-left: 2px solid transparent;
+    margin-left: -2px;
+    text-decoration: none;
+  }
+  .lesson-row:hover:not(.lesson-soon) { background: rgba(255,255,255,0.035); }
+  .lesson-row.is-active {
+    border-left-color: var(--eq-accent);
+    background: rgba(91,106,255,0.08);
+  }
+  .lesson-n {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px; color: var(--muted);
+    min-width: 28px; flex-shrink: 0;
+    padding-top: 1px;
+  }
+  .lesson-row.is-active .lesson-n { color: var(--eq-accent); }
+  .lesson-label {
+    font-size: 11.5px; color: var(--muted);
+    line-height: 1.45; font-weight: 300;
+  }
+  .lesson-row.is-active .lesson-label { color: var(--text); font-weight: 400; }
+  .lesson-row.lesson-soon { opacity: 0.38; cursor: not-allowed; }
+
+  /* ── Sidebar overlay (mobile) ───────────────────────────── */
+  .sidebar-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.65);
+    z-index: 30;
+    backdrop-filter: blur(1px);
+  }
+  .sidebar-overlay.is-open { display: block; }
+
+  /* ── Main content area ──────────────────────────────────── */
+  .learn-main {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column;
+    align-items: center;
+  }
+
+  /* Breadcrumb bar */
+  .learn-breadcrumb {
+    width: 100%;
+    padding: 13px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+    flex-shrink: 0;
+  }
+  .breadcrumb-toggle {
+    display: none;
+    align-items: center; gap: 7px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 7px;
+    padding: 6px 11px;
+    cursor: pointer;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600; color: var(--muted);
+    flex-shrink: 0;
+    transition: color 0.14s, border-color 0.14s;
+  }
+  .breadcrumb-toggle:hover { color: var(--text); border-color: var(--border2); }
+  .bc-path {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; color: var(--muted);
+    letter-spacing: 0.04em;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .bc-path a { color: var(--muted); text-decoration: none; }
+  .bc-path a:hover { color: var(--text); }
+  .bc-sep { opacity: 0.35; }
+  .bc-current { color: var(--text); font-weight: 500; }
+
+  /* ── Step progress bar ──────────────────────────────────── */
   .progress-bar-wrap {
     display: flex; align-items: center; gap: 12px;
     margin-bottom: 28px;
   }
-  .progress-dots {
-    display: flex; gap: 6px; flex-wrap: wrap;
-  }
+  .progress-dots { display: flex; gap: 6px; flex-wrap: wrap; }
   .progress-dot {
     width: 8px; height: 8px; border-radius: 50%;
     background: var(--border2);
@@ -165,7 +273,13 @@
     color: var(--muted); margin-left: auto;
   }
 
-  /* ── Step card ─────────────────────────────────────────── */
+  /* ── Module content wrapper ─────────────────────────────── */
+  .module-wrap {
+    width: 100%; max-width: 860px;
+    padding: 36px 24px 80px;
+  }
+
+  /* ── Step card ──────────────────────────────────────────── */
   .step-card {
     background: var(--surface); border: 1px solid var(--border);
     border-radius: 20px; padding: 36px 36px 32px;
@@ -176,7 +290,6 @@
     background: radial-gradient(ellipse at top left, rgba(91,106,255,0.09), transparent 60%);
     pointer-events: none;
   }
-
   .step-number {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 10px; font-weight: 600;
@@ -187,24 +300,20 @@
   .step-number::after {
     content: ''; flex: 1; height: 1px; background: var(--border);
   }
-
   .step-title {
     font-family: 'IBM Plex Mono', monospace;
     font-size: clamp(20px, 3vw, 28px);
     font-weight: 600; letter-spacing: -0.02em;
-    color: var(--text); margin-bottom: 18px;
-    line-height: 1.25;
+    color: var(--text); margin-bottom: 18px; line-height: 1.25;
   }
-
   .step-body {
     font-size: 15px; color: var(--muted);
-    line-height: 1.75; font-weight: 300;
-    margin-bottom: 28px;
+    line-height: 1.75; font-weight: 300; margin-bottom: 28px;
   }
   .step-body strong { color: var(--text); font-weight: 500; }
   .step-body em { color: var(--eq-accent2); font-style: normal; font-weight: 500; }
 
-  /* ── Frequency spectrum viz ────────────────────────────── */
+  /* ── Spectrum viz ───────────────────────────────────────── */
   .spectrum-wrap {
     background: var(--surface2); border: 1px solid var(--border);
     border-radius: 12px; padding: 20px 20px 12px;
@@ -218,7 +327,7 @@
   }
   .spectrum-svg { width: 100%; height: auto; display: block; }
 
-  /* ── Key points list ───────────────────────────────────── */
+  /* ── Key points ─────────────────────────────────────────── */
   .key-points {
     background: rgba(91,106,255,0.05);
     border: 1px solid rgba(91,106,255,0.14);
@@ -237,19 +346,18 @@
     font-size: 13px; color: var(--muted); line-height: 1.55;
   }
   .key-point::before {
-    content: '→';
-    color: var(--eq-accent2); font-family: 'IBM Plex Mono', monospace;
+    content: '→'; color: var(--eq-accent2);
+    font-family: 'IBM Plex Mono', monospace;
     font-size: 12px; margin-top: 1px; flex-shrink: 0;
   }
   .key-point strong { color: var(--text); font-weight: 500; }
 
-  /* ── Audio demo ────────────────────────────────────────── */
+  /* ── Audio demo ─────────────────────────────────────────── */
   .audio-demo {
     background: var(--surface2); border: 1px solid var(--border);
     border-radius: 12px; padding: 18px 20px;
     margin-bottom: 28px;
-    display: flex; align-items: center; gap: 16px;
-    flex-wrap: wrap;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
   }
   .audio-demo-info { flex: 1; min-width: 200px; }
   .audio-demo-label {
@@ -258,38 +366,30 @@
     letter-spacing: 0.14em; text-transform: uppercase;
     color: var(--muted); margin-bottom: 4px;
   }
-  .audio-demo-desc {
-    font-size: 13px; color: var(--muted); line-height: 1.5;
-  }
+  .audio-demo-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
   .demo-controls { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
   .play-btn {
     width: 44px; height: 44px; border-radius: 50%;
     background: var(--eq-accent); border: none;
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: transform 0.15s, opacity 0.15s;
-    flex-shrink: 0;
+    cursor: pointer; transition: transform 0.15s, opacity 0.15s; flex-shrink: 0;
   }
   .play-btn:hover { transform: scale(1.08); opacity: 0.9; }
   .play-btn svg { pointer-events: none; }
   .play-btn.playing { background: rgba(91,106,255,0.3); border: 1.5px solid var(--eq-accent); }
-
-  /* Volume control */
-  .vol-wrap {
-    display: flex; align-items: center; gap: 8px;
-  }
+  .vol-wrap { display: flex; align-items: center; gap: 8px; }
   .vol-icon { color: var(--muted); font-size: 14px; }
   input[type=range].vol-slider {
     -webkit-appearance: none; appearance: none;
     width: 72px; height: 3px;
-    border-radius: 2px;
-    background: var(--border2); outline: none; cursor: pointer;
+    border-radius: 2px; background: var(--border2); outline: none; cursor: pointer;
   }
   input[type=range].vol-slider::-webkit-slider-thumb {
     -webkit-appearance: none; width: 13px; height: 13px;
     border-radius: 50%; background: var(--eq-accent2); cursor: pointer;
   }
 
-  /* ── Step navigation ───────────────────────────────────── */
+  /* ── Step navigation ────────────────────────────────────── */
   .step-nav {
     display: flex; align-items: center; justify-content: space-between;
     gap: 12px; margin-top: 4px;
@@ -305,31 +405,21 @@
   }
   .nav-btn:hover { border-color: var(--border2); color: var(--text); transform: translateY(-1px); }
   .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
-  .nav-btn.primary {
-    background: var(--eq-accent); border-color: var(--eq-accent); color: #fff;
-  }
+  .nav-btn.primary { background: var(--eq-accent); border-color: var(--eq-accent); color: #fff; }
   .nav-btn.primary:hover { opacity: 0.88; }
   .nav-btn.finish {
-    background: rgba(91,106,255,0.15); border-color: var(--eq-accent);
-    color: var(--eq-accent2);
+    background: rgba(91,106,255,0.15); border-color: var(--eq-accent); color: var(--eq-accent2);
   }
   .step-counter {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 12px; color: var(--muted);
   }
 
-/* ── Completion card ────────────────────────────────────── */
-  .completion-card {
-    text-align: center; padding: 56px 36px;
-  }
-  .completion-icon {
-    font-size: 52px; margin-bottom: 20px;
-    display: block;
-  }
+  /* ── Completion card ────────────────────────────────────── */
+  .completion-card { text-align: center; padding: 56px 36px; }
   .completion-title {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 26px; font-weight: 600;
-    color: var(--text); margin-bottom: 12px;
+    font-size: 26px; font-weight: 600; color: var(--text); margin-bottom: 12px;
   }
   .completion-sub {
     font-size: 15px; color: var(--muted); line-height: 1.7;
@@ -340,26 +430,40 @@
     padding: 12px 28px; border-radius: 10px;
     background: var(--eq-accent); color: #fff;
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 14px; font-weight: 600;
-    text-decoration: none;
+    font-size: 14px; font-weight: 600; text-decoration: none;
     transition: opacity 0.15s, transform 0.15s;
   }
   .completion-cta:hover { opacity: 0.88; transform: translateY(-1px); }
   .completion-restart {
     display: block; margin: 18px auto 0;
     background: none; border: none; color: var(--muted);
-    font-size: 13px; cursor: pointer; text-decoration: underline;
-    font-family: inherit;
+    font-size: 13px; cursor: pointer; text-decoration: underline; font-family: inherit;
   }
   .completion-restart:hover { color: var(--text); }
 
+  /* ── Mobile responsive ──────────────────────────────────── */
+  @media (max-width: 900px) {
+    .learn-sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      transform: translateX(-100%);
+      transition: transform 0.24s cubic-bezier(0.4,0,0.2,1);
+      z-index: 50;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+      border-right: 1px solid var(--border2);
+    }
+    .learn-sidebar.is-open { transform: translateX(0); }
+    .sidebar-close-btn { display: block; }
+    .breadcrumb-toggle { display: flex; }
+    .learn-main { width: 100%; }
+  }
   @media (max-width: 600px) {
     .step-card { padding: 24px 20px 22px; }
-    .module-wrap { padding: 0 16px 60px; }
-    .tool-selector-wrap { padding: 0 16px 32px; }
-    .page-header { padding: 32px 16px 24px; }
+    .module-wrap { padding: 24px 16px 60px; }
     .step-nav { flex-direction: column; }
     .nav-btn { width: 100%; justify-content: center; }
+    .learn-breadcrumb { padding: 10px 16px; }
   }
 </style>
 
@@ -369,7 +473,6 @@
   <meta property="og:title"       content="EQ Ear Training — Learn How EQ Works | SonicSandbox">
   <meta property="og:description" content="Learn how EQ works — frequency ranges, parametric EQ, shelves, high-pass filters, and Q explained with interactive examples. Free ear training for producers and engineers.">
   <meta property="og:image"       content="https://sonicsandbox.app/og-image.png">
-  <!-- Twitter Card -->
   <meta name="twitter:card"        content="summary_large_image">
   <meta name="twitter:title"       content="EQ Ear Training — Learn How EQ Works | SonicSandbox">
   <meta name="twitter:description" content="Learn how EQ works — frequency ranges, parametric EQ, shelves, high-pass filters, and Q explained with interactive examples. Free ear training for producers and engineers.">
@@ -395,7 +498,7 @@
 </head>
 <body>
 
-<!-- Nav -->
+<!-- ── Nav ──────────────────────────────────────────────── -->
 <nav>
   <div class="nav-logo-wrap">
     <a class="nav-logo" href="/">Sonic<span>Sandbox</span></a>
@@ -413,70 +516,89 @@
   </div>
 </nav>
 
-<!-- Page header -->
-<div class="page-header">
-  <div class="page-eyebrow">SonicSandbox / Learning Center</div>
-  <h1 class="page-title">Learn the tools.</h1>
-  <p class="page-sub">Guided lessons on the audio processing tools that shape every mix. Read, listen, and understand — then go train your ears.</p>
-</div>
+<!-- ── Learn layout ─────────────────────────────────────── -->
+<div class="learn-layout">
 
-<!-- Tool Selector -->
-<div class="tool-selector-wrap">
-  <div class="tool-selector-label">Choose a topic</div>
-  <div class="tool-selector">
-    <span class="tool-btn active"><div class="tool-dot" style="color:var(--eq-accent2)"></div>EQ</span>
-    <a class="tool-btn" href="/learn/gain-staging/"><div class="tool-dot" style="color:#86efac"></div>Gain Staging</a>
-    <a class="tool-btn" href="/learn/compression/"><div class="tool-dot" style="color:var(--comp-accent)"></div>Compression</a>
-    <a class="tool-btn" href="/learn/saturation/"><div class="tool-dot" style="color:#fbbf24"></div>Saturation</a>
-    <a class="tool-btn" href="/learn/reverb/"><div class="tool-dot" style="color:#a78bfa"></div>Reverb</a>
-    <a class="tool-btn" href="/learn/delay/"><div class="tool-dot" style="color:#f97316"></div>Delay</a>
-    <a class="tool-btn" href="/learn/soundstage/"><div class="tool-dot" style="color:#38bdf8"></div>Spatial Mixing</a>
-    <a class="tool-btn" href="/learn/signal-chain/"><div class="tool-dot" style="color:#22d3ee"></div>Signal Chain</a>
-    <a class="tool-btn" href="/learn/modulation/"><div class="tool-dot" style="color:#34d399"></div>Modulation</a>
-    <a class="tool-btn" href="/learn/limiting/"><div class="tool-dot" style="color:#fda4af"></div>Limiting</a>
-  </div>
-</div>
+  <!-- Sidebar -->
+  <aside class="learn-sidebar" id="learnSidebar" aria-label="Course navigation">
+    <div class="sidebar-header">
+      <span class="sidebar-header-label">Learning Center</span>
+      <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close menu">✕</button>
+    </div>
+    <div class="sidebar-body" id="sidebarBody">
+      <!-- Populated by JS -->
+    </div>
+  </aside>
 
-<!-- EQ Module -->
-<div class="module-wrap" id="eqModule">
+  <!-- Mobile overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-  <!-- Progress -->
-  <div class="progress-bar-wrap">
-    <div class="progress-dots" id="progressDots"></div>
-    <div class="progress-label" id="progressLabel">Step 1 of 10</div>
-  </div>
+  <!-- Main content -->
+  <main class="learn-main">
 
-  <!-- Step card -->
-  <div class="step-card" id="stepCard">
-    <!-- Content injected by JS -->
-  </div>
+    <!-- Breadcrumb / mobile toggle -->
+    <div class="learn-breadcrumb">
+      <button class="breadcrumb-toggle" id="sidebarToggleBtn" aria-label="Open course menu">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <rect y="1" width="14" height="1.5" rx="0.75" fill="currentColor"/>
+          <rect y="6" width="10" height="1.5" rx="0.75" fill="currentColor"/>
+          <rect y="11" width="12" height="1.5" rx="0.75" fill="currentColor"/>
+        </svg>
+        Courses
+      </button>
+      <div class="bc-path">
+        <a href="/learn/">Learn</a>
+        <span class="bc-sep">›</span>
+        <span>Audio Engineering</span>
+        <span class="bc-sep">›</span>
+        <span class="bc-current" id="bcCurrent">EQ</span>
+      </div>
+    </div>
 
-  <!-- Navigation -->
-  <div class="step-nav" id="stepNav" style="margin-top:20px;">
-    <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>← Previous</button>
-    <span class="step-counter" id="stepCounter"></span>
-    <button class="nav-btn primary" id="nextBtn" onclick="navigate(1)">Next →</button>
-  </div>
+    <!-- Module content -->
+    <div class="module-wrap">
 
-</div>
+      <!-- Progress -->
+      <div class="progress-bar-wrap">
+        <div class="progress-dots" id="progressDots"></div>
+        <div class="progress-label" id="progressLabel">Step 1 of 10</div>
+      </div>
+
+      <!-- Step card -->
+      <div class="step-card" id="stepCard"><!-- Rendered by JS --></div>
+
+      <!-- Step navigation -->
+      <div class="step-nav" id="stepNav" style="margin-top:20px;">
+        <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>← Previous</button>
+        <span class="step-counter" id="stepCounter"></span>
+        <button class="nav-btn primary" id="nextBtn" onclick="navigate(1)">Next →</button>
+      </div>
+
+    </div><!-- /module-wrap -->
+  </main>
+</div><!-- /learn-layout -->
 
 
 <!-- Static SEO content — visually hidden, crawlable -->
 <article class="seo-article" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;">
   <h2>How EQ Works — A Guide for Producers and Engineers</h2>
   Equalization (EQ) is the process of adjusting the balance of frequency components in an audio signal. It is one of the most fundamental tools in music production and audio engineering.
-
-A parametric EQ lets you control three main parameters for each band: frequency (which part of the spectrum you are affecting), gain (how much you are boosting or cutting), and Q (how narrow or wide the affected range is). A high Q creates a narrow surgical cut or boost; a low Q creates a broad, gentle shelf-like change.
-
-Common frequency ranges in audio production include: sub-bass (20–80 Hz), bass (80–250 Hz), low-midrange (250–500 Hz), midrange (500 Hz–2 kHz), upper-midrange (2–6 kHz), presence (4–8 kHz), and air or brilliance (8–20 kHz). Understanding what each range sounds like is the foundation of EQ ear training.
-
-High-pass filters (HPF) remove frequencies below a cutoff point, cleaning up low-end rumble. Low-pass filters (LPF) remove frequencies above a cutoff. These are essential tools for managing headroom and clarity in a mix.
-
-EQ ear training involves learning to identify frequencies by ear — recognizing whether a boost or cut has been applied, and at which frequency. Tools like SonicSandbox's Freq Quiz and EQ Match games train this skill through repeated listening exercises with immediate feedback.
+  A parametric EQ lets you control three main parameters for each band: frequency, gain, and Q. Common frequency ranges include: sub-bass (20–80 Hz), bass (80–250 Hz), low-midrange (250–500 Hz), midrange (500 Hz–2 kHz), upper-midrange (2–6 kHz), and air (8–20 kHz). EQ ear training involves learning to identify frequencies by ear through tools like SonicSandbox's Freq Quiz and EQ Match games.
 </article>
 
-<!-- Footer -->
-<!-- Auth modal -->
+<!-- ── Footer ────────────────────────────────────────────── -->
+<footer>
+  <div class="footer-left">
+    <a href="/">SonicSandbox</a>
+    &nbsp;·&nbsp; Ear training for producers, engineers, &amp; musicians
+    &nbsp;·&nbsp; <a href="/about/">About</a>
+    &nbsp;·&nbsp; <a href="/privacy/">Privacy Policy</a>
+    &nbsp;·&nbsp; <a href="/support/">Support</a>
+  </div>
+  <div class="footer-right"><span>© 2026 Zach Snider</span></div>
+</footer>
+
+<!-- ── Auth modal ────────────────────────────────────────── -->
 <div class="modal-overlay" id="authModal">
   <div class="modal">
     <button class="modal-close" id="closeAuthBtn">&times;</button>
@@ -529,165 +651,413 @@ EQ ear training involves learning to identify frequencies by ear — recognizing
   </div>
 </div>
 
-<footer>
-  <div class="footer-left">
-    <a href="/">SonicSandbox</a>
-    &nbsp;·&nbsp; Ear training for producers, engineers, &amp; musicians
-    &nbsp;·&nbsp; <a href="/about/">About</a>
-    &nbsp;·&nbsp; <a href="/privacy/">Privacy Policy</a>
-    &nbsp;·&nbsp; <a href="/support/">Support</a>
-  </div>
-  <div class="footer-right">
-    <span>© 2026 Zach Snider</span>
-  </div>
-</footer>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="../supabase-client.js"></script>
 <script>
-  const authModal  = document.getElementById('authModal');
-  const authArea   = document.getElementById('authArea');
-  const closeBtn   = document.getElementById('closeAuthBtn');
-  const tabs       = document.querySelectorAll('.modal-tab');
-  const tabSignin  = document.getElementById('tabSignin');
-  const tabSignup  = document.getElementById('tabSignup');
-  const tabForgot  = document.getElementById('tabForgot');
-  const usernameModal  = document.getElementById('usernameModal');
-  const usernameInput  = document.getElementById('usernameInput');
-  const usernameCheck  = document.getElementById('usernameCheck');
-  const usernameSubmit = document.getElementById('usernameSubmit');
-  const usernameMsg    = document.getElementById('usernameMsg');
+// ── Auth modal logic ─────────────────────────────────────────
+const authModal  = document.getElementById('authModal');
+const authArea   = document.getElementById('authArea');
+const closeBtn   = document.getElementById('closeAuthBtn');
+const tabs       = document.querySelectorAll('.modal-tab');
+const tabSignin  = document.getElementById('tabSignin');
+const tabSignup  = document.getElementById('tabSignup');
+const tabForgot  = document.getElementById('tabForgot');
+const usernameModal  = document.getElementById('usernameModal');
+const usernameInput  = document.getElementById('usernameInput');
+const usernameCheck  = document.getElementById('usernameCheck');
+const usernameSubmit = document.getElementById('usernameSubmit');
+const usernameMsg    = document.getElementById('usernameMsg');
 
-  function openAuthModal() { authModal.classList.add('open'); }
-  function closeAuthModal() { authModal.classList.remove('open'); showSigninPanel(); }
+function openAuthModal() { authModal.classList.add('open'); }
+function closeAuthModal() { authModal.classList.remove('open'); showSigninPanel(); }
 
-  document.getElementById('openAuthBtn').addEventListener('click', openAuthModal);
-  closeBtn.addEventListener('click', closeAuthModal);
-  authModal.addEventListener('click', e => { if (e.target === authModal) closeAuthModal(); });
+document.getElementById('openAuthBtn').addEventListener('click', openAuthModal);
+closeBtn.addEventListener('click', closeAuthModal);
+authModal.addEventListener('click', e => { if (e.target === authModal) closeAuthModal(); });
 
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      tabSignin.style.display = tab.dataset.tab === 'signin' ? '' : 'none';
-      tabSignup.style.display = tab.dataset.tab === 'signup' ? '' : 'none';
-      tabForgot.style.display = 'none';
-    });
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    tabSignin.style.display = tab.dataset.tab === 'signin' ? '' : 'none';
+    tabSignup.style.display = tab.dataset.tab === 'signup' ? '' : 'none';
+    tabForgot.style.display = 'none';
   });
+});
 
-  function showForgotPanel() {
-    tabSignin.style.display = 'none';
-    tabForgot.style.display = '';
-    const existingEmail = document.getElementById('siEmail').value.trim();
-    if (existingEmail) document.getElementById('fpEmail').value = existingEmail;
-    document.getElementById('fpMsg').textContent = '';
+function showForgotPanel() {
+  tabSignin.style.display = 'none'; tabForgot.style.display = '';
+  const e = document.getElementById('siEmail').value.trim();
+  if (e) document.getElementById('fpEmail').value = e;
+  document.getElementById('fpMsg').textContent = '';
+}
+function showSigninPanel() { tabForgot.style.display = 'none'; tabSignin.style.display = ''; }
+
+document.getElementById('forgotPwBtn').addEventListener('click', showForgotPanel);
+document.getElementById('backToSigninBtn').addEventListener('click', showSigninPanel);
+
+document.getElementById('siSubmit').addEventListener('click', async () => {
+  const msg = document.getElementById('siMsg');
+  msg.textContent = 'Signing in…'; msg.className = 'modal-msg';
+  const { error } = await SonicSandbox.signIn(
+    document.getElementById('siEmail').value.trim(),
+    document.getElementById('siPassword').value
+  );
+  if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+  else { closeAuthModal(); }
+});
+
+document.getElementById('fpSubmit').addEventListener('click', async () => {
+  const email = document.getElementById('fpEmail').value.trim();
+  const msg = document.getElementById('fpMsg');
+  if (!email) { msg.textContent = 'Please enter your email.'; msg.className = 'modal-msg error'; return; }
+  msg.textContent = 'Sending…'; msg.className = 'modal-msg';
+  const { error } = await SonicSandbox.resetPasswordForEmail(email);
+  if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+  else { msg.textContent = 'Reset link sent! Check your inbox.'; msg.className = 'modal-msg success'; document.getElementById('fpSubmit').disabled = true; }
+});
+
+document.getElementById('suSubmit').addEventListener('click', async () => {
+  const msg = document.getElementById('suMsg');
+  msg.textContent = 'Creating account…'; msg.className = 'modal-msg';
+  const { error } = await SonicSandbox.signUp(
+    document.getElementById('suEmail').value.trim(),
+    document.getElementById('suPassword').value
+  );
+  if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+  else { msg.textContent = 'Check your email to confirm your account.'; msg.className = 'modal-msg success'; }
+});
+
+// Username modal
+function validateUsername(val) {
+  if (val.length < 3)  return 'Too short — min 3 characters';
+  if (val.length > 20) return 'Too long — max 20 characters';
+  if (!/^[a-zA-Z0-9_-]+$/.test(val)) return 'Letters, numbers, _ and - only';
+  return null;
+}
+function openUsernameModal() {
+  usernameInput.value = ''; usernameCheck.textContent = '';
+  usernameCheck.className = 'username-check'; usernameMsg.textContent = '';
+  usernameModal.classList.add('open');
+  setTimeout(() => usernameInput.focus(), 50);
+}
+let _unCheckTimer;
+usernameInput.addEventListener('input', () => {
+  const val = usernameInput.value.trim();
+  clearTimeout(_unCheckTimer);
+  const err = validateUsername(val);
+  if (err) { usernameCheck.textContent = val.length > 0 ? err : ''; usernameCheck.className = 'username-check'; return; }
+  usernameCheck.textContent = 'Checking…'; usernameCheck.className = 'username-check';
+  _unCheckTimer = setTimeout(async () => {
+    const taken = await SonicSandbox.isUsernameTaken(val);
+    if (usernameInput.value.trim() !== val) return;
+    usernameCheck.textContent = taken ? `"${val}" is already taken` : `"${val}" is available ✓`;
+    usernameCheck.className = taken ? 'username-check taken' : 'username-check available';
+  }, 500);
+});
+usernameSubmit.addEventListener('click', async () => {
+  const val = usernameInput.value.trim();
+  const err = validateUsername(val);
+  if (err) { usernameMsg.textContent = err; usernameMsg.className = 'modal-msg error'; return; }
+  usernameMsg.textContent = 'Saving…'; usernameMsg.className = 'modal-msg';
+  const { error } = await SonicSandbox.setUsername(val);
+  if (error) {
+    const isConflict = error.message?.toLowerCase().includes('duplicate') || error.message?.toLowerCase().includes('unique') || error.code === '23505';
+    usernameMsg.textContent = isConflict ? `"${val}" is already taken — try another.` : error.message;
+    usernameMsg.className = 'modal-msg error';
+  } else {
+    usernameModal.classList.remove('open');
+    const el = authArea.querySelector('.username-display');
+    if (el) el.textContent = '@' + val;
   }
-  function showSigninPanel() { tabForgot.style.display = 'none'; tabSignin.style.display = ''; }
+});
+document.getElementById('usernameSkip').addEventListener('click', () => usernameModal.classList.remove('open'));
+usernameModal.addEventListener('click', e => { if (e.target === usernameModal) usernameModal.classList.remove('open'); });
 
-  document.getElementById('forgotPwBtn').addEventListener('click', showForgotPanel);
-  document.getElementById('backToSigninBtn').addEventListener('click', showSigninPanel);
-
-  document.getElementById('siSubmit').addEventListener('click', async () => {
-    const msg = document.getElementById('siMsg');
-    msg.textContent = 'Signing in…'; msg.className = 'modal-msg';
-    const { error } = await SonicSandbox.signIn(
-      document.getElementById('siEmail').value.trim(),
-      document.getElementById('siPassword').value
-    );
-    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
-    else { closeAuthModal(); }
-  });
-
-  document.getElementById('fpSubmit').addEventListener('click', async () => {
-    const email = document.getElementById('fpEmail').value.trim();
-    const msg   = document.getElementById('fpMsg');
-    if (!email) { msg.textContent = 'Please enter your email.'; msg.className = 'modal-msg error'; return; }
-    msg.textContent = 'Sending…'; msg.className = 'modal-msg';
-    const { error } = await SonicSandbox.resetPasswordForEmail(email);
-    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
-    else { msg.textContent = 'Reset link sent! Check your inbox.'; msg.className = 'modal-msg success'; document.getElementById('fpSubmit').disabled = true; }
-  });
-
-  document.getElementById('suSubmit').addEventListener('click', async () => {
-    const msg = document.getElementById('suMsg');
-    msg.textContent = 'Creating account…'; msg.className = 'modal-msg';
-    const { error } = await SonicSandbox.signUp(
-      document.getElementById('suEmail').value.trim(),
-      document.getElementById('suPassword').value
-    );
-    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
-    else { msg.textContent = 'Check your email to confirm your account.'; msg.className = 'modal-msg success'; }
-  });
-
-  // ── Username modal ────────────────────────────────────────
-  function validateUsername(val) {
-    if (val.length < 3)  return 'Too short — min 3 characters';
-    if (val.length > 20) return 'Too long — max 20 characters';
-    if (!/^[a-zA-Z0-9_-]+$/.test(val)) return 'Letters, numbers, _ and - only';
-    return null;
-  }
-  function openUsernameModal() {
-    usernameInput.value = ''; usernameCheck.textContent = '';
-    usernameCheck.className = 'username-check'; usernameMsg.textContent = '';
-    usernameModal.classList.add('open');
-    setTimeout(() => usernameInput.focus(), 50);
-  }
-  let _unCheckTimer;
-  usernameInput.addEventListener('input', () => {
-    const val = usernameInput.value.trim();
-    clearTimeout(_unCheckTimer);
-    const err = validateUsername(val);
-    if (err) { usernameCheck.textContent = val.length > 0 ? err : ''; usernameCheck.className = 'username-check'; return; }
-    usernameCheck.textContent = 'Checking…'; usernameCheck.className = 'username-check';
-    _unCheckTimer = setTimeout(async () => {
-      const taken = await SonicSandbox.isUsernameTaken(val);
-      if (usernameInput.value.trim() !== val) return;
-      usernameCheck.textContent = taken ? `"${val}" is already taken` : `"${val}" is available ✓`;
-      usernameCheck.className = taken ? 'username-check taken' : 'username-check available';
-    }, 500);
-  });
-  usernameSubmit.addEventListener('click', async () => {
-    const val = usernameInput.value.trim();
-    const err = validateUsername(val);
-    if (err) { usernameMsg.textContent = err; usernameMsg.className = 'modal-msg error'; return; }
-    usernameMsg.textContent = 'Saving…'; usernameMsg.className = 'modal-msg';
-    const { error } = await SonicSandbox.setUsername(val);
-    if (error) {
-      const isConflict = error.message?.toLowerCase().includes('duplicate') || error.message?.toLowerCase().includes('unique') || error.code === '23505';
-      usernameMsg.textContent = isConflict ? `"${val}" is already taken — try another.` : error.message;
-      usernameMsg.className = 'modal-msg error';
+// Auth state
+document.addEventListener('ss:authchange', async e => {
+  const user = e.detail;
+  if (user) {
+    authArea.innerHTML = `<div class="user-pill"><span class="username-display" style="color:var(--muted);font-size:12px;">${user.email}</span></div>`;
+    const profile = await SonicSandbox.getProfile();
+    const el = authArea.querySelector('.username-display');
+    if (!el) return;
+    if (profile?.username) {
+      el.outerHTML = `<a class="set-username-link" href="/account/">@${profile.username}</a>`;
     } else {
-      usernameModal.classList.remove('open');
-      const el = authArea.querySelector('.username-display');
-      if (el) el.textContent = '@' + val;
+      el.outerHTML = `<a class="set-username-link" href="/account/">Set username</a>`;
     }
-  });
-  document.getElementById('usernameSkip').addEventListener('click', () => usernameModal.classList.remove('open'));
-  usernameModal.addEventListener('click', e => { if (e.target === usernameModal) usernameModal.classList.remove('open'); });
-
-  // ── Auth state → update nav ───────────────────────────────
-  document.addEventListener('ss:authchange', async e => {
-    const user = e.detail;
-    if (user) {
-      authArea.innerHTML = `<div class="user-pill"><span class="username-display" style="color:var(--muted);font-size:12px;">${user.email}</span></div>`;
-      const profile = await SonicSandbox.getProfile();
-      const el = authArea.querySelector('.username-display');
-      if (!el) return;
-      if (profile?.username) {
-        el.outerHTML = `<a class="set-username-link" href="/account/">@${profile.username}</a>`;
-      } else {
-        el.outerHTML = `<a class="set-username-link" href="/account/">Set username</a>`;
-      }
-    } else {
-      authArea.innerHTML = `<button class="auth-btn" id="openAuthBtn">Sign in</button>`;
-      document.getElementById('openAuthBtn').addEventListener('click', openAuthModal);
-    }
-  });
+  } else {
+    authArea.innerHTML = `<button class="auth-btn" id="openAuthBtn">Sign in</button>`;
+    document.getElementById('openAuthBtn').addEventListener('click', openAuthModal);
+  }
+});
 </script>
 
 <script>
 // ─────────────────────────────────────────────────────────────
-//  STEP DATA
+//  SIDEBAR DATA
+// ─────────────────────────────────────────────────────────────
+
+const AE_COURSES = [
+  {
+    num: 1, id: 'eq', label: 'EQ', url: '/learn/', current: true, accent: '#5b6aff',
+    lessons: [
+      'What is EQ?', 'The Frequency Spectrum', 'Sub Bass — 20 to 60 Hz',
+      'Bass — 60 to 250 Hz', 'Low Mids — 250 to 500 Hz', 'Midrange — 500 Hz to 2 kHz',
+      'High Mids — 2 to 6 kHz', 'Presence & Air — 6 to 20 kHz',
+      'EQ Filter Types', 'Practical EQ Tips',
+    ]
+  },
+  {
+    num: 2, id: 'gain-staging', label: 'Gain Staging', url: '/learn/gain-staging/', accent: '#86efac',
+    lessons: [
+      'What Is Gain Staging?', 'Decibels — The Language of Loudness',
+      'Clipping — When Signal Goes Too Hot', 'Headroom — Give Transients Room',
+      'How Gain Accumulates Through a Chain', 'Reading Meters — Peak, RMS, LUFS',
+      'The −18 dBFS Target', 'Input, Output & Gain Compensation', 'Gain Staging the Mix Bus',
+    ]
+  },
+  {
+    num: 3, id: 'compression', label: 'Compression', url: '/learn/compression/', accent: '#e8865a',
+    lessons: [
+      'What is Compression?', 'How Compression Works', 'Threshold', 'Ratio',
+      'Attack', 'Release', 'Knee', 'Makeup Gain', 'Compressor Types',
+      'Parallel Compression', 'Sidechain Compression', 'Practical Tips',
+    ]
+  },
+  {
+    num: 4, id: 'saturation', label: 'Saturation', url: '/learn/saturation/', accent: '#fbbf24',
+    lessons: [
+      'What is Saturation?', 'Even vs Odd Harmonics', 'Soft vs Hard Clipping',
+      'Drive', 'Tape Saturation', 'Tube Saturation',
+      'Transistor & Digital Clipping', 'Parallel Saturation', 'Where to Use Saturation', 'Practical Workflow',
+    ]
+  },
+  {
+    num: 5, id: 'reverb', label: 'Reverb', url: '/learn/reverb/', accent: '#a78bfa',
+    lessons: [
+      'What is Reverb?', 'Direct Sound & Early Reflections', 'Wet/Dry Balance',
+      'Pre-delay', 'Decay Time', 'Room Reverb', 'Hall Reverb',
+      'Plate & Spring', 'Diffusion & Damping', 'Reverb in the Mix',
+    ]
+  },
+  {
+    num: 6, id: 'delay', label: 'Delay', url: '/learn/delay/', accent: '#f97316',
+    lessons: [
+      'What is Delay?', 'Feedback & Repeats', 'Delay Time & Tempo Sync',
+      'Tape Delay', 'Analog Delay', 'Digital Delay & Ping-Pong',
+      'Modulation in Delay', 'The Haas Effect', 'Where to Use Delay', 'Practical Workflow',
+    ]
+  },
+  {
+    num: 7, id: 'soundstage', label: 'Spatial Mixing', url: '/learn/soundstage/', accent: '#38bdf8',
+    lessons: [
+      'Spatial Mixing', 'The Three Axes', 'Left & Right — Panning',
+      'Front & Back — Depth', 'Up & Down — Frequency as Height',
+      'Width — Mono vs Stereo', 'Reverb as Depth', 'Conventional Placement',
+      'Creating Space', 'Building Your Soundstage',
+    ]
+  },
+  {
+    num: 8, id: 'signal-chain', label: 'Signal Chain', url: '/learn/signal-chain/', accent: '#22d3ee',
+    lessons: [
+      'What Is a Signal Chain?', 'Why Order Matters', 'Gate & Expander',
+      'EQ → Compression', 'Compression Before Saturation',
+      'Inserts vs Sends', 'Time-Based Effects Last',
+      'The Master Bus Chain', 'Signal Chain Templates',
+    ]
+  },
+  {
+    num: 9, id: 'modulation', label: 'Modulation', url: '/learn/modulation/', accent: '#34d399',
+    lessons: [
+      'What is Modulation?', 'The LFO — Rate & Depth', 'Chorus', 'Flanger',
+      'Phaser', 'Tremolo', 'Vibrato', 'Telling Them Apart',
+      'Modulation in the Mix', 'Practical Workflow',
+    ]
+  },
+  {
+    num: 10, id: 'limiting', label: 'Limiting', url: '/learn/limiting/', accent: '#fda4af',
+    lessons: [
+      'What is a Limiter?', 'Ceiling, Threshold & Input Gain',
+      'Brickwall vs Dynamics Limiters', 'Release Time & Artifacts',
+      'LUFS in Depth', 'Streaming Normalization', 'True Peak', 'Practical Workflow',
+    ]
+  },
+];
+
+const MT_COURSES = [
+  {
+    num: 1, id: 'notes', label: 'Notes & The Piano', url: '/learn/music-theory/notes/',
+    accent: '#3ecf8e', soon: true,
+    lessons: ['The 12 Notes', 'Sharps, Flats & Enharmonics', 'The Piano Keyboard', 'Octaves & Pitch Registers'],
+  },
+  {
+    num: 2, id: 'intervals', label: 'Intervals', url: '/learn/music-theory/intervals/',
+    accent: '#60e8ff', soon: true,
+    lessons: ['Half Steps & Whole Steps', 'Naming Intervals', 'Perfect Intervals', 'Major & Minor Intervals', 'Augmented & Diminished'],
+  },
+  {
+    num: 3, id: 'scales', label: 'Scales', url: '/learn/music-theory/scales/',
+    accent: '#fbbf24', soon: true,
+    lessons: ['The Major Scale', 'Natural Minor Scale', 'Harmonic & Melodic Minor', 'Pentatonic Scales', 'The Blues Scale', 'Modes'],
+  },
+  {
+    num: 4, id: 'chords', label: 'Chords & Triads', url: '/learn/music-theory/chords/',
+    accent: '#f97316', soon: true,
+    lessons: ['What is a Chord?', 'Major & Minor Triads', 'Diminished & Augmented', 'Seventh Chords', 'Extended Chords', 'Voicings & Inversions'],
+  },
+  {
+    num: 5, id: 'keys', label: 'Keys & Circle of Fifths', url: '/learn/music-theory/keys/',
+    accent: '#c084fc', soon: true,
+    lessons: ['Key Signatures', 'The Circle of Fifths', 'Relative Major & Minor', 'Parallel Keys'],
+  },
+  {
+    num: 6, id: 'progressions', label: 'Chord Progressions', url: '/learn/music-theory/progressions/',
+    accent: '#fb7185', soon: true,
+    lessons: ['Roman Numeral Analysis', 'Diatonic Chords', 'Common Progressions', 'Functional Harmony', 'Modal Interchange'],
+  },
+  {
+    num: 7, id: 'rhythm', label: 'Rhythm & Meter', url: '/learn/music-theory/rhythm/',
+    accent: '#a3e635', soon: true,
+    lessons: ['Note Values', 'Time Signatures', 'Ties & Dots', 'Syncopation', 'Feel & Groove'],
+  },
+  {
+    num: 8, id: 'notation', label: 'Staff Notation', url: '/learn/music-theory/notation/',
+    accent: '#e879f9', soon: true,
+    lessons: ['The Staff & Clefs', 'Treble Clef Notes', 'Bass Clef Notes', 'Ledger Lines', 'Note Values & Rests', 'Time Signatures & Bar Lines'],
+  },
+];
+
+// ─────────────────────────────────────────────────────────────
+//  SIDEBAR RENDERER
+// ─────────────────────────────────────────────────────────────
+
+function buildSidebar() {
+  const body = document.getElementById('sidebarBody');
+
+  const aeHTML = AE_COURSES.map(c => renderCourse(c, 'ae')).join('');
+  const mtHTML = MT_COURSES.map(c => renderCourse(c, 'mt')).join('');
+
+  body.innerHTML = `
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">
+        <div class="section-dot" style="background:#5b6aff;"></div>
+        Audio Engineering
+      </div>
+      ${aeHTML}
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">
+        <div class="section-dot" style="background:#3ecf8e;"></div>
+        Music Theory
+      </div>
+      ${mtHTML}
+    </div>
+  `;
+}
+
+function renderCourse(c, section) {
+  const uid = `${section}-${c.id}`;
+  const isOpen = !!c.current;
+
+  const lessonsHTML = c.lessons.map((l, i) => {
+    if (c.current) {
+      // EQ — in-page navigation
+      return `<div class="lesson-row" id="lesson-${uid}-${i}" onclick="jumpToStep(${i})" role="button" tabindex="0">
+        <span class="lesson-n">${c.num}.${i + 1}</span>
+        <span class="lesson-label">${l}</span>
+      </div>`;
+    } else if (c.soon) {
+      return `<div class="lesson-row lesson-soon" aria-disabled="true">
+        <span class="lesson-n">${c.num}.${i + 1}</span>
+        <span class="lesson-label">${l}</span>
+      </div>`;
+    } else {
+      return `<a class="lesson-row" href="${c.url}#${i + 1}" style="color:inherit;">
+        <span class="lesson-n">${c.num}.${i + 1}</span>
+        <span class="lesson-label">${l}</span>
+      </a>`;
+    }
+  }).join('');
+
+  return `
+    <div class="sidebar-course ${isOpen ? 'is-open' : ''}" id="course-${uid}">
+      <div class="course-hdr ${c.current ? 'is-active' : ''}"
+           onclick="toggleCourse('${uid}', ${!!c.current}, '${c.url}', ${!!c.soon})"
+           role="button" tabindex="0"
+           aria-expanded="${isOpen}">
+        <span class="course-n">${c.num}.</span>
+        <span class="course-label">${c.label}</span>
+        ${c.soon ? '<span class="course-soon-badge">Soon</span>' : `<span class="course-chevron">›</span>`}
+      </div>
+      <div class="course-lessons" id="lessons-${uid}" style="${isOpen ? '' : 'display:none'}">
+        ${lessonsHTML}
+      </div>
+    </div>
+  `;
+}
+
+function toggleCourse(uid, isCurrent, url, isSoon) {
+  const lessonsEl = document.getElementById('lessons-' + uid);
+  const courseEl  = document.getElementById('course-' + uid);
+  if (!lessonsEl) return;
+
+  const isOpen = lessonsEl.style.display !== 'none';
+
+  if (isOpen) {
+    // Don't collapse the active course
+    if (!isCurrent) {
+      lessonsEl.style.display = 'none';
+      courseEl.classList.remove('is-open');
+    }
+  } else {
+    lessonsEl.style.display = '';
+    courseEl.classList.add('is-open');
+    // Navigate to the page if not current and not soon
+    if (!isCurrent && !isSoon) {
+      window.location.href = url;
+    }
+  }
+}
+
+function updateSidebarActive(idx) {
+  // Remove active from all EQ lessons
+  document.querySelectorAll('[id^="lesson-ae-eq-"]').forEach(el => el.classList.remove('is-active'));
+  const activeEl = document.getElementById(`lesson-ae-eq-${idx}`);
+  if (activeEl) {
+    activeEl.classList.add('is-active');
+    // Scroll the lesson into view in the sidebar
+    activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  MOBILE SIDEBAR TOGGLE
+// ─────────────────────────────────────────────────────────────
+
+const learnSidebar  = document.getElementById('learnSidebar');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+function openSidebar() {
+  learnSidebar.classList.add('is-open');
+  sidebarOverlay.classList.add('is-open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSidebar() {
+  learnSidebar.classList.remove('is-open');
+  sidebarOverlay.classList.remove('is-open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('sidebarToggleBtn').addEventListener('click', openSidebar);
+document.getElementById('sidebarCloseBtn').addEventListener('click', closeSidebar);
+sidebarOverlay.addEventListener('click', closeSidebar);
+
+
+// ─────────────────────────────────────────────────────────────
+//  STEP DATA  (EQ module)
 // ─────────────────────────────────────────────────────────────
 
 const steps = [
@@ -707,10 +1077,7 @@ const steps = [
       { strong: "Corrective EQ", rest: " — removing unwanted elements (hum, resonance, boxiness)" },
       { strong: "Creative EQ", rest: " — shaping tone to serve the mix (adding brightness, warmth, presence)" },
     ],
-    audio: {
-      desc: "Hear the difference — a raw sine tone, then the same tone with a high shelf boost adding 'air'",
-      type: "intro",
-    },
+    audio: { desc: "Hear the difference — a raw triangle tone, then the same tone with a high shelf boost adding 'air'", type: "intro" },
     spectrum: { highlight: null, label: "Full audible range: 20 Hz – 20 kHz" }
   },
 
@@ -732,10 +1099,7 @@ const steps = [
       { strong: "High Mids (2–6 kHz)", rest: " — attack, clarity, or harshness" },
       { strong: "Presence & Air (6–20 kHz)", rest: " — brightness, sparkle, sibilance" },
     ],
-    audio: {
-      desc: "Sweep through the spectrum — listen as a band of noise sweeps from low to high",
-      type: "sweep",
-    },
+    audio: { desc: "Sweep through the spectrum — listen as a band of noise sweeps from low to high", type: "sweep" },
     spectrum: { highlight: "all", label: "Our simplified six-band breakdown (used throughout this module)" }
   },
 
@@ -754,11 +1118,7 @@ const steps = [
       { strong: "Boost with care", rest: " — easy to overdo; check on full-range speakers" },
       { strong: "High-pass filters", rest: " — essential on vocals, guitars, anything that doesn't need sub" },
     ],
-    audio: {
-      desc: "Listen to a 40 Hz tone — pure sub bass. Use headphones or speakers with bass extension.",
-      type: "tone",
-      freq: 40,
-    },
+    audio: { desc: "Listen to a 40 Hz tone — pure sub bass. Use headphones or speakers with bass extension.", type: "tone", freq: 40 },
     spectrum: { highlight: [20, 60], label: "Sub Bass: 20–60 Hz" }
   },
 
@@ -777,11 +1137,7 @@ const steps = [
       { strong: "200–250 Hz", rest: " — transition to low mids; can get muddy if overcrowded" },
       { strong: "Sidechain compression", rest: " — often used alongside EQ to manage kick/bass competition" },
     ],
-    audio: {
-      desc: "Listen to a 100 Hz tone — classic bass body region.",
-      type: "tone",
-      freq: 100,
-    },
+    audio: { desc: "Listen to a 100 Hz tone — classic bass body region.", type: "tone", freq: 100 },
     spectrum: { highlight: [60, 250], label: "Bass: 60–250 Hz" }
   },
 
@@ -800,11 +1156,7 @@ const steps = [
       { strong: "Gentle cuts here", rest: " — one of the most common corrective moves in mixing" },
       { strong: "Don't cut too much", rest: " — this range still provides essential body and warmth" },
     ],
-    audio: {
-      desc: "Listen to a 300 Hz tone — the classic 'boxy' low-mid zone.",
-      type: "tone",
-      freq: 300,
-    },
+    audio: { desc: "Listen to a 300 Hz tone — the classic 'boxy' low-mid zone.", type: "tone", freq: 300 },
     spectrum: { highlight: [250, 500], label: "Low Mids: 250–500 Hz" }
   },
 
@@ -823,11 +1175,7 @@ const steps = [
       { strong: "1.5–2 kHz", rest: " — attack and presence; instruments cutting through a mix" },
       { strong: "Most sensitive", rest: " — the ear is most perceptive here; subtle moves go far" },
     ],
-    audio: {
-      desc: "Listen to a 1 kHz tone — the reference frequency used to calibrate speakers and meters.",
-      type: "tone",
-      freq: 1000,
-    },
+    audio: { desc: "Listen to a 1 kHz tone — the reference frequency used to calibrate speakers and meters.", type: "tone", freq: 1000 },
     spectrum: { highlight: [500, 2000], label: "Midrange: 500 Hz–2 kHz" }
   },
 
@@ -846,11 +1194,7 @@ const steps = [
       { strong: "5–6 kHz", rest: " — harshness; edge of listener fatigue territory" },
       { strong: "De-essing", rest: " — a cut around 5–8 kHz reduces harsh sibilance on vocals" },
     ],
-    audio: {
-      desc: "Listen to a 3.5 kHz tone — the high-mid presence/harshness zone.",
-      type: "tone",
-      freq: 3500,
-    },
+    audio: { desc: "Listen to a 3.5 kHz tone — the high-mid presence/harshness zone.", type: "tone", freq: 3500 },
     spectrum: { highlight: [2000, 6000], label: "High Mids: 2–6 kHz" }
   },
 
@@ -869,11 +1213,7 @@ const steps = [
       { strong: "16–20 kHz", rest: " — extreme highs; diminishing returns, often filtered in mastering" },
       { strong: "High shelf boost", rest: " — a common mastering move; adds gloss and openness" },
     ],
-    audio: {
-      desc: "Listen to a 10 kHz tone — the upper high-frequency 'air' zone.",
-      type: "tone",
-      freq: 10000,
-    },
+    audio: { desc: "Listen to a 10 kHz tone — the upper high-frequency 'air' zone.", type: "tone", freq: 10000 },
     spectrum: { highlight: [6000, 20000], label: "Presence & Air: 6–20 kHz" }
   },
 
@@ -894,14 +1234,11 @@ const steps = [
       { strong: "Low-Pass (High-Cut)", rest: " — removes everything above the cutoff; tames harshness or for effect" },
       { strong: "Notch", rest: " — extremely narrow cut; surgical removal of resonances or hum" },
     ],
-    audio: {
-      desc: "A high-pass filter in action — pink noise with the cutoff frequency sweeping upward.",
-      type: "highpass",
-    },
+    audio: { desc: "A high-pass filter in action — pink noise with the cutoff frequency sweeping upward.", type: "highpass" },
     spectrum: { highlight: null, label: "Filter shapes overview" }
   },
 
-  // ── Step 10 ──────────────────────────────────────────────
+  // ── Step 10 ─────────────────────────────────────────────
   {
     title: "Practical EQ Tips",
     number: "Step 10 — Putting It Together",
@@ -921,10 +1258,7 @@ const steps = [
       { strong: "High-pass everything", rest: " — remove unwanted low-end from non-bass elements" },
       { strong: "Trust your ears", rest: " — a/b compare your EQ on and off to check if it's helping" },
     ],
-    audio: {
-      desc: "Compare: pink noise flat vs. with a typical 'mix EQ' — subtle cuts at 200 Hz and 3 kHz, shelf boost at 12 kHz.",
-      type: "mixeq",
-    },
+    audio: { desc: "Compare: pink noise flat vs. with a typical 'mix EQ' — subtle cuts at 200 Hz and 3 kHz, shelf boost at 12 kHz.", type: "mixeq" },
     spectrum: { highlight: "tips", label: "Common EQ moves — the mixing toolkit" }
   },
 ];
@@ -933,10 +1267,6 @@ const steps = [
 //  SPECTRUM SVG BUILDER
 // ─────────────────────────────────────────────────────────────
 
-// Band boundaries computed on log10 scale from 20 Hz to 20 kHz:
-// x% = (log10(hz) - log10(20)) / (log10(20000) - log10(20)) * 100
-// 60 Hz → 15.90%  |  250 Hz → 36.56%  |  500 Hz → 46.60%
-// 2 kHz → 66.67%  |  6 kHz → 82.57%
 const BANDS = [
   { label: "Sub",     range: "20–60",   x1: 0,     x2: 15.90, color: "#5b6aff" },
   { label: "Bass",    range: "60–250",  x1: 15.90, x2: 36.56, color: "#818cf8" },
@@ -946,48 +1276,28 @@ const BANDS = [
   { label: "Hi",      range: "6–20k",   x1: 82.57, x2: 100,   color: "#c7d2fe" },
 ];
 
-// Map frequency in Hz to 0-100 percentage (log scale, 20Hz-20kHz)
 function freqToPercent(hz) {
-  const logMin = Math.log10(20);
-  const logMax = Math.log10(20000);
+  const logMin = Math.log10(20), logMax = Math.log10(20000);
   return ((Math.log10(hz) - logMin) / (logMax - logMin)) * 100;
 }
 
-// ─────────────────────────────────────────────────────────────
-//  REFERENCE CHART — shows how engineers describe freq regions
-// ─────────────────────────────────────────────────────────────
-
 function buildReferenceChartSVG() {
-  // Bar geometry
   const W = 760, BX = 10, BW = 740, BY = 88, BH = 20;
   const Lmin = Math.log10(20), Lr = 3.0;
   const xp = hz => BX + (Math.log10(hz) - Lmin) / Lr * BW;
 
-  // ── Span label helper ────────────────────────────────────────
-  // Renders: TEXT followed by a dash line extending to hz2.
-  // Vertical dashed connector from left edge (hz1) down to bar (subtle).
-  // tw = approximate text pixel width at this font size
   function spanLabel(text, hz1, hz2, ty, col, tw) {
     const x1 = xp(hz1), x2 = xp(hz2);
-    const lineStart = x1 + tw + 3;        // line begins after text
+    const lineStart = x1 + tw + 3;
     const lineEnd   = Math.max(lineStart + 6, x2);
-    const lineY     = ty - 2.5;           // horizontally centered on cap height
-    // Subtle vertical connector from hz1 to bar
-    const conn = `<line x1="${x1.toFixed(1)}" y1="${ty+3}" x2="${x1.toFixed(1)}" y2="${(BY-1).toFixed(1)}"
-          stroke="${col}" stroke-width="0.4" stroke-dasharray="2,2" opacity="0.2"/>`;
+    const lineY     = ty - 2.5;
+    const conn  = `<line x1="${x1.toFixed(1)}" y1="${ty+3}" x2="${x1.toFixed(1)}" y2="${(BY-1).toFixed(1)}" stroke="${col}" stroke-width="0.4" stroke-dasharray="2,2" opacity="0.2"/>`;
     const hline = lineEnd > lineStart + 4
-      ? `<line x1="${lineStart.toFixed(1)}" y1="${lineY.toFixed(1)}"
-              x2="${lineEnd.toFixed(1)}"   y2="${lineY.toFixed(1)}"
-              stroke="${col}" stroke-width="0.85" opacity="0.65"/>`
-      : '';
-    const label = `<text x="${x1.toFixed(1)}" y="${ty}"
-          font-family="IBM Plex Mono,monospace" font-size="9.5" font-weight="600"
-          letter-spacing="0.08em" fill="${col}" opacity="0.9">${text}</text>`;
+      ? `<line x1="${lineStart.toFixed(1)}" y1="${lineY.toFixed(1)}" x2="${lineEnd.toFixed(1)}" y2="${lineY.toFixed(1)}" stroke="${col}" stroke-width="0.85" opacity="0.65"/>` : '';
+    const label = `<text x="${x1.toFixed(1)}" y="${ty}" font-family="IBM Plex Mono,monospace" font-size="9.5" font-weight="600" letter-spacing="0.08em" fill="${col}" opacity="0.9">${text}</text>`;
     return conn + hline + label;
   }
 
-  // ── Centered span label helper (for below-bar labels) ────────
-  // Renders: left-dash ── TEXT ── right-dash, all centered between hz1/hz2
   function centeredLabel(text, hz1, hz2, ty, col, tw) {
     const x1 = xp(hz1), x2 = xp(hz2), xc = (x1 + x2) / 2;
     const halfText = tw / 2 + 4;
@@ -995,107 +1305,57 @@ function buildReferenceChartSVG() {
     const lineY = ty - 3;
     return [
       lx2 > x1 + 4 ? `<line x1="${x1.toFixed(1)}" y1="${lineY.toFixed(1)}" x2="${lx2.toFixed(1)}" y2="${lineY.toFixed(1)}" stroke="${col}" stroke-width="0.85" opacity="0.55"/>` : '',
-      `<text x="${xc.toFixed(1)}" y="${ty}" text-anchor="middle"
-          font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600"
-          letter-spacing="0.1em" fill="${col}" opacity="0.82">${text}</text>`,
+      `<text x="${xc.toFixed(1)}" y="${ty}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" letter-spacing="0.1em" fill="${col}" opacity="0.82">${text}</text>`,
       rx1 < x2 - 4 ? `<line x1="${rx1.toFixed(1)}" y1="${lineY.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${lineY.toFixed(1)}" stroke="${col}" stroke-width="0.85" opacity="0.55"/>` : '',
     ].join('');
   }
 
-  // ── Above-bar spans ──────────────────────────────────────────
-  // Five rows, each non-overlapping within the row.
-  // Format: [text, hz_left, hz_right, row_y, color, approx_text_px_width]
-  //
-  // Verified x positions (BX=10, BW=740):
-  //   62Hz=131  125=206  200=257  250=281  300=300  400=331
-  //   500=354  700=391  800=404  1.5k=472  2k=503   2.5k=527
-  //   3k=547   3.5k=563  4k=578  5.5k=612  6k=621  7k=638
-  //   8k=652   10k=675  12k=694  16k=727
-  //
-  // Row 1 (y=11): PRESENCE only — very wide, anchored high
-  // Row 2 (y=23): BOOMY · HARSH · AIR
-  // Row 3 (y=35): MUDDY · SIBILANT
-  // Row 4 (y=47): WARM · NASAL · BRIGHT
-  // Row 5 (y=59): BASS · BOXY · EDGY
   const aboveSpans = [
-    // Row 1
-    ['PRESENCE', 2000,  10000, 11, '#a5b4fc', 72],
-    // Row 2
-    ['BOOMY',    62,    250,   23, '#9ca3af', 50],
-    ['HARSH',    2500,  5500,  23, '#9ca3af', 46],
-    ['AIR',      10000, 16000, 23, '#dbeafe', 26],
-    // Row 3
-    ['MUDDY',    200,   500,   35, '#9ca3af', 50],
-    ['SIBILANT', 3500,  8000,  35, '#9ca3af', 65],
-    // Row 4
-    ['WARM',     150,   450,   47, '#8892ff', 44],
-    ['NASAL',    800,   1500,  47, '#9ca3af', 48],
-    ['BRIGHT',   6000,  12000, 47, '#c7d2fe', 54],
-    // Row 5
-    ['BASS',     62,    200,   59, '#818cf8', 37],
-    ['BOXY',     300,   700,   59, '#9ca3af', 40],
-    ['EDGY',     3000,  7000,  59, '#9ca3af', 36],
+    ['PRESENCE', 2000, 10000, 11, '#a5b4fc', 72],
+    ['BOOMY',    62,   250,   23, '#9ca3af', 50],
+    ['HARSH',    2500, 5500,  23, '#9ca3af', 46],
+    ['AIR',      10000,16000, 23, '#dbeafe', 26],
+    ['MUDDY',    200,  500,   35, '#9ca3af', 50],
+    ['SIBILANT', 3500, 8000,  35, '#9ca3af', 65],
+    ['WARM',     150,  450,   47, '#8892ff', 44],
+    ['NASAL',    800,  1500,  47, '#9ca3af', 48],
+    ['BRIGHT',   6000, 12000, 47, '#c7d2fe', 54],
+    ['BASS',     62,   200,   59, '#818cf8', 37],
+    ['BOXY',     300,  700,   59, '#9ca3af', 40],
+    ['EDGY',     3000, 7000,  59, '#9ca3af', 36],
   ];
-
   const aboveSVG = aboveSpans.map(args => spanLabel(...args)).join('');
 
-  // ── Frequency tick marks ─────────────────────────────────────
   const ticks = [
     {hz:62,l:'62'},{hz:125,l:'125'},{hz:250,l:'250'},{hz:500,l:'500'},
     {hz:1000,l:'1k'},{hz:2000,l:'2k'},{hz:4000,l:'4k'},{hz:8000,l:'8k'},{hz:16000,l:'16k'},
   ];
   const tickSVG = ticks.map(t => {
     const x = xp(t.hz).toFixed(1);
-    return `<line x1="${x}" y1="${BY+BH}" x2="${x}" y2="${BY+BH+6}"
-              stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
-            <text x="${x}" y="${BY+BH+17}" text-anchor="middle"
-              font-family="IBM Plex Mono,monospace" font-size="9"
-              fill="rgba(255,255,255,0.4)">${t.l}</text>`;
+    return `<line x1="${x}" y1="${BY+BH}" x2="${x}" y2="${BY+BH+6}" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+            <text x="${x}" y="${BY+BH+17}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" fill="rgba(255,255,255,0.4)">${t.l}</text>`;
   }).join('');
-
-  // Separator lines on bar at tick positions
   const sepSVG = ticks.map(t => {
     const x = xp(t.hz).toFixed(1);
-    return `<line x1="${x}" y1="${BY}" x2="${x}" y2="${BY+BH}"
-              stroke="rgba(0,0,0,0.28)" stroke-width="0.8"/>`;
+    return `<line x1="${x}" y1="${BY}" x2="${x}" y2="${BY+BH}" stroke="rgba(0,0,0,0.28)" stroke-width="0.8"/>`;
   }).join('');
-
-  // Region name labels below ticks (our simplified 6-band names)
   const regionSVG = [
-    ['SUB',      35    ],
-    ['BASS',     122   ],
-    ['LOW MIDS', 354   ],
-    ['MIDS',     1000  ],
-    ['HI MIDS',  3464  ],
-    ['HIGHS',    10954 ],
+    ['SUB', 35], ['BASS', 122], ['LOW MIDS', 354],
+    ['MIDS', 1000], ['HI MIDS', 3464], ['HIGHS', 10954],
   ].map(([t, hz]) => {
     const x = xp(hz).toFixed(1);
-    return `<text x="${x}" y="${BY+BH+31}" text-anchor="middle"
-        font-family="IBM Plex Mono,monospace" font-size="7.5"
-        letter-spacing="0.1em" fill="rgba(255,255,255,0.2)">${t}</text>`;
+    return `<text x="${x}" y="${BY+BH+31}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7.5" letter-spacing="0.1em" fill="rgba(255,255,255,0.2)">${t}</text>`;
   }).join('');
 
-  // ── Below-bar labels ─────────────────────────────────────────
-  // Three stacked rows. "— LABEL —" centered spans.
-  // THIN & DULL share row B1 (they occupy opposite ends so no overlap).
-  // WARM and SWEET each get their own row.
-  //
-  //   THIN  20–400 Hz  → center ≈ x170   DULL  6k–16k → center ≈ x674
-  //   WARM 800–6kHz    → center ≈ x513
-  //   SWEET 1.5k–8kHz  → center ≈ x563
-  const B1 = BY + BH + 48;
-  const B2 = B1 + 14;
-  const B3 = B2 + 14;
+  const B1 = BY + BH + 48, B2 = B1 + 14, B3 = B2 + 14;
   const col_b = 'rgba(255,255,255,0.3)';
-
   const belowSVG = [
     centeredLabel('THIN',  20,   400,   B1, col_b, 34),
     centeredLabel('DULL',  6000, 16000, B1, col_b, 34),
     centeredLabel('WARM',  800,  6000,  B2, col_b, 34),
     centeredLabel('SWEET', 1500, 8000,  B3, col_b, 40),
   ].join('');
-
-  const svgH = B3 + 12;  // ≈ 192
+  const svgH = B3 + 12;
 
   return `<svg class="spectrum-svg" viewBox="0 0 ${W} ${svgH}" xmlns="http://www.w3.org/2000/svg">
     <defs>
@@ -1109,19 +1369,10 @@ function buildReferenceChartSVG() {
       </linearGradient>
     </defs>
     <rect x="${BX}" y="${BY}" width="${BW}" height="${BH}" fill="url(#refBarGrad)" rx="3"/>
-    <rect x="${BX}" y="${BY}" width="${BW}" height="${BH}" fill="none"
-          stroke="rgba(255,255,255,0.1)" stroke-width="0.5" rx="3"/>
-    ${sepSVG}
-    ${aboveSVG}
-    ${tickSVG}
-    ${regionSVG}
-    ${belowSVG}
+    <rect x="${BX}" y="${BY}" width="${BW}" height="${BH}" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5" rx="3"/>
+    ${sepSVG}${aboveSVG}${tickSVG}${regionSVG}${belowSVG}
   </svg>`;
 }
-
-// ─────────────────────────────────────────────────────────────
-//  STEP SPECTRUM SVG BUILDER
-// ─────────────────────────────────────────────────────────────
 
 function buildSpectrumSVG(step) {
   const hl = step.spectrum.highlight;
@@ -1130,68 +1381,43 @@ function buildSpectrumSVG(step) {
 
   let regionRects = '';
   BANDS.forEach(b => {
-    let opacity = 0.12;
-    let strokeOp = 0.22;
-    let highlighted = false;
-
+    let opacity = 0.12, strokeOp = 0.22, highlighted = false;
     if (hl === 'all' || hl === 'tips') {
       highlighted = true;
     } else if (Array.isArray(hl)) {
-      // highlight bands that overlap the given Hz range
       const hzMin = hl[0], hzMax = hl[1];
       const bMin = b.x1 / 100 * (Math.log10(20000) - Math.log10(20)) + Math.log10(20);
       const bMax = b.x2 / 100 * (Math.log10(20000) - Math.log10(20)) + Math.log10(20);
       const hlMin = Math.log10(hzMin), hlMax = Math.log10(hzMax);
       if (bMax >= hlMin && bMin <= hlMax) highlighted = true;
     }
-
     if (highlighted) { opacity = 0.38; strokeOp = 0.7; }
-
-    const rx = (b.x1 / 100) * w;
-    const rw = ((b.x2 - b.x1) / 100) * w;
-    regionRects += `
-      <rect x="${rx}" y="${barY}" width="${rw}" height="${barH}"
-            fill="${b.color}" fill-opacity="${opacity}"
-            stroke="${b.color}" stroke-opacity="${strokeOp}" stroke-width="0.5" rx="3"/>
-    `;
+    const rx = (b.x1 / 100) * w, rw = ((b.x2 - b.x1) / 100) * w;
+    regionRects += `<rect x="${rx}" y="${barY}" width="${rw}" height="${barH}" fill="${b.color}" fill-opacity="${opacity}" stroke="${b.color}" stroke-opacity="${strokeOp}" stroke-width="0.5" rx="3"/>`;
   });
 
-  // Highlight overlay for exact hz range
   let hlOverlay = '';
   if (Array.isArray(hl)) {
-    const pMin = freqToPercent(hl[0]);
-    const pMax = freqToPercent(hl[1]);
-    const hlX = (pMin / 100) * w;
-    const hlW = ((pMax - pMin) / 100) * w;
-    hlOverlay = `
-      <rect x="${hlX}" y="${barY - 4}" width="${hlW}" height="${barH + 8}"
-            fill="none" stroke="var(--eq-accent2)" stroke-width="1.5"
-            stroke-dasharray="4,3" rx="4" opacity="0.7"/>
-    `;
+    const pMin = freqToPercent(hl[0]), pMax = freqToPercent(hl[1]);
+    const hlX = (pMin / 100) * w, hlW = ((pMax - pMin) / 100) * w;
+    hlOverlay = `<rect x="${hlX}" y="${barY - 4}" width="${hlW}" height="${barH + 8}" fill="none" stroke="var(--eq-accent2)" stroke-width="1.5" stroke-dasharray="4,3" rx="4" opacity="0.7"/>`;
   }
 
-  // Frequency labels
   const freqLabels = [20, 60, 100, 250, 500, 1000, 2000, 5000, 10000, 20000];
   let labelEls = '';
   freqLabels.forEach(f => {
     const px = (freqToPercent(f) / 100) * w;
     const txt = f >= 1000 ? (f / 1000) + 'k' : f;
-    labelEls += `
-      <line x1="${px}" y1="${barY + barH}" x2="${px}" y2="${barY + barH + 5}"
-            stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
-      <text x="${px}" y="${barY + barH + 14}" text-anchor="middle"
-            font-family="IBM Plex Mono,monospace" font-size="8" fill="rgba(255,255,255,0.3)">${txt}</text>
-    `;
+    labelEls += `<line x1="${px}" y1="${barY + barH}" x2="${px}" y2="${barY + barH + 5}" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+      <text x="${px}" y="${barY + barH + 14}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8" fill="rgba(255,255,255,0.3)">${txt}</text>`;
   });
 
-  // Band region separators
   let separators = '';
   BANDS.slice(0, -1).forEach(b => {
     const px = (b.x2 / 100) * w;
     separators += `<line x1="${px}" y1="${barY}" x2="${px}" y2="${barY + barH}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`;
   });
 
-  // Band name labels inside bars
   let bandNames = '';
   BANDS.forEach(b => {
     const cx = ((b.x1 + b.x2) / 2 / 100) * w;
@@ -1202,23 +1428,12 @@ function buildSpectrumSVG(step) {
       const hlMin = Math.log10(hzMin), hlMax = Math.log10(hzMax);
       return bMax >= hlMin && bMin <= hlMax;
     })());
-    const textOpacity = isHighlighted ? 0.9 : 0.3;
-    bandNames += `
-      <text x="${cx}" y="${barY + barH/2 + 4}" text-anchor="middle"
-            font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600"
-            fill="${b.color}" fill-opacity="${textOpacity}">${b.label}</text>
-    `;
+    bandNames += `<text x="${cx}" y="${barY + barH/2 + 4}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="${b.color}" fill-opacity="${isHighlighted ? 0.9 : 0.3}">${b.label}</text>`;
   });
 
-  return `
-    <svg class="spectrum-svg" viewBox="0 0 ${w} ${h + 10}" xmlns="http://www.w3.org/2000/svg">
-      ${regionRects}
-      ${separators}
-      ${hlOverlay}
-      ${bandNames}
-      ${labelEls}
-    </svg>
-  `;
+  return `<svg class="spectrum-svg" viewBox="0 0 ${w} ${h + 10}" xmlns="http://www.w3.org/2000/svg">
+    ${regionRects}${separators}${hlOverlay}${bandNames}${labelEls}
+  </svg>`;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1238,6 +1453,7 @@ function getAudioCtx() {
 
 function stopAudio() {
   activeNodes.forEach(n => { try { n.stop(); } catch(e){} });
+  clearTimeout(activeNodes._stopTimeout);
   activeNodes = [];
   isPlaying = false;
   const btn = document.querySelector('.play-btn');
@@ -1251,20 +1467,16 @@ function stopAudio() {
 function playDemo(type, freq) {
   const ctx = getAudioCtx();
   const vol = parseFloat(document.querySelector('.vol-slider')?.value ?? 0.5);
-
   stopAudio();
 
   const gainNode = ctx.createGain();
   gainNode.gain.value = vol * 0.4;
   gainNode.connect(ctx.destination);
-
   const duration = 4;
 
   if (type === 'tone') {
-    // Pure sine tone at the specified frequency
     const osc = ctx.createOscillator();
-    osc.type = 'sine';
-    osc.frequency.value = freq;
+    osc.type = 'sine'; osc.frequency.value = freq;
     const env = ctx.createGain();
     env.gain.setValueAtTime(0, ctx.currentTime);
     env.gain.linearRampToValueAtTime(1, ctx.currentTime + 0.08);
@@ -1274,19 +1486,17 @@ function playDemo(type, freq) {
     osc.start(); osc.stop(ctx.currentTime + duration);
     activeNodes = [osc];
   }
-
   else if (type === 'sweep') {
-    // Pink noise filtered with a sweeping bandpass
     const bufferSize = ctx.sampleRate * 2;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
     let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
     for (let i = 0; i < bufferSize; i++) {
-      const white = Math.random() * 2 - 1;
-      b0=0.99886*b0+white*0.0555179; b1=0.99332*b1+white*0.0750759;
-      b2=0.96900*b2+white*0.1538520; b3=0.86650*b3+white*0.3104856;
-      b4=0.55000*b4+white*0.5329522; b5=-0.7616*b5-white*0.0168980;
-      data[i]=(b0+b1+b2+b3+b4+b5+b6+white*0.5362)/7; b6=white*0.115926;
+      const w = Math.random() * 2 - 1;
+      b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
+      b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
+      b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
+      data[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)/7; b6=w*0.115926;
     }
     const src = ctx.createBufferSource();
     src.buffer = buffer; src.loop = true;
@@ -1298,9 +1508,7 @@ function playDemo(type, freq) {
     src.start(); src.stop(ctx.currentTime + duration);
     activeNodes = [src];
   }
-
   else if (type === 'intro') {
-    // Sine tone, then the same with a high shelf boost (simulated)
     const osc1 = ctx.createOscillator();
     osc1.type = 'triangle'; osc1.frequency.value = 440;
     const env1 = ctx.createGain();
@@ -1310,8 +1518,6 @@ function playDemo(type, freq) {
     env1.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.8);
     osc1.connect(env1); env1.connect(gainNode);
     osc1.start(); osc1.stop(ctx.currentTime + 1.8);
-
-    // Second: same tone + high-frequency harmonics to simulate "air boost"
     const osc2 = ctx.createOscillator();
     osc2.type = 'triangle'; osc2.frequency.value = 440;
     const shelf = ctx.createBiquadFilter();
@@ -1325,19 +1531,17 @@ function playDemo(type, freq) {
     osc2.start(ctx.currentTime + 2.0); osc2.stop(ctx.currentTime + duration);
     activeNodes = [osc1, osc2];
   }
-
   else if (type === 'highpass') {
-    // Pink noise with high-pass sweep
     const bufferSize = ctx.sampleRate * 2;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
     let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
     for (let i = 0; i < bufferSize; i++) {
-      const white = Math.random() * 2 - 1;
-      b0=0.99886*b0+white*0.0555179; b1=0.99332*b1+white*0.0750759;
-      b2=0.96900*b2+white*0.1538520; b3=0.86650*b3+white*0.3104856;
-      b4=0.55000*b4+white*0.5329522; b5=-0.7616*b5-white*0.0168980;
-      data[i]=(b0+b1+b2+b3+b4+b5+b6+white*0.5362)/7; b6=white*0.115926;
+      const w = Math.random() * 2 - 1;
+      b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
+      b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
+      b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
+      data[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)/7; b6=w*0.115926;
     }
     const src = ctx.createBufferSource();
     src.buffer = buffer; src.loop = true;
@@ -1349,22 +1553,18 @@ function playDemo(type, freq) {
     src.start(); src.stop(ctx.currentTime + duration);
     activeNodes = [src];
   }
-
   else if (type === 'mixeq') {
-    // Pink noise flat first 2s, then with mix EQ applied
     const bufferSize = ctx.sampleRate * 2;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
     let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
     for (let i = 0; i < bufferSize; i++) {
-      const white = Math.random() * 2 - 1;
-      b0=0.99886*b0+white*0.0555179; b1=0.99332*b1+white*0.0750759;
-      b2=0.96900*b2+white*0.1538520; b3=0.86650*b3+white*0.3104856;
-      b4=0.55000*b4+white*0.5329522; b5=-0.7616*b5-white*0.0168980;
-      data[i]=(b0+b1+b2+b3+b4+b5+b6+white*0.5362)/7; b6=white*0.115926;
+      const w = Math.random() * 2 - 1;
+      b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
+      b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
+      b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
+      data[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)/7; b6=w*0.115926;
     }
-
-    // Flat version
     const src1 = ctx.createBufferSource();
     src1.buffer = buffer; src1.loop = true;
     const env1 = ctx.createGain();
@@ -1374,8 +1574,6 @@ function playDemo(type, freq) {
     env1.gain.linearRampToValueAtTime(0, ctx.currentTime + 2.0);
     src1.connect(env1); env1.connect(gainNode);
     src1.start(); src1.stop(ctx.currentTime + 2.0);
-
-    // EQ'd version
     const src2 = ctx.createBufferSource();
     src2.buffer = buffer; src2.loop = true;
     const cut200 = ctx.createBiquadFilter();
@@ -1395,8 +1593,6 @@ function playDemo(type, freq) {
   }
 
   isPlaying = true;
-
-  // Scheduled auto-stop
   const stopTimeout = setTimeout(() => {
     isPlaying = false;
     const btn = document.querySelector('.play-btn');
@@ -1406,7 +1602,6 @@ function playDemo(type, freq) {
       btn.querySelector('.stop-icon').style.display = 'none';
     }
   }, duration * 1000 + 100);
-
   activeNodes._stopTimeout = stopTimeout;
 
   const btn = document.querySelector('.play-btn');
@@ -1428,12 +1623,10 @@ function renderStep(idx) {
   const card = document.getElementById('stepCard');
   const total = steps.length;
 
-  // Key points HTML
   const kpHTML = step.keyPoints.map(kp =>
     `<div class="key-point"><strong>${kp.strong}</strong>${kp.rest}</div>`
   ).join('');
 
-  // Audio type/freq
   const aType = step.audio.type;
   const aFreq = step.audio.freq || 440;
 
@@ -1441,7 +1634,6 @@ function renderStep(idx) {
     <div class="step-number">${step.number}</div>
     <h2 class="step-title">${step.title}</h2>
     <div class="step-body">${step.body}</div>
-
     ${step.showRefChart ? `
     <div class="spectrum-wrap" style="margin-bottom:16px;">
       <div class="spectrum-title">Common frequency descriptors — how engineers talk about these regions</div>
@@ -1451,17 +1643,14 @@ function renderStep(idx) {
       The definitions above vary by source. Below is the simplified breakdown we use throughout this module.
     </p>
     ` : ''}
-
     <div class="spectrum-wrap">
       <div class="spectrum-title">Frequency Spectrum — ${step.spectrum.label}</div>
       ${buildSpectrumSVG(step)}
     </div>
-
     <div class="key-points">
       <div class="key-points-label">Key Takeaways</div>
       ${kpHTML}
     </div>
-
     <div class="audio-demo">
       <div class="audio-demo-info">
         <div class="audio-demo-label">Listen</div>
@@ -1488,21 +1677,18 @@ function renderStep(idx) {
     </div>
   `;
 
-  // Update progress
+  // Progress dots
   const dots = document.getElementById('progressDots');
   dots.innerHTML = steps.map((_, i) =>
     `<div class="progress-dot ${i < idx ? 'done' : ''} ${i === idx ? 'active' : ''}"
-          onclick="goToStep(${i})" title="Step ${i+1}"></div>`
+          onclick="jumpToStep(${i})" title="Step ${i+1}"></div>`
   ).join('');
 
   document.getElementById('progressLabel').textContent = `Step ${idx+1} of ${total}`;
   document.getElementById('stepCounter').textContent = `${idx+1} / ${total}`;
 
-  // Buttons
   const prevBtn = document.getElementById('prevBtn');
   const nextBtn = document.getElementById('nextBtn');
-  const nav = document.getElementById('stepNav');
-
   prevBtn.disabled = idx === 0;
   if (idx === total - 1) {
     nextBtn.textContent = 'Complete ✓';
@@ -1515,21 +1701,25 @@ function renderStep(idx) {
   }
 }
 
-function updateVolume(val) {
-  // Live volume update for active nodes (handled on next play)
+function updateVolume() { /* live update handled on next play */ }
+
+function jumpToStep(idx) {
+  if (idx < 0 || idx >= steps.length) return;
+  currentStep = idx;
+  renderStep(currentStep);
+  updateSidebarActive(currentStep);
+  history.replaceState(null, '', '#' + (idx + 1));
+  window.scrollTo({ top: document.getElementById('stepCard').offsetTop - 90, behavior: 'smooth' });
+  // Close sidebar on mobile after selecting
+  if (window.innerWidth <= 900) closeSidebar();
 }
 
 function navigate(dir) {
-  const next = currentStep + dir;
-  if (next < 0 || next >= steps.length) return;
-  currentStep = next;
-  renderStep(currentStep);
-  window.scrollTo({ top: document.getElementById('stepCard').offsetTop - 100, behavior: 'smooth' });
+  jumpToStep(currentStep + dir);
 }
 
 function goToStep(idx) {
-  currentStep = idx;
-  renderStep(currentStep);
+  jumpToStep(idx);
 }
 
 function showCompletion() {
@@ -1551,26 +1741,35 @@ function showCompletion() {
   document.getElementById('progressLabel').textContent = 'Complete!';
   const dots = document.getElementById('progressDots');
   dots.innerHTML = steps.map((_, i) =>
-    `<div class="progress-dot done" onclick="goToStep(${i})" title="Step ${i+1}"></div>`
+    `<div class="progress-dot done" onclick="jumpToStep(${i})" title="Step ${i+1}"></div>`
   ).join('');
 }
 
 function restartModule() {
   document.getElementById('stepNav').style.display = '';
-  currentStep = 0;
-  renderStep(0);
+  jumpToStep(0);
 }
 
-function selectTool(tool) {
-  // For now, only EQ is available — this is a placeholder for future expansion
-  if (tool !== 'eq') return;
-}
+// ─────────────────────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────────────────────
 
-// ── Init ─────────────────────────────────────────────────────
-renderStep(0);
+// Build sidebar first
+buildSidebar();
+
+// Read hash for initial step
+const hashStep = parseInt(location.hash.replace('#', '')) - 1;
+currentStep = (!isNaN(hashStep) && hashStep >= 0 && hashStep < steps.length) ? hashStep : 0;
+
+// Render step
+renderStep(currentStep);
+
+// Mark active sidebar lesson
+setTimeout(() => updateSidebarActive(currentStep), 0);
 
 // Keyboard navigation
 document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown') navigate(1);
   if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   navigate(-1);
   if (e.key === ' ') {
@@ -1578,6 +1777,7 @@ document.addEventListener('keydown', e => {
     const step = steps[currentStep];
     togglePlay(step.audio.type, step.audio.freq || 440);
   }
+  if (e.key === 'Escape') closeSidebar();
 });
 </script>
 </body>
