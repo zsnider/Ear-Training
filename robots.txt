@@ -1,8 +1,0 @@
-User-agent: *
-Allow: /
-
-# Exclude internal auth redirect and mobile duplicate pages
-Disallow: /auth/confirm/
-Disallow: /mobile/
-
-Sitemap: https://sonicsandbox.app/sitemap.xml
