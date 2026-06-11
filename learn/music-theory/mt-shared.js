@@ -42,7 +42,8 @@ const MT_COURSES = [
     lessons:['Half Steps & Whole Steps','Naming Intervals','Perfect Intervals','Major & Minor Intervals','Augmented & Diminished'] },
   { num:3, id:'scales',       label:'Scales',                url:'/learn/music-theory/scales/',       accent:'#fbbf24',
     lessons:['The Major Scale','Natural Minor Scale','Harmonic & Melodic Minor','Pentatonic Scales','The Blues Scale','Modes'] },
-  { num:4, id:'chords',       label:'Chords & Triads',       url:'/learn/music-theory/chords/',       accent:'#f97316', soon:true,
+  { num:4, id:'chords',       label:'Chords & Triads',       url:'/learn/music-theory/chords/',       accent:'#f97316',
+
     lessons:['What is a Chord?','Major & Minor Triads','Diminished & Augmented','Seventh Chords','Extended Chords','Voicings & Inversions'] },
   { num:5, id:'keys',         label:'Keys & Circle of Fifths', url:'/learn/music-theory/keys/',       accent:'#c084fc', soon:true,
     lessons:['Key Signatures','The Circle of Fifths','Relative Major & Minor','Parallel Keys'] },
@@ -484,6 +485,33 @@ function mtPlaySeqThenChord(seqNotes, chordNotes, noteDur = 0.38, gap = 0.0, cho
     _mtPlaying = false;
     _mtSetPlayBtn(false);
   }, (seqNotes.length * (noteDur + gap) + chordDur + 0.6) * 1000);
+}
+
+// Play a sequence of chords, all scheduled upfront on the audio timeline.
+// chords: array of note-name arrays, e.g. [['C3','E3','G3'], ['C3','Eb3','G3']]
+function mtPlayChordSeq(chords, chordDur = 1.8, chordGap = 0.35) {
+  const ctx = mtGetCtx();
+  mtStop();
+  _mtPlaying = true;
+  _mtSetPlayBtn(true);
+
+  const master = ctx.createGain();
+  master.gain.value = _mtPianoBuffer ? 0.60 : 0.28;
+  master.connect(ctx.destination);
+
+  let t = ctx.currentTime + 0.05;
+  chords.forEach(noteNames => {
+    noteNames.forEach(name => {
+      const freq = NOTE_FREQ[name];
+      if (freq) _mtPlayNote(freq, t, chordDur, ctx, master);
+    });
+    t += chordDur + chordGap;
+  });
+
+  _mtStopTimer = setTimeout(() => {
+    _mtPlaying = false;
+    _mtSetPlayBtn(false);
+  }, (t - ctx.currentTime + 0.4) * 1000);
 }
 
 function mtTogglePlay(fn) {
