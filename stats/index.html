@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cloud.umami.is 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://aolaxmmrmvovbzumlybe.supabase.co wss://aolaxmmrmvovbzumlybe.supabase.co https://cloud.umami.is; img-src 'self' data:; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
+<meta name="description" content="Track your ear training progress across all SonicSandbox games.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="canonical" href="https://sonicsandbox.app/stats/">
+
+<title>My Stats — SonicSandbox</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
+<style>
+  /* ── Critical fallback (duplicates style.css; ensures dark theme
+     even when /style.css fails to load, e.g. file:// preview) ── */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg:      #0a0b0d;
+    --surface: #13151a;
+    --surface2:#1a1d24;
+    --surface3:#21252f;
+    --border:  rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text:    #dde2ee;
+    --muted:   #6b7280;
+    --accent:  #5b6aff;
+    --accent2: #8892ff;
+    --green: #3ecf8e; --amber: #f59e0b; --red: #f45b69;
+    --eq-accent:    #5b6aff;  --eq-accent2:    #8892ff;
+    --comp-accent:  #e8865a;  --comp-accent2:  #f0a882;
+    --rev-accent:   #5b3fd4;  --rev-accent2:   #8b6fff;
+    --dist-accent:  #d44a2a;  --dist-accent2:  #f07050;
+    --fq-accent:    #00d4ff;  --fq-accent2:    #60e8ff;
+    --fh-accent:    #00e5cc;  --fh-accent2:    #50f0d8;
+    --pan-accent:   #7c5cfc;  --pan-accent2:   #a58aff;
+    --qc-accent:    #2dd4a0;  --qc-accent2:    #5eefc0;
+    --delay-accent: #f97316;  --delay-accent2: #fb923c;
+    --ll-accent:    #f0b429;  --ll-accent2:    #ffd166;
+    --qeq-accent:   #818cf8;  --qeq-accent2:   #a5b4fc;
+    --sca-accent:   #39d353;  --sca-accent2:   #7ce88f;
+    --mt-chord-accent:  #f472b6;  --mt-chord-accent2:  #f9a8d4;
+    --mt-int-accent:    #fb923c;  --mt-int-accent2:    #fdba74;
+    --mt-prog-accent:   #a78bfa;  --mt-prog-accent2:   #c4b5fd;
+    --mt-sq-accent:     #34d399;  --mt-sq-accent2:     #6ee7b7;
+    --mt-ss-accent:     #fbbf24;  --mt-ss-accent2:     #fcd34d;
+    --mt-staff-accent:  #60a5fa;  --mt-staff-accent2:  #93c5fd;
+  }
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+  }
+
+  nav {
+    width: 100%;
+    padding: 20px  32px;
+    display: flex; align-items: center;
+  }
+
+  .reset-btn {
+    font-size: 11px; color: var(--muted);
+    background: none; border: 1px solid var(--border);
+    border-radius: 6px; padding: 3px 9px;
+    cursor: pointer; font-family: inherit;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+  .reset-btn:hover { color: var(--red); border-color: var(--red); background: rgba(244,91,105,0.07); }
+  .reset-btn:disabled { opacity: 0.4; cursor: default; }
+
+  /* ── Page layout ─────────────────────────────────────── */
+  .page { max-width: 1100px; margin: 0 auto; padding: 32px 28px 80px; }
+
+  .page-header {
+    width: 100%; max-width: 1280px;
+    padding: 36px 28px 32px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px);
+    background-size: 28px 28px;
+    margin-bottom: 0;
+  }
+  .page-header h1 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(22px, 3vw, 34px);
+    font-weight: 600; letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+  .page-header p { font-size: 14px; color: var(--muted); }
+
+  /* ── Overall summary row ─────────────────────────────── */
+  .summary-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px; margin-bottom: 40px;
+  }
+  @media (max-width: 700px) { .summary-row { grid-template-columns: 1fr 1fr; } }
+
+  .summary-tile {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px 18px;
+  }
+  .summary-tile .val {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 28px; font-weight: 600;
+    color: var(--accent2); margin-bottom: 4px;
+  }
+  .summary-tile .lbl {
+    font-size: 11px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+
+  /* ── Section label ───────────────────────────────────── */
+  .section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 14px;
+  }
+
+  /* ── Game cards ──────────────────────────────────────── */
+  .game-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px; margin-bottom: 48px;
+  }
+  @media (max-width: 700px) { .game-grid { grid-template-columns: 1fr; } }
+
+  .game-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 22px 20px;
+  }
+  .game-card-header {
+    display: flex; align-items: center;
+    justify-content: space-between; margin-bottom: 16px;
+  }
+  .game-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px; font-weight: 600; color: var(--text);
+  }
+  .game-rounds {
+    font-size: 12px; color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .stat-row {
+    display: flex; gap: 24px; margin-bottom: 14px;
+  }
+  .stat-item { flex: 1; }
+  .stat-item .val {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 20px; font-weight: 600; color: var(--text);
+  }
+  .stat-item .lbl {
+    font-size: 10px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.07em;
+    margin-top: 2px;
+  }
+
+  /* Accuracy bar */
+  .acc-bar-wrap { background: var(--surface2); border-radius: 4px; height: 6px; overflow: hidden; }
+  .acc-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+
+  /* ── Charts ──────────────────────────────────────────── */
+  .chart-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px 24px 20px;
+    margin-bottom: 48px;
+  }
+  .chart-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .chart-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; font-weight: 600; color: var(--text);
+  }
+  .chart-meta {
+    font-size: 11px; color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .chart-wrap { position: relative; height: 240px; }
+
+  /* Mini chart inside game card */
+  .mini-chart-wrap { position: relative; height: 110px; margin-top: 4px; }
+  .mini-chart-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 14px; margin-bottom: 6px;
+  }
+  .mini-chart-label {
+    font-size: 10px; color: var(--muted); letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* ── Training plan ───────────────────────────────────── */
+  .plan-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px; margin-bottom: 48px;
+  }
+  @media (max-width: 700px) { .plan-grid { grid-template-columns: 1fr; } }
+
+  .plan-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 20px 20px 18px;
+    display: flex; flex-direction: column; gap: 10px;
+    position: relative; overflow: hidden;
+    transition: border-color 0.18s;
+  }
+  .plan-card:hover { border-color: var(--border2); }
+  .plan-card.priority-1 { border-color: rgba(91,106,255,0.35); }
+  .plan-card.priority-1:hover { border-color: rgba(91,106,255,0.6); }
+
+  .plan-rank {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .plan-card.priority-1 .plan-rank { color: var(--accent2); }
+
+  .plan-game-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px; font-weight: 600; color: var(--text);
+    line-height: 1.2;
+  }
+
+  .plan-reasons {
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .plan-reason {
+    font-size: 12px; color: var(--muted); line-height: 1.5;
+  }
+  .plan-reason span {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    padding: 1px 7px; border-radius: 20px; margin-right: 5px;
+  }
+  .plan-reason span.tag-accuracy  { background: rgba(244,91,105,0.12); color: var(--red);   border: 1px solid rgba(244,91,105,0.25); }
+  .plan-reason span.tag-stale     { background: rgba(245,158,11,0.12); color: var(--amber); border: 1px solid rgba(245,158,11,0.25); }
+  .plan-reason span.tag-unplayed  { background: rgba(91,106,255,0.12); color: var(--accent2); border: 1px solid rgba(91,106,255,0.25); }
+  .plan-reason span.tag-good      { background: rgba(62,207,142,0.1);  color: var(--green); border: 1px solid rgba(62,207,142,0.25); }
+
+  .plan-link {
+    display: inline-flex; align-items: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600; color: var(--accent2);
+    text-decoration: none; letter-spacing: 0.04em;
+    margin-top: 4px; transition: opacity 0.15s;
+  }
+  .plan-link:hover { opacity: 0.7; }
+
+  /* ── Last played ─────────────────────────────────────── */
+  .activity-list { display: flex; flex-direction: column; gap: 8px; }
+  .activity-row {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 16px;
+    font-size: 13px; text-decoration: none; color: inherit;
+    transition: border-color 0.15s;
+  }
+  .activity-row:hover { border-color: var(--border2); }
+  .activity-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .activity-game { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--accent2); flex: 1; }
+  .activity-score { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; color: var(--text); }
+  .activity-time { font-size: 11px; color: var(--muted); white-space: nowrap; }
+
+  /* ── Settings card ──────────────────────────────────── */
+  .settings-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 0 20px;
+    margin-bottom: 32px;
+  }
+  .settings-row-item {
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 0; flex-wrap: wrap;
+  }
+  .settings-row-item + .settings-row-item {
+    border-top: 1px solid var(--border);
+  }
+  .settings-card .setting-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; font-weight: 600; color: var(--text); flex: 1; min-width: 160px;
+  }
+  .settings-card .setting-desc {
+    font-size: 12px; color: var(--muted); flex: 2; min-width: 200px;
+  }
+  .toggle-wrap { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .toggle-lbl { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); }
+  .toggle-lbl.active { color: var(--accent2); }
+  .toggle-switch { position: relative; width: 40px; height: 22px; cursor: pointer; display: inline-block; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-track {
+    position: absolute; inset: 0;
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 22px; transition: background 0.2s, border-color 0.2s;
+  }
+  .toggle-track::after {
+    content: ''; position: absolute; top: 3px; left: 3px;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--muted); transition: transform 0.2s, background 0.2s;
+  }
+  .toggle-switch input:checked + .toggle-track {
+    background: rgba(91,106,255,0.2); border-color: var(--accent);
+  }
+  .toggle-switch input:checked + .toggle-track::after {
+    transform: translateX(18px); background: var(--accent2);
+  }
+
+  /* ── Game filter pills ───────────────────────────────── */
+  .filter-wrap { display: flex; align-items: center; flex-shrink: 0; }
+  .filter-pills {
+    display: flex; gap: 3px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 3px;
+  }
+  .filter-pill {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    padding: 5px 12px; border-radius: 6px;
+    border: none; background: none;
+    color: var(--muted); cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+  }
+  .filter-pill:hover { color: var(--text); }
+  .filter-pill.active { background: var(--surface3); color: var(--accent2); }
+
+  /* ── States ──────────────────────────────────────────── */
+  .loading-state, .empty-state, .auth-wall {
+    text-align: center; padding: 80px 20px;
+    color: var(--muted); font-size: 15px; line-height: 1.7;
+  }
+  .auth-wall a {
+    color: var(--accent2); text-decoration: none;
+  }
+  .auth-wall a:hover { text-decoration: underline; }
+  .spinner {
+    width: 32px; height: 32px; margin: 0 auto 20px;
+    border: 3px solid var(--border2);
+    border-top-color: var(--accent);
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+  <!-- Open Graph / Social -->
+  <meta property="og:type"        content="website">
+  <meta property="og:url"         content="https://sonicsandbox.app/stats/">
+  <meta property="og:title"       content="My Stats — SonicSandbox">
+  <meta property="og:description" content="Track your ear training progress across all SonicSandbox games.">
+  <meta property="og:image"       content="https://sonicsandbox.app/og-image.png">
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:title"       content="My Stats — SonicSandbox">
+  <meta name="twitter:description" content="Track your ear training progress across all SonicSandbox games.">
+  <meta name="twitter:image"       content="https://sonicsandbox.app/og-image.png">
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="a4e7fbcc-763c-4844-8f4f-669cf411e799"></script>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo-wrap">
+    <a class="nav-logo" href="/">Sonic<span>Sandbox</span></a>
+  </div>
+  <div class="nav-center">
+    <a class="nav-link" href="/">Home</a>
+    <a class="nav-link" href="/games/">Games</a>
+    <a class="nav-link" href="/learn/">Learn</a>
+    <a class="nav-link active" href="/stats/">Stats</a>
+  </div>
+  <div class="nav-right">
+    <div id="navAuthArea"></div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <h1>Your Progress</h1>
+  <p id="subheader">Loading your stats…</p>
+</div>
+
+<div class="page">
+
+  <!-- Settings -->
+  <div class="settings-card">
+    <div class="settings-row-item">
+      <div class="setting-label">Weighted Scoring</div>
+      <div class="setting-desc">Harder difficulty settings earn proportionally more points. Disable to use a flat 100-point scale for every round.</div>
+      <div class="toggle-wrap">
+        <span class="toggle-lbl" id="weightedOffLbl">Off</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="weightedToggle" onchange="onWeightedToggle(this.checked)" checked>
+          <span class="toggle-track"></span>
+        </label>
+        <span class="toggle-lbl active" id="weightedOnLbl">On</span>
+      </div>
+    </div>
+    <div class="settings-row-item">
+      <div class="setting-label">Progress Graphs</div>
+      <div class="setting-desc">Show progress charts as accuracy percentage, or as average score per session.</div>
+      <div class="toggle-wrap">
+        <span class="toggle-lbl active" id="chartAccLbl">Accuracy</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="chartModeToggle" onchange="onChartModeToggle(this.checked)">
+          <span class="toggle-track"></span>
+        </label>
+        <span class="toggle-lbl" id="chartScoreLbl">Score</span>
+      </div>
+    </div>
+    <div class="settings-row-item">
+      <div class="setting-label">Game Filter</div>
+      <div class="setting-desc">Show stats for all games, audio processing only, or music theory only.</div>
+      <div class="filter-wrap">
+        <div class="filter-pills" id="filterPills">
+          <button class="filter-pill" data-filter="all"    onclick="onFilterChange('all')">All Games</button>
+          <button class="filter-pill" data-filter="audio"  onclick="onFilterChange('audio')">Audio Processing</button>
+          <button class="filter-pill" data-filter="theory" onclick="onFilterChange('theory')">Music Theory</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Auth wall (shown when not logged in) -->
+  <div class="auth-wall" id="authWall" style="display:none;">
+    <p>Sign in to see your stats.<br>
+    <a href="../">Go back to SonicSandbox</a> and sign in from the top nav.</p>
+  </div>
+
+  <!-- Main content (shown when logged in) -->
+  <div id="mainContent" style="display:none;">
+
+    <!-- Overall summary -->
+    <div class="summary-row" id="summaryRow">
+      <div class="summary-tile">
+        <div class="val" id="statTotal">—</div>
+        <div class="lbl">Total Rounds</div>
+      </div>
+      <div class="summary-tile">
+        <div class="val" id="statAccuracy">—</div>
+        <div class="lbl">Overall Accuracy</div>
+      </div>
+      <div class="summary-tile">
+        <div class="val" id="statAvgScore">—</div>
+        <div class="lbl">Avg Score</div>
+      </div>
+      <div class="summary-tile">
+        <div class="val" id="statGames">—</div>
+        <div class="lbl">Games Played</div>
+      </div>
+    </div>
+
+    <!-- Overall progress chart -->
+    <div class="section-label">Overall Progress</div>
+    <div class="chart-card" id="overallChartCard" style="display:none;">
+      <div class="chart-header">
+        <div class="chart-title" id="overallChartTitle">Accuracy Over Time</div>
+        <div class="chart-meta" id="chartMeta"></div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="overallChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Training plan -->
+    <div class="section-label">Recommended Today</div>
+    <div class="plan-grid" id="planGrid"></div>
+
+    <!-- Per-game breakdown -->
+    <div class="section-label">Per Game</div>
+    <div class="game-grid" id="gameGrid"></div>
+
+    <!-- Last played -->
+    <div class="section-label">Last Played</div>
+    <div class="activity-list" id="activityList"></div>
+
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" id="loadingState">
+    <div class="spinner"></div>
+    Loading your stats…
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="../scoring.js"></script>
+<script src="../supabase-client.js"></script>
+<script>
+// ── Module-level data (for chart redraws on toggle) ──────
+let _allScores   = [];
+let _byGame      = {};
+let _sortedGames = [];
+
+// ── Weighted scoring toggle ───────────────────────────────
+function initWeightedToggle() {
+  const toggle = document.getElementById('weightedToggle');
+  if (!toggle) return;
+  const enabled = window.ScoringEngine ? ScoringEngine.weightedEnabled() : true;
+  toggle.checked = enabled;
+  syncWeightedUI(enabled);
+}
+
+function onWeightedToggle(enabled) {
+  if (window.ScoringEngine) ScoringEngine.setWeighted(enabled);
+  syncWeightedUI(enabled);
+}
+
+function syncWeightedUI(enabled) {
+  const onLbl  = document.getElementById('weightedOnLbl');
+  const offLbl = document.getElementById('weightedOffLbl');
+  if (onLbl)  onLbl.classList.toggle('active', enabled);
+  if (offLbl) offLbl.classList.toggle('active', !enabled);
+}
+
+// ── Chart mode toggle (accuracy vs score) ────────────────
+let chartMode = localStorage.getItem('ss_chart_mode') || 'accuracy';
+
+function initChartModeToggle() {
+  const toggle = document.getElementById('chartModeToggle');
+  if (!toggle) return;
+  const isScore = chartMode === 'score';
+  toggle.checked = isScore;
+  syncChartModeUI(isScore);
+}
+
+function onChartModeToggle(isScore) {
+  chartMode = isScore ? 'score' : 'accuracy';
+  localStorage.setItem('ss_chart_mode', chartMode);
+  syncChartModeUI(isScore);
+  if (_allScores.length) renderStats();
+}
+
+function syncChartModeUI(isScore) {
+  const accLbl   = document.getElementById('chartAccLbl');
+  const scoreLbl = document.getElementById('chartScoreLbl');
+  if (accLbl)   accLbl.classList.toggle('active', !isScore);
+  if (scoreLbl) scoreLbl.classList.toggle('active',  isScore);
+}
+
+// Run on load
+initWeightedToggle();
+initChartModeToggle();
+initFilterPills();
+
+// ── Chart registry (destroy before redraw) ────────────────
+const chartRegistry = {};
+function destroyChart(id) {
+  if (chartRegistry[id]) { chartRegistry[id].destroy(); delete chartRegistry[id]; }
+}
+
+// ── Game accent colours for sparklines ────────────────────
+const GAME_COLORS = {
+  // Audio processing
+  'eq-match':              '#8892ff',
+  'compressor':            '#f0a882',
+  'quick-compress':        '#5eefc0',
+  'reverb-master':         '#8b6fff',
+  'distortion-master':     '#f07050',
+  'freq-quiz':             '#60e8ff',
+  'freq-hunter':           '#50f0d8',
+  'spatial-specialist':    '#a58aff',
+  // Music theory
+  'chord-quiz':            '#f472b6',
+  'interval-master':       '#fb923c',
+  'progression-detection': '#a78bfa',
+  'scale-quiz':            '#34d399',
+  'scale-sight':           '#fbbf24',
+  'staff-specialist':      '#60a5fa',
+};
+
+const GAME_LABELS = {
+  // Audio processing
+  'eq-match':              'EQ Match',
+  'compressor':            'Compressor',
+  'quick-compress':        'Quick Compress',
+  'quick-eq':              'Quick EQ',
+  'reverb-master':         'Reverb Master',
+  'distortion-master':     'Distortion Master',
+  'delay-master':          'Delay Master',
+  'freq-quiz':             'Freq Quiz',
+  'freq-hunter':           'Freq Hunter',
+  'spatial-specialist':    'Spatial Specialist',
+  'level-logic':           'Level Logic',
+  'signal-chain-architect':'Signal Chain Architect',
+  // Music theory
+  'chord-quiz':            'Chord Quiz',
+  'interval-master':       'Interval Master',
+  'progression-detection': 'Progression Detection',
+  'scale-quiz':            'Scale Quiz',
+  'scale-sight':           'Scale Sight',
+  'staff-specialist':      'Staff Specialist',
+};
+
+const GAME_PATHS = {
+  // Audio processing
+  'eq-match':              '../eq-match/',
+  'compressor':            '../compressor/',
+  'quick-compress':        '../quick-compress/',
+  'quick-eq':              '../quick-eq/',
+  'reverb-master':         '../reverb-master/',
+  'distortion-master':     '../distortion-master/',
+  'delay-master':          '../delay-master/',
+  'freq-quiz':             '../freq-quiz/',
+  'freq-hunter':           '../freq-hunter/',
+  'spatial-specialist':    '../spatial-specialist/',
+  'level-logic':           '../level-logic/',
+  'signal-chain-architect':'../signal-chain-architect/',
+  // Music theory
+  'chord-quiz':            '../chord-quiz/',
+  'interval-master':       '../interval-master/',
+  'progression-detection': '../progression-detection/',
+  'scale-quiz':            '../scale-quiz/',
+  'scale-sight':           '../scale-sight/',
+  'staff-specialist':      '../staff-specialist/',
+};
+
+// ── Game type map (audio processing vs music theory) ─────
+const GAME_TYPES = {
+  'eq-match':              'audio',
+  'compressor':            'audio',
+  'quick-compress':        'audio',
+  'quick-eq':              'audio',
+  'reverb-master':         'audio',
+  'distortion-master':     'audio',
+  'delay-master':          'audio',
+  'freq-quiz':             'audio',
+  'freq-hunter':           'audio',
+  'spatial-specialist':    'audio',
+  'level-logic':           'audio',
+  'signal-chain-architect':'audio',
+  'chord-quiz':            'theory',
+  'interval-master':       'theory',
+  'progression-detection': 'theory',
+  'scale-quiz':            'theory',
+  'scale-sight':           'theory',
+  'staff-specialist':      'theory',
+};
+
+// ── Game filter state ─────────────────────────────────────
+let gameFilter = localStorage.getItem('ss_game_filter') || 'all';
+
+function initFilterPills() {
+  document.querySelectorAll('.filter-pill').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === gameFilter);
+  });
+}
+
+function onFilterChange(filter) {
+  gameFilter = filter;
+  localStorage.setItem('ss_game_filter', filter);
+  document.querySelectorAll('.filter-pill').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === filter);
+  });
+  if (_allScores.length) renderStats();
+}
+
+function getFilteredScores() {
+  if (gameFilter === 'all') return _allScores;
+  const targetType = gameFilter === 'theory' ? 'theory' : 'audio';
+  return _allScores.filter(s => (GAME_TYPES[s.game] || 'audio') === targetType);
+}
+
+function timeAgo(dateStr) {
+  const diff = (Date.now() - new Date(dateStr)) / 1000;
+  if (diff < 60)    return 'just now';
+  if (diff < 3600)  return Math.floor(diff / 60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+  return Math.floor(diff / 86400) + 'd ago';
+}
+
+function accColor(pct) {
+  if (pct >= 70) return 'var(--green)';
+  if (pct >= 45) return 'var(--amber)';
+  return 'var(--red)';
+}
+
+// ── Chart helpers ─────────────────────────────────────────
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// Group rows into daily accuracy points, ascending date order.
+function groupByDay(rows) {
+  const days = {};
+  rows.forEach(r => {
+    const day = r.created_at.slice(0, 10);
+    if (!days[day]) days[day] = { correct: 0, total: 0 };
+    days[day].total++;
+    if (r.correct) days[day].correct++;
+  });
+  return Object.entries(days)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, d]) => ({ date, value: Math.round(d.correct / d.total * 100) }));
+}
+
+// Group rows into daily average-score points, ascending date order.
+// Rows with null round_score are skipped.
+function groupByDayScore(rows) {
+  const days = {};
+  rows.forEach(r => {
+    if (r.round_score == null) return;
+    const day = r.created_at.slice(0, 10);
+    if (!days[day]) days[day] = { sum: 0, count: 0 };
+    days[day].sum   += r.round_score;
+    days[day].count += 1;
+  });
+  return Object.entries(days)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, d]) => ({ date, value: Math.round(d.sum / d.count) }));
+}
+
+// Return the appropriate day-grouped series based on current chartMode.
+function getDayData(rows) {
+  return chartMode === 'score' ? groupByDayScore(rows) : groupByDay(rows);
+}
+
+function fmtDate(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// Shared Chart.js default options for both chart sizes.
+// mode: 'accuracy' | 'score'
+function baseChartOpts(color, showAxes, mode) {
+  const isScore = mode === 'score';
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 600 },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#13151a',
+        borderColor: 'rgba(255,255,255,0.14)',
+        borderWidth: 1,
+        titleColor: '#6b7280',
+        bodyColor: '#dde2ee',
+        titleFont: { family: "'IBM Plex Mono', monospace", size: 10 },
+        bodyFont: { family: "'IBM Plex Mono', monospace", size: 12, weight: '600' },
+        callbacks: { label: ctx => isScore ? `${ctx.parsed.y} pts` : `${ctx.parsed.y}% accuracy` }
+      }
+    },
+    scales: {
+      x: {
+        display: showAxes,
+        grid: { color: 'rgba(255,255,255,0.05)' },
+        border: { display: false },
+        ticks: {
+          color: '#6b7280',
+          font: { family: "'IBM Plex Mono', monospace", size: 10 },
+          maxTicksLimit: 8,
+          maxRotation: 0,
+        }
+      },
+      y: {
+        display: showAxes,
+        min: 0,
+        ...(isScore ? {} : { max: 100 }),
+        grid: { color: 'rgba(255,255,255,0.05)' },
+        border: { display: false },
+        ticks: {
+          color: '#6b7280',
+          font: { family: "'IBM Plex Mono', monospace", size: 10 },
+          callback: v => isScore ? v : v + '%',
+          ...(isScore ? {} : { stepSize: 25 }),
+        }
+      }
+    }
+  };
+}
+
+function makeDataset(ctx, dayData, color, tension, pointRadius) {
+  const gradient = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
+  gradient.addColorStop(0, hexToRgba(color, 0.25));
+  gradient.addColorStop(1, hexToRgba(color, 0));
+  return {
+    data: dayData.map(d => d.value),
+    borderColor: color,
+    backgroundColor: gradient,
+    borderWidth: tension > 0.2 ? 2 : 1.5,
+    pointRadius,
+    pointHoverRadius: pointRadius > 0 ? pointRadius + 2 : 3,
+    pointBackgroundColor: color,
+    pointBorderColor: '#0a0b0d',
+    pointBorderWidth: 2,
+    tension,
+    fill: true,
+  };
+}
+
+function drawOverallChart(scores) {
+  const dayData = getDayData(scores);
+  const card    = document.getElementById('overallChartCard');
+
+  if (dayData.length < 2) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+
+  const span = dayData.length === 1 ? '1 day' : `${dayData.length} days`;
+  document.getElementById('chartMeta').textContent =
+    `${scores.length} rounds · ${span} of data`;
+
+  const title = document.getElementById('overallChartTitle');
+  if (title) title.textContent = chartMode === 'score' ? 'Score Over Time' : 'Accuracy Over Time';
+
+  const canvas = document.getElementById('overallChart');
+  const ctx    = canvas.getContext('2d');
+  destroyChart('overall');
+
+  const labels = dayData.map(d => fmtDate(d.date));
+  const pr     = dayData.length <= 20 ? 4 : 2;
+
+  chartRegistry['overall'] = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [makeDataset(ctx, dayData, '#8892ff', 0.35, pr)] },
+    options: baseChartOpts('#8892ff', true, chartMode),
+  });
+}
+
+// Compact chart options for per-game cards — shows axes but keeps them tidy.
+function miniChartOpts(color, mode) {
+  const isScore = mode === 'score';
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 400 },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#13151a',
+        borderColor: 'rgba(255,255,255,0.14)',
+        borderWidth: 1,
+        titleColor: '#6b7280',
+        bodyColor: '#dde2ee',
+        titleFont: { family: "'IBM Plex Mono', monospace", size: 9 },
+        bodyFont: { family: "'IBM Plex Mono', monospace", size: 11, weight: '600' },
+        callbacks: { label: ctx => isScore ? `${ctx.parsed.y} pts` : `${ctx.parsed.y}% accuracy` }
+      }
+    },
+    scales: {
+      x: {
+        display: true,
+        grid: { display: false },
+        border: { display: false },
+        ticks: {
+          color: '#6b7280',
+          font: { family: "'IBM Plex Mono', monospace", size: 9 },
+          maxTicksLimit: 4,
+          maxRotation: 0,
+        }
+      },
+      y: {
+        display: true,
+        min: 0,
+        ...(isScore ? {} : { max: 100 }),
+        grid: { color: 'rgba(255,255,255,0.04)' },
+        border: { display: false },
+        ticks: {
+          color: '#6b7280',
+          font: { family: "'IBM Plex Mono', monospace", size: 9 },
+          maxTicksLimit: 3,
+          callback: v => isScore ? v : v + '%',
+          ...(isScore ? {} : { stepSize: 50 }),
+        }
+      }
+    }
+  };
+}
+
+function drawGameChart(canvasId, rows, color) {
+  const dayData = getDayData(rows);
+  if (dayData.length < 2) return;
+
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  destroyChart(canvasId);
+
+  // Show data points — more points = smaller radius so they don't crowd.
+  const pr = dayData.length <= 10 ? 3 : dayData.length <= 20 ? 2 : 1;
+
+  chartRegistry[canvasId] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: dayData.map(d => fmtDate(d.date)),
+      datasets: [makeDataset(ctx, dayData, color, 0.4, pr)],
+    },
+    options: miniChartOpts(color, chartMode),
+  });
+}
+
+// ── Recommendation algorithm ──────────────────────────────
+// Priority score per game:
+//   Never played  → 200 (always top)
+//   Otherwise     → accuracy component (0–100) × 0.6
+//                 + recency component  (0–100) × 0.4
+// Accuracy component: (100 − accPct) — lower accuracy = higher priority
+// Recency component:  days since last played, capped at 14d, scaled 0–100
+function getRecommendations(byGame, filter) {
+  const ALL_GAMES = Object.keys(GAME_LABELS).filter(g =>
+    filter === 'all' || (GAME_TYPES[g] || 'audio') === filter
+  );
+
+  const scored = ALL_GAMES.map(game => {
+    const rows = byGame[game];
+
+    if (!rows || rows.length === 0) {
+      return { game, priority: 200, tags: ['unplayed'], accPct: null, lastPlayed: null };
+    }
+
+    const correct = rows.filter(r => r.correct).length;
+    const accPct  = Math.round(correct / rows.length * 100);
+    const lastPlayed = new Date(rows[0].created_at);
+    const daysSince  = (Date.now() - lastPlayed) / 86400000;
+
+    const accComponent   = 100 - accPct;
+    const staleComponent = Math.min(daysSince, 14) / 14 * 100;
+    const priority       = accComponent * 0.6 + staleComponent * 0.4;
+
+    const tags = [];
+    if (accPct < 50)    tags.push('accuracy');
+    if (daysSince > 5)  tags.push('stale');
+    if (tags.length === 0) tags.push('good');
+
+    return { game, priority, tags, accPct, lastPlayed, daysSince };
+  });
+
+  return scored.sort((a, b) => b.priority - a.priority).slice(0, 3);
+}
+
+function buildPlanCard(rec, rank) {
+  const label = GAME_LABELS[rec.game];
+  const path  = GAME_PATHS[rec.game];
+  const rankLabels = ['Focus First', 'Also Practice', 'Worth Revisiting'];
+  const rankLabel  = rankLabels[rank] || 'Practice';
+
+  let reasonHTML = '';
+
+  if (rec.tags.includes('unplayed')) {
+    reasonHTML += `<div class="plan-reason"><span class="tag-unplayed">New</span> You haven't tried this one yet.</div>`;
+  } else {
+    if (rec.tags.includes('accuracy')) {
+      reasonHTML += `<div class="plan-reason"><span class="tag-accuracy">Accuracy ${rec.accPct}%</span> Room to improve here.</div>`;
+    } else {
+      reasonHTML += `<div class="plan-reason"><span class="tag-good">Accuracy ${rec.accPct}%</span> Solid — keep it sharp.</div>`;
+    }
+    if (rec.tags.includes('stale')) {
+      const daysStr = rec.daysSince < 1 ? 'today' : Math.round(rec.daysSince) + 'd ago';
+      reasonHTML += `<div class="plan-reason"><span class="tag-stale">Last played ${daysStr}</span> Due for a session.</div>`;
+    }
+  }
+
+  return `
+    <div class="plan-card ${rank === 0 ? 'priority-1' : ''}">
+      <div class="plan-rank">${rankLabel}</div>
+      <div class="plan-game-name">${label}</div>
+      <div class="plan-reasons">${reasonHTML}</div>
+      <a class="plan-link" href="${path}">Play now →</a>
+    </div>`;
+}
+
+// ── Last played (one row per game) ────────────────────────
+function buildLastPlayedRow(game, byGame) {
+  const rows  = byGame[game];
+  const label = GAME_LABELS[game] || game;
+  const path  = GAME_PATHS[game] || '../';
+
+  if (!rows || rows.length === 0) {
+    return `
+      <a class="activity-row" href="${path}">
+        <div class="activity-dot" style="background:var(--border2)"></div>
+        <div class="activity-game">${label}</div>
+        <div class="activity-score" style="color:var(--muted);font-size:12px;">—</div>
+        <div class="activity-time">Never played</div>
+      </a>`;
+  }
+
+  const correct = rows.filter(r => r.correct).length;
+  const accPct  = Math.round(correct / rows.length * 100);
+  const col     = accColor(accPct);
+
+  return `
+    <a class="activity-row" href="${path}">
+      <div class="activity-dot" style="background:${col}"></div>
+      <div class="activity-game">${label}</div>
+      <div class="activity-score" style="color:${col}">${accPct}%</div>
+      <div class="activity-time">${timeAgo(rows[0].created_at)}</div>
+    </a>`;
+}
+
+// ── Filter-aware render (called after load and on filter/toggle changes) ──
+function renderStats() {
+  const filteredScores = getFilteredScores();
+
+  if (!filteredScores.length) {
+    const msg = gameFilter === 'all'
+      ? 'No rounds played yet — jump into a game!'
+      : `No rounds played for ${gameFilter === 'theory' ? 'music theory' : 'audio processing'} games yet.`;
+    document.getElementById('summaryRow').innerHTML =
+      `<div class="empty-state" style="grid-column:1/-1">${msg}</div>`;
+    document.getElementById('overallChartCard').style.display = 'none';
+    document.getElementById('planGrid').innerHTML     = '';
+    document.getElementById('gameGrid').innerHTML     = '';
+    document.getElementById('activityList').innerHTML = '';
+    return;
+  }
+
+  // Summary stats (from filtered scores)
+  const total    = filteredScores.length;
+  const correct  = filteredScores.filter(s => s.correct).length;
+  const accPct   = Math.round(correct / total * 100);
+  const scored   = filteredScores.filter(s => s.round_score !== null);
+  const avgScore = scored.length
+    ? Math.round(scored.reduce((s, r) => s + r.round_score, 0) / scored.length)
+    : '—';
+  const gamesPlayed = new Set(filteredScores.map(s => s.game)).size;
+
+  document.getElementById('statTotal').textContent    = total;
+  document.getElementById('statAccuracy').textContent = accPct + '%';
+  document.getElementById('statAvgScore').textContent = avgScore;
+  document.getElementById('statGames').textContent    = gamesPlayed;
+
+  // Group filtered scores by game
+  const byGame = {};
+  filteredScores.forEach(s => { (byGame[s.game] = byGame[s.game] || []).push(s); });
+
+  // Per-game cards sorted by most rounds played
+  const sortedGames = Object.keys(byGame).sort((a, b) => byGame[b].length - byGame[a].length);
+  _sortedGames = sortedGames;
+
+  // Overall chart
+  drawOverallChart(filteredScores);
+
+  // Training plan (filtered to relevant game types)
+  const recs = getRecommendations(byGame, gameFilter);
+  document.getElementById('planGrid').innerHTML = recs.map((r, i) => buildPlanCard(r, i)).join('');
+
+  // Per-game cards
+  document.getElementById('gameGrid').innerHTML = sortedGames.map(g => buildGameCard(g, byGame[g])).join('');
+
+  // Draw per-game sparklines (after HTML is set)
+  sortedGames.forEach(g => {
+    drawGameChart(`chart-${g}`, byGame[g], GAME_COLORS[g] || '#8892ff');
+  });
+
+  // Last played — games for current filter, played first sorted by recency
+  const allGames      = Object.keys(GAME_LABELS).filter(g =>
+    gameFilter === 'all' || (GAME_TYPES[g] || 'audio') === gameFilter
+  );
+  const playedGames   = allGames.filter(g =>  byGame[g]).sort((a, b) =>
+    new Date(byGame[b][0].created_at) - new Date(byGame[a][0].created_at));
+  const unplayedGames = allGames.filter(g => !byGame[g]);
+  document.getElementById('activityList').innerHTML =
+    [...playedGames, ...unplayedGames].map(g => buildLastPlayedRow(g, byGame)).join('');
+}
+
+async function loadStats(user) {
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('mainContent').style.display  = 'block';
+  document.getElementById('subheader').textContent = user.email;
+
+  const scores = await SonicSandbox.getScores();
+
+  // Store at module level for filter/toggle redraws
+  _allScores = scores;
+  const byGame = {};
+  scores.forEach(s => { (byGame[s.game] = byGame[s.game] || []).push(s); });
+  _byGame = byGame;
+
+  if (!scores.length) {
+    document.getElementById('summaryRow').innerHTML =
+      '<div class="empty-state" style="grid-column:1/-1">No rounds played yet — jump into a game!</div>';
+    document.getElementById('planGrid').innerHTML     = '';
+    document.getElementById('gameGrid').innerHTML     = '';
+    document.getElementById('activityList').innerHTML = '';
+    return;
+  }
+
+  renderStats();
+}
+
+function buildGameCard(game, rows) {
+  const total    = rows.length;
+  const correct  = rows.filter(r => r.correct).length;
+  const accPct   = total ? Math.round(correct / total * 100) : 0;
+  const scored   = rows.filter(r => r.round_score !== null);
+  const avgScore = scored.length
+    ? Math.round(scored.reduce((s, r) => s + r.round_score, 0) / scored.length)
+    : null;
+  const col      = accColor(accPct);
+  const color    = GAME_COLORS[game] || '#8892ff';
+  const hasChart = getDayData(rows).length >= 2;
+
+  return `
+    <div class="game-card">
+      <div class="game-card-header">
+        <div class="game-name">${GAME_LABELS[game] || game}</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="game-rounds">${total} round${total !== 1 ? 's' : ''}</div>
+          <button class="reset-btn" onclick="resetGame('${game}', this)">Reset</button>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-item">
+          <div class="val" style="color:${col}">${accPct}%</div>
+          <div class="lbl">Accuracy</div>
+        </div>
+        <div class="stat-item">
+          <div class="val">${correct}</div>
+          <div class="lbl">Correct</div>
+        </div>
+        ${avgScore !== null ? `
+        <div class="stat-item">
+          <div class="val">${avgScore}</div>
+          <div class="lbl">Avg Score</div>
+        </div>` : ''}
+      </div>
+      <div class="acc-bar-wrap">
+        <div class="acc-bar-fill" style="width:${accPct}%; background:${col};"></div>
+      </div>
+      ${hasChart ? `
+      <div class="mini-chart-header">
+        <div class="mini-chart-label" id="chart-mode-label-${game}">${chartMode === 'score' ? 'Score Over Time' : 'Accuracy Over Time'}</div>
+      </div>
+      <div class="mini-chart-wrap">
+        <canvas id="chart-${game}"></canvas>
+      </div>` : ''}
+    </div>`;
+}
+
+async function resetGame(game, btn) {
+  const label = GAME_LABELS[game] || game;
+  if (!confirm(`Reset all scores for ${label}? This cannot be undone.`)) return;
+
+  btn.disabled = true;
+  btn.textContent = '…';
+
+  const user = SonicSandbox.getUser();
+  const { error } = await SonicSandbox.client
+    .from('scores')
+    .delete()
+    .eq('user_id', user.id)
+    .eq('game', game);
+
+  if (error) {
+    btn.textContent = 'Error';
+    btn.disabled = false;
+    console.warn('Reset failed:', error.message);
+    return;
+  }
+
+  await loadStats(user);
+}
+
+// Wait for auth to initialize
+document.addEventListener('ss:authchange', e => {
+  const user = e.detail;
+  document.getElementById('loadingState').style.display = 'none';
+  if (user) {
+    loadStats(user);
+  } else {
+    document.getElementById('authWall').style.display = 'block';
+    document.getElementById('subheader').textContent  = 'Sign in to view your stats';
+  }
+});
+
+// ── Nav auth display ──────────────────────────────────────────────
+(function() {
+  const navAuthArea = document.getElementById('navAuthArea');
+  document.addEventListener('ss:authchange', async e => {
+    const user = e.detail;
+    if (user) {
+      navAuthArea.innerHTML = `<div class="user-pill"><span class="username-display" style="color:var(--muted);font-size:12px;">${user.email}</span></div>`;
+      const profile = await SonicSandbox.getProfile();
+      const el = navAuthArea.querySelector('.username-display');
+      if (!el) return;
+      if (profile?.username) {
+        el.outerHTML = `<a class="set-username-link" href="/account/">@${profile.username}</a>`;
+      } else {
+        el.outerHTML = `<a class="set-username-link" href="/account/">Set username</a>`;
+      }
+    } else {
+      navAuthArea.innerHTML = `<a class="auth-btn" href="/">Sign in</a>`;
+    }
+  });
+})();
+</script>
+<footer>
+  <div class="footer-left">
+    <a href="/">SonicSandbox</a>
+    &nbsp;·&nbsp; Ear training for producers, engineers, &amp; musicians
+    &nbsp;·&nbsp; <a href="/about/">About</a>
+    &nbsp;·&nbsp; <a href="/privacy/">Privacy Policy</a>
+    &nbsp;·&nbsp; <a href="/support/">Support</a>
+  </div>
+  <div class="footer-right">
+    <span>© 2026 Zach Snider</span>
+  </div>
+</footer>
+
+</body>
+</html>

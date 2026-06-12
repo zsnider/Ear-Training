@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cloud.umami.is 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://aolaxmmrmvovbzumlybe.supabase.co wss://aolaxmmrmvovbzumlybe.supabase.co https://cloud.umami.is; img-src 'self' data:; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 — Page Not Found · SonicSandbox</title>
+<meta name="robots" content="noindex">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
+<style>
+  /* ── Critical fallback (duplicates style.css; ensures dark theme
+     even when /style.css fails to load, e.g. file:// preview) ── */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg:      #0a0b0d;
+    --surface: #13151a;
+    --surface2:#1a1d24;
+    --surface3:#21252f;
+    --border:  rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text:    #dde2ee;
+    --muted:   #6b7280;
+    --accent:  #5b6aff;
+    --accent2: #8892ff;
+    --green: #3ecf8e; --amber: #f59e0b; --red: #f45b69;
+    --eq-accent:    #5b6aff;  --eq-accent2:    #8892ff;
+    --comp-accent:  #e8865a;  --comp-accent2:  #f0a882;
+    --rev-accent:   #5b3fd4;  --rev-accent2:   #8b6fff;
+    --dist-accent:  #d44a2a;  --dist-accent2:  #f07050;
+    --fq-accent:    #00d4ff;  --fq-accent2:    #60e8ff;
+    --fh-accent:    #00e5cc;  --fh-accent2:    #50f0d8;
+    --pan-accent:   #7c5cfc;  --pan-accent2:   #a58aff;
+    --qc-accent:    #2dd4a0;  --qc-accent2:    #5eefc0;
+    --delay-accent: #f97316;  --delay-accent2: #fb923c;
+    --ll-accent:    #f0b429;  --ll-accent2:    #ffd166;
+    --qeq-accent:   #818cf8;  --qeq-accent2:   #a5b4fc;
+    --sca-accent:   #39d353;  --sca-accent2:   #7ce88f;
+  }
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+  }
+
+.eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 24px;
+  }
+
+  .code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(72px, 14vw, 120px);
+    font-weight: 600; letter-spacing: -0.04em;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--accent2), #00d4ff);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 24px;
+  }
+
+  h1 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(18px, 3vw, 26px);
+    font-weight: 600; letter-spacing: -0.02em;
+    color: var(--text); margin-bottom: 14px;
+  }
+
+  p {
+    font-size: 15px; color: var(--muted);
+    font-weight: 300; line-height: 1.7;
+    max-width: 400px; margin: 0 auto 36px;
+  }
+
+  .btn-group {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    align-items: center; justify-content: center;
+  }
+
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent); color: #fff;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px; font-weight: 600;
+    padding: 11px 22px; border-radius: 10px;
+    text-decoration: none;
+    transition: opacity 0.15s, transform 0.15s;
+  }
+  .btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+
+  .btn-ghost {
+    display: inline-flex; align-items: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; color: var(--muted);
+    text-decoration: none;
+    padding: 11px 20px; border-radius: 10px;
+    border: 1px solid var(--border2);
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.3); }
+.footer-logo {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; font-weight: 600;
+    color: var(--muted); text-decoration: none;
+  }
+  .footer-logo span { color: var(--accent2); }
+  .footer-logo:hover { color: var(--text); }
+</style>
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="a4e7fbcc-763c-4844-8f4f-669cf411e799"></script>
+</head>
+<body>
+
+  <p class="eyebrow">SonicSandbox</p>
+
+  <div class="code">404</div>
+
+  <h1>Page not found</h1>
+  <p>That URL doesn't seem to exist. Maybe it was moved, or you followed a broken link.</p>
+
+  <div class="btn-group">
+    <a class="btn-primary" href="/">← Back Home</a>
+    <a class="btn-ghost" href="/learn/">Browse Learn</a>
+  </div>
+
+  <footer>
+    <a class="footer-logo" href="/"><span>Sonic</span>Sandbox</a>
+  </footer>
+
+</body>
+</html>

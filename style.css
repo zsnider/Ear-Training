@@ -1,0 +1,255 @@
+/*
+ * SonicSandbox — shared stylesheet
+ * =================================
+ * Included by all content pages via:
+ *   <link rel="stylesheet" href="/style.css">
+ *
+ * Game pages only get the font <link> tags — their layout CSS
+ * is game-specific and lives in their own inline <style>.
+ *
+ * Fonts are loaded via <link rel="preconnect"> + <link rel="stylesheet">
+ * in each page's <head> (NOT via @import, which is render-blocking).
+ */
+
+/* ── Reset ──────────────────────────────────────────────────────── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ── Design tokens ──────────────────────────────────────────────── */
+/* Superset of all variables used across the site. */
+:root {
+  /* Core palette */
+  --bg:      #0a0b0d;
+  --surface: #13151a;
+  --surface2:#1a1d24;
+  --surface3:#21252f;
+  --border:  rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text:    #dde2ee;
+  --muted:   #6b7280;
+  --accent:  #5b6aff;
+  --accent2: #8892ff;
+  /* Status colours */
+  --green: #3ecf8e;
+  --amber: #f59e0b;
+  --red:   #f45b69;
+  /* Per-game accent colours */
+  --eq-accent:    #5b6aff;  --eq-accent2:    #8892ff;
+  --comp-accent:  #e8865a;  --comp-accent2:  #f0a882;
+  --rev-accent:   #5b3fd4;  --rev-accent2:   #8b6fff;
+  --dist-accent:  #d44a2a;  --dist-accent2:  #f07050;
+  --fq-accent:    #00d4ff;  --fq-accent2:    #60e8ff;
+  --fh-accent:    #00e5cc;  --fh-accent2:    #50f0d8;
+  --pan-accent:   #7c5cfc;  --pan-accent2:   #a58aff;
+  --qc-accent:    #2dd4a0;  --qc-accent2:    #5eefc0;
+  --delay-accent: #f97316;  --delay-accent2: #fb923c;
+  --ll-accent:    #f0b429;  --ll-accent2:    #ffd166;
+  --qeq-accent:   #818cf8;  --qeq-accent2:   #a5b4fc;
+  --sca-accent:   #39d353;  --sca-accent2:   #7ce88f;
+}
+
+/* ── Base body ──────────────────────────────────────────────────── */
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── Nav shared element classes ─────────────────────────────────── */
+/* Note: each page defines its own nav {} container rule (max-width,  */
+/* justify-content etc. vary per page). Those stay in inline <style>. */
+
+.nav-logo-wrap {
+  flex: 1; display: flex; align-items: center;
+}
+.nav-logo {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 17px; font-weight: 600;
+  color: var(--text); text-decoration: none;
+  letter-spacing: -0.01em;
+}
+.nav-logo span { color: var(--accent2); }
+
+.nav-center {
+  display: flex; align-items: center; gap: 28px;
+  flex-shrink: 0;
+}
+.nav-link {
+  font-size: 13px; font-weight: 500; color: var(--muted);
+  text-decoration: none; transition: color 0.15s;
+}
+.nav-link:hover, .nav-link.active { color: var(--text); }
+
+.nav-right {
+  flex: 1; display: flex; align-items: center;
+  justify-content: flex-end; gap: 12px;
+}
+
+/* Mobile nav — collapse centre links on small screens */
+@media (max-width: 600px) {
+  nav { padding: 16px 20px !important; }
+  .nav-center { display: none; }
+  .bmac-btn   { display: none; }
+  .nav-logo   { font-size: 15px; }
+}
+
+/* ── Buy Me a Coffee button ─────────────────────────────────────── */
+.bmac-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: #FFDD00; color: #000;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 13px; font-weight: 600;
+  padding: 8px 16px; border-radius: 8px;
+  text-decoration: none;
+  transition: opacity 0.15s, transform 0.15s;
+  white-space: nowrap;
+}
+.bmac-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+.bmac-btn svg   { flex-shrink: 0; }
+
+/* ── Auth button ────────────────────────────────────────────────── */
+.auth-btn {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 13px; font-weight: 500;
+  padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border2);
+  background: var(--surface2); color: var(--text);
+  cursor: pointer; transition: border-color 0.15s, background 0.15s;
+  white-space: nowrap; text-decoration: none;
+}
+.auth-btn:hover { border-color: var(--accent); background: var(--surface); }
+
+/* ── User pill / sign-out / username links ──────────────────────── */
+.user-pill {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+}
+.user-pill span { color: var(--text); }
+
+.signout-btn {
+  font-size: 12px; color: var(--muted); background: none;
+  border: none; cursor: pointer; font-family: inherit;
+  padding: 0; text-decoration: underline;
+}
+.signout-btn:hover { color: var(--text); }
+
+.set-username-link {
+  color: var(--accent2); background: none; border: none;
+  font-family: 'IBM Plex Mono', monospace; font-size: 13px;
+  cursor: pointer; padding: 0; text-decoration: none;
+}
+.set-username-link:hover { opacity: 0.8; }
+
+/* ── Footer ─────────────────────────────────────────────────────── */
+footer {
+  margin-top: auto;
+  width: 100%; border-top: 1px solid var(--border);
+  padding: 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+}
+.footer-left { font-size: 13px; color: var(--muted); }
+.footer-left a {
+  color: var(--muted); text-decoration: none;
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+}
+.footer-left a:hover { color: var(--text); }
+.footer-right {
+  font-size: 12px; color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+/* ── Auth / sign-in modal ───────────────────────────────────────── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7); z-index: 100;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 20px; padding: 36px 32px; width: 100%; max-width: 400px;
+  position: relative;
+}
+.modal-close {
+  position: absolute; top: 16px; right: 20px;
+  background: none; border: none; color: var(--muted);
+  font-size: 22px; cursor: pointer; line-height: 1;
+}
+.modal-close:hover { color: var(--text); }
+
+.modal-tabs {
+  display: flex; gap: 0; margin-bottom: 28px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-tab {
+  flex: 1; padding: 10px; text-align: center;
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  background: none; border: none; color: var(--muted);
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.modal-tab.active { color: var(--accent2); border-bottom-color: var(--accent2); }
+
+.modal label {
+  display: block; font-size: 11px; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 6px;
+}
+.modal input {
+  width: 100%; padding: 10px 14px; border-radius: 8px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  color: var(--text); font-size: 14px; font-family: inherit;
+  margin-bottom: 16px; outline: none;
+  transition: border-color 0.15s;
+}
+.modal input:focus { border-color: var(--accent); }
+
+.modal-submit {
+  width: 100%; padding: 11px; border-radius: 8px;
+  background: var(--accent); color: #fff; font-size: 14px;
+  font-weight: 600; border: none; cursor: pointer;
+  font-family: inherit; transition: opacity 0.15s;
+}
+.modal-submit:hover { opacity: 0.85; }
+
+.modal-msg {
+  margin-top: 14px; font-size: 13px; text-align: center;
+  min-height: 20px; color: var(--muted);
+}
+.modal-msg.error   { color: #f07070; }
+.modal-msg.success { color: var(--qc-accent2); }
+
+/* ── Username modal ─────────────────────────────────────────────── */
+.username-hint {
+  font-size: 12px; color: var(--muted); margin-top: -10px;
+  margin-bottom: 18px; line-height: 1.5;
+}
+.username-check {
+  font-size: 12px; min-height: 18px;
+  margin-top: -10px; margin-bottom: 14px;
+  transition: color 0.15s;
+}
+.username-check.available { color: var(--qc-accent2); }
+.username-check.taken     { color: #f07070; }
+.username-skip {
+  display: block; text-align: center; margin-top: 14px;
+  font-size: 12px; color: var(--muted); cursor: pointer;
+  background: none; border: none; font-family: inherit;
+  text-decoration: underline; width: 100%;
+}
+.username-skip:hover { color: var(--text); }
+
+/* ── Forgot password link ───────────────────────────────────────── */
+.forgot-pw-link {
+  display: block; width: 100%; text-align: center;
+  margin-top: 12px; font-size: 12px; color: var(--muted);
+  background: none; border: none; cursor: pointer;
+  font-family: inherit; text-decoration: underline; padding: 0;
+}
+.forgot-pw-link:hover { color: var(--text); }
+.banner-dismiss:hover { color: var(--text); }

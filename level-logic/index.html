@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta charset="UTF-8">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cloud.umami.is 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://aolaxmmrmvovbzumlybe.supabase.co wss://aolaxmmrmvovbzumlybe.supabase.co https://cloud.umami.is; img-src 'self' data:; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
+<meta name="description" content="Identify gain boosts and cuts by ear. Train your dB sensitivity and gain staging intuition with quick listening rounds. Free ear training game.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="canonical" href="https://sonicsandbox.app/level-logic/">
+
+<title>Level Logic — Gain and dB Ear Training Game | SonicSandbox</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
+  <link rel="stylesheet" href="../daw-ui.css">
+<style>
+  /* ── Level Logic identity (gold gain-stage) ─────────────────── */
+  body {
+    --accent:  #f0b429;
+    --accent2: #ffd166;
+    --up:      #3ecf8e;
+    --down:    #f45b69;
+    --ref:     #8892ff;
+    --ref2:    #aab2ff;
+    --correct: #3ecf8e;
+    --wrong:   #f45b69;
+  }
+
+  /* ── Device top: LCD readout shares the monitor row ─────────── */
+  .device .device-top { align-items: stretch; }
+  .detect-readout {
+    flex: 1 1 360px; min-width: 280px;
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    background:
+      radial-gradient(120% 140% at 14% 0%, rgba(240,180,41,0.06), transparent 60%),
+      var(--well);
+    border: 1px solid var(--well-edge);
+    border-radius: 12px; padding: 14px 18px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.55) inset, 0 1px 0 rgba(255,255,255,0.03);
+    position: relative; overflow: hidden;
+    transition: box-shadow 0.4s ease;
+  }
+  .detect-readout::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,0,0,0.18) 3px 4px);
+    opacity: 0.25;
+  }
+  .detect-readout.correct-flash { box-shadow: 0 3px 12px rgba(0,0,0,0.55) inset, 0 0 0 1px var(--correct) inset, 0 0 26px -6px var(--correct); }
+  .detect-readout.wrong-flash   { box-shadow: 0 3px 12px rgba(0,0,0,0.55) inset, 0 0 0 1px var(--wrong) inset,   0 0 26px -6px var(--wrong); }
+
+  .readout-left { display: flex; flex-direction: column; gap: 8px; position: relative; z-index: 1; min-width: 0; }
+  .level-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 5px 12px; border-radius: 7px; width: fit-content; white-space: nowrap;
+    background: rgba(240,180,41,0.13); color: var(--accent2);
+    border: 1px solid rgba(240,180,41,0.36); box-shadow: 0 0 16px -6px var(--accent);
+  }
+  .prompt-question {
+    font-size: 17px; font-weight: 500; color: var(--text); line-height: 1.25; letter-spacing: 0.01em;
+  }
+  .prompt-question span { color: var(--accent2); font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
+
+  .result-msg-inline {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 20px; font-weight: 700;
+    margin-left: auto; white-space: nowrap; position: relative; z-index: 1; opacity: 0;
+  }
+  .result-msg-inline.show-correct { opacity: 1; color: var(--correct); text-shadow: 0 0 18px rgba(62,207,142,0.5); }
+  .result-msg-inline.show-wrong   { opacity: 1; color: var(--wrong);   text-shadow: 0 0 18px rgba(244,91,105,0.45); }
+
+  .next-bar {
+    height: 3px; background: rgba(255,255,255,0.07);
+    border-radius: 2px; overflow: hidden; margin-top: 4px; width: 220px; max-width: 100%;
+  }
+  .next-fill { height: 100%; border-radius: 2px; background: var(--accent2); width: 100%; box-shadow: 0 0 8px var(--accent); }
+
+  /* ── A/B monitor switch ─────────────────────────────────────── */
+  .monitor-switch .listen-bar { animation: none; }
+  .monitor-switch.live .mon-btn.active .listen-bar { animation: barBounce 0.75s ease-in-out infinite; opacity: 1; }
+  .mon-btn .mon-sub { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6; }
+  .mon-btn .listen-btn-label { font-size: 15px; }
+  .monitor-hint {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.04em;
+    color: var(--muted); min-height: 13px; text-align: center;
+  }
+
+  /* ── Gain-match meter well ──────────────────────────────────── */
+  .meter-well {
+    background:
+      radial-gradient(130% 120% at 50% -10%, rgba(240,180,41,0.045), transparent 55%),
+      var(--well);
+    border: 1px solid var(--well-edge);
+    border-radius: 14px; padding: 12px 14px 10px;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.6) inset, 0 1px 0 rgba(255,255,255,0.03);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .meter-head { display: flex; align-items: center; justify-content: space-between; padding: 0 2px; }
+  .meter-title { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+  .meter-scale-cap { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; color: var(--muted); opacity: 0.75; }
+  canvas#meterCanvas { display: block; width: 100%; height: 230px; border-radius: 8px; background: #050607; }
+  @media (max-width: 600px) { canvas#meterCanvas { height: 188px; } }
+
+  /* ── dB answer pad rail ─────────────────────────────────────── */
+  .db-rail { display: flex; flex-direction: column; gap: 10px; }
+  .db-grid { display: grid; gap: 8px; }
+
+  .db-btn {
+    --dir-hue: 45;
+    position: relative; overflow: hidden;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.06), transparent 26%),
+      linear-gradient(180deg, var(--metal-1) 0%, var(--metal-2) 100%);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 12px; padding: 17px 6px 14px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    cursor: pointer; font-family: 'IBM Plex Mono', monospace;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 -2px 0 rgba(0,0,0,0.45) inset, 0 10px 22px -16px #000;
+    transition: transform 0.11s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+  .db-btn .pad-led {
+    position: absolute; top: 0; left: 10%; right: 10%; height: 3px; border-radius: 0 0 3px 3px;
+    background: hsl(var(--dir-hue) 80% 58%); opacity: 0.34; transition: opacity 0.15s ease, box-shadow 0.15s ease;
+  }
+  .db-btn .pad-index {
+    position: absolute; top: 6px; left: 9px;
+    font-size: 9px; font-weight: 600; color: var(--muted); opacity: 0.5;
+  }
+  .db-val { font-size: 19px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; line-height: 1; }
+  .db-val.positive { color: var(--up); }
+  .db-val.negative { color: var(--down); }
+  .db-sub { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px; }
+
+  .db-btn:hover:not(:disabled) {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, hsl(var(--dir-hue) 80% 58%) 70%, transparent);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.08) inset, 0 -2px 0 rgba(0,0,0,0.45) inset, 0 16px 30px -16px hsl(var(--dir-hue) 80% 52% / 0.5);
+  }
+  .db-btn:hover:not(:disabled) .pad-led { opacity: 1; box-shadow: 0 0 12px hsl(var(--dir-hue) 85% 58%); }
+  .db-btn:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: 0 2px 7px rgba(0,0,0,0.6) inset, 0 0 0 1px hsl(var(--dir-hue) 80% 52% / 0.4) inset;
+  }
+  .db-btn:disabled { cursor: default; }
+
+  .db-btn.correct {
+    border-color: var(--correct);
+    background: linear-gradient(180deg, rgba(62,207,142,0.22), rgba(62,207,142,0.06));
+    animation: padCorrect 1.1s ease-out;
+  }
+  .db-btn.correct .pad-led { opacity: 1; background: var(--correct); box-shadow: 0 0 12px var(--correct); }
+  .db-btn.correct .db-val { color: #b8f4d6; }
+  @keyframes padCorrect {
+    0%   { box-shadow: 0 0 0 0 rgba(62,207,142,0.55), 0 1px 0 rgba(255,255,255,0.05) inset; }
+    60%  { box-shadow: 0 0 0 7px rgba(62,207,142,0), 0 0 30px -4px var(--correct); }
+    100% { box-shadow: 0 0 22px -6px var(--correct), 0 1px 0 rgba(255,255,255,0.05) inset; }
+  }
+  .db-btn.wrong {
+    border-color: var(--wrong);
+    background: linear-gradient(180deg, rgba(244,91,105,0.2), rgba(244,91,105,0.05));
+    animation: padWrong 0.4s ease;
+  }
+  .db-btn.wrong .pad-led { opacity: 1; background: var(--wrong); box-shadow: 0 0 12px var(--wrong); }
+  .db-btn.wrong .db-val { color: var(--down); }
+  @keyframes padWrong { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+  .db-btn.reveal {
+    border-color: rgba(62,207,142,0.6); border-style: dashed;
+    background: linear-gradient(180deg, rgba(62,207,142,0.1), transparent);
+    animation: revealPulse 1.4s ease-in-out infinite;
+  }
+  .db-btn.reveal .pad-led { opacity: 0.9; background: var(--correct); }
+  .db-btn.reveal .db-val { color: #b8f4d6; }
+  @keyframes revealPulse { 0%,100% { box-shadow: 0 0 14px -8px var(--correct); } 50% { box-shadow: 0 0 22px -2px rgba(62,207,142,0.55); } }
+  .db-btn.dimmed { opacity: 0.32; }
+
+  /* level ribbon under the pads: cut ← → boost */
+  .db-ribbon { display: flex; flex-direction: column; gap: 5px; padding: 0 2px; }
+  .ribbon-bar {
+    height: 5px; border-radius: 3px;
+    background: linear-gradient(90deg, hsl(353 78% 60%) 0%, hsl(353 40% 42%) 32%, rgba(150,160,180,0.4) 50%, hsl(152 40% 42%) 68%, hsl(152 70% 50%) 100%);
+    opacity: 0.6; box-shadow: 0 0 10px -4px var(--accent);
+  }
+  .ribbon-ends { display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+
+  /* ── Transport / play ───────────────────────────────────────── */
+  .control-deck .settings-row { gap: 9px; }
+  .btn-transport {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(255,255,255,0.03); color: var(--text);
+    border: 1px solid var(--border2); border-radius: 9px;
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 500;
+    padding: 9px 15px; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .btn-transport:hover:not(:disabled) { border-color: var(--accent); color: var(--accent2); }
+  .btn-transport:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-transport.paused { background: rgba(244,91,105,0.1); border-color: var(--red); color: var(--down); }
+  .btn-play {
+    background: linear-gradient(180deg, var(--accent2), var(--accent));
+    color: #2a1c02; font-weight: 700; border: none;
+    box-shadow: 0 6px 20px -8px var(--accent), inset 0 1px 0 rgba(255,255,255,0.35);
+  }
+  .btn-play:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
+  .btn-play.playing { background: linear-gradient(180deg, var(--accent), #b8830a); }
+  .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: #2a1c02; flex-shrink: 0; }
+  .btn-play.playing .pulse-dot { background: #fff4d6; animation: pdot 1.1s infinite; }
+  @keyframes pdot { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.3;transform:scale(0.55);} }
+
+  .source-pill { padding: 7px 13px; font-size: 12px; }
+  .source-pill.loading { opacity: 0.6; cursor: wait; }
+  .settings-bar .pill { white-space: nowrap; }
+
+  /* ── History strip ──────────────────────────────────────────── */
+  .history-wrap { display: flex; align-items: center; gap: 12px; padding: 0 4px; }
+  .history-label { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  .history-strip { display: flex; gap: 5px; flex-wrap: wrap; min-height: 12px; }
+  .hist-dot { width: 9px; height: 9px; border-radius: 2px; transition: all 0.2s; }
+  .hist-dot.c { background: var(--correct); box-shadow: 0 0 7px -1px var(--correct); }
+  .hist-dot.w { background: var(--wrong); }
+</style>
+  <script src="../scoring.js"></script>
+
+  <!-- Open Graph / Social -->
+  <meta property="og:type"        content="website">
+  <meta property="og:url"         content="https://sonicsandbox.app/level-logic/">
+  <meta property="og:title"       content="Level Logic — Gain and dB Ear Training Game | SonicSandbox">
+  <meta property="og:description" content="Identify gain boosts and cuts by ear. Train your dB sensitivity and gain staging intuition with quick listening rounds. Free ear training game.">
+  <meta property="og:image"       content="https://sonicsandbox.app/og-image.png">
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:title"       content="Level Logic — Gain and dB Ear Training Game | SonicSandbox">
+  <meta name="twitter:description" content="Identify gain boosts and cuts by ear. Train your dB sensitivity and gain staging intuition with quick listening rounds. Free ear training game.">
+  <meta name="twitter:image"       content="https://sonicsandbox.app/og-image.png">
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="a4e7fbcc-763c-4844-8f4f-669cf411e799"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Level Logic — SonicSandbox",
+    "url": "https://sonicsandbox.app/level-logic/",
+    "description": "Identify gain boosts and cuts by ear. Train your dB sensitivity and gain staging intuition.",
+    "applicationCategory": "GameApplication",
+    "operatingSystem": "Web Browser",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "keywords": "gain ear training, dB training, level training, free ear training game"
+  }
+  </script>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="nav-logo-wrap">
+    <a class="nav-logo" href="/">Sonic<span>Sandbox</span></a>
+  </div>
+  <div class="nav-center">
+    <a class="nav-link" href="/">Home</a>
+    <a class="nav-link active" href="/games/">Games</a>
+    <a class="nav-link" href="/learn/">Learn</a>
+    <a class="nav-link" href="/stats/">Stats</a>
+  </div>
+  <div class="nav-right">
+    <div id="authArea">
+      <button class="auth-btn" id="openAuthBtn">Sign in</button>
+    </div>
+  </div>
+</nav>
+<div class="game-bar">
+  <div class="game-bar-left">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <line x1="5"  y1="2"  x2="5"  y2="7"  stroke="white" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
+          <rect x="2.5" y="7"  width="5" height="4" rx="1.2" stroke="white" stroke-width="1.6" fill="none"/>
+          <line x1="5"  y1="11" x2="5"  y2="22" stroke="white" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
+          <line x1="12" y1="2"  x2="12" y2="14" stroke="white" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
+          <rect x="9.5" y="14" width="5" height="4" rx="1.2" stroke="white" stroke-width="1.6" fill="none"/>
+          <line x1="12" y1="18" x2="12" y2="22" stroke="white" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
+          <line x1="19" y1="2"  x2="19" y2="5"  stroke="white" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
+          <rect x="16.5" y="5" width="5" height="4" rx="1.2" stroke="white" stroke-width="1.6" fill="none"/>
+          <line x1="19" y1="9"  x2="19" y2="22" stroke="white" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
+        </svg>
+      </div>
+      <span class="brand-name">Level Logic</span>
+    </div>
+  </div>
+  <div class="game-bar-right">
+    <div class="score-row">
+    <div class="stat">
+      <div class="stat-val" id="scoreVal">—</div>
+      <div class="stat-label">Score</div>
+    </div>
+    <div class="vdiv"></div>
+    <div class="stat">
+      <div class="stat-val" id="streakVal">—</div>
+      <div class="stat-label">Streak</div>
+    </div>
+    <div class="vdiv"></div>
+    <div class="stat">
+      <div class="stat-val" id="accuracyVal">—</div>
+      <div class="stat-label">Accuracy</div>
+    </div>
+    <div class="vdiv"></div>
+    <div class="stat">
+      <div class="stat-val" id="roundVal">—</div>
+      <div class="stat-label">Round</div>
+    </div>
+    </div>
+    <div id="multBadge" class="mult-badge">×1.0</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Settings: Difficulty + Direction -->
+  <div class="settings-bar">
+    <div class="settings-row">
+      <span class="label">Difficulty</span>
+      <select id="diffSelect" onchange="setDifficulty(this.value)">
+        <option value="easy" selected>Easy — ±3 to ±12 dB</option>
+        <option value="medium">Medium — ±2 to ±9 dB</option>
+        <option value="hard">Hard — ±1 to ±6 dB</option>
+        <option value="expert">Expert — ±0.5 to ±3 dB</option>
+      </select>
+      <div class="vdiv"></div>
+      <span class="label">Direction</span>
+      <div class="pill active" id="dirBoth"  onclick="setDirection('both',this)">Both</div>
+      <div class="pill"        id="dirUp"    onclick="setDirection('up',this)">Up Only</div>
+      <div class="pill"        id="dirDown"  onclick="setDirection('down',this)">Down Only</div>
+      <div style="margin-left:auto; position:relative;" class="shortcuts-wrap">
+        <button class="shortcuts-btn" onclick="toggleShortcuts(event)">&#9000; Shortcuts</button>
+        <div class="shortcuts-popover" id="shortcutsPopover">
+          <div class="shortcut-row"><span>Answer level</span><div class="shortcut-keys"><kbd>1</kbd>–<kbd>8</kbd></div></div>
+          <div class="shortcut-row"><span>Toggle A / B</span><div class="shortcut-keys"><kbd>Space</kbd><kbd>D</kbd></div></div>
+          <div class="shortcut-row"><span>Pause</span><div class="shortcut-keys"><kbd>P</kbd></div></div>
+          <div class="shortcut-row"><span>Restart</span><div class="shortcut-keys"><kbd>F</kbd></div></div>
+          <div class="shortcut-row"><span>Seek</span><div class="shortcut-keys"><kbd>←</kbd><kbd>→</kbd></div></div>
+          <div class="shortcut-row"><span>Skip track</span><div class="shortcut-keys"><kbd>↑</kbd><kbd>↓</kbd></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- The gain-stage device -->
+  <section class="device">
+
+    <div class="device-top">
+      <!-- Detect readout (LCD) — shares the row with the A/B monitor -->
+      <div class="detect-readout" id="promptCard">
+        <div class="readout-left">
+          <div class="level-badge" id="rangeBadge">Δ Level Match</div>
+          <div class="prompt-question" id="promptText">Press <span>Play</span> to start</div>
+          <div class="next-bar" id="nextBar" style="display:none;"><div class="next-fill" id="nextFill"></div></div>
+        </div>
+        <div class="result-msg-inline" id="resultInline"></div>
+      </div>
+      <div class="monitor">
+        <span class="monitor-label">A / B Monitor</span>
+        <div class="monitor-switch" id="monitorSwitch">
+          <button class="mon-btn target-btn" id="btnA" onclick="setMonitor('A')" disabled>
+            <span class="listen-bars"><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span></span>
+            <span class="listen-btn-label">A</span>
+            <span class="mon-sub">Original</span>
+          </button>
+          <button class="mon-btn user-btn active" id="btnB" onclick="setMonitor('B')" disabled>
+            <span class="listen-bars"><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span></span>
+            <span class="listen-btn-label">B</span>
+            <span class="mon-sub">Adjusted</span>
+          </button>
+        </div>
+        <span class="monitor-hint" id="monitorHint"></span>
+      </div>
+    </div>
+
+    <!-- Gain-match meter well -->
+    <div class="meter-well">
+      <div class="meter-head">
+        <span class="meter-title">Gain&nbsp;Match Meter</span>
+        <span class="meter-scale-cap">A = 0 dB reference</span>
+      </div>
+      <canvas id="meterCanvas"></canvas>
+    </div>
+
+    <!-- dB answer pad rail (the whole game) -->
+    <div class="db-rail">
+      <div class="db-grid" id="dbGrid"></div>
+      <div class="db-ribbon">
+        <div class="ribbon-bar"></div>
+        <div class="ribbon-ends"><span>&#9664; Cut &middot; quieter</span><span>louder &middot; Boost &#9654;</span></div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Control deck: transport + source -->
+  <div class="settings-bar control-deck">
+    <div class="settings-row">
+      <button class="btn-transport btn-play" id="btnPlay" onclick="playCurrentRound()"><span class="pulse-dot" id="playDot"></span> Play</button>
+      <button class="btn-transport" id="btnPause"   onclick="togglePause()"  disabled>&#9646;&#9646; Pause</button>
+      <button class="btn-transport" id="btnRestart" onclick="restartAudio()" disabled>&#8635; Restart</button>
+      <button class="btn-transport" id="btnSkip"    onclick="skipRound()"    disabled>Skip &#8594;</button>
+      <div class="vdiv" style="margin-left:auto;"></div>
+      <span class="label">Source</span>
+      <div class="source-pill active" id="srcPink"    onclick="setSource('pink')">Pink</div>
+      <div class="source-pill"        id="srcOneShot" onclick="setSource('oneShot')">One-Shots</div>
+      <div class="source-pill"        id="srcLoop"    onclick="setSource('loop')">Loops</div>
+      <div class="source-pill"        id="srcCustom"  onclick="triggerUpload()" style="border-style:dashed;"><span id="uploadLabel">Upload Folder</span></div>
+      <input type="file" id="folderInput" webkitdirectory directory multiple onchange="handleFolderUpload(event)" style="display:none;">
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="history-wrap">
+    <span class="history-label">Recent</span>
+    <div class="history-strip" id="historyStrip"></div>
+  </div>
+
+</div>
+
+<!-- Help Toggle -->
+<button class="help-toggle" id="helpToggle" onclick="toggleHelp()">
+  <span class="toggle-arrow">▶</span> How to play
+</button>
+
+<!-- Help Section -->
+<div class="help-section" id="helpSection">
+  <div class="help-block">
+    <h2>Where to start</h2>
+    <p>
+      Set the difficulty to <strong>Easy</strong> and direction to <strong>Boost</strong>.
+      Press <strong>Play</strong>, then use <kbd>Space</kbd>/<kbd>D</kbd> to toggle between
+      <strong>A</strong> (original) and <strong>B</strong> (level-shifted). Your job is to identify
+      <strong>how many dB louder</strong> B is compared to A.
+    </p>
+    <p>
+      Click the answer that matches what you hear. As you improve, reduce the difficulty to train
+      your ear on subtler level differences. Enable <strong>Both</strong> directions once you're
+      comfortable identifying boosts — cuts require the same skill but in reverse.
+    </p>
+  </div>
+
+  <hr class="help-divider">
+
+  <div class="help-block">
+    <h2>What to listen for</h2>
+    <p>
+      Level differences are purely about <strong>loudness</strong> — not tone, not timbre. The signal
+      is identical on both sides; only the volume changes. This makes it a pure test of your
+      gain perception.
+    </p>
+    <p>
+      A useful rule of thumb: <strong>3 dB</strong> is just noticeable as a level change to most listeners.
+      <strong>6 dB</strong> feels meaningfully louder. <strong>10 dB</strong> is roughly perceived as
+      "twice as loud." Use these anchors to calibrate your guesses.
+    </p>
+    <p>
+      Avoid adjusting your listening volume between A and B — let the difference come to you naturally.
+      Switching quickly back and forth with <kbd>Space</kbd>/<kbd>D</kbd> makes the difference easier
+      to detect than listening to each side for a long time.
+    </p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Help Section ───────────────────────────────────────────────────────────────
+function toggleHelp() {
+  const btn = document.getElementById('helpToggle');
+  const sec = document.getElementById('helpSection');
+  const open = sec.classList.toggle('visible');
+  btn.classList.toggle('open', open);
+}
+
+// ── dB difficulty sets (absolute values) ─────────────────────────────────────
+const DB_SETS = {
+  easy:   [3, 6, 9, 12],
+  medium: [2, 3, 6, 9],
+  hard:   [1, 2, 3, 6],
+  expert: [0.5, 1, 2, 3],
+};
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let difficulty  = 'easy';
+let direction   = 'both';
+let targetDb    = null;
+let currentMonitor = 'B'; // 'A' or 'B'
+let roundActive = false;
+let answered    = false;
+let score=0, streak=0, totalRounds=0, correctCount=0;
+let lastTargetDb = null;
+
+// Audio
+let audioCtx       = null;
+let gainNode       = null;
+let outGain        = null;
+let noiseSource    = null;
+let isPlaying      = false;
+let isPaused       = false;
+let shotLoopTimer  = null;
+let currentShotSrc = null;
+let nextTimeout    = null;
+
+// Source
+let sourceType = 'pink';
+
+// One-shot state
+let oneShotBuffers = [], oneShotLoaded = false, oneShotIdx = 0;
+
+// Loop state
+let loopFileNames = [], loopManifestLoaded = false, loopIdx = 0;
+let loopAudioEl = null, loopMediaSrc = null;
+
+// Custom state
+let customFiles = [], customIdx = 0;
+let customBuffers=[], customSrc=null, customSrcOffset=0, customSrcStartTime=0;
+
+// Canvas
+const canvas = document.getElementById('meterCanvas');
+const ctx2d  = canvas.getContext('2d');
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+function setDifficulty(d) {
+  difficulty = d;
+  updateMultBadge();
+  updateRangeBadge();
+  buildDbGrid();
+  if (roundActive && !answered) newRound();
+}
+
+function updateMultBadge() {
+  const el = document.getElementById('multBadge');
+  if (el && window.ScoringEngine) el.textContent = ScoringEngine.label('level-logic', { difficulty });
+}
+
+function updateRangeBadge() {
+  const abs = DB_SETS[difficulty];
+  const fmt = n => Number.isInteger(n) ? n : n.toFixed(1);
+  const el = document.getElementById('rangeBadge');
+  if (el) el.textContent = `\u0394 \u00b1${fmt(abs[0])} \u2013 \u00b1${fmt(abs[abs.length-1])} dB`;
+}
+
+function setDirection(d, el) {
+  direction = d;
+  ['dirBoth','dirUp','dirDown'].forEach(id => document.getElementById(id).classList.remove('active'));
+  el.classList.add('active');
+  buildDbGrid();
+  if (roundActive && !answered) newRound();
+}
+
+// ── Build dB options ──────────────────────────────────────────────────────────
+function getDbOptions() {
+  const abs = DB_SETS[difficulty];
+  let opts = [];
+  if (direction !== 'down') opts = opts.concat(abs.map(v => +v));
+  if (direction !== 'up')   opts = opts.concat(abs.map(v => -v));
+  return opts.sort((a, b) => a - b);
+}
+
+function fmtDb(v) {
+  const abs = Math.abs(v);
+  const str = Number.isInteger(abs) ? abs.toString() : abs.toFixed(1);
+  return (v > 0 ? '+' : '−') + str;
+}
+
+function buildDbGrid() {
+  const opts = getDbOptions();
+  const cols = Math.min(opts.length, 8);
+  const grid = document.getElementById('dbGrid');
+  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  grid.innerHTML = '';
+
+  opts.forEach((db, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'db-btn';
+    btn.id = `db-${db}`;
+    btn.dataset.db = db;
+    btn.disabled = true;
+    const cls = db > 0 ? 'positive' : db < 0 ? 'negative' : '';
+    btn.style.setProperty('--dir-hue', db > 0 ? 152 : 353);
+    btn.innerHTML = `<span class="pad-led"></span><span class="pad-index">${i+1}</span>`
+      + `<span class="db-val ${cls}">${fmtDb(db)}</span><span class="db-sub">dB</span>`;
+    btn.addEventListener('click', () => submitAnswer(db));
+    grid.appendChild(btn);
+  });
+}
+
+// ── Level meter canvas ────────────────────────────────────────────────────────
+function roundRectPath(g, x, y, w, h, r) {
+  r = Math.min(r, w/2, h/2);
+  g.beginPath();
+  g.moveTo(x+r, y);
+  g.arcTo(x+w, y, x+w, y+h, r); g.arcTo(x+w, y+h, x, y+h, r);
+  g.arcTo(x, y+h, x, y, r);     g.arcTo(x, y, x+w, y, r);
+  g.closePath();
+}
+
+const METER_COLZ = {
+  ref:  ['rgba(136,146,255,0.9)', 'rgba(136,146,255,0.16)', '#aab2ff'],
+  up:   ['rgba(62,207,142,0.9)',  'rgba(62,207,142,0.14)',  '#3ecf8e'],
+  down: ['rgba(244,91,105,0.9)',  'rgba(244,91,105,0.14)',  '#f45b69'],
+};
+
+// Backlit gain-match meter: A reference column vs B (revealed after answer)
+function drawMeter(db, revealed) {
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.clientWidth || canvas.parentElement.clientWidth;
+  const H = canvas.clientHeight || 230;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  const g = ctx2d;
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, W, H);
+
+  // backlit panel
+  const bg = g.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#0d0b06'); bg.addColorStop(1, '#070808');
+  g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  const glow = g.createRadialGradient(W/2, -40, 20, W/2, -40, W*0.72);
+  glow.addColorStop(0, 'rgba(240,180,41,0.06)'); glow.addColorStop(1, 'transparent');
+  g.fillStyle = glow; g.fillRect(0, 0, W, H);
+
+  // symmetric dB scale (auto-fit to difficulty)
+  const opts = getDbOptions();
+  const maxAbs = Math.max(3, ...opts.map(o => Math.abs(o)));
+  const scale = maxAbs * 1.35;
+  const padL = 42, padR = 16, padT = 26, padB = 26;
+  const plotH = H - padT - padB;
+  const baseY = H - padB, topY = padT;
+  const yOf = v => baseY - ((v + scale) / (2 * scale)) * plotH;
+
+  // horizontal dB grid + labels
+  g.font = '9px "IBM Plex Mono", monospace';
+  g.textBaseline = 'middle'; g.textAlign = 'left';
+  const step = scale <= 5 ? 1 : scale <= 10 ? 3 : 6;
+  for (let v = -Math.floor(scale/step)*step; v <= scale + 0.001; v += step) {
+    const y = yOf(v), zero = Math.abs(v) < 0.001;
+    g.strokeStyle = zero ? 'rgba(240,180,41,0.32)' : 'rgba(255,255,255,0.05)';
+    g.lineWidth = 1;
+    g.beginPath(); g.moveTo(padL, y + 0.5); g.lineTo(W - padR, y + 0.5); g.stroke();
+    g.fillStyle = zero ? 'rgba(255,209,102,0.7)' : 'rgba(255,255,255,0.24)';
+    g.fillText((v > 0 ? '+' : '') + (Number.isInteger(v) ? v : v.toFixed(1)), 6, y);
+  }
+
+  // column geometry
+  const inner = W - padL - padR;
+  const colW = Math.min(72, inner * 0.2);
+  const gap  = Math.min(96, inner * 0.24);
+  const groupW = colW * 2 + gap;
+  const startX = padL + (inner - groupW) / 2;
+  const aX = startX, bX = startX + colW + gap;
+
+  function drawColumn(x, topVal, kind, filled) {
+    g.fillStyle = 'rgba(255,255,255,0.022)';
+    roundRectPath(g, x, topY, colW, plotH, 6); g.fill();
+    g.strokeStyle = 'rgba(255,255,255,0.07)'; g.lineWidth = 1;
+    roundRectPath(g, x + 0.5, topY + 0.5, colW - 1, plotH - 1, 6); g.stroke();
+    if (!filled) return;
+    const [c0, c1, cap] = METER_COLZ[kind];
+    const yTop = yOf(topVal);
+    g.save();
+    roundRectPath(g, x, topY, colW, plotH, 6); g.clip();
+    const grad = g.createLinearGradient(0, yTop, 0, baseY);
+    grad.addColorStop(0, c0); grad.addColorStop(1, c1);
+    g.fillStyle = grad; g.fillRect(x, yTop, colW, baseY - yTop);
+    g.fillStyle = 'rgba(0,0,0,0.5)';
+    for (let yy = baseY - 3; yy > yTop; yy -= 7) g.fillRect(x, yy, colW, 2);
+    g.restore();
+    g.fillStyle = cap; g.shadowColor = cap; g.shadowBlur = 10;
+    g.fillRect(x, yTop - 1, colW, 3); g.shadowBlur = 0;
+  }
+
+  // A reference column (always at 0 dB)
+  drawColumn(aX, 0, 'ref', true);
+
+  // B column
+  const up = db >= 0;
+  if (revealed && db !== null) {
+    drawColumn(bX, db, up ? 'up' : 'down', true);
+  } else {
+    drawColumn(bX, 0, 'ref', false);
+    g.fillStyle = 'rgba(255,255,255,0.22)';
+    g.font = 'bold 30px "IBM Plex Mono", monospace';
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText('?', bX + colW/2, (topY + baseY) / 2);
+  }
+
+  // A / B base labels
+  g.font = '11px "IBM Plex Mono", monospace'; g.textAlign = 'center'; g.textBaseline = 'top';
+  g.fillStyle = 'rgba(170,178,255,0.85)'; g.fillText('A', aX + colW/2, baseY + 7);
+  g.fillStyle = (revealed && db !== null) ? (up ? 'rgba(62,207,142,0.95)' : 'rgba(244,91,105,0.95)') : 'rgba(255,209,102,0.85)';
+  g.fillText('B', bX + colW/2, baseY + 7);
+
+  // delta connector + label on reveal
+  if (revealed && db !== null) {
+    const aTop = yOf(0), bTop = yOf(db), midX = (aX + colW + bX) / 2;
+    g.strokeStyle = up ? 'rgba(62,207,142,0.6)' : 'rgba(244,91,105,0.6)';
+    g.lineWidth = 1.5; g.setLineDash([4, 3]);
+    g.beginPath(); g.moveTo(aX + colW, aTop); g.lineTo(bX, bTop); g.stroke(); g.setLineDash([]);
+    g.fillStyle = up ? '#3ecf8e' : '#f45b69';
+    g.font = 'bold 15px "IBM Plex Mono", monospace';
+    g.textAlign = 'center'; g.textBaseline = 'bottom';
+    g.fillText(fmtDb(db) + ' dB', midX, Math.min(aTop, bTop) - 12);
+  }
+}
+
+// ── Monitor toggle (A = reference, B = adjusted) ──────────────────────────────
+function setMonitor(m) {
+  currentMonitor = m;
+  if (gainNode && audioCtx) {
+    const target = m === 'A' ? 1.0 : dbToLinear(targetDb);
+    gainNode.gain.setTargetAtTime(target, audioCtx.currentTime, 0.008);
+  }
+  document.getElementById('btnA').classList.toggle('active', m === 'A');
+  document.getElementById('btnB').classList.toggle('active', m === 'B');
+  document.getElementById('monitorHint').textContent =
+    m === 'A' ? 'Hearing reference (0 dB)' : 'Hearing adjusted signal';
+}
+
+function dbToLinear(db) {
+  return Math.pow(10, db / 20);
+}
+
+// ── Pick random target ────────────────────────────────────────────────────────
+function pickTarget() {
+  const opts = getDbOptions();
+  // Filter out 0 and, if possible, the last target (avoid repeat)
+  let pool = opts.filter(v => v !== 0);
+  if (pool.length > 1 && lastTargetDb !== null) pool = pool.filter(v => v !== lastTargetDb);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// ── Round ─────────────────────────────────────────────────────────────────────
+function newRound() {
+  clearTimeout(nextTimeout);
+  stopPlayback();
+
+  if (sourceType === 'oneShot' && oneShotBuffers.length > 0)
+    oneShotIdx = randNext(oneShotBuffers.length, oneShotIdx);
+  if (sourceType === 'loop' && loopFileNames.length > 0)
+    loopIdx = randNext(loopFileNames.length, loopIdx);
+  if (sourceType === 'custom' && customFiles.length > 0)
+    customIdx = (customIdx + 1) % customFiles.length;
+
+  answered    = false;
+  roundActive = true;
+  currentMonitor = 'B';
+
+  targetDb     = pickTarget();
+  lastTargetDb = targetDb;
+  totalRounds++;
+  document.getElementById('roundVal').textContent = totalRounds;
+
+  // Prompt
+  document.getElementById('promptText').innerHTML =
+    `Compare <span>A</span> and <span>B</span>. How many dB did the level change?`;
+  document.getElementById('promptCard').classList.remove('correct-flash','wrong-flash');
+  document.getElementById('resultInline').className = 'result-msg-inline';
+  document.getElementById('resultInline').textContent = '';
+  document.getElementById('nextBar').style.display = 'none';
+
+  // Reset dB buttons
+  const opts = getDbOptions();
+  opts.forEach(db => {
+    const btn = document.getElementById(`db-${db}`);
+    if (btn) { btn.className = 'db-btn'; btn.disabled = false; }
+  });
+
+  // A/B buttons
+  document.getElementById('btnA').disabled = false;
+  document.getElementById('btnB').disabled = false;
+  document.getElementById('btnA').classList.remove('active');
+  document.getElementById('btnB').classList.add('active');
+  document.getElementById('monitorHint').textContent = 'Hearing adjusted signal';
+  document.getElementById('btnSkip').disabled = false;
+
+  // Reset meter scaffolding (B stays hidden until answered)
+  drawMeter(targetDb, false);
+
+  if (isPaused && audioCtx) {
+    audioCtx.resume(); isPaused = false;
+    const pb = document.getElementById('btnPause');
+    pb.innerHTML = '&#9646;&#9646; Pause'; pb.classList.remove('paused');
+  }
+
+  playCurrentRound();
+}
+
+// ── Play / stop ───────────────────────────────────────────────────────────────
+function playCurrentRound() {
+  if (!roundActive) { newRound(); return; }
+  stopPlayback();
+  initAudio();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  drawMeter(targetDb, false);
+
+  if (sourceType === 'oneShot') {
+    startOneShotLoop();
+  } else {
+    playContinuousSource();
+  }
+
+  const dot = document.getElementById('playDot');
+  dot.className = 'pulse-dot';
+  document.getElementById('btnPlay').classList.add('playing');
+  document.getElementById('monitorSwitch').classList.add('live');
+  document.getElementById('btnPause').disabled   = false;
+  document.getElementById('btnRestart').disabled = false;
+
+  // Start in B mode
+  setMonitor('B');
+}
+
+function buildGainChain(sourceGain) {
+  gainNode = audioCtx.createGain();
+  gainNode.gain.value = currentMonitor === 'A' ? 1.0 : dbToLinear(targetDb);
+  outGain  = audioCtx.createGain();
+  outGain.gain.value = sourceGain;
+  gainNode.connect(outGain);
+  outGain.connect(audioCtx.destination);
+}
+
+function startOneShotLoop() {
+  if (!oneShotBuffers.length) return;
+  buildGainChain(0.8);
+  isPlaying = true;
+  const fireShot = () => {
+    if (!isPlaying || sourceType !== 'oneShot') return;
+    const sample = oneShotBuffers[oneShotIdx % oneShotBuffers.length];
+    const src = audioCtx.createBufferSource();
+    src.buffer = sample.buffer;
+    src.connect(gainNode);
+    src.start(0);
+    currentShotSrc = src;
+  };
+  fireShot();
+  shotLoopTimer = setInterval(fireShot, 5000);
+}
+
+function playContinuousSource() {
+  buildGainChain(0.6);
+
+  if (sourceType === 'loop' && loopFileNames.length > 0) {
+    if (!loopAudioEl) { loopAudioEl = new Audio(); loopAudioEl.loop = true; }
+    if (!loopMediaSrc) loopMediaSrc = audioCtx.createMediaElementSource(loopAudioEl);
+    const fname = loopFileNames[loopIdx % loopFileNames.length];
+    if (loopAudioEl._currentFname !== fname) {
+      loopAudioEl.src = `../samples/loops/${fname}`;
+      loopAudioEl._currentFname = fname;
+    }
+    loopMediaSrc.connect(gainNode);
+    loopAudioEl.play().catch(e => console.warn('Loop autoplay blocked:', e));
+    noiseSource = loopMediaSrc;
+
+  } else if (sourceType === 'custom' && customBuffers.filter(Boolean).length > 0) {
+    const buf = customBuffers[customIdx % customBuffers.length];
+    if (buf) {
+      if (customSrc) { try { customSrc.stop(); } catch(e){} customSrc = null; }
+      customSrc = audioCtx.createBufferSource();
+      customSrc.buffer = buf; customSrc.loop = true;
+      customSrc.connect(gainNode);
+      customSrc.start(0, customSrcOffset % buf.duration);
+      customSrcStartTime = audioCtx.currentTime;
+      noiseSource = customSrc;
+    }
+
+  } else {
+    // Pink noise
+    const src = makePinkNoise(5);
+    src.loop = true;
+    src.connect(gainNode);
+    src.start(0);
+    noiseSource = src;
+  }
+
+  isPlaying = true;
+}
+
+function stopPlayback() {
+  clearTimeout(nextTimeout);
+  if (shotLoopTimer) { clearInterval(shotLoopTimer); shotLoopTimer = null; }
+  if (noiseSource && noiseSource !== loopMediaSrc && noiseSource !== customSrc) {
+    try { noiseSource.stop(); } catch(e) {}
+  }
+  noiseSource = null;
+  if (loopAudioEl)   loopAudioEl.pause();
+  if (loopMediaSrc) { try { loopMediaSrc.disconnect(); } catch(e) {} }
+  if (customSrc) { try { customSrc.stop(); } catch(e){} customSrc = null; customSrcOffset = 0; }
+  if (currentShotSrc) { try { currentShotSrc.stop(); } catch(e) {} currentShotSrc = null; }
+  if (gainNode)  { try { gainNode.disconnect();  } catch(e) {} gainNode  = null; }
+  if (outGain)   { try { outGain.disconnect();   } catch(e) {} outGain   = null; }
+  isPlaying = false;
+  const dot = document.getElementById('playDot'); if (dot) dot.className = 'pulse-dot';
+  document.getElementById('btnPlay').classList.remove('playing');
+  const ms = document.getElementById('monitorSwitch'); if (ms) ms.classList.remove('live');
+}
+
+// ── Answer ────────────────────────────────────────────────────────────────────
+function submitAnswer(clickedDb) {
+  if (!roundActive || answered) return;
+  answered = true;
+  stopPlayback();
+  drawMeter(targetDb, true);
+
+  const isCorrect = (parseFloat(clickedDb) === parseFloat(targetDb));
+  const pts = window.ScoringEngine ? ScoringEngine.points('level-logic', { difficulty }) : 100;
+  if (isCorrect) { score += pts; streak++; correctCount++; } else streak = 0;
+  if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'level-logic', correct: isCorrect, roundScore: isCorrect ? pts : 0 });
+
+  document.getElementById('scoreVal').textContent    = score;
+  document.getElementById('streakVal').textContent   = streak;
+  document.getElementById('accuracyVal').textContent =
+    totalRounds > 0 ? Math.round(correctCount / totalRounds * 100) + '%' : '—';
+
+  const opts = getDbOptions();
+  opts.forEach(db => {
+    const btn = document.getElementById(`db-${db}`);
+    if (!btn) return;
+    btn.disabled = true;
+    const isTarget  = parseFloat(db) === parseFloat(targetDb);
+    const isClicked = parseFloat(db) === parseFloat(clickedDb);
+    if (isTarget && isCorrect)    btn.classList.add('correct');
+    else if (isClicked && !isCorrect) btn.classList.add('wrong');
+    else if (isTarget && !isCorrect)  btn.classList.add('reveal');
+    else btn.classList.add('dimmed');
+  });
+
+  document.getElementById('btnA').disabled = true;
+  document.getElementById('btnB').disabled = true;
+  document.getElementById('monitorHint').textContent = '';
+
+  document.getElementById('promptCard').classList.add(isCorrect ? 'correct-flash' : 'wrong-flash');
+  const ri = document.getElementById('resultInline');
+  const _multLbl = window.ScoringEngine ? ScoringEngine.label('level-logic', { difficulty }) : '×1.0';
+  ri.textContent = isCorrect ? `✓ Correct   +${pts} pts  ${_multLbl}` : `✗ Incorrect — ${fmtDb(targetDb)} dB`;
+  ri.className   = `result-msg-inline ${isCorrect ? 'show-correct' : 'show-wrong'}`;
+
+  addHistory(isCorrect);
+
+  const delay = isCorrect ? 1400 : 2200;
+  const bar = document.getElementById('nextBar'), fill = document.getElementById('nextFill');
+  bar.style.display = 'block'; fill.style.transition = 'none'; fill.style.width = '100%';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    fill.style.transition = `width ${delay}ms linear`; fill.style.width = '0%';
+  }));
+  nextTimeout = setTimeout(newRound, delay);
+  document.getElementById('btnSkip').disabled = true;
+}
+
+function skipRound() {
+  if (!roundActive || answered) return;
+  answered = true;
+  stopPlayback();
+  drawMeter(targetDb, true);
+  streak = 0; document.getElementById('streakVal').textContent = 0;
+
+  const opts = getDbOptions();
+  opts.forEach(db => {
+    const btn = document.getElementById(`db-${db}`);
+    if (!btn) return;
+    btn.disabled = true;
+    btn.classList.add(parseFloat(db) === parseFloat(targetDb) ? 'reveal' : 'dimmed');
+  });
+
+  document.getElementById('btnA').disabled = true;
+  document.getElementById('btnB').disabled = true;
+  document.getElementById('monitorHint').textContent = '';
+
+  const ri = document.getElementById('resultInline');
+  ri.textContent = `→ ${fmtDb(targetDb)} dB`;
+  ri.className   = 'result-msg-inline show-wrong';
+  addHistory(false);
+
+  const bar = document.getElementById('nextBar'), fill = document.getElementById('nextFill');
+  bar.style.display = 'block'; fill.style.transition = 'none'; fill.style.width = '100%';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    fill.style.transition = 'width 2000ms linear'; fill.style.width = '0%';
+  }));
+  nextTimeout = setTimeout(newRound, 2000);
+  document.getElementById('btnSkip').disabled = true;
+}
+
+// ── History ───────────────────────────────────────────────────────────────────
+function addHistory(correct) {
+  const strip = document.getElementById('historyStrip');
+  const dot   = document.createElement('div');
+  dot.className = `hist-dot ${correct ? 'c' : 'w'}`;
+  strip.appendChild(dot);
+  while (strip.children.length > 40) strip.removeChild(strip.firstChild);
+}
+
+// ── Audio infrastructure ──────────────────────────────────────────────────────
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function makePinkNoise(durationSecs) {
+  const rate = audioCtx.sampleRate;
+  const len  = Math.ceil(rate * durationSecs);
+  const buf  = audioCtx.createBuffer(1, len, rate);
+  const d    = buf.getChannelData(0);
+  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+  for (let i=0; i<len; i++) {
+    const w = Math.random() * 2 - 1;
+    b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
+    b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
+    b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
+    d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11; b6=w*0.115926;
+  }
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf;
+  return src;
+}
+
+function randNext(len, cur) {
+  if (len <= 1) return 0;
+  let next; do { next = Math.floor(Math.random() * len); } while (next === cur);
+  return next;
+}
+
+// ── Seek / skip track ─────────────────────────────────────────────────────────
+function seekMusic(deltaSecs) {
+  if (!roundActive || !isPlaying) return;
+  if (sourceType === 'loop' && loopAudioEl) {
+    loopAudioEl.currentTime = Math.max(0, loopAudioEl.currentTime + deltaSecs);
+    showToast(`${deltaSecs > 0 ? '+' : ''}${deltaSecs}s`);
+  } else if (sourceType === 'custom' && customSrc) {
+    const buf2 = customBuffers[customIdx % customBuffers.length];
+    if (buf2) {
+      const elapsed2 = audioCtx.currentTime - customSrcStartTime;
+      customSrcOffset = Math.max(0, (customSrcOffset + elapsed2 + deltaSecs)) % buf2.duration;
+      customSrcStartTime = audioCtx.currentTime;
+      try { customSrc.stop(); } catch(e){}
+      customSrc = audioCtx.createBufferSource();
+      customSrc.buffer = buf2; customSrc.loop = true;
+      customSrc.connect(gainNode); customSrc.start(0, customSrcOffset);
+      noiseSource = customSrc;
+    }
+    showToast(`${deltaSecs > 0 ? '+' : ''}${deltaSecs}s`);
+  }
+}
+
+function skipTrack(delta) {
+  if (!roundActive || !isPlaying || !audioCtx) return;
+  if (sourceType === 'oneShot' && oneShotBuffers.length > 0) {
+    oneShotIdx = ((oneShotIdx + delta) % oneShotBuffers.length + oneShotBuffers.length) % oneShotBuffers.length;
+    if (shotLoopTimer) { clearInterval(shotLoopTimer); shotLoopTimer = null; }
+    if (currentShotSrc) { try { currentShotSrc.stop(); } catch(e) {} currentShotSrc = null; }
+    const fireShot = () => {
+      if (!isPlaying) return;
+      const s = audioCtx.createBufferSource();
+      s.buffer = oneShotBuffers[oneShotIdx % oneShotBuffers.length].buffer;
+      if (gainNode) s.connect(gainNode); s.start(0); currentShotSrc = s;
+    };
+    fireShot(); shotLoopTimer = setInterval(fireShot, 5000);
+    showToast(`Shot ${oneShotIdx + 1} / ${oneShotBuffers.length}`);
+  } else if (sourceType === 'loop' && loopFileNames.length > 0) {
+    loopIdx = ((loopIdx + delta) % loopFileNames.length + loopFileNames.length) % loopFileNames.length;
+    if (loopAudioEl) {
+      loopAudioEl.src = `../samples/loops/${loopFileNames[loopIdx]}`;
+      loopAudioEl._currentFname = loopFileNames[loopIdx];
+      loopAudioEl.play().catch(() => {});
+    }
+    showToast(`Loop ${loopIdx + 1} / ${loopFileNames.length}`);
+  } else if (sourceType === 'custom' && customFiles.length > 0) {
+    customIdx = ((customIdx + delta) % customFiles.length + customFiles.length) % customFiles.length;
+    customSrcOffset = 0;
+      const skBuf = customBuffers[customIdx];
+      if (skBuf && isPlaying) {
+        try { customSrc.stop(); } catch(e){}
+        customSrc = audioCtx.createBufferSource();
+        customSrc.buffer = skBuf; customSrc.loop = true;
+        customSrc.connect(gainNode);
+        customSrc.start(0); customSrcStartTime = audioCtx.currentTime; noiseSource = customSrc;
+      }
+    showToast(`Track ${customIdx + 1} / ${customBuffers.filter(Boolean).length}`);
+  }
+}
+
+// ── Source management ─────────────────────────────────────────────────────────
+let samplesManifest = null;
+async function getManifest() {
+  if (samplesManifest) return samplesManifest;
+  const r = await fetch('../samples/manifest.json');
+  samplesManifest = await r.json();
+  return samplesManifest;
+}
+
+async function loadOneShotSamples() {
+  if (oneShotLoaded) return;
+  initAudio();
+  document.getElementById('srcOneShot').classList.add('loading');
+  document.getElementById('srcOneShot').textContent = 'Loading…';
+  oneShotBuffers = [];
+  const manifest = await getManifest();
+  await Promise.all(manifest.oneShots.map(async fname => {
+    try {
+      const r = await fetch(`../samples/one-shots/${fname}`);
+      if (!r.ok) return;
+      const ab = await r.arrayBuffer();
+      oneShotBuffers.push({ buffer: await audioCtx.decodeAudioData(ab) });
+    } catch(e) { console.warn('one-shot fail:', fname, e); }
+  }));
+  oneShotLoaded = oneShotBuffers.length > 0;
+  if (oneShotLoaded) oneShotIdx = Math.floor(Math.random() * oneShotBuffers.length);
+  document.getElementById('srcOneShot').textContent = 'One-Shots';
+  document.getElementById('srcOneShot').classList.remove('loading');
+  if (!oneShotLoaded) { showToast('No one-shots found'); sourceType = 'pink'; updateSourceUI(); }
+}
+
+async function loadLoopSamples() {
+  if (loopManifestLoaded) return;
+  const manifest = await getManifest();
+  loopFileNames = manifest.loops || [];
+  loopManifestLoaded = loopFileNames.length > 0;
+  if (loopManifestLoaded) loopIdx = Math.floor(Math.random() * loopFileNames.length);
+  document.getElementById('srcLoop').classList.remove('loading');
+  if (!loopManifestLoaded) { showToast('No loops found'); sourceType = 'pink'; updateSourceUI(); }
+}
+
+function setSource(type) {
+  if (type === 'oneShot' && !oneShotLoaded) {
+    loadOneShotSamples().then(() => { if (oneShotLoaded) { sourceType = 'oneShot'; updateSourceUI(); } });
+    return;
+  }
+  if (type === 'loop' && !loopManifestLoaded) {
+    loadLoopSamples().then(() => { if (loopManifestLoaded) { sourceType = 'loop'; updateSourceUI(); } });
+    return;
+  }
+  sourceType = type; updateSourceUI();
+}
+
+function updateSourceUI() {
+  document.getElementById('srcPink').classList.toggle('active',    sourceType === 'pink');
+  document.getElementById('srcOneShot').classList.toggle('active', sourceType === 'oneShot');
+  document.getElementById('srcLoop').classList.toggle('active',    sourceType === 'loop');
+  document.getElementById('srcCustom').classList.toggle('active',  sourceType === 'custom');
+}
+
+function triggerUpload() {
+  if (customFiles.length > 0) { setSource('custom'); return; }
+  document.getElementById('folderInput').click();
+}
+
+function handleFolderUpload(e) {
+  const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/') || /\.(mp3|wav|ogg|aac|flac|m4a)$/i.test(f.name));
+  if (!files.length) return;
+  initAudio();
+  customFiles = files; customIdx = 0; customBuffers = [];
+  const label = document.getElementById('uploadLabel') || document.getElementById('folderLabel');
+  if (label) label.textContent = '⧗ Loading...';
+  let loaded = 0;
+  Promise.all(files.map((f, i) =>
+    f.arrayBuffer()
+      .then(ab => audioCtx.decodeAudioData(ab))
+      .then(buf => { customBuffers[i] = buf; loaded++; if (label) label.textContent = '⧗ ' + loaded + '/' + files.length; })
+      .catch(err => { console.warn('Could not decode', f.name, err); customBuffers[i] = null; loaded++; })
+  )).then(() => {
+    const n = customBuffers.filter(Boolean).length;
+    if (label) label.textContent = '📁 ' + n + ' tracks';
+    setSource('custom');
+    if (typeof showToast === 'function') showToast(n + ' tracks ready');
+    if (typeof setLoadStatus === 'function') { setLoadStatus(n + ' tracks ready', false); setTimeout(() => setLoadStatus(null), 2500); }
+  });
+}
+
+// ── Pause / Resume ────────────────────────────────────────────────────────────
+function togglePause() {
+  if (!roundActive || !audioCtx) return;
+  const btn = document.getElementById('btnPause');
+  if (isPaused) {
+    if (loopAudioEl   && sourceType === 'loop')   loopAudioEl.play().catch(() => {});
+    // customSrc resumed by audioCtx.resume()
+    audioCtx.resume().then(() => {
+      isPaused = false;
+      btn.innerHTML = '&#9646;&#9646; Pause'; btn.classList.remove('paused');
+      if (sourceType === 'oneShot' && isPlaying) {
+        if (shotLoopTimer) clearInterval(shotLoopTimer);
+        const fireShot = () => {
+          if (!isPlaying) return;
+          const s = audioCtx.createBufferSource();
+          s.buffer = oneShotBuffers[oneShotIdx % oneShotBuffers.length].buffer;
+          if (gainNode) s.connect(gainNode); s.start(0); currentShotSrc = s;
+        };
+        fireShot(); shotLoopTimer = setInterval(fireShot, 5000);
+      }
+    });
+  } else {
+    if (loopAudioEl   && sourceType === 'loop')   loopAudioEl.pause();
+    // customSrc paused by audioCtx.suspend()
+    if (shotLoopTimer) { clearInterval(shotLoopTimer); shotLoopTimer = null; }
+    audioCtx.suspend().then(() => {
+      isPaused = true;
+      btn.innerHTML = '&#9654; Resume'; btn.classList.add('paused');
+    });
+  }
+}
+
+// ── Restart ───────────────────────────────────────────────────────────────────
+function restartAudio() {
+  if (!roundActive) return;
+  initAudio();
+  if (isPaused) {
+    audioCtx.resume(); isPaused = false;
+    const btn = document.getElementById('btnPause');
+    btn.innerHTML = '&#9646;&#9646; Pause'; btn.classList.remove('paused');
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  if (loopAudioEl   && sourceType === 'loop')   loopAudioEl.currentTime = 0;
+  // buffer source restarted on next round
+  stopPlayback(); playCurrentRound();
+  showToast('Restarted');
+}
+
+
+function toggleShortcuts(e) {
+  e.stopPropagation();
+  const pop = document.getElementById('shortcutsPopover');
+  pop.classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  const pop = document.getElementById('shortcutsPopover');
+  if (pop) pop.classList.remove('open');
+});
+// ── Keyboard shortcuts ────────────────────────────────────────────────────────
+window.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (e.code !== 'KeyP' && audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+
+  if ((e.code === 'Space' || e.code === 'KeyD') && roundActive && !answered) {
+    e.preventDefault();
+    setMonitor(currentMonitor === 'A' ? 'B' : 'A');
+  }
+  if (e.code === 'KeyP')       { e.preventDefault(); togglePause(); }
+  if (e.code === 'KeyF')       { e.preventDefault(); restartAudio(); }
+  if (e.code === 'ArrowLeft')  { e.preventDefault(); seekMusic(-10); }
+  if (e.code === 'ArrowRight') { e.preventDefault(); seekMusic(+10); }
+  if (e.code === 'ArrowUp')    { e.preventDefault(); skipTrack(+1); }
+  if (e.code === 'ArrowDown')  { e.preventDefault(); skipTrack(-1); }
+
+  const numMatch = e.key.match(/^[1-8]$/);
+  if (numMatch && roundActive && !answered) {
+    const opts = getDbOptions();
+    const idx  = parseInt(e.key) - 1;
+    if (idx < opts.length) submitAnswer(opts[idx]);
+  }
+});
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+buildDbGrid();
+drawMeter(null, false);
+updateMultBadge();
+updateRangeBadge();
+window.addEventListener('resize', () => {
+  if (roundActive) drawMeter(targetDb, answered);
+  else drawMeter(null, false);
+});
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW failed', err));
+  });
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../supabase-client.js"></script>
+<!-- Auth modal -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" id="closeAuthBtn">&times;</button>
+    <div class="modal-tabs">
+      <button class="modal-tab active" data-tab="signin">Sign in</button>
+      <button class="modal-tab" data-tab="signup">Create account</button>
+    </div>
+    <div id="tabSignin">
+      <label>Email</label>
+      <input type="email" id="siEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label>
+      <input type="password" id="siPassword" placeholder="••••••••" autocomplete="current-password">
+      <button class="modal-submit" id="siSubmit">Sign in</button>
+      <div class="modal-msg" id="siMsg"></div>
+      <button class="forgot-pw-link" id="forgotPwBtn" type="button">Forgot password?</button>
+    </div>
+    <div id="tabForgot" style="display:none;">
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:18px;">Enter your email and we'll send you a reset link.</p>
+      <label>Email</label>
+      <input type="email" id="fpEmail" placeholder="you@example.com" autocomplete="email">
+      <button class="modal-submit" id="fpSubmit">Send reset link</button>
+      <div class="modal-msg" id="fpMsg"></div>
+      <button class="forgot-pw-link" id="backToSigninBtn" type="button">← Back to sign in</button>
+    </div>
+    <div id="tabSignup" style="display:none;">
+      <label>Email</label>
+      <input type="email" id="suEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label>
+      <input type="password" id="suPassword" placeholder="At least 6 characters" autocomplete="new-password">
+      <button class="modal-submit" id="suSubmit">Create account</button>
+      <div class="modal-msg" id="suMsg"></div>
+    </div>
+  </div>
+</div>
+<!-- Footer -->
+<footer>
+  <div class="footer-left">
+    <a href="/">SonicSandbox</a>
+    &nbsp;·&nbsp; Ear training for producers, engineers, &amp; musicians
+    &nbsp;·&nbsp; <a href="/about/">About</a>
+    &nbsp;·&nbsp; <a href="/privacy/">Privacy Policy</a>
+    &nbsp;·&nbsp; <a href="/support/">Support</a>
+  </div>
+  <div class="footer-right">
+    <span>© 2026 Zach Snider</span>
+  </div>
+</footer>
+<script>
+  // ── Auth modal ────────────────────────────────────────────
+  const authModal = document.getElementById('authModal');
+  const authArea  = document.getElementById('authArea');
+  const openBtn   = document.getElementById('openAuthBtn');
+  const closeBtn  = document.getElementById('closeAuthBtn');
+  const tabs      = document.querySelectorAll('.modal-tab');
+  const tabSignin = document.getElementById('tabSignin');
+  const tabSignup = document.getElementById('tabSignup');
+  const tabForgot = document.getElementById('tabForgot');
+
+  if (openBtn) openBtn.addEventListener('click', () => authModal.classList.add('open'));
+  closeBtn.addEventListener('click', () => { authModal.classList.remove('open'); showSigninPanel(); });
+  authModal.addEventListener('click', e => { if (e.target === authModal) { authModal.classList.remove('open'); showSigninPanel(); } });
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      tabSignin.style.display = tab.dataset.tab === 'signin' ? '' : 'none';
+      tabSignup.style.display = tab.dataset.tab === 'signup' ? '' : 'none';
+      tabForgot.style.display = 'none';
+    });
+  });
+
+  function showSigninPanel() { tabForgot.style.display = 'none'; tabSignin.style.display = ''; }
+  function showForgotPanel() {
+    tabSignin.style.display = 'none'; tabForgot.style.display = '';
+    const e = document.getElementById('siEmail').value.trim();
+    if (e) document.getElementById('fpEmail').value = e;
+    document.getElementById('fpMsg').textContent = '';
+  }
+
+  document.getElementById('forgotPwBtn').addEventListener('click', showForgotPanel);
+  document.getElementById('backToSigninBtn').addEventListener('click', showSigninPanel);
+
+  document.getElementById('siSubmit').addEventListener('click', async () => {
+    const msg = document.getElementById('siMsg');
+    msg.textContent = 'Signing in…'; msg.className = 'modal-msg';
+    const { error } = await SonicSandbox.signIn(
+      document.getElementById('siEmail').value.trim(),
+      document.getElementById('siPassword').value
+    );
+    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+    else { authModal.classList.remove('open'); }
+  });
+
+  document.getElementById('fpSubmit').addEventListener('click', async () => {
+    const email = document.getElementById('fpEmail').value.trim();
+    const msg = document.getElementById('fpMsg');
+    if (!email) { msg.textContent = 'Please enter your email.'; msg.className = 'modal-msg error'; return; }
+    msg.textContent = 'Sending…'; msg.className = 'modal-msg';
+    const { error } = await SonicSandbox.resetPasswordForEmail(email);
+    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+    else { msg.textContent = 'Reset link sent! Check your inbox.'; msg.className = 'modal-msg success'; document.getElementById('fpSubmit').disabled = true; }
+  });
+
+  document.getElementById('suSubmit').addEventListener('click', async () => {
+    const msg = document.getElementById('suMsg');
+    msg.textContent = 'Creating account…'; msg.className = 'modal-msg';
+    const { error } = await SonicSandbox.signUp(
+      document.getElementById('suEmail').value.trim(),
+      document.getElementById('suPassword').value
+    );
+    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+    else { msg.textContent = 'Check your email to confirm your account.'; msg.className = 'modal-msg success'; }
+  });
+
+  // ── Auth state ────────────────────────────────────────────
+  document.addEventListener('ss:authchange', async e => {
+    const user = e.detail;
+    if (user) {
+      authArea.innerHTML = `<div class="user-pill"><span class="username-display" style="color:var(--muted);font-size:12px;">${user.email}</span></div>`;
+      const profile = await SonicSandbox.getProfile();
+      if (profile?.username) {
+        const el = document.querySelector('.username-display');
+        if (el) el.outerHTML = `<a class="set-username-link" href="/account/">@${profile.username}</a>`;
+      }
+    } else {
+      authArea.innerHTML = `<button class="auth-btn" id="openAuthBtn">Sign in</button>`;
+      document.getElementById('openAuthBtn').addEventListener('click', () => authModal.classList.add('open'));
+    }
+  });
+</script>
+</body>
+</html>

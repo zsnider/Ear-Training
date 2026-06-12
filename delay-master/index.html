@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta charset="UTF-8">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cloud.umami.is 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://aolaxmmrmvovbzumlybe.supabase.co wss://aolaxmmrmvovbzumlybe.supabase.co https://cloud.umami.is; img-src 'self' data:; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
+<meta name="description" content="Match delay time, feedback, and mix of a hidden delay effect entirely by ear. Free delay ear training game for producers and audio engineers.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="canonical" href="https://sonicsandbox.app/delay-master/">
+
+<title>Delay Ear Training Game — Identify Delay by Ear | SonicSandbox</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="../daw-ui.css">
+<style>
+  /* Delay identity colours — teal, time + space */
+  body { --accent: #109e92; --accent2: #2dd4c0; }
+
+  /* Echo timeline legend dot */
+  .wave-legend { display: none; gap: 14px; align-items: center; padding-left: 14px; border-left: 1px solid var(--border); }
+
+  /* Sync indicator chip in display head */
+  .sync-chip {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.14em;
+    padding: 3px 9px; border-radius: 6px;
+    border: 1px solid var(--border2);
+    color: var(--muted); background: rgba(255,255,255,0.03);
+    white-space: nowrap; text-transform: uppercase;
+  }
+</style>
+  <script src="../scoring.js"></script>
+  <script src="../daw-ui.js"></script>
+
+  <!-- Open Graph / Social -->
+  <meta property="og:type"        content="website">
+  <meta property="og:url"         content="https://sonicsandbox.app/delay-master/">
+  <meta property="og:title"       content="Delay Ear Training Game — Identify Delay by Ear | SonicSandbox">
+  <meta property="og:description" content="Match the delay time, feedback, and mix of a hidden delay effect by ear.">
+  <meta property="og:image"       content="https://sonicsandbox.app/og-image.png">
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:title"       content="Delay Ear Training Game — Identify Delay by Ear | SonicSandbox">
+  <meta name="twitter:description" content="Match the delay time, feedback, and mix of a hidden delay effect by ear.">
+  <meta name="twitter:image"       content="https://sonicsandbox.app/og-image.png">
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="a4e7fbcc-763c-4844-8f4f-669cf411e799"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Delay Master — SonicSandbox",
+    "url": "https://sonicsandbox.app/delay-master/",
+    "description": "Match the delay time, feedback, and mix of a hidden delay effect by ear.",
+    "applicationCategory": "GameApplication",
+    "operatingSystem": "Web Browser",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "keywords": "delay ear training, echo training, audio effects game, free ear training"
+  }
+  </script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="knobCap" cx="38%" cy="30%" r="78%">
+      <stop offset="0%" stop-color="#3a4049"/>
+      <stop offset="55%" stop-color="#22262e"/>
+      <stop offset="100%" stop-color="#14171c"/>
+    </radialGradient>
+    <radialGradient id="knobCapLocked" cx="38%" cy="30%" r="78%">
+      <stop offset="0%" stop-color="#23262c"/>
+      <stop offset="100%" stop-color="#15171b"/>
+    </radialGradient>
+  </defs>
+</svg>
+
+<nav class="site-nav">
+  <div class="nav-logo-wrap">
+    <a class="nav-logo" href="/">Sonic<span>Sandbox</span></a>
+  </div>
+  <div class="nav-center">
+    <a class="nav-link" href="/">Home</a>
+    <a class="nav-link active" href="/games/">Games</a>
+    <a class="nav-link" href="/learn/">Learn</a>
+    <a class="nav-link" href="/stats/">Stats</a>
+  </div>
+  <div class="nav-right">
+    <div id="authArea">
+      <button class="auth-btn" id="openAuthBtn">Sign in</button>
+    </div>
+  </div>
+</nav>
+<div class="game-bar">
+  <div class="game-bar-left">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <rect x="1.5"  y="5"    width="3.2" height="14"  rx="1.6"  fill="white"/>
+          <rect x="7"    y="8"    width="2.7" height="11"  rx="1.35" fill="rgba(255,255,255,0.7)"/>
+          <rect x="12"   y="11"   width="2.4" height="8"   rx="1.2"  fill="rgba(255,255,255,0.45)"/>
+          <rect x="16.5" y="13.5" width="2"   height="5.5" rx="1"    fill="rgba(255,255,255,0.26)"/>
+          <rect x="20.5" y="15.5" width="1.7" height="3.5" rx="0.85" fill="rgba(255,255,255,0.14)"/>
+        </svg>
+      </div>
+      <span class="brand-name">Delay Master</span>
+    </div>
+  </div>
+  <div class="game-bar-right">
+    <div class="score-row">
+    <div class="stat">
+      <div class="stat-val" id="totalScore">—</div>
+      <div class="stat-label">Score</div>
+    </div>
+    <div class="vdiv"></div>
+    <div class="stat">
+      <div class="stat-val" id="streakCount">—</div>
+      <div class="stat-label">Streak</div>
+    </div>
+    <div class="vdiv"></div>
+    <div class="stat">
+      <div class="stat-val" id="roundCount">—</div>
+      <div class="stat-label">Round</div>
+    </div>
+    </div>
+    <div id="multBadge" class="mult-badge">×1.0</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Settings -->
+  <div class="settings-bar">
+    <div class="settings-row" id="difficultyBar">
+      <span class="label">Difficulty</span>
+      <div class="pill active" onclick="setDifficulty('easy',this)">Easy</div>
+      <div class="pill" onclick="setDifficulty('medium',this)">Medium</div>
+      <div class="pill" onclick="setDifficulty('hard',this)">Hard</div>
+      <div style="margin-left:auto; position:relative;" class="shortcuts-wrap">
+        <button class="shortcuts-btn" onclick="toggleShortcuts(event)">⌨ Shortcuts</button>
+        <div class="shortcuts-popover" id="shortcutsPopover">
+          <div class="shortcut-row"><span>Toggle A/B</span><div class="shortcut-keys"><kbd>Space</kbd></div></div>
+          <div class="shortcut-row"><span>Dry signal</span><div class="shortcut-keys"><kbd>D</kbd></div></div>
+          <div class="shortcut-row"><span>Restart</span><div class="shortcut-keys"><kbd>F</kbd></div></div>
+          <div class="shortcut-row"><span>Pause</span><div class="shortcut-keys"><kbd>P</kbd></div></div>
+          <div class="shortcut-row"><span>Seek</span><div class="shortcut-keys"><kbd>←</kbd><kbd>→</kbd></div></div>
+          <div class="shortcut-row"><span>Skip track</span><div class="shortcut-keys"><kbd>↑</kbd><kbd>↓</kbd></div></div>
+          <div class="shortcut-row"><span>New round</span><div class="shortcut-keys"><kbd>⇧</kbd></div></div>
+          <div class="shortcut-row"><span>Check answer</span><div class="shortcut-keys"><kbd>↵</kbd></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="settings-row-divider"></div>
+    <div class="settings-row">
+      <span class="label">Params</span>
+      <span class="custom-hint">— click to toggle</span>
+      <div id="paramPills" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+      <div style="margin-left:auto; display:flex; align-items:center; gap:8px; flex-shrink:0;">
+        <span class="label">Locked</span>
+        <div class="pill" id="fixLockedBtn" onclick="toggleFixLocked()"
+             title="Locked params vary each round">Vary Each Round</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Workspace -->
+  <div class="rig">
+
+    <section class="device">
+
+      <div class="device-top">
+        <div class="gr-needles">
+          <div class="gr-needles-head">
+            <span class="gr-cap-title">Output</span>
+          </div>
+          <div class="vu-row">
+            <div class="vu-unit">
+              <div class="vu" id="vuUser"></div>
+              <div class="vu-foot"><span class="gr-name user-c">YOU</span><span class="meter-db" id="userLvlDb">−∞</span></div>
+            </div>
+            <div class="vu-unit target-gr-hidden" id="targetLvlRow">
+              <div class="vu" id="vuTarget"></div>
+              <div class="vu-foot"><span class="gr-name target-c">TGT</span><span class="meter-db" id="targetLvlDb">−∞</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="monitor">
+          <span class="monitor-label">Monitor</span>
+          <div class="monitor-switch">
+            <button class="mon-btn target-btn" id="btnTarget" onclick="listenTarget()" disabled>
+              <span class="listen-bars"><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span></span>
+              <span class="listen-btn-label">Target</span>
+            </button>
+            <button class="mon-btn dry-btn" id="btnDry" onclick="toggleDry()" disabled>
+              <span class="listen-bars"><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span></span>
+              <span class="listen-btn-label">Dry</span>
+            </button>
+            <button class="mon-btn user-btn" id="btnUser" onclick="listenUser()" disabled>
+              <span class="listen-bars"><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span></span>
+              <span class="listen-btn-label">Yours</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="display-well">
+        <div class="display-main">
+          <div class="display-head">
+            <span class="display-title">Echo Timeline</span>
+            <div class="wave-keys" style="display:flex;align-items:center;gap:14px;">
+              <span class="sync-chip" id="syncChip">— ms · — BPM</span>
+              <div class="wave-legend" id="waveLegend">
+                <div class="tc-legend"><div class="tc-dot" style="background:var(--tgt2);"></div> Target</div>
+                <div class="tc-legend"><div class="tc-dot" style="background:var(--accent2);"></div> Yours</div>
+              </div>
+            </div>
+          </div>
+          <canvas class="hero-canvas" id="heroWave"></canvas>
+          <div class="scope-row">
+            <span class="scope-label">Signal</span>
+            <canvas id="levelCanvas"></canvas>
+            <button class="waveform-hide-btn" id="waveformHideBtn" onclick="toggleWaveform()">Hide</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="deck deck-target" id="targetPanel">
+        <div class="deck-label"><span class="deck-dot" style="background:var(--tgt2);"></span>Target — hidden until you check</div>
+        <div class="knob-grid" id="targetKnobs"></div>
+      </div>
+
+      <div class="deck deck-user" id="userPanel">
+        <div class="deck-label"><span class="deck-dot" style="background:var(--accent2);"></span>Your delay</div>
+        <div class="knob-grid" id="userKnobs"></div>
+      </div>
+
+    </section>
+
+    <aside class="rack">
+      <div class="rack-panel">
+        <span class="rack-label">Audio Source</span>
+        <div class="source-pill active" id="srcPink" onclick="setSource('pink')">Pink Noise</div>
+        <div class="source-pill" id="srcOneShot" onclick="setSource('oneShot')">One-shots</div>
+        <div class="source-pill" id="srcLoop" onclick="setSource('loop')">Loops</div>
+        <div class="source-pill" id="srcCustom" onclick="triggerUpload()" style="border-style:dashed;">
+          <span id="uploadLabel">Upload Folder</span>
+        </div>
+        <input type="file" id="folderInput" webkitdirectory directory multiple onchange="handleFolderUpload(event)" style="display:none;">
+        <span id="sourceLoadStatus"></span>
+      </div>
+
+      <div class="rack-panel">
+        <span class="rack-label">Transport</span>
+        <div class="transport-grid">
+          <button class="btn-secondary" id="btnPause"   onclick="togglePause()"  disabled>&#9646;&#9646; Pause</button>
+          <button class="btn-secondary" id="btnRestart" onclick="restartAudio()" disabled>&#9654; Restart</button>
+          <button class="btn-secondary" onclick="newRound()" style="grid-column:1 / -1;">⟳ New Round</button>
+        </div>
+        <button class="btn-check" id="btnCheck" onclick="checkAnswer()" disabled>Check Match</button>
+      </div>
+
+      <button class="ranges-toggle-btn" id="rangesToggleBtn" onclick="toggleRangesPanel()">
+        <span class="rt-arrow">▶</span> Parameter Ranges
+      </button>
+      <div class="ranges-panel" id="rangesPanel"></div>
+    </aside>
+
+  </div>
+
+  <div class="result-bar" id="resultBar">
+    <div class="result-top">
+      <div>
+        <div class="result-big" id="resultBig">—</div>
+        <div class="result-denom">/ 100</div>
+        <div class="result-pts" id="resultPts"></div>
+      </div>
+      <div style="flex:1;min-width:160px;">
+        <div class="result-msg" id="resultMsg"></div>
+        <div class="acc-track"><div class="acc-fill" id="accFill"></div></div>
+      </div>
+    </div>
+    <div class="param-results" id="paramResults"></div>
+  </div>
+
+</div>
+
+<!-- Help Toggle -->
+<button class="help-toggle" id="helpToggle" onclick="toggleHelp()">
+  <span class="toggle-arrow">▶</span> How to play
+</button>
+
+<!-- Help Section -->
+<div class="help-section" id="helpSection">
+
+  <div class="help-block">
+    <h2>Where to start</h2>
+    <p>
+      Set the difficulty to <strong>Easy</strong> and leave only <strong>Delay Time</strong> active.
+      Press <strong>New Round</strong>, toggle between <strong>Target</strong> and <strong>Yours</strong>,
+      then turn the Delay Time knob until the repeats line up rhythmically. Watch the
+      <strong>Echo Timeline</strong> — each repeat is a bar that decays left to right. Press
+      <strong>Check Match</strong> when you're ready.
+    </p>
+    <p>
+      Click the parameter pills to add Feedback and Wet/Dry to the challenge once Delay Time feels solid.
+    </p>
+  </div>
+
+  <hr class="help-divider">
+
+  <div class="help-block">
+    <h2>What to listen for</h2>
+    <p>
+      <strong>Delay Time</strong> — the gap between the original sound and its first echo. Short times
+      (under 100ms) produce slapback or doubling; longer times (300ms+) give distinct, separated repeats.
+      Tap along to the rhythm of the echoes to estimate the interval, and use the BPM readout above the
+      timeline as a sanity check.
+    </p>
+    <p>
+      <strong>Feedback</strong> — how much of the delayed signal is fed back into the delay line, setting
+      the number of repeats. Low feedback (20–30%) fades after one or two echoes; high feedback (80%+)
+      builds many sustaining repeats. On the timeline this is the slope of the decay — steep means low
+      feedback, shallow means high.
+    </p>
+    <p>
+      <strong>Wet/Dry</strong> — the balance between the delayed signal and the dry original. High wet
+      pushes the echoes forward and prominent; low wet keeps the dry sound up front with echoes trailing
+      subtly behind. On the timeline it scales the overall height of the echo bars relative to the dry hit.
+    </p>
+    <p>
+      Use <kbd>Space</kbd> to A/B between Target and Yours, and <kbd>D</kbd> to drop to the dry signal and
+      re-anchor your sense of the original.
+    </p>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Help Section ───────────────────────────────────────────────────────────────
+function toggleHelp() {
+  const btn = document.getElementById('helpToggle');
+  const sec = document.getElementById('helpSection');
+  const open = sec.classList.toggle('visible');
+  btn.classList.toggle('open', open);
+}
+
+// ── Delay parameter definitions ───────────────────────────────────────────────
+const PARAMS = {
+  delayTime: { label:'Delay Time', min:50, max:750, default:300, fmt: v=>`${Math.round(v)}ms` },
+  feedback:  { label:'Feedback',   min:0,  max:90,  default:45,  fmt: v=>`${Math.round(v)}%`   },
+  wet:       { label:'Wet/Dry',    min:0,  max:100, default:40,  fmt: v=>`${Math.round(v)}%`   },
+};
+
+// Difficulty changes the randomization ranges, not the parameter set.
+const DIFFICULTY = {
+  easy:   { label:'Easy',   ranges:{ delayTime:[100,600], feedback:[20,70], wet:[20,60] } },
+  medium: { label:'Medium', ranges:{ delayTime:[75, 700], feedback:[10,80], wet:[15,70] } },
+  hard:   { label:'Hard',   ranges:{ delayTime:[50, 750], feedback:[5, 88], wet:[10,80] } },
+};
+
+// ── Param ranges (for randomization) — null = use difficulty default ──────────
+let customRanges = { delayTime:null, feedback:null, wet:null };
+function activeRange(key) {
+  return customRanges[key] || DIFFICULTY[difficulty].ranges[key];
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let difficulty      = 'easy';
+// active = being guessed; locked params (not in activeParams) are revealed
+let activeParams    = ['delayTime'];
+let fixLockedParams = false;
+let targetSettings = {}, userSettings = {};
+let roundActive = false, answered = false;
+let totalScore=0, streak=0, round=0;
+let listeningTo  = 'target';
+let isDry        = false;
+let isPaused     = false;
+let abActive=false, abInterval=null;
+
+// Audio
+let audioCtx       = null;
+let currentSource  = null;
+let outputGain     = null;
+let targetChain    = null, userChain = null;
+let analyserTarget = null, analyserUser  = null, analyserDry = null;
+let dryBypassGain  = null;
+let animFrameId    = null;
+let sourceType     = 'pink';
+
+// Custom upload
+let customFiles = [], customIdx = 0;
+let customBuffers=[], customSrc=null, customSrcOffset=0, customSrcStartTime=0;
+
+// One-shots
+let oneShotBuffers = [], oneShotLoaded = false, oneShotIndex = 0;
+let oneShotLoopTimer = null;
+
+// Loops
+let loopFileNames = [], loopManifestLoaded = false, loopIndex = 0;
+let loopAudioEl = null, loopMediaSrc = null;
+
+function randNext(len, cur) {
+  if (len <= 1) return 0;
+  let next;
+  do { next = Math.floor(Math.random() * len); } while (next === cur);
+  return next;
+}
+
+let draggingKnob = null;
+
+// ── Samples manifest ──────────────────────────────────────────────────────────
+let samplesManifest = null;
+async function getManifest() {
+  if (samplesManifest) return samplesManifest;
+  const r = await fetch('../samples/manifest.json');
+  samplesManifest = await r.json();
+  return samplesManifest;
+}
+
+// ── Load status helper ────────────────────────────────────────────────────────
+function setLoadStatus(msg, isLoading) {
+  const el = document.getElementById('sourceLoadStatus');
+  if (!msg) { el.textContent = ''; el.style.color = ''; return; }
+  el.textContent = msg;
+  el.style.color = isLoading ? 'var(--amber)' : 'var(--green)';
+  if (!isLoading) setTimeout(() => { el.textContent = ''; el.style.color = ''; }, 2000);
+}
+
+// ── Difficulty ────────────────────────────────────────────────────────────────
+function updateMultBadge() {
+  const el = document.getElementById('multBadge');
+  if (el && window.ScoringEngine) el.textContent = ScoringEngine.label('delay-master', { difficulty, numParams: activeParams.length });
+}
+
+function setDifficulty(d, el) {
+  difficulty = d;
+  document.querySelectorAll('#difficultyBar .pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  updateMultBadge();
+  if (roundActive) newRound();
+}
+
+function toggleFixLocked() {
+  fixLockedParams = !fixLockedParams;
+  const btn = document.getElementById('fixLockedBtn');
+  btn.classList.toggle('active', !fixLockedParams);
+  btn.textContent = fixLockedParams ? 'Fixed to Defaults' : 'Vary Each Round';
+  btn.title = fixLockedParams
+    ? 'Locked params fixed to defaults — click to vary each round'
+    : 'Locked params vary each round — click to fix to defaults';
+  if (roundActive) newRound();
+}
+
+function toggleRangesPanel() {
+  const panel = document.getElementById('rangesPanel');
+  const btn   = document.getElementById('rangesToggleBtn');
+  const open  = panel.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  if (open && !panel.hasChildNodes()) buildRangesPanel();
+}
+
+function buildRangesPanel() {
+  const panel = document.getElementById('rangesPanel');
+  panel.innerHTML = '';
+  const numericParams = [
+    { key:'delayTime', label:'Delay', unit:'ms', step:5 },
+    { key:'feedback',  label:'F.back', unit:'%', step:1 },
+    { key:'wet',       label:'Mix',   unit:'%', step:1 },
+  ];
+  numericParams.forEach(({ key, label, unit, step }) => {
+    const r = activeRange(key);
+    const p = PARAMS[key];
+    const row = document.createElement('div');
+    row.className = 'range-row';
+    row.innerHTML = `
+      <span class="range-param-label">${label}</span>
+      <input class="range-input" type="number" id="range-min-${key}"
+        value="${r[0]}" min="${p.min}" max="${p.max}" step="${step}"
+        onchange="updateRange('${key}','min',this.value)">
+      <span class="range-sep">–</span>
+      <input class="range-input" type="number" id="range-max-${key}"
+        value="${r[1]}" min="${p.min}" max="${p.max}" step="${step}"
+        onchange="updateRange('${key}','max',this.value)">
+      <span class="range-unit">${unit}</span>
+      <button class="range-reset" onclick="resetRange('${key}')">reset</button>
+    `;
+    panel.appendChild(row);
+  });
+}
+
+function updateRange(key, which, rawVal) {
+  const val = parseFloat(rawVal);
+  if (isNaN(val)) return;
+  if (!customRanges[key]) customRanges[key] = [...activeRange(key)];
+  const idx = which === 'min' ? 0 : 1;
+  customRanges[key][idx] = val;
+  if (customRanges[key][0] > customRanges[key][1]) {
+    customRanges[key][which === 'min' ? 1 : 0] = val;
+    const otherId = `range-${which === 'min' ? 'max' : 'min'}-${key}`;
+    const other = document.getElementById(otherId);
+    if (other) other.value = val;
+  }
+}
+
+function resetRange(key) {
+  customRanges[key] = null;
+  document.getElementById('rangesPanel').innerHTML = '';
+  buildRangesPanel();
+}
+
+function renderParamPills() {
+  const c = document.getElementById('paramPills');
+  c.innerHTML = '';
+  Object.keys(PARAMS).forEach(key => {
+    const span = document.createElement('span');
+    span.className = 'param-pill-toggle togglable';
+    const active = activeParams.includes(key);
+    span.style.borderColor = active ? 'var(--accent)' : 'var(--border2)';
+    span.style.color       = active ? 'var(--accent2)' : 'var(--muted)';
+    span.style.background  = active ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'rgba(255,255,255,0.025)';
+    span.textContent = PARAMS[key].label;
+    span.title = 'Click to ' + (active ? 'lock & reveal' : 'guess');
+    span.addEventListener('click', () => toggleParam(key));
+    c.appendChild(span);
+  });
+}
+
+function toggleParam(key) {
+  const idx = activeParams.indexOf(key);
+  if (idx >= 0) {
+    if (activeParams.length <= 1) { showToast('At least one parameter must be active'); return; }
+    activeParams.splice(idx, 1);
+  } else {
+    // preserve PARAMS order
+    activeParams = Object.keys(PARAMS).filter(k => k === key || activeParams.includes(k));
+  }
+  renderParamPills();
+  updateMultBadge();
+  if (roundActive) {
+    renderKnobs('target', targetSettings, true);
+    renderKnobs('user', userSettings, false);
+  }
+}
+
+// ── Knob SVG (uses shared makeProKnobSVG) ─────────────────────────────────────
+const KNOB_START = -135, KNOB_END = 135;
+function paramToAngle(key, val) {
+  const p = PARAMS[key];
+  const t = Math.max(0, Math.min(1, (val - p.min) / (p.max - p.min)));
+  return KNOB_START + t * (KNOB_END - KNOB_START);
+}
+function makeKnobSVG(key, val, color, isLocked) {
+  return makeProKnobSVG(paramToAngle(key, val), color, isLocked);
+}
+
+function renderKnobs(panel, settings, hideActive) {
+  const container = document.getElementById(panel==='target' ? 'targetKnobs' : 'userKnobs');
+  container.innerHTML = '';
+  const color = panel==='target' ? 'var(--tgt2)' : 'var(--accent2)';
+
+  Object.keys(PARAMS).forEach(key => {
+    const p = PARAMS[key];
+    const userLocked   = panel==='user'   && !activeParams.includes(key);
+    const targetHidden = panel==='target' && hideActive && activeParams.includes(key);
+    const targetGreyed = panel==='target' && hideActive && !activeParams.includes(key);
+
+    const cell = document.createElement('div');
+    let cls = 'knob-cell';
+    if (userLocked)   cls += ' locked';
+    if (targetHidden) cls += ' hidden-target';
+    if (targetGreyed) cls += ' locked';
+    cell.className = cls;
+
+    const val = settings[key] ?? p.default;
+    const displayVal = targetHidden ? '?' : p.fmt(val);
+
+    cell.innerHTML = `
+      <div class="knob-label">${p.label}</div>
+      <div class="knob-wrap" id="knob-${panel}-${key}" data-key="${key}" data-panel="${panel}">
+        ${makeKnobSVG(key, val, color, targetGreyed)}
+      </div>
+      <div class="knob-val" id="kval-${panel}-${key}">${displayVal}</div>`;
+    container.appendChild(cell);
+
+    if (panel==='user' && !userLocked) {
+      const wrap = cell.querySelector('.knob-wrap');
+      wrap.addEventListener('mousedown', startDrag);
+      wrap.addEventListener('touchstart', startDrag, {passive:false});
+      wrap.addEventListener('wheel', onWheel, {passive:false});
+    }
+  });
+}
+
+// ── Knob interaction ──────────────────────────────────────────────────────────
+function startDrag(e) {
+  if (!roundActive) return;
+  const wrap = e.currentTarget;
+  const key  = wrap.dataset.key;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  draggingKnob = { key, startY: clientY, startVal: userSettings[key], moved: false };
+  e.preventDefault();
+}
+
+function applyDrag(d, currentY) {
+  const { key, startY, startVal } = d;
+  const p  = PARAMS[key];
+  const dy = startY - currentY;
+  if (Math.abs(dy) > 2) d.moved = true;
+  let val = Math.max(p.min, Math.min(p.max, startVal + dy * (p.max - p.min) / 200));
+  if (key === 'delayTime') val = Math.round(val / 5) * 5;
+  else                     val = Math.round(val);
+  userSettings[key] = val;
+  updateUserKnob(key);
+  liveUpdateUserDelay();
+}
+
+window.addEventListener('mousemove', e => { if (draggingKnob) applyDrag(draggingKnob, e.clientY); });
+window.addEventListener('touchmove', e => { if (!draggingKnob) return; applyDrag(draggingKnob, e.touches[0].clientY); e.preventDefault(); }, {passive:false});
+window.addEventListener('mouseup',  () => { draggingKnob = null; });
+window.addEventListener('touchend', () => { draggingKnob = null; });
+
+function onWheel(e) {
+  if (!roundActive) return;
+  const key = e.currentTarget.dataset.key;
+  const p   = PARAMS[key];
+  const dir = e.deltaY < 0 ? 1 : -1;
+  const stepUnit = key === 'delayTime' ? 5 : 1;
+  userSettings[key] = Math.max(p.min, Math.min(p.max, userSettings[key] + dir * stepUnit));
+  updateUserKnob(key);
+  liveUpdateUserDelay();
+  e.preventDefault();
+}
+
+function updateUserKnob(key) {
+  const val  = userSettings[key];
+  const p    = PARAMS[key];
+  const wrap = document.getElementById(`knob-user-${key}`);
+  const lbl  = document.getElementById(`kval-user-${key}`);
+  if (wrap) wrap.innerHTML = makeKnobSVG(key, val, 'var(--accent2)', false);
+  if (lbl)  lbl.textContent = p.fmt(val);
+  updateSyncChip();
+  drawHero(answered ? 'compare' : 'user');
+}
+
+// ── BPM / sync readout ────────────────────────────────────────────────────────
+function updateSyncChip() {
+  const chip = document.getElementById('syncChip');
+  if (!chip) return;
+  const ms = userSettings.delayTime ?? PARAMS.delayTime.default;
+  const bpm = Math.round(60000 / ms);   // quarter-note tempo for this delay time
+  chip.textContent = `${Math.round(ms)} ms · ${bpm} BPM`;
+}
+
+// ── Echo timeline hero ────────────────────────────────────────────────────────
+function toAudio(s) {
+  return { delayTime: (s.delayTime ?? 300)/1000, feedback: (s.feedback ?? 0)/100, wet: (s.wet ?? 0)/100 };
+}
+
+// Returns {dry, echoes:[{t, amp}], window}
+function computeEchoes(settings) {
+  const p = toAudio(settings);
+  const dt = Math.max(p.delayTime, 0.001);
+  const win = Math.max(2.0, dt * 6);
+  const echoes = [];
+  let amp = p.wet, t = dt, n = 0;
+  while (t <= win + dt && n < 24 && amp > 0.008) {
+    echoes.push({ t, amp });
+    amp *= p.feedback;
+    t += dt; n++;
+  }
+  return { dry: 1 - p.wet, echoes, window: win };
+}
+
+function roundTopRect(c, x, y, w, h, r) {
+  if (h <= 0) return;
+  c.beginPath();
+  if (c.roundRect) c.roundRect(x, y, w, h, [r, r, 0, 0]);
+  else c.rect(x, y, w, h);
+}
+
+function drawEchoSet(c, data, W, baseY, maxH, color, opts) {
+  const { window:win, dry, echoes } = data;
+  const pad = 16;
+  const xFor = t => pad + (t / win) * (W - pad*2);
+  const spacing = (echoes.length>1 ? (echoes[0].t/win)*(W-pad*2) : 40);
+  const barW = Math.max(4, Math.min(13, spacing * 0.4));
+
+  // dry hit at t=0
+  if (opts.showDry && dry > 0.01) {
+    const bh = Math.round(dry * maxH);
+    c.fillStyle = `rgba(232,237,248,${Math.min(0.9, dry*1.05).toFixed(2)})`;
+    roundTopRect(c, xFor(0) - barW/2, baseY - bh, barW, bh, 2); c.fill();
+  }
+  // decay envelope curve
+  if (opts.envelope && echoes.length) {
+    c.strokeStyle = color; c.globalAlpha = 0.32; c.lineWidth = 1.5;
+    c.beginPath();
+    echoes.forEach((e,i) => { const x=xFor(e.t), y=baseY - e.amp*maxH; i===0?c.moveTo(x,y):c.lineTo(x,y); });
+    c.stroke(); c.globalAlpha = 1;
+  }
+  // echo bars
+  const rgb = color;
+  echoes.forEach(e => {
+    const x = xFor(e.t);
+    if (x > W - 4) return;
+    const bh = Math.round(e.amp * maxH);
+    const a = Math.min(0.96, e.amp * 1.35 + 0.08);
+    c.fillStyle = opts.solid ? withAlpha(rgb, a) : withAlpha(rgb, a);
+    roundTopRect(c, x - barW/2, baseY - bh, barW, bh, 2); c.fill();
+    if (opts.glow && e.amp > 0.25) { c.shadowColor = rgb; c.shadowBlur = 7; c.fill(); c.shadowBlur = 0; }
+  });
+}
+
+function withAlpha(cssColor, a) {
+  // cssColor expected as hex (#rrggbb)
+  const r = parseInt(cssColor.slice(1,3),16), g = parseInt(cssColor.slice(3,5),16), b = parseInt(cssColor.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a.toFixed(2)})`;
+}
+
+const HERO_TGT = '#87a0ff';     // matches --tgt2
+const HERO_USR = '#2dd4c0';     // matches --accent2
+
+function drawHero(mode) {
+  const canvas = document.getElementById('heroWave');
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.clientWidth || 600, H = canvas.clientHeight || 248;
+  if (canvas.width !== W*dpr) { canvas.width = W*dpr; canvas.height = H*dpr; }
+  const c = canvas.getContext('2d');
+  c.setTransform(dpr,0,0,dpr,0,0);
+  c.clearRect(0,0,W,H);
+  c.fillStyle = '#060708'; c.fillRect(0,0,W,H);
+
+  const labelH = 18;
+  const baseY  = H - labelH;
+  const maxH   = baseY - 14;
+  const pad    = 16;
+
+  const uData = computeEchoes(userSettings);
+  // shared time window: on compare, use the wider of the two so both fit
+  let win = uData.window;
+  let tData = null;
+  if (mode === 'compare') { tData = computeEchoes(targetSettings); win = Math.max(win, tData.window); }
+  uData.window = win; if (tData) tData.window = win;
+
+  // grid verticals
+  c.strokeStyle = 'rgba(255,255,255,0.045)'; c.lineWidth = 1;
+  const gridStep = win <= 2 ? 0.25 : 0.5;
+  for (let t = gridStep; t < win; t += gridStep) {
+    const x = pad + (t/win)*(W-pad*2);
+    if (x < W - pad) { c.beginPath(); c.moveTo(x,0); c.lineTo(x, baseY); c.stroke(); }
+  }
+  // baseline
+  c.strokeStyle = 'rgba(255,255,255,0.12)';
+  c.beginPath(); c.moveTo(pad, baseY); c.lineTo(W - pad, baseY); c.stroke();
+
+  // target reference behind (on reveal)
+  if (tData) {
+    drawEchoSet(c, tData, W, baseY, maxH, HERO_TGT, { showDry:false, envelope:true, solid:true, glow:false });
+  }
+  // user echoes (hero)
+  drawEchoSet(c, uData, W, baseY, maxH, HERO_USR, { showDry:true, envelope:true, solid:true, glow:true });
+
+  // time labels
+  c.fillStyle = 'rgba(255,255,255,0.28)';
+  c.font = `9px 'IBM Plex Mono', monospace`; c.textAlign = 'center';
+  const labelStep = win <= 2 ? 0.5 : win <= 4 ? 1 : 2;
+  for (let tl = labelStep; tl <= win; tl += labelStep) {
+    const x = pad + (tl/win)*(W-pad*2);
+    if (x > pad + 18 && x < W - pad - 6) c.fillText(tl >= 1 ? `${tl.toFixed(1)}s` : `${Math.round(tl*1000)}ms`, x, H - 4);
+  }
+}
+
+// ── Audio ─────────────────────────────────────────────────────────────────────
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx   = new (window.AudioContext || window.webkitAudioContext)();
+  outputGain = audioCtx.createGain();
+  outputGain.gain.value = 0.75;
+  outputGain.connect(audioCtx.destination);
+}
+
+function makePinkNoise() {
+  const rate = audioCtx.sampleRate, len = rate * 5;
+  const buf  = audioCtx.createBuffer(1, len, rate);
+  const d    = buf.getChannelData(0);
+  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+  for (let i=0;i<len;i++){
+    const w=Math.random()*2-1;
+    b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
+    b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
+    b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
+    d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11;
+    b6=w*0.115926;
+  }
+  const src=audioCtx.createBufferSource(); src.buffer=buf; src.loop=true;
+  return src;
+}
+
+function buildDelayChain(settings) {
+  const p = toAudio(settings);
+  const input    = audioCtx.createGain(); input.gain.value = 1;
+  const dryGain  = audioCtx.createGain(); dryGain.gain.value = 1 - p.wet;
+  const wetGain  = audioCtx.createGain(); wetGain.gain.value = p.wet;
+  const delay    = audioCtx.createDelay(3.0); delay.delayTime.value = p.delayTime;
+  const fbGain   = audioCtx.createGain(); fbGain.gain.value = Math.min(0.95, p.feedback);
+  const mixOut   = audioCtx.createGain(); mixOut.gain.value = 1;
+  input.connect(dryGain); dryGain.connect(mixOut);
+  input.connect(delay); delay.connect(fbGain); fbGain.connect(delay);
+  delay.connect(wetGain); wetGain.connect(mixOut);
+  return { input, dryGain, wetGain, delay, fbGain, mixOut };
+}
+
+function buildAudioGraph() {
+  stopOneShotLoop();
+  isDry = false;
+  document.getElementById('btnDry')?.classList.remove('active');
+  stopAudio();
+  initAudio();
+
+  let isStreaming = false;
+
+  if (sourceType === 'oneShot') {
+    currentSource = audioCtx.createGain(); // silent placeholder
+  } else if (sourceType === 'loop' && loopFileNames.length > 0) {
+    if (!loopAudioEl) { loopAudioEl = new Audio(); loopAudioEl.loop = true; }
+    if (!loopMediaSrc) { loopMediaSrc = audioCtx.createMediaElementSource(loopAudioEl); }
+    const fname = loopFileNames[loopIndex % loopFileNames.length];
+    if (loopAudioEl._currentFname !== fname) {
+      loopAudioEl.src = `../samples/loops/${fname}`;
+      loopAudioEl._currentFname = fname;
+    }
+    currentSource = loopMediaSrc;
+    isStreaming = true;
+  } else if (sourceType === 'custom' && customBuffers.filter(Boolean).length > 0) {
+    const buf = customBuffers[customIdx % customBuffers.length];
+    if (buf) {
+      if (customSrc) { try { customSrc.stop(); } catch(e){} customSrc = null; }
+      customSrc = audioCtx.createBufferSource();
+      customSrc.buffer = buf; customSrc.loop = true;
+      customSrcOffset = customSrcOffset % buf.duration;
+      currentSource = customSrc;
+    }
+    isStreaming = true;
+  } else {
+    currentSource = makePinkNoise();
+  }
+
+  analyserDry = audioCtx.createAnalyser(); analyserDry.fftSize = 1024;
+  if (sourceType !== 'oneShot') currentSource.connect(analyserDry);
+
+  dryBypassGain = audioCtx.createGain(); dryBypassGain.gain.value = 0;
+  if (sourceType !== 'oneShot') currentSource.connect(dryBypassGain);
+  dryBypassGain.connect(outputGain);
+
+  targetChain = buildDelayChain(targetSettings);
+  userChain   = buildDelayChain(userSettings);
+
+  if (sourceType !== 'oneShot') {
+    currentSource.connect(targetChain.input);
+    currentSource.connect(userChain.input);
+  }
+
+  analyserTarget = audioCtx.createAnalyser(); analyserTarget.fftSize = 1024;
+  analyserUser   = audioCtx.createAnalyser(); analyserUser.fftSize   = 1024;
+  targetChain.mixOut.connect(analyserTarget);
+  userChain.mixOut.connect(analyserUser);
+
+  if (isStreaming) {
+    if (sourceType === 'loop' && loopAudioEl) {
+      loopAudioEl.play().catch(e => console.warn('Autoplay blocked:', e));
+    } else if (sourceType === 'custom' && customSrc) {
+      customSrc.start(0, customSrcOffset);
+      customSrcStartTime = audioCtx.currentTime;
+    }
+  } else if (sourceType !== 'oneShot') {
+    currentSource.start(0);
+  }
+
+  routeTo(listeningTo);
+  startMeterLoop();
+  if (sourceType === 'oneShot') startOneShotLoop();
+}
+
+function routeTo(which) {
+  if (!audioCtx || !outputGain) return;
+  try { analyserTarget.disconnect(outputGain); } catch(e){}
+  try { analyserUser.disconnect(outputGain);   } catch(e){}
+  listeningTo = which;
+  if (!isDry) (which==='target' ? analyserTarget : analyserUser).connect(outputGain);
+  updateListenBtns();
+}
+
+function stopAudio() {
+  if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
+  if (currentSource) {
+    if (currentSource !== loopMediaSrc && currentSource !== customSrc) {
+      try { if(currentSource.stop) currentSource.stop(); } catch(e){}
+    }
+    currentSource = null;
+  }
+  if (loopAudioEl)   loopAudioEl.pause();
+  if (loopMediaSrc)   { try { loopMediaSrc.disconnect();   } catch(e) {} }
+  if (customSrc) { try { customSrc.stop(); } catch(e){} customSrc = null; customSrcOffset = 0; }
+  targetChain = userChain = null;
+  analyserTarget = analyserUser = analyserDry = null; dryBypassGain = null;
+}
+
+function liveUpdateUserDelay() {
+  if (!userChain) return;
+  const p = toAudio(userSettings);
+  const now = audioCtx.currentTime;
+  userChain.delay.delayTime.setTargetAtTime(p.delayTime, now, 0.03);
+  userChain.fbGain.gain.setTargetAtTime(Math.min(0.95, p.feedback), now, 0.02);
+  userChain.wetGain.gain.setTargetAtTime(p.wet, now, 0.02);
+  userChain.dryGain.gain.setTargetAtTime(1 - p.wet, now, 0.02);
+}
+
+// ── Meter loop ────────────────────────────────────────────────────────────────
+function startMeterLoop() {
+  const buf = new Float32Array(1024);
+  const lvsCvs = document.getElementById('levelCanvas');
+  const dpr = window.devicePixelRatio || 1;
+
+  function loop() {
+    animFrameId = requestAnimationFrame(loop);
+
+    const lvl = an => { if(!an) return 0; an.getFloatTimeDomainData(buf); let s=0; for(let i=0;i<buf.length;i++) s+=buf[i]*buf[i]; return Math.sqrt(s/buf.length); };
+    const lvlAngle = n => -52 + Math.max(0, Math.min(1, n)) * 104;
+    const norm = r => (20*Math.log10(r + 1e-7) + 48) / 48;
+    const tR = lvl(analyserTarget), uR = lvl(analyserUser);
+    const tNd = document.getElementById('vuTargetNeedle'), uNd = document.getElementById('vuUserNeedle');
+    if (tNd) tNd.setAttribute('transform', `rotate(${lvlAngle(norm(tR)).toFixed(2)} 60 72)`);
+    if (uNd) uNd.setAttribute('transform', `rotate(${lvlAngle(norm(uR)).toFixed(2)} 60 72)`);
+    const dbTxt = r => r < 1e-6 ? '−∞' : `${(20*Math.log10(r)).toFixed(0)}`;
+    const tdb = document.getElementById('targetLvlDb'); if (tdb) tdb.textContent = dbTxt(tR);
+    const udb = document.getElementById('userLvlDb');   if (udb) udb.textContent = dbTxt(uR);
+
+    // ── signal scope ──
+    const W = lvsCvs.clientWidth, H = lvsCvs.clientHeight || 44;
+    if (lvsCvs.width !== W*dpr) { lvsCvs.width=W*dpr; lvsCvs.height=H*dpr; }
+    const lc = lvsCvs.getContext('2d');
+    lc.setTransform(dpr,0,0,dpr,0,0);
+    lc.clearRect(0,0,W,H);
+    lc.fillStyle='#060708'; lc.fillRect(0,0,W,H);
+
+    // faint dry input behind
+    if (analyserDry) {
+      analyserDry.getFloatTimeDomainData(buf);
+      lc.strokeStyle='rgba(255,255,255,0.10)'; lc.lineWidth=1; lc.beginPath();
+      const step = Math.ceil(buf.length / W);
+      for(let i=0;i<buf.length;i+=step){const x=(i/buf.length)*W,y=H/2-buf[i]*H*0.42;i===0?lc.moveTo(x,y):lc.lineTo(x,y);}
+      lc.stroke();
+    }
+
+    // monitored output
+    const aActive = isDry ? analyserDry : (listeningTo==='target' ? analyserTarget : analyserUser);
+    if (aActive) {
+      aActive.getFloatTimeDomainData(buf);
+      lc.strokeStyle = isDry ? 'rgba(232,237,248,0.7)' : (listeningTo==='target' ? HERO_TGT : HERO_USR);
+      lc.lineWidth=1.6; lc.lineJoin='round'; lc.beginPath();
+      const step = Math.ceil(buf.length / W);
+      let started=false;
+      for(let i=0;i<buf.length;i+=step){
+        const x=(i/buf.length)*W, y=H/2 - buf[i]*H*0.42;
+        started?lc.lineTo(x,y):lc.moveTo(x,y); started=true;
+      }
+      lc.stroke();
+    }
+  }
+  loop();
+}
+
+// ── Waveform toggle ───────────────────────────────────────────────────────────
+function toggleWaveform() {
+  const canvas = document.getElementById('levelCanvas');
+  const btn    = document.getElementById('waveformHideBtn');
+  const isHidden = canvas.classList.toggle('waveform-hidden');
+  btn.textContent = isHidden ? 'Show' : 'Hide';
+}
+
+// ── Listen buttons ────────────────────────────────────────────────────────────
+function updateListenBtns() {
+  document.getElementById('btnTarget').classList.toggle('active', listeningTo==='target' && !isDry);
+  document.getElementById('btnUser').classList.toggle('active',   listeningTo==='user'   && !isDry);
+  document.getElementById('btnDry').classList.toggle('active',    isDry);
+}
+
+function ensureAudio() {
+  initAudio();
+  if (audioCtx.state==='suspended') audioCtx.resume();
+  if (!currentSource) buildAudioGraph();
+}
+function listenTarget() { if(!roundActive)return; ensureAudio(); if(abActive)stopAB(); if(isDry)toggleDry(); routeTo('target'); }
+function listenUser()   { if(!roundActive)return; ensureAudio(); if(abActive)stopAB(); if(isDry)toggleDry(); routeTo('user');   }
+
+function toggleAB() {
+  if (!roundActive) return; ensureAudio();
+  if (abActive) { stopAB(); return; }
+  abActive=true; let flip=true;
+  const tick=()=>{routeTo(flip?'target':'user');flip=!flip;};
+  tick(); abInterval=setInterval(tick,2200);
+}
+function stopAB() {
+  if(abInterval){clearInterval(abInterval);abInterval=null;}
+  abActive=false; if(currentSource) routeTo('user');
+}
+
+// ── Dry toggle ────────────────────────────────────────────────────────────────
+function toggleDry() {
+  if (!roundActive) return;
+  isDry = !isDry;
+  document.getElementById('btnDry').classList.toggle('active', isDry);
+  updateListenBtns();
+  if (!audioCtx) return;
+  if (isDry) {
+    try { analyserTarget.disconnect(outputGain); } catch(e){}
+    try { analyserUser.disconnect(outputGain);   } catch(e){}
+    if (dryBypassGain) dryBypassGain.gain.setTargetAtTime(1, audioCtx.currentTime, 0.02);
+  } else {
+    if (dryBypassGain) dryBypassGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.02);
+    try { (listeningTo==='target' ? analyserTarget : analyserUser).connect(outputGain); } catch(e){}
+  }
+}
+
+// ── Pause / Resume ────────────────────────────────────────────────────────────
+function togglePause() {
+  if (!roundActive || !audioCtx) return;
+  const btn = document.getElementById('btnPause');
+  if (isPaused) {
+    if (loopAudioEl   && sourceType==='loop')   loopAudioEl.play().catch(()=>{});
+    // buffer source resumed by audioCtx.resume()
+    audioCtx.resume().then(() => {
+      isPaused=false; btn.innerHTML='&#9646;&#9646; Pause'; btn.classList.remove('paused');
+      if (sourceType === 'oneShot') startOneShotLoop();
+    });
+  } else {
+    if (loopAudioEl   && sourceType==='loop')   loopAudioEl.pause();
+    // buffer source paused by audioCtx.suspend()
+    stopOneShotLoop();
+    audioCtx.suspend().then(() => {
+      isPaused=true; btn.innerHTML='&#9654; Resume'; btn.classList.add('paused');
+    });
+  }
+}
+
+// ── Restart ───────────────────────────────────────────────────────────────────
+function restartAudio() {
+  if (!roundActive) return;
+  ensureAudio();
+  if (sourceType === 'oneShot') {
+    stopOneShotLoop(); startOneShotLoop(); showToast('Restarted'); return;
+  }
+  if (loopAudioEl   && sourceType==='loop')   loopAudioEl.currentTime = 0;
+  customSrcOffset = 0;
+  const wasL = listeningTo, wasD = isDry;
+  buildAudioGraph(); routeTo(wasL);
+  if (wasD) { isDry=false; toggleDry(); }
+  showToast('Restarted');
+}
+
+// ── Seek and skip ─────────────────────────────────────────────────────────────
+function seekMusic(delta) {
+  if (!roundActive) return;
+  if (sourceType === 'loop' && loopFileNames.length > 0 && loopAudioEl) {
+    loopAudioEl.currentTime = Math.max(0, loopAudioEl.currentTime + delta);
+    showToast(`${delta>0?'+':''}${delta}s`);
+  } else if (sourceType === 'custom' && customSrc) {
+    const csb = customBuffers[customIdx % customBuffers.length];
+    if (csb) { const csel=audioCtx.currentTime-customSrcStartTime; customSrcOffset=Math.max(0,(customSrcOffset+csel+delta))%csb.duration; buildAudioGraph(); }
+    showToast(`${delta>0?'+':''}${delta}s`);
+  }
+}
+
+function skipTrack(delta) {
+  if (!roundActive || !audioCtx) return;
+
+  if (sourceType === 'oneShot' && oneShotBuffers.length > 0) {
+    oneShotIndex = ((oneShotIndex+delta)%oneShotBuffers.length+oneShotBuffers.length)%oneShotBuffers.length;
+    stopOneShotLoop(); startOneShotLoop();
+    showToast(`Shot ${oneShotIndex+1} / ${oneShotBuffers.length}`);
+    return;
+  }
+
+  if (sourceType === 'loop' && loopFileNames.length > 0) {
+    loopIndex = ((loopIndex+delta)%loopFileNames.length+loopFileNames.length)%loopFileNames.length;
+    if (loopAudioEl) {
+      const fname = loopFileNames[loopIndex];
+      loopAudioEl.src = `../samples/loops/${fname}`;
+      loopAudioEl._currentFname = fname;
+      loopAudioEl.play().catch(()=>{});
+    }
+    showToast(`Loop ${loopIndex+1} / ${loopFileNames.length}`);
+    return;
+  }
+
+  if (sourceType === 'custom' && customFiles.length > 0) {
+    customIdx = ((customIdx+delta)%customBuffers.length+customFiles.length)%customBuffers.length;
+    customSrcOffset = 0;
+    if (roundActive && isPlaying) buildAudioGraph();
+    showToast(`Track ${customIdx+1} / ${customFiles.length}`);
+  }
+}
+
+// ── Source management ─────────────────────────────────────────────────────────
+function setSource(type) {
+  if (type === 'oneShot' && !oneShotLoaded) {
+    loadOneShotSamples().then(() => {
+      if (oneShotLoaded) { sourceType='oneShot'; updateSourceUI(); if (roundActive) buildAudioGraph(); }
+    });
+    return;
+  }
+  if (type === 'loop' && !loopManifestLoaded) {
+    loadLoopSamples().then(() => {
+      if (loopManifestLoaded) { sourceType='loop'; updateSourceUI(); if (roundActive) buildAudioGraph(); }
+    });
+    return;
+  }
+  sourceType=type; updateSourceUI();
+  if (roundActive) buildAudioGraph();
+}
+
+function updateSourceUI() {
+  document.getElementById('srcPink').classList.toggle('active',    sourceType==='pink');
+  document.getElementById('srcOneShot').classList.toggle('active', sourceType==='oneShot');
+  document.getElementById('srcLoop').classList.toggle('active',    sourceType==='loop');
+  document.getElementById('srcCustom').classList.toggle('active',  sourceType==='custom');
+}
+
+function triggerUpload() {
+  if (customFiles.length>0) { setSource('custom'); return; }
+  document.getElementById('folderInput').click();
+}
+
+function handleFolderUpload(e) {
+  const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/') || /\.(mp3|wav|ogg|aac|flac|m4a)$/i.test(f.name));
+  if (!files.length) return;
+  initAudio();
+  customFiles = files; customIdx = 0; customBuffers = [];
+  const label = document.getElementById('uploadLabel') || document.getElementById('folderLabel');
+  if (label) label.textContent = '⧗ Loading...';
+  let loaded = 0;
+  Promise.all(files.map((f, i) =>
+    f.arrayBuffer()
+      .then(ab => audioCtx.decodeAudioData(ab))
+      .then(buf => { customBuffers[i] = buf; loaded++; if (label) label.textContent = '⧗ ' + loaded + '/' + files.length; })
+      .catch(err => { console.warn('Could not decode', f.name, err); customBuffers[i] = null; loaded++; })
+  )).then(() => {
+    const n = customBuffers.filter(Boolean).length;
+    if (label) label.textContent = '📁 ' + n + ' tracks';
+    setSource('custom');
+    if (typeof showToast === 'function') showToast(n + ' tracks ready');
+    if (typeof setLoadStatus === 'function') { setLoadStatus(n + ' tracks ready', false); setTimeout(() => setLoadStatus(null), 2500); }
+  });
+}
+
+// ── Sample loaders ────────────────────────────────────────────────────────────
+async function loadOneShotSamples() {
+  if (oneShotLoaded) return;
+  initAudio(); oneShotBuffers=[];
+  setLoadStatus('Loading one-shots…', true);
+  const manifest = await getManifest();
+  await Promise.all(manifest.oneShots.map(async fname => {
+    try {
+      const r = await fetch(`../samples/one-shots/${fname}`);
+      if (!r.ok) throw new Error();
+      oneShotBuffers.push({ name: fname.replace(/\.\w+$/,''), buffer: await audioCtx.decodeAudioData(await r.arrayBuffer()) });
+    } catch(e) { console.warn('Could not load', fname); }
+  }));
+  oneShotBuffers.sort((a,b)=>a.name.localeCompare(b.name));
+  oneShotLoaded = oneShotBuffers.length > 0;
+  if (oneShotLoaded) oneShotIndex = Math.floor(Math.random() * oneShotBuffers.length);
+  if (!oneShotLoaded) {
+    setLoadStatus('No one-shots found', false);
+    showToast('No one-shots found'); sourceType='pink'; updateSourceUI();
+  } else {
+    setLoadStatus(`${oneShotBuffers.length} one-shots ready`, false);
+  }
+}
+
+async function loadLoopSamples() {
+  if (loopManifestLoaded) return;
+  const manifest = await getManifest();
+  loopFileNames = manifest.loops || [];
+  loopManifestLoaded = loopFileNames.length > 0;
+  if (loopManifestLoaded) loopIndex = Math.floor(Math.random() * loopFileNames.length);
+  if (!loopManifestLoaded) {
+    setLoadStatus('No loops found', false);
+    showToast('No loops found'); sourceType='pink'; updateSourceUI();
+  } else {
+    setLoadStatus(`${loopFileNames.length} loops ready`, false);
+  }
+}
+
+// ── One-shot playback ─────────────────────────────────────────────────────────
+function startOneShotLoop() {
+  stopOneShotLoop();
+  if (!oneShotBuffers.length) return;
+  const play = () => { if (sourceType==='oneShot') triggerShot(); };
+  play(); oneShotLoopTimer = setInterval(play, 5000);
+}
+
+function stopOneShotLoop() {
+  if (oneShotLoopTimer) { clearInterval(oneShotLoopTimer); oneShotLoopTimer=null; }
+}
+
+function triggerShot() {
+  if (!audioCtx || !oneShotBuffers.length || isPaused) return;
+  if (!targetChain || !userChain) return;
+  const sample = oneShotBuffers[oneShotIndex % oneShotBuffers.length];
+  if (!sample) return;
+  if (isDry) {
+    const srcDry = audioCtx.createBufferSource(); srcDry.buffer = sample.buffer;
+    const dryVol = audioCtx.createGain(); dryVol.gain.value = 0.7;
+    srcDry.connect(dryVol); dryVol.connect(analyserDry); dryVol.connect(outputGain); srcDry.start(0); return;
+  }
+  const srcT = audioCtx.createBufferSource(); srcT.buffer = sample.buffer;
+  srcT.connect(targetChain.input); srcT.start(0);
+  const srcU = audioCtx.createBufferSource(); srcU.buffer = sample.buffer;
+  srcU.connect(userChain.input); srcU.start(0);
+}
+
+// ── Round ─────────────────────────────────────────────────────────────────────
+function snap(val, step) { return Math.round(val / step) * step; }
+
+function newRound() {
+  stopOneShotLoop(); stopAB();
+  if (isPaused && audioCtx) { audioCtx.resume(); isPaused=false; const pb=document.getElementById('btnPause'); pb.innerHTML='&#9646;&#9646; Pause'; pb.classList.remove('paused'); }
+  roundActive=false; answered=false;
+  round++; document.getElementById('roundCount').textContent=round;
+
+  targetSettings={}; userSettings={};
+  Object.keys(PARAMS).forEach(key => {
+    const p = PARAMS[key];
+    const [lo, hi] = activeRange(key);
+    const isActive = activeParams.includes(key);
+    const step = key === 'delayTime' ? 5 : 1;
+    if (isActive) {
+      targetSettings[key] = snap(lo + Math.random()*(hi - lo), step);
+      // user starts biased away from target
+      let start;
+      do { start = snap(p.min + Math.random()*(p.max - p.min), step); }
+      while (Math.abs(start - targetSettings[key]) < (p.max - p.min) * 0.15);
+      userSettings[key] = start;
+    } else {
+      targetSettings[key] = fixLockedParams ? p.default : snap(lo + Math.random()*(hi - lo), step);
+      userSettings[key]   = targetSettings[key];
+    }
+  });
+
+  if (customFiles.length>0)       customIdx    = (customIdx+1)    % customFiles.length;
+  if (oneShotBuffers.length>0)   oneShotIndex = randNext(oneShotBuffers.length, oneShotIndex);
+  if (loopFileNames.length>0)    loopIndex    = randNext(loopFileNames.length, loopIndex);
+
+  roundActive=true;
+  document.getElementById('resultBar').classList.remove('visible','score-good','score-ok','score-bad');
+  const _rpreset = document.getElementById('resultPts'); if (_rpreset) _rpreset.textContent = '';
+  document.getElementById('btnCheck').disabled=false;
+  document.getElementById('btnTarget').disabled=false;
+  document.getElementById('btnUser').disabled=false;
+  document.getElementById('btnDry').disabled=false;
+  document.getElementById('btnRestart').disabled=false;
+  document.getElementById('btnPause').disabled=false;
+  document.getElementById('waveLegend').style.display='none';
+  document.getElementById('targetLvlRow')?.classList.add('target-gr-hidden');
+
+  renderKnobs('target', targetSettings, true);
+  renderKnobs('user',   userSettings,   false);
+  updateSyncChip();
+  drawHero('user');
+
+  listeningTo='target';
+  initAudio(); if(audioCtx.state==='suspended') audioCtx.resume();
+  buildAudioGraph(); updateListenBtns();
+}
+
+// ── Check answer ──────────────────────────────────────────────────────────────
+function checkAnswer() {
+  if (!roundActive||answered) return;
+  answered=true;
+
+  renderKnobs('target', targetSettings, false);
+  document.getElementById('waveLegend').style.display='flex';
+  document.getElementById('targetLvlRow')?.classList.remove('target-gr-hidden');
+  drawHero('compare');
+  if (currentSource) routeTo('user');
+
+  let totalErr=0, count=0;
+  activeParams.forEach(key => {
+    const p=PARAMS[key];
+    const err = Math.abs(targetSettings[key]-userSettings[key])/(p.max-p.min);
+    totalErr+=err; count++;
+  });
+  const avgErr = count>0 ? totalErr/count : 0;
+  const score  = Math.round(Math.max(0, 100 - avgErr*100));
+
+  const mult = window.ScoringEngine ? ScoringEngine.multiplier('delay-master', { difficulty, numParams: activeParams.length }) : 1;
+  const weightedScore = Math.round(score * mult);
+  totalScore+=weightedScore; streak=score>=70?streak+1:0;
+  document.getElementById('totalScore').textContent=totalScore;
+  document.getElementById('streakCount').textContent=streak;
+  if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'delay-master', correct: score >= 70, roundScore: weightedScore });
+
+  const msgs=[
+    [90,'Perfect — professional level accuracy.'],
+    [70,'Good match — very close.'],
+    [40,'Getting there — line up the first echo, then the decay.'],
+    [0, 'Keep practicing — focus on delay time first.'],
+  ];
+  let msg=msgs[3][1], col='var(--red)';
+  for(const[t,m]of msgs) if(score>=t){msg=m; col=score>=70?'var(--green)':score>=40?'var(--amber)':'var(--red)'; break;}
+
+  document.getElementById('resultBar').classList.add('visible');
+  { const rb = document.getElementById('resultBar'); rb.classList.remove('score-good','score-ok','score-bad'); setTimeout(()=>{ rb.classList.add(score>=70?'score-good':score>=40?'score-ok':'score-bad'); },60); }
+  document.getElementById('resultBig').textContent=score;
+  { const _rp = document.getElementById('resultPts'); if (_rp) _rp.textContent = `+${weightedScore} pts  ×${mult.toFixed(1)}`; }
+  document.getElementById('resultBig').style.color=col;
+  document.getElementById('resultMsg').textContent=msg;
+  const fill=document.getElementById('accFill');
+  fill.style.background=col;
+  setTimeout(()=>{fill.style.width=score+'%';},60);
+
+  const pr=document.getElementById('paramResults'); pr.innerHTML='';
+  activeParams.forEach(key => {
+    const p=PARAMS[key];
+    const ok = Math.abs(targetSettings[key]-userSettings[key])/(p.max-p.min) < 0.12;
+    const chip=document.createElement('div');
+    chip.className='pr-chip';
+    chip.innerHTML=`${p.label}: Yours <span class="${ok?'good':'bad'}">${p.fmt(userSettings[key])}</span> → <span class="${ok?'good':'bad'}">${p.fmt(targetSettings[key])}</span>`;
+    pr.appendChild(chip);
+  });
+  showToast(`Round: ${score}/100`);
+}
+
+function toggleShortcuts(e) {
+  e.stopPropagation();
+  const pop = document.getElementById('shortcutsPopover');
+  pop.classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  const pop = document.getElementById('shortcutsPopover');
+  if (pop) pop.classList.remove('open');
+});
+
+// ── Keyboard shortcuts ────────────────────────────────────────────────────────
+window.addEventListener('keydown', e => {
+  if (e.target.tagName==='INPUT') return;
+  if (e.code !== 'KeyP' && audioCtx && audioCtx.state==='suspended') audioCtx.resume();
+  if (e.code==='Space')      { e.preventDefault(); if(!roundActive)return; if(isDry)toggleDry(); routeTo(listeningTo==='target'?'user':'target'); }
+  if (e.code==='Enter')      { if(roundActive&&!answered) checkAnswer(); else newRound(); }
+  if (e.code==='KeyD')       { e.preventDefault(); toggleDry(); }
+  if (e.code==='KeyF')       { e.preventDefault(); restartAudio(); }
+  if (e.code==='KeyP')       { e.preventDefault(); togglePause(); }
+  if (e.code==='ShiftLeft'||e.code==='ShiftRight') { e.preventDefault(); newRound(); }
+  if (e.code==='ArrowLeft')  { e.preventDefault(); seekMusic(-10); }
+  if (e.code==='ArrowRight') { e.preventDefault(); seekMusic(+10); }
+  if (e.code==='ArrowUp')    { e.preventDefault(); skipTrack(+1); }
+  if (e.code==='ArrowDown')  { e.preventDefault(); skipTrack(-1); }
+});
+
+// ── Helpers / init ────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+(function initVU(){
+  const t = document.getElementById('vuTarget'), u = document.getElementById('vuUser');
+  if (t) t.innerHTML = buildVU('vuTargetNeedle', 'var(--tgt2)', -52);
+  if (u) u.innerHTML = buildVU('vuUserNeedle', 'var(--accent2)', -52);
+})();
+renderParamPills();
+updateMultBadge();
+document.getElementById('fixLockedBtn').classList.toggle('active', !fixLockedParams);
+renderKnobs('target', { ...Object.fromEntries(Object.keys(PARAMS).map(k=>[k,PARAMS[k].default])) }, true);
+renderKnobs('user',   { ...Object.fromEntries(Object.keys(PARAMS).map(k=>[k,PARAMS[k].default])) }, false);
+updateSyncChip();
+drawHero('user');
+window.addEventListener('resize', () => {
+  if(!roundActive) { drawHero('user'); return; }
+  drawHero(answered ? 'compare' : 'user');
+});
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').then(()=>{}).catch(()=>{});
+  });
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../supabase-client.js"></script>
+<!-- Auth modal -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" id="closeAuthBtn">&times;</button>
+    <div class="modal-tabs">
+      <button class="modal-tab active" data-tab="signin">Sign in</button>
+      <button class="modal-tab" data-tab="signup">Create account</button>
+    </div>
+    <div id="tabSignin">
+      <label>Email</label>
+      <input type="email" id="siEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label>
+      <input type="password" id="siPassword" placeholder="••••••••" autocomplete="current-password">
+      <button class="modal-submit" id="siSubmit">Sign in</button>
+      <div class="modal-msg" id="siMsg"></div>
+      <button class="forgot-pw-link" id="forgotPwBtn" type="button">Forgot password?</button>
+    </div>
+    <div id="tabForgot" style="display:none;">
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:18px;">Enter your email and we'll send you a reset link.</p>
+      <label>Email</label>
+      <input type="email" id="fpEmail" placeholder="you@example.com" autocomplete="email">
+      <button class="modal-submit" id="fpSubmit">Send reset link</button>
+      <div class="modal-msg" id="fpMsg"></div>
+      <button class="forgot-pw-link" id="backToSigninBtn" type="button">← Back to sign in</button>
+    </div>
+    <div id="tabSignup" style="display:none;">
+      <label>Email</label>
+      <input type="email" id="suEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label>
+      <input type="password" id="suPassword" placeholder="At least 6 characters" autocomplete="new-password">
+      <button class="modal-submit" id="suSubmit">Create account</button>
+      <div class="modal-msg" id="suMsg"></div>
+    </div>
+  </div>
+</div>
+<!-- Footer -->
+<footer>
+  <div class="footer-left">
+    <a href="/">SonicSandbox</a>
+    &nbsp;·&nbsp; Ear training for producers, engineers, &amp; musicians
+    &nbsp;·&nbsp; <a href="/about/">About</a>
+    &nbsp;·&nbsp; <a href="/privacy/">Privacy Policy</a>
+    &nbsp;·&nbsp; <a href="/support/">Support</a>
+  </div>
+  <div class="footer-right">
+    <span>© 2026 Zach Snider</span>
+  </div>
+</footer>
+<script>
+  // ── Auth modal ────────────────────────────────────────────
+  const authModal = document.getElementById('authModal');
+  const authArea  = document.getElementById('authArea');
+  const openBtn   = document.getElementById('openAuthBtn');
+  const closeBtn  = document.getElementById('closeAuthBtn');
+  const tabs      = document.querySelectorAll('.modal-tab');
+  const tabSignin = document.getElementById('tabSignin');
+  const tabSignup = document.getElementById('tabSignup');
+  const tabForgot = document.getElementById('tabForgot');
+
+  if (openBtn) openBtn.addEventListener('click', () => authModal.classList.add('open'));
+  closeBtn.addEventListener('click', () => { authModal.classList.remove('open'); showSigninPanel(); });
+  authModal.addEventListener('click', e => { if (e.target === authModal) { authModal.classList.remove('open'); showSigninPanel(); } });
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      tabSignin.style.display = tab.dataset.tab === 'signin' ? '' : 'none';
+      tabSignup.style.display = tab.dataset.tab === 'signup' ? '' : 'none';
+      tabForgot.style.display = 'none';
+    });
+  });
+
+  function showSigninPanel() { tabForgot.style.display = 'none'; tabSignin.style.display = ''; }
+  function showForgotPanel() {
+    tabSignin.style.display = 'none'; tabForgot.style.display = '';
+    const e = document.getElementById('siEmail').value.trim();
+    if (e) document.getElementById('fpEmail').value = e;
+    document.getElementById('fpMsg').textContent = '';
+  }
+
+  document.getElementById('forgotPwBtn').addEventListener('click', showForgotPanel);
+  document.getElementById('backToSigninBtn').addEventListener('click', showSigninPanel);
+
+  document.getElementById('siSubmit').addEventListener('click', async () => {
+    const msg = document.getElementById('siMsg');
+    msg.textContent = 'Signing in…'; msg.className = 'modal-msg';
+    const { error } = await SonicSandbox.signIn(
+      document.getElementById('siEmail').value.trim(),
+      document.getElementById('siPassword').value
+    );
+    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+    else { authModal.classList.remove('open'); }
+  });
+
+  document.getElementById('fpSubmit').addEventListener('click', async () => {
+    const email = document.getElementById('fpEmail').value.trim();
+    const msg = document.getElementById('fpMsg');
+    if (!email) { msg.textContent = 'Please enter your email.'; msg.className = 'modal-msg error'; return; }
+    msg.textContent = 'Sending…'; msg.className = 'modal-msg';
+    const { error } = await SonicSandbox.resetPasswordForEmail(email);
+    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+    else { msg.textContent = 'Reset link sent! Check your inbox.'; msg.className = 'modal-msg success'; document.getElementById('fpSubmit').disabled = true; }
+  });
+
+  document.getElementById('suSubmit').addEventListener('click', async () => {
+    const msg = document.getElementById('suMsg');
+    msg.textContent = 'Creating account…'; msg.className = 'modal-msg';
+    const { error } = await SonicSandbox.signUp(
+      document.getElementById('suEmail').value.trim(),
+      document.getElementById('suPassword').value
+    );
+    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+    else { msg.textContent = 'Check your email to confirm your account.'; msg.className = 'modal-msg success'; }
+  });
+
+  // ── Auth state ────────────────────────────────────────────
+  document.addEventListener('ss:authchange', async e => {
+    const user = e.detail;
+    if (user) {
+      authArea.innerHTML = `<div class="user-pill"><span class="username-display" style="color:var(--muted);font-size:12px;">${user.email}</span></div>`;
+      const profile = await SonicSandbox.getProfile();
+      if (profile?.username) {
+        const el = document.querySelector('.username-display');
+        if (el) el.outerHTML = `<a class="set-username-link" href="/account/">@${profile.username}</a>`;
+      }
+    } else {
+      authArea.innerHTML = `<button class="auth-btn" id="openAuthBtn">Sign in</button>`;
+      document.getElementById('openAuthBtn').addEventListener('click', () => authModal.classList.add('open'));
+    }
+  });
+</script>
+</body>
+</html>

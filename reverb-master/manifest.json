@@ -1,0 +1,26 @@
+{
+  "name": "Reverb Master — Ear Training",
+  "short_name": "Reverb Master",
+  "description": "Train your ears to hear reverb. Match room size, decay, pre-delay, damping, and wet/dry by ear.",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#0a0c10",
+  "theme_color": "#5b3fd4",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "music", "productivity"],
+  "lang": "en"
+}

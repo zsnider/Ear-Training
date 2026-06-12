@@ -1,0 +1,1825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta charset="UTF-8">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cloud.umami.is 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://aolaxmmrmvovbzumlybe.supabase.co wss://aolaxmmrmvovbzumlybe.supabase.co https://cloud.umami.is; img-src 'self' data:; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
+<meta name="description" content="Two EQ curves shown — identify which one matches the processed audio by ear. Fast rounds for building EQ recognition. Free online ear training.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="canonical" href="https://sonicsandbox.app/quick-eq/">
+
+<title>QuickEQ — Fast EQ Ear Training Game | SonicSandbox</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../daw-ui.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
+<style>
+
+:root {
+  --bg:#080a0e; --bg2:#0c0f14;
+  --surface:#111520; --surface2:#181e2e; --surface3:#1f2638;
+  --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.13);
+  --text:#e8edf8; --muted:#5a6480;
+  --accent:#818cf8; --accent2:#a5b4fc;
+  --correct:#3ecf8e; --wrong:#f45b69;
+  --eq-a:#22d3ee; --eq-b:#f4a259;
+  /* DAW faceplate tokens */
+  --metal-1:#20242c; --metal-2:#161922;
+  --well:#07080a; --well-edge:rgba(0,0,0,0.6);
+  --panel-hi:rgba(255,255,255,0.05);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'IBM Plex Sans', sans-serif;
+  background:
+    radial-gradient(1200px 600px at 50% -200px, #14161c 0%, transparent 60%),
+    var(--bg);
+  color:var(--text); min-height:100vh;
+  display:flex; flex-direction:column; align-items:center;
+  --accent:#818cf8; --accent2:#a5b4fc;
+  user-select:none;
+}
+
+/* ── Site nav + game bar ─────────────────────────────────────── */
+nav.site-nav { width:100%; padding:14px 32px; display:flex; align-items:center; border-bottom:1px solid var(--border); }
+.game-bar {
+  width:100%; max-width:960px; margin:0 auto;
+  padding:12px 24px; display:flex; align-items:center; justify-content:space-between;
+  gap:16px; border-bottom:1px solid var(--border);
+}
+.game-bar-left { display:flex; align-items:center; }
+.brand { display:flex; align-items:center; gap:11px; }
+.brand-icon {
+  width:30px; height:30px; border-radius:8px;
+  background:linear-gradient(160deg, var(--accent2), var(--accent));
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  box-shadow:0 2px 10px -2px var(--accent), inset 0 1px 0 rgba(255,255,255,0.25);
+}
+.brand-name { font-family:'IBM Plex Mono', monospace; font-size:14px; font-weight:600; color:var(--text); letter-spacing:0.02em; }
+.game-bar-right { display:flex; flex-direction:column; align-items:flex-end; gap:3px; }
+.score-row { display:flex; align-items:center; gap:18px; }
+.stat { text-align:center; }
+.stat-val { font-family:'IBM Plex Mono', monospace; font-size:19px; font-weight:700; color:var(--accent2); line-height:1; }
+.stat-label { font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-top:3px; }
+.vdiv { width:1px; height:22px; background:var(--border2); }
+.mult-badge { font-family:'IBM Plex Mono', monospace; font-size:9px; color:var(--muted); letter-spacing:0.06em; opacity:0.75; }
+
+/* ── Main ────────────────────────────────────────────────────── */
+main { width:100%; max-width:960px; padding:22px 24px 0; display:flex; flex-direction:column; gap:14px; }
+
+/* shared matte-metal panel */
+.settings-card, .player-card, .idle-card, .history-card {
+  background:linear-gradient(180deg, var(--metal-1), var(--metal-2));
+  border:1px solid var(--border); border-radius:14px;
+  box-shadow:0 1px 0 var(--panel-hi) inset, 0 14px 40px -28px #000;
+}
+
+/* ── Settings card ───────────────────────────────────────────── */
+.settings-card { padding:12px 16px; display:flex; flex-direction:column; gap:10px; }
+.settings-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.settings-label {
+  font-size:10px; font-weight:700; color:var(--muted);
+  text-transform:uppercase; letter-spacing:0.12em; white-space:nowrap; flex-shrink:0;
+}
+.btn-group { display:flex; gap:6px; }
+.seg-btn {
+  font-family:'IBM Plex Mono', monospace; font-size:12px; font-weight:500;
+  padding:6px 13px; background:rgba(255,255,255,0.025);
+  border:1px solid var(--border2); border-radius:8px;
+  color:var(--muted); cursor:pointer; transition:all 0.15s;
+}
+.seg-btn:hover:not(:disabled) { border-color:var(--accent); color:var(--text); }
+.seg-btn.active {
+  background:linear-gradient(180deg, color-mix(in srgb,var(--accent) 24%,transparent), color-mix(in srgb,var(--accent) 8%,transparent));
+  border-color:var(--accent); color:#fff;
+  box-shadow:0 0 0 1px var(--accent) inset, 0 4px 14px -6px var(--accent);
+}
+.seg-btn:disabled { opacity:0.35; cursor:not-allowed; }
+.src-btn {
+  display:flex; align-items:center; gap:7px;
+  font-family:'IBM Plex Mono', monospace; font-size:12px; font-weight:500;
+  padding:6px 14px; background:rgba(255,255,255,0.025);
+  border:1px solid var(--border2); border-radius:8px;
+  color:var(--muted); cursor:pointer; transition:all 0.15s;
+}
+.src-btn:hover { border-color:var(--accent); color:var(--text); }
+.src-btn.active {
+  border-color:var(--accent); color:var(--accent2);
+  background:linear-gradient(180deg, color-mix(in srgb,var(--accent) 20%,transparent), color-mix(in srgb,var(--accent) 6%,transparent));
+}
+.src-btn.loading { opacity:0.6; cursor:wait; }
+.new-round-btn {
+  margin-left:auto;
+  font-family:'IBM Plex Sans', sans-serif; font-size:13px; font-weight:700; letter-spacing:0.02em;
+  padding:9px 20px; border:none; border-radius:10px; cursor:pointer; transition:all 0.15s;
+  background:linear-gradient(180deg, var(--accent2), var(--accent)); color:#15131f;
+  box-shadow:0 6px 20px -8px var(--accent), inset 0 1px 0 rgba(255,255,255,0.35);
+}
+.new-round-btn:hover { filter:brightness(1.08); transform:translateY(-1px); }
+
+/* ── Player card ─────────────────────────────────────────────── */
+.player-card { padding:11px 16px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.monitor-group {
+  display:flex; gap:6px; background:var(--well);
+  border:1px solid var(--well-edge); border-radius:14px; padding:6px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.5) inset;
+}
+.monitor-btn {
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+  background:transparent; border:1px solid transparent; border-radius:9px;
+  padding:9px 22px; min-width:96px; cursor:pointer; transition:all 0.15s; color:var(--muted);
+  font-family:'IBM Plex Mono', monospace; font-size:11px; font-weight:700;
+  letter-spacing:0.08em; text-transform:uppercase;
+}
+.monitor-btn:hover:not(:disabled) { background:rgba(255,255,255,0.04); color:var(--text); }
+.monitor-btn.active-target { background:rgba(91,127,255,0.16); border-color:rgba(91,127,255,0.55); color:var(--accent2); box-shadow:0 0 14px -4px var(--accent); }
+.monitor-btn.active-dry    { background:rgba(255,255,255,0.07); border-color:rgba(255,255,255,0.28); color:var(--text); }
+.monitor-btn:disabled { opacity:0.35; cursor:not-allowed; }
+.listen-bars { display:flex; align-items:flex-end; gap:2.5px; height:15px; }
+.listen-bar { width:3px; border-radius:2px; background:currentColor; opacity:0.3; transition:opacity 0.15s; flex-shrink:0; }
+.listen-bar:nth-child(1){height:6px;  animation-delay:0s;}
+.listen-bar:nth-child(2){height:11px; animation-delay:0.12s;}
+.listen-bar:nth-child(3){height:15px; animation-delay:0.06s;}
+.listen-bar:nth-child(4){height:9px;  animation-delay:0.18s;}
+.listen-bar:nth-child(5){height:7px;  animation-delay:0.09s;}
+.monitor-btn.active-target .listen-bar,
+.monitor-btn.active-dry    .listen-bar { opacity:1; animation:barBounce 0.75s ease-in-out infinite; }
+@keyframes barBounce { 0%,100%{transform:scaleY(1);} 50%{transform:scaleY(0.3);} }
+
+.player-controls { display:flex; gap:8px; align-items:center; }
+.transport-btn {
+  font-family:'IBM Plex Sans', sans-serif; font-size:13px; font-weight:500;
+  padding:10px 16px; border-radius:10px; display:flex; align-items:center; gap:7px;
+  cursor:pointer; transition:all 0.15s; white-space:nowrap;
+  border:1px solid var(--border2); background:rgba(255,255,255,0.03); color:var(--text);
+}
+.transport-btn:hover:not(:disabled) { border-color:var(--accent); color:var(--accent2); }
+.transport-btn:disabled { opacity:0.35; cursor:not-allowed; }
+.transport-play { color:var(--accent2); }
+.transport-play.is-paused { color:var(--muted); border-color:var(--border2); background:rgba(255,255,255,0.04); }
+.transport-restart { color:var(--muted); }
+.pulse-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); box-shadow:0 0 6px var(--accent); animation:pulse 1s ease-in-out infinite; display:inline-block; }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+.monitor-hint { font-size:11px; color:var(--muted); font-style:italic; }
+.kbd-legend { flex-basis:100%; font-size:11px; color:var(--muted); display:flex; align-items:center; flex-wrap:wrap; gap:2px; }
+kbd { font-family:'IBM Plex Mono', monospace; font-size:10px; background:var(--surface2); border:1px solid var(--border2); border-radius:4px; padding:1px 5px; color:var(--muted); }
+
+.shortcuts-wrap { position:relative; }
+.shortcuts-btn {
+  display:flex; align-items:center; gap:5px;
+  background:rgba(255,255,255,0.03); border:1px solid var(--border2);
+  border-radius:8px; color:var(--muted);
+  font-family:inherit; font-size:12px; font-weight:500;
+  padding:6px 12px; cursor:pointer; transition:all 0.15s; white-space:nowrap;
+}
+.shortcuts-btn:hover { border-color:var(--accent); color:var(--text); }
+.shortcuts-popover {
+  display:none; position:absolute; top:calc(100% + 8px); right:0;
+  background:var(--metal-1); border:1px solid var(--border2);
+  border-radius:12px; padding:14px 18px; z-index:50; min-width:260px;
+  box-shadow:0 20px 50px -20px #000;
+}
+.shortcuts-popover.open { display:block; }
+.shortcut-row { display:flex; justify-content:space-between; align-items:center; gap:16px; font-size:12px; color:var(--muted); padding:5px 0; border-bottom:0.5px solid var(--border); }
+.shortcut-row:last-child { border-bottom:none; }
+.shortcut-keys { display:flex; gap:4px; flex-shrink:0; }
+
+/* ── Idle ────────────────────────────────────────────────────── */
+.idle-card { padding:34px 28px; display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center; border-radius:16px; }
+.idle-title { font-family:'IBM Plex Mono', monospace; font-size:15px; font-weight:700; letter-spacing:0.04em; color:var(--accent2); }
+.idle-text { font-size:14px; color:var(--muted); max-width:480px; line-height:1.65; }
+
+/* ── Game area ───────────────────────────────────────────────── */
+.game-card { display:flex; flex-direction:column; gap:16px; }
+.game-prompt { font-size:13px; color:var(--muted); text-align:center; line-height:1.6; }
+.game-prompt strong { color:var(--text); }
+
+/* ── The two selectable EQ plugin cards ──────────────────────── */
+.eq-panels { display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start; }
+.eq-panel {
+  --card:var(--eq-a);
+  position:relative;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.04), transparent 18%),
+    linear-gradient(180deg, var(--metal-1) 0%, var(--metal-2) 100%);
+  border:1px solid rgba(255,255,255,0.09);
+  border-radius:18px; padding:14px;
+  display:flex; flex-direction:column; gap:12px;
+  box-shadow:0 1px 0 var(--panel-hi) inset, 0 -1px 0 rgba(0,0,0,0.5) inset, 0 24px 60px -36px #000;
+  cursor:pointer; -webkit-tap-highlight-color:transparent;
+  transition:transform 0.18s cubic-bezier(0.16,1,0.3,1), box-shadow 0.18s, border-color 0.18s, filter 0.5s ease, opacity 0.5s ease;
+}
+.eq-panel.panel-a { --card:var(--eq-a); }
+.eq-panel.panel-b { --card:var(--eq-b); }
+/* top accent hairline in the card colour */
+.eq-panel::before {
+  content:""; position:absolute; left:14px; right:14px; top:0; height:2px;
+  background:linear-gradient(90deg, transparent, var(--card), transparent);
+  opacity:0.45; transition:opacity 0.18s; border-radius:2px;
+}
+.eq-panel:not(.answered):hover {
+  border-color:color-mix(in srgb,var(--card) 70%,transparent);
+  transform:translateY(-3px);
+  box-shadow:0 1px 0 var(--panel-hi) inset,
+             0 0 0 1px color-mix(in srgb,var(--card) 55%,transparent),
+             0 0 30px -6px color-mix(in srgb,var(--card) 60%,transparent),
+             0 26px 60px -34px #000;
+}
+.eq-panel:not(.answered):hover::before { opacity:1; }
+.eq-panel:not(.answered):active { transform:translateY(-1px) scale(0.996); }
+.eq-panel.answered { cursor:default; }
+.eq-panel.answered::before { opacity:0; }
+
+/* reveal: CORRECT — green ring + win pop, well lights green */
+.eq-panel.reveal-correct {
+  border-color:var(--correct) !important;
+  box-shadow:0 1px 0 var(--panel-hi) inset,
+             0 0 0 1px var(--correct),
+             0 0 38px -6px color-mix(in srgb,var(--correct) 78%,transparent),
+             0 26px 60px -34px #000 !important;
+  animation:cardWin 1.05s cubic-bezier(0.16,1,0.3,1);
+}
+.eq-panel.reveal-correct .canvas-wrap {
+  box-shadow:0 3px 12px rgba(0,0,0,0.55) inset, 0 0 0 1px color-mix(in srgb,var(--correct) 45%,transparent) inset;
+}
+@keyframes cardWin {
+  0%   { transform:scale(1); }
+  32%  { transform:scale(1.02); }
+  100% { transform:scale(1); }
+}
+/* reveal: WRONG (the decoy) — dim & desaturate */
+.eq-panel.reveal-wrong {
+  border-color:var(--border) !important;
+  box-shadow:0 26px 60px -42px #000 !important;
+  filter:grayscale(0.7) brightness(0.66);
+  opacity:0.62;
+}
+/* the card the user actually clicked, when wrong — shake */
+.eq-panel.picked-wrong { animation:cardShake 0.45s cubic-bezier(0.36,0.07,0.19,0.97); }
+@keyframes cardShake {
+  10%,90% { transform:translateX(-2px); }
+  20%,80% { transform:translateX(4px); }
+  30%,50%,70% { transform:translateX(-8px); }
+  40%,60% { transform:translateX(8px); }
+}
+
+/* card header */
+.panel-hdr { display:flex; align-items:center; justify-content:space-between; gap:10px; min-height:22px; }
+.panel-label {
+  display:flex; align-items:center; gap:9px;
+  font-family:'IBM Plex Mono', monospace; font-size:14px; font-weight:700;
+  letter-spacing:0.14em; color:var(--card);
+}
+.panel-dot { width:9px; height:9px; border-radius:50%; background:var(--card); box-shadow:0 0 10px var(--card); flex-shrink:0; }
+.panel-key { font-family:'IBM Plex Mono', monospace; font-size:10px; font-weight:600; color:var(--muted); background:rgba(255,255,255,0.04); border:1px solid var(--border2); border-radius:5px; padding:1px 6px; letter-spacing:0; }
+.panel-result {
+  display:flex; align-items:center; gap:6px;
+  font-family:'IBM Plex Mono', monospace; font-size:12px; font-weight:700; letter-spacing:0.03em;
+  opacity:0; transform:translateX(10px);
+  transition:opacity 0.4s ease, transform 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+.panel-result.show { opacity:1; transform:translateX(0); }
+.panel-result.correct-res { color:var(--correct); }
+.panel-result.wrong-res   { color:var(--wrong); }
+
+/* display well */
+.canvas-wrap {
+  position:relative; border-radius:12px; overflow:hidden;
+  background:var(--well); border:1px solid var(--well-edge);
+  box-shadow:0 3px 12px rgba(0,0,0,0.55) inset, 0 1px 0 rgba(255,255,255,0.03);
+  transition:box-shadow 0.4s ease;
+}
+.eq-canvas { display:block; width:100%; height:168px; }
+.canvas-hidden-overlay {
+  position:absolute; inset:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+  background:repeating-linear-gradient(45deg, rgba(255,255,255,0.014) 0 10px, transparent 10px 20px), var(--well);
+}
+.hidden-label { font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--muted); letter-spacing:0.06em; text-transform:uppercase; }
+
+/* band readout deck */
+.band-params { display:flex; flex-direction:column; gap:9px; min-height:96px; }
+.knob-band {
+  display:flex; flex-direction:column; gap:8px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.018), transparent);
+  border:1px solid var(--border); border-radius:11px; padding:9px 11px 7px;
+}
+.knob-band-label { display:flex; align-items:center; gap:8px; }
+.knob-band-num {
+  font-family:'IBM Plex Mono', monospace; font-size:9px; font-weight:700; letter-spacing:0.1em;
+  color:var(--card); background:color-mix(in srgb,var(--card) 13%,transparent);
+  border:1px solid color-mix(in srgb,var(--card) 35%,transparent);
+  border-radius:5px; padding:2px 7px;
+}
+.knob-type-badge {
+  font-family:'IBM Plex Mono', monospace; font-size:9px; font-weight:600;
+  letter-spacing:0.1em; text-transform:uppercase; color:var(--muted);
+  background:rgba(255,255,255,0.04); border:1px solid var(--border);
+  padding:3px 9px; border-radius:6px;
+}
+.knob-row { display:flex; justify-content:space-around; align-items:flex-start; gap:6px; }
+.params-hidden { font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--muted); font-style:italic; padding:24px 4px; text-align:center; }
+
+/* footer pick button */
+.panel-footer { display:flex; }
+.pick-btn {
+  flex:1; font-family:'IBM Plex Sans', sans-serif; font-size:13px; font-weight:700; letter-spacing:0.03em;
+  padding:11px; border-radius:11px; cursor:pointer; transition:all 0.15s;
+  color:var(--card);
+  background:color-mix(in srgb,var(--card) 10%,transparent);
+  border:1px solid color-mix(in srgb,var(--card) 40%,transparent);
+}
+.eq-panel:not(.answered):hover .pick-btn {
+  background:color-mix(in srgb,var(--card) 22%,transparent);
+  border-color:var(--card); color:#0a0d12;
+  box-shadow:0 0 0 1px var(--card) inset, 0 6px 18px -8px var(--card);
+}
+.pick-btn:disabled { opacity:0.4; cursor:not-allowed; }
+.eq-panel.answered .pick-btn { opacity:0.4; }
+
+/* auto-advance bar */
+.next-bar-wrap { display:none; height:3px; background:var(--well); border-radius:99px; overflow:hidden; }
+.next-bar-fill { height:100%; background:linear-gradient(90deg, var(--accent2), var(--accent)); border-radius:99px; }
+
+/* score delta (optional readout) */
+.score-delta { font-family:'IBM Plex Mono', monospace; font-size:13px; font-weight:600; opacity:0; transition:opacity 0.25s; }
+.score-delta.good { opacity:1; color:var(--correct); }
+.score-delta.bad  { opacity:1; color:var(--wrong); }
+
+/* ── History ─────────────────────────────────────────────────── */
+.history-card { padding:12px 20px; display:flex; flex-direction:column; gap:8px; }
+.history-label { font-family:'IBM Plex Mono', monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; }
+.history-row { display:flex; gap:5px; flex-wrap:wrap; padding:2px 0; }
+.hist-dot { width:10px; height:10px; border-radius:50%; }
+.hist-dot.c { background:var(--correct); box-shadow:0 0 8px -2px var(--correct); }
+.hist-dot.w { background:var(--wrong);   box-shadow:0 0 8px -2px var(--wrong); }
+
+/* ── Toast ───────────────────────────────────────────────────── */
+.toast {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(12px);
+  background:var(--metal-1); border:1px solid var(--border2);
+  color:var(--text); font-family:'IBM Plex Mono', monospace;
+  font-size:13px; padding:10px 18px; border-radius:10px;
+  opacity:0; transition:all 0.22s; pointer-events:none; white-space:nowrap; z-index:999;
+  box-shadow:0 16px 40px -16px #000;
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ── Help ────────────────────────────────────────────────────── */
+.help-toggle {
+  display:flex; align-items:center; gap:8px;
+  background:none; border:1px solid var(--border); border-radius:10px; color:var(--muted);
+  font-family:'IBM Plex Sans', sans-serif; font-size:13px;
+  padding:10px 16px; cursor:pointer; transition:all 0.15s; margin-top:4px; margin-left:24px; width:fit-content;
+}
+.help-toggle:hover { border-color:var(--border2); color:var(--text); }
+.help-toggle .toggle-arrow { font-size:10px; transition:transform 0.2s; display:inline-block; }
+.help-toggle.open .toggle-arrow { transform:rotate(90deg); }
+.help-section {
+  display:none; width:calc(100% - 48px); max-width:960px; margin:0 24px;
+  background:linear-gradient(180deg, var(--metal-1), var(--metal-2));
+  border:1px solid var(--border); border-radius:14px;
+  padding:28px 32px; gap:28px; flex-direction:column;
+}
+.help-section.visible { display:flex; }
+.help-section h2 { font-size:15px; font-weight:600; color:var(--text); letter-spacing:0.02em; margin-bottom:2px; }
+.help-section p { font-size:13.5px; color:var(--muted); line-height:1.65; }
+.help-section p strong { color:var(--text); font-weight:500; }
+.help-block { display:flex; flex-direction:column; gap:8px; }
+.help-freq-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:10px; margin-top:4px; }
+.help-freq-card {
+  background:rgba(255,255,255,0.022); border:1px solid var(--border);
+  border-radius:10px; padding:13px 16px; display:flex; flex-direction:column; gap:4px;
+}
+.help-freq-card .freq-label { font-size:12px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; }
+.help-freq-card .freq-range { font-size:11px; color:var(--muted); font-family:'IBM Plex Mono', monospace; }
+.help-freq-card .freq-desc { font-size:12.5px; color:var(--muted); line-height:1.55; margin-top:2px; }
+.help-divider { border:none; border-top:1px solid var(--border); }
+
+.forgot-pw-link { display:block; width:100%; text-align:center; margin-top:12px; font-size:12px; color:var(--muted); background:none; border:none; cursor:pointer; font-family:inherit; }
+.forgot-pw-link:hover { color:var(--text); }
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 760px) {
+  .eq-panels { grid-template-columns:1fr; }
+}
+@media (max-width: 600px) {
+  nav.site-nav { padding:12px 16px; }
+  .game-bar { padding:8px 16px; }
+  header, main { padding-left:16px; padding-right:16px; }
+  .stat-val { font-size:15px; }
+  .score-row { gap:10px; }
+  .score-row .stat:nth-child(n+5) { display:none; }
+  .new-round-btn { margin-left:0; width:100%; }
+}
+
+</style>
+  <script src="../scoring.js"></script>
+
+  <!-- Open Graph / Social -->
+  <meta property="og:type"        content="website">
+  <meta property="og:url"         content="https://sonicsandbox.app/quick-eq/">
+  <meta property="og:title"       content="QuickEQ — Fast EQ Ear Training Game | SonicSandbox">
+  <meta property="og:description" content="Two EQ curves shown — identify which one matches the processed audio by ear. Fast rounds for building EQ recognition. Free online ear training.">
+  <meta property="og:image"       content="https://sonicsandbox.app/og-image.png">
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:title"       content="QuickEQ — Fast EQ Ear Training Game | SonicSandbox">
+  <meta name="twitter:description" content="Two EQ curves shown — identify which one matches the processed audio by ear. Fast rounds for building EQ recognition. Free online ear training.">
+  <meta name="twitter:image"       content="https://sonicsandbox.app/og-image.png">
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="a4e7fbcc-763c-4844-8f4f-669cf411e799"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "QuickEQ — SonicSandbox",
+    "url": "https://sonicsandbox.app/quick-eq/",
+    "description": "Two EQ curves shown — identify which matches the processed audio. Fast EQ recognition training.",
+    "applicationCategory": "GameApplication",
+    "operatingSystem": "Web Browser",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "keywords": "EQ ear training, fast frequency training, EQ recognition, free ear training game"
+  }
+  </script>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="nav-logo-wrap">
+    <a class="nav-logo" href="/">Sonic<span>Sandbox</span></a>
+  </div>
+  <div class="nav-center">
+    <a class="nav-link" href="/">Home</a>
+    <a class="nav-link active" href="/games/">Games</a>
+    <a class="nav-link" href="/learn/">Learn</a>
+    <a class="nav-link" href="/stats/">Stats</a>
+  </div>
+  <div class="nav-right">
+    <div id="authArea">
+      <button class="auth-btn" id="openAuthBtn">Sign in</button>
+    </div>
+  </div>
+</nav>
+<div class="game-bar">
+  <div class="game-bar-left">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M2 14 Q5 4 9 11 Q13 18 17 8 Q20 2 22 8"
+                stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="brand-name">Quick EQ</span>
+    </div>
+  </div>
+  <div class="game-bar-right">
+    <div class="score-row">
+    <div class="stat">
+      <div class="stat-val" id="scoreVal">—</div>
+      <div class="stat-label">Score</div>
+    </div>
+    <div class="vdiv"></div>
+    <div class="stat">
+      <div class="stat-val" id="streakVal">—</div>
+      <div class="stat-label">Streak</div>
+    </div>
+    <div class="vdiv"></div>
+    <div class="stat">
+      <div class="stat-val" id="accuracyVal">—</div>
+      <div class="stat-label">Accuracy</div>
+    </div>
+    <div class="vdiv"></div>
+    <div class="stat">
+      <div class="stat-val" id="roundVal">—</div>
+      <div class="stat-label">Round</div>
+    </div>
+    </div>
+    <div id="multBadge" class="mult-badge">×1.0</div>
+  </div>
+</div>
+
+<main>
+  <!-- Settings -->
+  <div class="settings-card">
+    <div class="settings-row">
+      <span class="settings-label">Source</span>
+      <div class="btn-group">
+        <button class="src-btn active" id="srcPink"    onclick="setSource('pink')">Pink Noise</button>
+        <button class="src-btn"        id="srcOneShot" onclick="setSource('oneShot')">One-Shots</button>
+        <button class="src-btn"        id="srcLoop"    onclick="setSource('loop')">Loops</button>
+        <button class="src-btn"        id="srcCustom"  onclick="triggerUpload()">
+          <span id="uploadLabel">Upload Folder</span>
+        </button>
+      </div>
+      <input type="file" id="folderInput" accept="audio/*" multiple webkitdirectory
+             style="display:none" onchange="handleFolderUpload(event)">
+    </div>
+    <div class="settings-row">
+      <span class="settings-label">EQ Curves</span>
+      <div class="btn-group">
+        <button class="seg-btn active" id="showCurvesBtn" onclick="setCurvesVisible(true)">Show</button>
+        <button class="seg-btn"        id="hideCurvesBtn" onclick="setCurvesVisible(false)">Hide</button>
+      </div>
+      <span class="settings-label" style="margin-left:12px">Bands</span>
+      <div class="btn-group">
+        <button class="seg-btn active"  id="bands1" onclick="setNumBands(1)">1</button>
+        <button class="seg-btn"        id="bands2" onclick="setNumBands(2)">2</button>
+        <button class="seg-btn"        id="bands3" onclick="setNumBands(3)">3</button>
+      </div>
+      <span class="settings-label" style="margin-left:12px">Difficulty</span>
+      <div class="btn-group">
+        <button class="seg-btn active" id="diffEasy"   onclick="setDifficulty('easy')">Easy</button>
+        <button class="seg-btn"        id="diffMedium" onclick="setDifficulty('medium')">Medium</button>
+        <button class="seg-btn"        id="diffHard"   onclick="setDifficulty('hard')">Hard</button>
+      </div>
+      <button class="new-round-btn" onclick="newRound()">New Round</button>
+    </div>
+  </div>
+
+  <!-- Player -->
+  <div class="player-card">
+    <div class="monitor-group">
+      <button class="monitor-btn" id="monitorTarget" onclick="setMonitor('target')" disabled>
+        <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
+        <span>Target</span>
+      </button>
+      <button class="monitor-btn" id="monitorDry" onclick="setMonitor('dry')" disabled>
+        <div class="listen-bars"><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div><div class="listen-bar"></div></div>
+        <span>Dry</span>
+      </button>
+    </div>
+    <div class="player-controls">
+      <button class="transport-btn transport-play" id="btnPlayPause" onclick="togglePlayPause()" disabled>▶ Play</button>
+      <button class="transport-btn transport-restart" id="btnRestart" onclick="restartAudio()" disabled>↺ Restart</button>
+    </div>
+    <div style="margin-left:auto; position:relative;" class="shortcuts-wrap">
+      <button class="shortcuts-btn" onclick="toggleShortcuts(event)">&#9000; Shortcuts</button>
+      <div class="shortcuts-popover" id="shortcutsPopover">
+        <div class="shortcut-row"><span>Toggle A/B</span><div class="shortcut-keys"><kbd>Space</kbd><kbd>D</kbd></div></div>
+        <div class="shortcut-row"><span>Pause</span><div class="shortcut-keys"><kbd>P</kbd></div></div>
+        <div class="shortcut-row"><span>Restart</span><div class="shortcut-keys"><kbd>F</kbd></div></div>
+        <div class="shortcut-row"><span>Seek</span><div class="shortcut-keys"><kbd>←</kbd><kbd>→</kbd></div></div>
+        <div class="shortcut-row"><span>Skip track</span><div class="shortcut-keys"><kbd>↑</kbd><kbd>↓</kbd></div></div>
+        <div class="shortcut-row"><span>Pick A/B</span><div class="shortcut-keys"><kbd>1</kbd><kbd>2</kbd></div></div>
+      </div>
+    </div>
+    <div class="monitor-hint" id="monitorHint" style="display:none"></div>
+  </div>
+
+  <!-- Idle state -->
+  <div class="idle-card" id="idleCard">
+    <div class="idle-title">Identify the correct EQ</div>
+    <div class="idle-text">
+      Two EQ curves are shown — A and B. One of them is applied to the <strong>TARGET</strong> signal.
+      A/B between <strong>TARGET</strong> and <strong>DRY</strong> using Space or D, then pick the EQ that matches what you hear.
+    </div>
+  </div>
+
+  <!-- Game area -->
+  <div class="game-card" id="gameCard" style="display:none">
+    <div class="game-prompt" id="gamePrompt"></div>
+
+    <div class="eq-panels">
+      <!-- EQ A -->
+      <div class="eq-panel panel-a" id="panelA" role="button" tabindex="0" onclick="cardPick('A')">
+        <div class="panel-hdr">
+          <span class="panel-label"><span class="panel-dot"></span>EQ A <kbd class="panel-key">1</kbd></span>
+          <span class="panel-result" id="resultA"></span>
+        </div>
+        <div class="canvas-wrap" id="canvasWrapA">
+          <canvas class="eq-canvas" id="canvasA"></canvas>
+          <div class="canvas-hidden-overlay" id="overlayA" style="display:none">
+            <span class="hidden-label">EQ curve hidden</span>
+          </div>
+        </div>
+        <div class="band-params" id="paramsA"></div>
+        <div class="panel-footer">
+          <button class="pick-btn" id="pickA" onclick="event.stopPropagation();submitAnswer('A')" disabled>Pick A &#9656;</button>
+        </div>
+      </div>
+
+      <!-- EQ B -->
+      <div class="eq-panel panel-b" id="panelB" role="button" tabindex="0" onclick="cardPick('B')">
+        <div class="panel-hdr">
+          <span class="panel-label"><span class="panel-dot"></span>EQ B <kbd class="panel-key">2</kbd></span>
+          <span class="panel-result" id="resultB"></span>
+        </div>
+        <div class="canvas-wrap" id="canvasWrapB">
+          <canvas class="eq-canvas" id="canvasB"></canvas>
+          <div class="canvas-hidden-overlay" id="overlayB" style="display:none">
+            <span class="hidden-label">EQ curve hidden</span>
+          </div>
+        </div>
+        <div class="band-params" id="paramsB"></div>
+        <div class="panel-footer">
+          <button class="pick-btn" id="pickB" onclick="event.stopPropagation();submitAnswer('B')" disabled>Pick B &#9656;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auto-advance bar -->
+    <div class="next-bar-wrap" id="nextBarWrap">
+      <div class="next-bar-fill" id="nextBarFill" style="width:100%"></div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="history-card">
+    <div class="history-label">Round History</div>
+    <div class="history-row" id="historyStrip"></div>
+  </div>
+</main>
+
+<!-- Help Toggle -->
+<button class="help-toggle" id="helpToggle" onclick="toggleHelp()">
+  <span class="toggle-arrow">▶</span> How to play
+</button>
+
+<!-- Help Section -->
+<div class="help-section" id="helpSection">
+
+  <div class="help-block">
+    <h2>Where to start</h2>
+    <p>
+      Hit <strong>New Round</strong> to begin. You'll see two EQ curves — a <strong>Target</strong> curve
+      (what you're trying to match) and your own. Listen closely to the audio, then drag the band handles on your curve
+      to match the Target's shape as closely as possible. Press <strong>Submit</strong> when you're done.
+    </p>
+    <p>
+      Start with easy difficulty and one band. As you improve, enable increase
+      the number of bands and increase the difficulty. The difficulty determines the level of similarity between EQ A and EQ B.
+    </p>
+    <p>
+      Use <kbd>Space</kbd> or <kbd>D</kbd> to toggle between
+      the Target and a dry, unfiltered signal in real time. Trust your ears, not just your eyes.
+    </p>
+  </div>
+
+  <hr class="help-divider">
+
+  <div class="help-block">
+    <h2>What to listen for</h2>
+    <p>
+      When comparing A to B, ask: <strong>where does the sound feel heavier, thinner, brighter, or duller?</strong>
+      That difference points you to the frequency region you need to adjust. Move your band handle toward that
+      region, then fine-tune the gain until the two curves feel identical.
+    </p>
+    <p>
+      For <strong>shelf filters</strong>, listen for a broad tilt in the overall tone — the whole top or bottom of
+      the spectrum shifting up or down. For <strong>peaking filters</strong>, listen for a more focused,
+      narrow emphasis on a specific part of the sound.
+    </p>
+  </div>
+
+  <hr class="help-divider">
+
+  <div class="help-block">
+    <h2>Frequency reference</h2>
+    <div class="help-freq-grid">
+
+      <div class="help-freq-card">
+        <span class="freq-label" style="color:#c97bff;">Sub-Bass</span>
+        <span class="freq-range">20 – 60 Hz</span>
+        <span class="freq-desc">The deepest rumble — felt in the body more than heard. Controls the "oomph" of kick drums and sub-bass. Too much causes a mix to sound muddy or undefined.</span>
+      </div>
+
+      <div class="help-freq-card">
+        <span class="freq-label" style="color:#5b6aff;">Bass</span>
+        <span class="freq-range">60 – 250 Hz</span>
+        <span class="freq-desc">Provides the fundamental rhythm and power of a song. Houses the primary body of bass guitars and drum shells. Build-up here often makes a track sound bloated.</span>
+      </div>
+
+      <div class="help-freq-card">
+        <span class="freq-label" style="color:#3ecf8e;">Low-Midrange</span>
+        <span class="freq-range">250 – 500 Hz</span>
+        <span class="freq-desc">Adds warmth and foundation to instruments and vocals. Boosts add "thickness" to a sound; cuts are often used to reduce boxiness.</span>
+      </div>
+
+      <div class="help-freq-card">
+        <span class="freq-label" style="color:#f5a623;">Midrange</span>
+        <span class="freq-range">500 Hz – 2 kHz</span>
+        <span class="freq-desc">The most sensitive range for human hearing. Contains the fundamental notes of most melodic instruments and vocals. Too much here sounds "honky" or causes masking.</span>
+      </div>
+
+      <div class="help-freq-card">
+        <span class="freq-label" style="color:#f0b429;">Upper-Midrange</span>
+        <span class="freq-range">2 – 4 kHz</span>
+        <span class="freq-desc">Defines the attack and punch of instruments. Adjusting here helps vocals, guitars, and snares cut through a busy mix.</span>
+      </div>
+
+      <div class="help-freq-card">
+        <span class="freq-label" style="color:#f45b69;">Presence</span>
+        <span class="freq-range">4 – 6 kHz</span>
+        <span class="freq-desc">Dictates the clarity and definition of a sound. Boosting here makes elements feel closer and more upfront to the listener.</span>
+      </div>
+
+      <div class="help-freq-card">
+        <span class="freq-label" style="color:#60e8ff;">Brilliance / Air</span>
+        <span class="freq-range">6 – 20 kHz</span>
+        <span class="freq-desc">Provides "sparkle," "sheen," and "air." Controls the crispness of cymbals, acoustic guitar strings, and vocal breath. Over-boosting quickly leads to harshness or listener fatigue.</span>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── EQ Math ────────────────────────────────────────────────────────────────────
+const DISPLAY_SR = 48000; // sample rate for frequency response calculation
+const FREQ_MIN = 20, FREQ_MAX = 20000;
+const GAIN_RANGE = 18; // canvas shows ±18 dB
+
+function freqToX(f, W) {
+  return (Math.log10(f) - Math.log10(FREQ_MIN)) /
+         (Math.log10(FREQ_MAX) - Math.log10(FREQ_MIN)) * W;
+}
+function xToFreq(x, W) {
+  return Math.pow(10, Math.log10(FREQ_MIN) +
+    (x / W) * (Math.log10(FREQ_MAX) - Math.log10(FREQ_MIN)));
+}
+function gainToY(g, H) {
+  // 0dB = center, +GAIN_RANGE = top margin, -GAIN_RANGE = bottom margin
+  const margin = 14;
+  const usable = H - margin * 2;
+  return margin + usable * (1 - (Math.max(-GAIN_RANGE, Math.min(GAIN_RANGE, g)) + GAIN_RANGE) / (GAIN_RANGE * 2));
+}
+
+// Exact biquad frequency response (Audio EQ Cookbook)
+function bandResponseDB(freq, band) {
+  const { type, freq: f0, gain: g, Q: Qv } = band;
+  const Q = Qv || 0.707;
+  const A = Math.pow(10, g / 40);
+  const w0 = 2 * Math.PI * f0 / DISPLAY_SR;
+  const cosW0 = Math.cos(w0), sinW0 = Math.sin(w0);
+  let b0, b1, b2, a0, a1, a2;
+
+  if (type === 'peaking') {
+    const alpha = sinW0 / (2 * Q);
+    b0 = 1 + alpha * A; b1 = -2 * cosW0; b2 = 1 - alpha * A;
+    a0 = 1 + alpha / A; a1 = -2 * cosW0; a2 = 1 - alpha / A;
+  } else if (type === 'lowshelf') {
+    const alpha = (sinW0 / 2) * Math.sqrt((A + 1 / A) * (1 / Q - 1) + 2);
+    b0 = A * ((A + 1) - (A - 1) * cosW0 + 2 * Math.sqrt(A) * alpha);
+    b1 = 2 * A * ((A - 1) - (A + 1) * cosW0);
+    b2 = A * ((A + 1) - (A - 1) * cosW0 - 2 * Math.sqrt(A) * alpha);
+    a0 = (A + 1) + (A - 1) * cosW0 + 2 * Math.sqrt(A) * alpha;
+    a1 = -2 * ((A - 1) + (A + 1) * cosW0);
+    a2 = (A + 1) + (A - 1) * cosW0 - 2 * Math.sqrt(A) * alpha;
+  } else if (type === 'highshelf') {
+    const alpha = (sinW0 / 2) * Math.sqrt((A + 1 / A) * (1 / Q - 1) + 2);
+    b0 = A * ((A + 1) + (A - 1) * cosW0 + 2 * Math.sqrt(A) * alpha);
+    b1 = -2 * A * ((A - 1) + (A + 1) * cosW0);
+    b2 = A * ((A + 1) + (A - 1) * cosW0 - 2 * Math.sqrt(A) * alpha);
+    a0 = (A + 1) - (A - 1) * cosW0 + 2 * Math.sqrt(A) * alpha;
+    a1 = 2 * ((A - 1) - (A + 1) * cosW0);
+    a2 = (A + 1) - (A - 1) * cosW0 - 2 * Math.sqrt(A) * alpha;
+  } else if (type === 'lowpass') {
+    const alpha = sinW0 / (2 * Q);
+    b0 = (1 - cosW0) / 2; b1 = 1 - cosW0; b2 = (1 - cosW0) / 2;
+    a0 = 1 + alpha; a1 = -2 * cosW0; a2 = 1 - alpha;
+  } else { // highpass
+    const alpha = sinW0 / (2 * Q);
+    b0 = (1 + cosW0) / 2; b1 = -(1 + cosW0); b2 = (1 + cosW0) / 2;
+    a0 = 1 + alpha; a1 = -2 * cosW0; a2 = 1 - alpha;
+  }
+
+  // Normalize
+  b0 /= a0; b1 /= a0; b2 /= a0; a1 /= a0; a2 /= a0;
+
+  // Magnitude at query freq
+  const w = 2 * Math.PI * freq / DISPLAY_SR;
+  const cw = Math.cos(w), sw = Math.sin(w);
+  const c2w = Math.cos(2*w), s2w = Math.sin(2*w);
+  const nr = b0 + b1*cw + b2*c2w, ni = -b1*sw - b2*s2w;
+  const dr = 1  + a1*cw + a2*c2w, di = -a1*sw - a2*s2w;
+  const magSq = (nr*nr + ni*ni) / (dr*dr + di*di);
+  return 20 * Math.log10(Math.sqrt(Math.max(magSq, 1e-30)));
+}
+
+function totalResponseDB(freq, bands) {
+  return bands.reduce((acc, b) => acc + bandResponseDB(freq, b), 0);
+}
+
+// ── Canvas drawing ─────────────────────────────────────────────────────────────
+function drawEQCanvas(canvasEl, bands, color, hidden) {
+  const W = canvasEl.offsetWidth || 400;
+  const H = canvasEl.offsetHeight || 150;
+  canvasEl.width  = W * devicePixelRatio;
+  canvasEl.height = H * devicePixelRatio;
+  const ctx = canvasEl.getContext('2d');
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+
+  // Background
+  ctx.fillStyle = '#080a0e';
+  ctx.fillRect(0, 0, W, H);
+
+  if (hidden) return; // overlay handles the visual
+
+  // Grid lines
+  ctx.lineWidth = 1;
+  // Frequency lines
+  [50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000].forEach(f => {
+    const x = freqToX(f, W);
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  });
+  // Gain lines
+  [-12, -6, 0, 6, 12].forEach(db => {
+    const y = gainToY(db, H);
+    ctx.strokeStyle = db === 0 ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.05)';
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    if (db !== 0) {
+      ctx.fillStyle = 'rgba(255,255,255,0.18)';
+      ctx.font = `9px 'IBM Plex Mono', monospace`;
+      ctx.textAlign = 'left';
+      ctx.fillText(`${db > 0 ? '+' : ''}${db}`, 3, y - 3);
+    }
+  });
+
+  // Freq labels
+  ctx.fillStyle = 'rgba(255,255,255,0.22)';
+  ctx.font = `9px 'IBM Plex Mono', monospace`;
+  ctx.textAlign = 'center';
+  [[100,'100'],[500,'500'],[1000,'1k'],[5000,'5k'],[10000,'10k']].forEach(([f, label]) => {
+    ctx.fillText(label, freqToX(f, W), H - 3);
+  });
+
+  // Compute curve points
+  const pts = [];
+  for (let x = 0; x <= W; x++) {
+    const f = xToFreq(x, W);
+    const db = totalResponseDB(f, bands);
+    pts.push([x, gainToY(db, H)]);
+  }
+
+  const zeroY = gainToY(0, H);
+
+  // Fill under/over the 0dB line
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  const hex = color;
+  grad.addColorStop(0, hex + '44');
+  grad.addColorStop(0.5, hex + '18');
+  grad.addColorStop(1, hex + '06');
+  ctx.beginPath();
+  ctx.moveTo(0, zeroY);
+  pts.forEach(([x, y]) => ctx.lineTo(x, y));
+  ctx.lineTo(W, zeroY);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Curve stroke
+  ctx.beginPath();
+  pts.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // Band center markers
+  bands.forEach(band => {
+    const x = freqToX(band.freq, W);
+    // For LP/HP the gain field is 0, so place marker on the actual curve
+    const markerDB = (band.type === 'lowpass' || band.type === 'highpass')
+      ? totalResponseDB(band.freq, [band])
+      : band.gain;
+    const y = gainToY(markerDB, H);
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.strokeStyle = '#080a0e';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  });
+}
+
+function redrawCanvases() {
+  if (!roundActive) return;
+  drawEQCanvas(document.getElementById('canvasA'), eqA, '#00d4ff', !showCurves);
+  drawEQCanvas(document.getElementById('canvasB'), eqB, '#f0a862', !showCurves);
+}
+
+// ── Band generation ────────────────────────────────────────────────────────────
+// Frequency zones (type hint + freq range)
+const ZONES = [
+  { type: 'highpass',  minF: 40,   maxF: 600   },
+  { type: 'lowshelf',  minF: 60,   maxF: 120   },
+  { type: 'peaking',   minF: 120,  maxF: 400   },
+  { type: 'peaking',   minF: 400,  maxF: 1200  },
+  { type: 'peaking',   minF: 1200, maxF: 4000  },
+  { type: 'peaking',   minF: 4000, maxF: 9000  },
+  { type: 'highshelf', minF: 8000, maxF: 14000 },
+  { type: 'lowpass',   minF: 500,  maxF: 10000 },
+];
+const ROUND_FREQS = [63, 125, 250, 500, 1000, 2000, 4000, 8000, 12000, 16000];
+
+function pickRoundFreq(existingFreqs, zoneIdx) {
+  // Pick from ROUND_FREQS that fall roughly in the zone
+  const zone = ZONES[zoneIdx];
+  const candidates = ROUND_FREQS.filter(f => f >= zone.minF * 0.5 && f <= zone.maxF * 2);
+  // Avoid reusing same octave as existing bands
+  const available = candidates.filter(f =>
+    existingFreqs.every(ef => Math.abs(Math.log2(f) - Math.log2(ef)) > 1.2)
+  );
+  const pool = available.length > 0 ? available : candidates;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function coin() { return Math.random() < 0.5; }
+
+function makeTargetBands(nBands, diff) {
+  const gainCfg = {
+    easy:   { min: 9,  max: 14 },
+    medium: { min: 5,  max: 9  },
+    hard:   { min: 3,  max: 6  },
+  }[diff];
+  const qCfg = {
+    easy:   { min: 0.5, max: 0.8 },
+    medium: { min: 0.6, max: 1.4 },
+    hard:   { min: 0.8, max: 2.0 },
+  }[diff];
+
+  // Pick nBands well-spaced zones
+  const zoneIndices = shuffleArr([0,1,2,3,4,5,6,7]).slice(0, nBands).sort((a,b)=>a-b);
+  const usedFreqs = [];
+  return zoneIndices.map(zi => {
+    const zone = ZONES[zi];
+    const freq = pickRoundFreq(usedFreqs, zi);
+    usedFreqs.push(freq);
+    const isShapeOnly = zone.type === 'lowpass' || zone.type === 'highpass';
+    const isShelf = zone.type === 'lowshelf' || zone.type === 'highshelf';
+    const gainMag = gainCfg.min + Math.random() * (gainCfg.max - gainCfg.min);
+    const gain = isShapeOnly ? 0 : (coin() ? gainMag : -gainMag);
+    // Q is variable for peaking and LP/HP; shelves get a gentle fixed slope
+    const Q = isShelf
+      ? 0.707
+      : qCfg.min + Math.random() * (qCfg.max - qCfg.min);
+    return { type: zone.type, freq, gain: isShapeOnly ? 0 : Math.round(gain * 2) / 2, Q };
+  });
+}
+
+function makeDecoyBands(targetBands, diff) {
+  return targetBands.map(band => {
+    const b = { ...band };
+    const isShapeOnly = band.type === 'lowpass' || band.type === 'highpass';
+
+    if (isShapeOnly) {
+      // For LP/HP: shift cutoff frequency by 1-2 octaves and vary Q
+      const octaveShift = (diff === 'easy' ? 1.5 : diff === 'medium' ? 1.0 : 0.6);
+      const direction = coin() ? octaveShift : -octaveShift;
+      b.freq = Math.round(Math.max(40, Math.min(18000, band.freq * Math.pow(2, direction))));
+      // Snap to nearest round freq
+      const snap = [40,63,80,100,125,160,200,250,315,400,500,630,800,1000,1250,1600,2000,2500,3150,4000,5000,6300,8000,10000,12500,16000];
+      b.freq = snap.reduce((prev, cur) => Math.abs(cur - b.freq) < Math.abs(prev - b.freq) ? cur : prev);
+      // Vary Q slightly
+      const qShift = diff === 'easy' ? 0.5 : diff === 'medium' ? 0.3 : 0.2;
+      b.Q = Math.max(0.3, Math.min(4, band.Q * (coin() ? 1 + qShift : 1 - qShift)));
+      return b;
+    }
+
+    if (diff === 'easy') {
+      // Flip gain sign — opposite tonal character
+      b.gain = -band.gain;
+    } else if (diff === 'medium') {
+      if (Math.random() < 0.65) {
+        b.gain = -band.gain; // flip
+      } else {
+        // Same sign, 1.6-2.5× magnitude
+        const mult = 1.6 + Math.random() * 0.9;
+        b.gain = band.gain * mult;
+        b.gain = Math.sign(b.gain) * Math.min(Math.abs(b.gain), GAIN_RANGE - 1);
+      }
+    } else {
+      // Hard: same sign, 35-65% of original magnitude
+      const ratio = 0.35 + Math.random() * 0.30;
+      b.gain = Math.sign(band.gain) * Math.max(Math.abs(band.gain) * ratio, 1.5);
+      b.gain = Math.round(b.gain * 2) / 2;
+      // Ensure it's clearly different from target
+      if (Math.abs(b.gain - band.gain) < 2) b.gain = band.gain * (coin() ? 0.4 : 1.8);
+    }
+    return b;
+  });
+}
+
+function shuffleArr(a) { const b=[...a]; for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];} return b; }
+
+// ── Help Section ───────────────────────────────────────────────────────────────
+function toggleHelp() {
+  const btn = document.getElementById('helpToggle');
+  const sec = document.getElementById('helpSection');
+  const open = sec.classList.toggle('visible');
+  btn.classList.toggle('open', open);
+}
+
+// ── State ──────────────────────────────────────────────────────────────────────
+let numBands      = 1;
+let difficulty    = 'easy';
+let sourceType    = 'pink';
+let showCurves    = true;
+
+let roundActive   = false;
+let answered      = false;
+let currentMonitor = 'target';
+
+let eqA = [];  // band array for panel A
+let eqB = [];  // band array for panel B
+let correctChoice = 'A'; // which panel has the correct EQ
+
+// Scoring
+let totalRounds  = 0;
+let correctCount = 0;
+let scoreTotal   = 0;
+let streak       = 0;
+
+// Audio
+let audioCtx       = null;
+let isPlaying      = false;
+let isPaused       = false;
+let noiseSource    = null;
+let loopAudioEl    = null;
+let loopMediaSrc   = null;
+let customBuffers=[], customSrc=null, customSrcOffset=0, customSrcStartTime=0;
+let outGain        = null;
+let chainNodes     = [];
+let currentShotSrc = null;
+let shotLoopTimer  = null;
+let nextTimeout    = null;
+
+// Sample data
+let oneShotBuffers     = [];
+let oneShotLoaded      = false;
+let oneShotIdx         = 0;
+let loopFileNames      = [];
+let loopManifestLoaded = false;
+let loopIdx            = 0;
+let customFiles        = [];
+let customIdx          = 0;
+let samplesManifest    = null;
+
+// ── Settings ───────────────────────────────────────────────────────────────────
+function setNumBands(n) {
+  numBands = n;
+  [1,2,3].forEach(i => document.getElementById(`bands${i}`).classList.toggle('active', i===n));
+  updateMultBadge();
+}
+function setDifficulty(d) {
+  difficulty = d;
+  ['diffEasy','diffMedium','diffHard'].forEach(id =>
+    document.getElementById(id).classList.toggle('active',
+      id === `diff${d[0].toUpperCase()+d.slice(1)}`));
+  updateMultBadge();
+}
+
+function updateMultBadge() {
+  const el = document.getElementById('multBadge');
+  if (el && window.ScoringEngine) el.textContent = ScoringEngine.label('quick-eq', { difficulty, numBands });
+}
+function setCurvesVisible(v) {
+  showCurves = v;
+  document.getElementById('showCurvesBtn').classList.toggle('active',  v);
+  document.getElementById('hideCurvesBtn').classList.toggle('active', !v);
+  if (roundActive) {
+    updateOverlays();
+    redrawCanvases();
+    renderKnobs(eqA, 'paramsA', '#00d4ff');
+    renderKnobs(eqB, 'paramsB', '#f0a862');
+  }
+}
+
+function updateOverlays() {
+  document.getElementById('overlayA').style.display = showCurves ? 'none' : 'flex';
+  document.getElementById('overlayB').style.display = showCurves ? 'none' : 'flex';
+}
+
+// ── Round ──────────────────────────────────────────────────────────────────────
+function newRound() {
+  clearTimeout(nextTimeout);
+  stopPlayback();
+
+  const targetBands = makeTargetBands(numBands, difficulty);
+  const decoyBands  = makeDecoyBands(targetBands, difficulty);
+  correctChoice = coin() ? 'A' : 'B';
+  eqA = correctChoice === 'A' ? targetBands : decoyBands;
+  eqB = correctChoice === 'B' ? targetBands : decoyBands;
+
+  answered      = false;
+  roundActive   = true;
+  currentMonitor = 'target';
+  totalRounds++;
+
+  renderGame();
+  document.getElementById('roundVal').textContent = totalRounds;
+
+  if (isPaused) isPaused = false;
+  playCurrentRound();
+}
+
+function renderGame() {
+  document.getElementById('gameCard').style.display = 'flex';
+  document.getElementById('idleCard').style.display = 'none';
+  document.getElementById('nextBarWrap').style.display = 'none';
+
+  // Prompt
+  document.getElementById('gamePrompt').innerHTML =
+    `Listen to <strong>TARGET</strong>. Toggle <strong>DRY</strong> with Space or D to hear the difference. Pick the EQ curve that matches the TARGET.`;
+
+  // Reset panel states
+  ['panelA','panelB'].forEach(id => {
+    const p = document.getElementById(id);
+    p.classList.remove('reveal-correct','reveal-wrong','answered','picked-wrong');
+  });
+  ['resultA','resultB'].forEach(id => {
+    const r = document.getElementById(id);
+    r.className = 'panel-result'; r.textContent = '';
+  });
+  const _sdreset = document.getElementById('scoreDelta'); if (_sdreset) _sdreset.className = 'score-delta';
+
+  // Overlays
+  updateOverlays();
+
+  // Draw canvases (defer slightly so layout is stable)
+  requestAnimationFrame(() => {
+    redrawCanvases();
+  });
+  setTimeout(redrawCanvases, 90);
+
+  // Band knobs
+  renderKnobs(eqA, 'paramsA', '#00d4ff');
+  renderKnobs(eqB, 'paramsB', '#f0a862');
+
+  // Buttons
+  enableGameButtons(true);
+  updateMonitorUI();
+}
+
+// ── SVG Knobs ──────────────────────────────────────────────────────────────────
+function makeKnobSVG(value, min, max, label, color, unit, logScale) {
+  const R = 28, cx = 36, cy = 36, size = 72;
+  const startDeg = 135, sweepDeg = 270;
+
+  let t;
+  if (logScale) {
+    const safeVal = Math.max(value, min);
+    t = (Math.log10(safeVal) - Math.log10(min)) / (Math.log10(max) - Math.log10(min));
+  } else {
+    t = (value - min) / (max - min);
+  }
+  t = Math.max(0, Math.min(1, t));
+
+  function deg2rad(d) { return d * Math.PI / 180; }
+  function polar(deg) {
+    const r = deg2rad(deg);
+    return [cx + R * Math.cos(r), cy + R * Math.sin(r)];
+  }
+
+  const [sx, sy] = polar(startDeg);
+  const [ex, ey] = polar(startDeg + sweepDeg);
+  const valDeg = startDeg + t * sweepDeg;
+  const [vx, vy] = polar(valDeg);
+
+  const track = `M ${sx.toFixed(2)},${sy.toFixed(2)} A ${R},${R} 0 1,1 ${ex.toFixed(2)},${ey.toFixed(2)}`;
+
+  let fillStr = '';
+  if (t > 0.005) {
+    const fillSweep = t * sweepDeg;
+    const la = fillSweep > 180 ? 1 : 0;
+    fillStr = `<path d="M ${sx.toFixed(2)},${sy.toFixed(2)} A ${R},${R} 0 ${la},1 ${vx.toFixed(2)},${vy.toFixed(2)}" fill="none" stroke="${color}" stroke-width="4.5" stroke-linecap="round"/>`;
+  }
+
+  // Format value
+  let disp;
+  if (unit === 'dB')      disp = (value >= 0 ? '+' : '') + value.toFixed(1);
+  else if (unit === 'Hz') disp = value >= 1000 ? (value/1000).toFixed(value%1000===0?0:1)+'k' : String(value);
+  else                    disp = value.toFixed(1);
+
+  const totalH = size + 18;
+  return `<svg viewBox="0 0 ${size} ${totalH}" width="${size}" height="${totalH}" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="${cx}" cy="${cy}" r="${R+5}" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+    <path d="${track}" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="4.5" stroke-linecap="round"/>
+    ${fillStr}
+    <text x="${cx}" y="${cy+5}" text-anchor="middle" fill="${color}" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="700">${disp}</text>
+    <text x="${cx}" y="${size+13}" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="600">${unit}</text>
+  </svg>`;
+}
+
+function renderKnobs(bands, containerId, color) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  if (!showCurves) {
+    const p = document.createElement('div');
+    p.className = 'params-hidden';
+    p.textContent = 'Parameters hidden';
+    el.appendChild(p);
+    return;
+  }
+  bands.forEach((band, i) => {
+    const LABELS = {
+      peaking: 'PEAK', lowshelf: 'LOW SHELF', highshelf: 'HIGH SHELF',
+      lowpass: 'LOW PASS', highpass: 'HIGH PASS'
+    };
+    const typeLabel = LABELS[band.type] || band.type.toUpperCase();
+    const dbKnob  = makeKnobSVG(band.gain, -18, 18,    'dB', color, 'dB', false);
+    const hzKnob  = makeKnobSVG(band.freq, 20, 20000,  'Hz', color, 'Hz', true);
+    const qKnob   = makeKnobSVG(band.Q,    0.1, 10,     'Q', color, 'Q',  true);
+    const bandDiv = document.createElement('div');
+    bandDiv.className = 'knob-band';
+    bandDiv.innerHTML = `
+      <div class="knob-band-label">
+        <span class="knob-band-num">B${i+1}</span>
+        <span class="knob-type-badge">${typeLabel}</span>
+      </div>
+      <div class="knob-row">${dbKnob}${hzKnob}${qKnob}</div>`;
+    el.appendChild(bandDiv);
+  });
+}
+
+function enableGameButtons(on) {
+  ['monitorTarget','monitorDry'].forEach(id => {
+    document.getElementById(id).disabled = !on;
+  });
+  document.getElementById('pickA').disabled = !on || answered;
+  document.getElementById('pickB').disabled = !on || answered;
+  document.getElementById('btnPlayPause').disabled = !on;
+  document.getElementById('btnRestart').disabled   = !on;
+}
+
+function updateMonitorUI() {
+  const tBtn = document.getElementById('monitorTarget');
+  const dBtn = document.getElementById('monitorDry');
+  tBtn.classList.remove('active-target','active-dry');
+  dBtn.classList.remove('active-target','active-dry');
+  if (currentMonitor === 'target') tBtn.classList.add('active-target');
+  else                             dBtn.classList.add('active-dry');
+
+  const hint = document.getElementById('monitorHint');
+  if (!roundActive) { hint.textContent = ''; return; }
+  hint.textContent = currentMonitor === 'target'
+    ? 'Hearing: target EQ  [Space/D to toggle DRY]'
+    : 'Hearing: dry signal  [Space/D to toggle TARGET]';
+}
+
+// ── Monitor ────────────────────────────────────────────────────────────────────
+function setMonitor(m) {
+  if (m !== 'target' && m !== 'dry') return;
+  currentMonitor = m;
+  updateMonitorUI();
+  if (roundActive && isPlaying) { stopPlayback(); playCurrentRound(); }
+}
+
+function getCurrentEQBands() {
+  if (currentMonitor === 'dry') return []; // no EQ — dry/unprocessed signal
+  return correctChoice === 'A' ? eqA : eqB; // target EQ
+}
+
+// ── Audio ──────────────────────────────────────────────────────────────────────
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function makePinkNoise(dur) {
+  const rate = audioCtx.sampleRate, len = Math.ceil(rate * dur);
+  const buf = audioCtx.createBuffer(1, len, rate);
+  const d = buf.getChannelData(0);
+  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+  for (let i=0;i<len;i++) {
+    const w=Math.random()*2-1;
+    b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
+    b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
+    b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
+    d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11; b6=w*0.115926;
+  }
+  const src = audioCtx.createBufferSource(); src.buffer=buf; src.loop=true;
+  return src;
+}
+
+function buildBiquadChain(bands, destNode) {
+  // Returns: { inputNode, filterNodes }
+  const filters = bands.map(band => {
+    const f = audioCtx.createBiquadFilter();
+    f.type = band.type;
+    f.frequency.value = band.freq;
+    f.gain.value = band.gain;
+    f.Q.value = band.Q || 0.707;
+    return f;
+  });
+  // Chain: filters[0] → filters[1] → ... → destNode
+  for (let i = 0; i < filters.length - 1; i++) filters[i].connect(filters[i+1]);
+  if (filters.length > 0) filters[filters.length - 1].connect(destNode);
+  chainNodes = filters;
+  return filters.length > 0 ? filters[0] : destNode;
+}
+
+function playCurrentRound() {
+  if (!roundActive) return;
+  stopPlayback();
+  initAudio();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  outGain = audioCtx.createGain();
+  outGain.gain.value = 0.75;
+  outGain.connect(audioCtx.destination);
+
+  const bands = getCurrentEQBands();
+  const chainHead = buildBiquadChain(bands, outGain);
+
+  if (sourceType === 'oneShot' && oneShotBuffers.length > 0) {
+    startOneShotLoop(chainHead);
+  } else {
+    playContinuousSource(chainHead);
+  }
+  isPlaying = true;
+
+  const pp = document.getElementById('btnPlayPause'); if(pp){pp.textContent='⏸ Pause'; pp.disabled=false; pp.classList.remove('is-paused');}
+  document.getElementById('btnRestart').disabled = false;
+}
+
+function stopPlayback() {
+  if (shotLoopTimer)  { clearInterval(shotLoopTimer); shotLoopTimer = null; }
+  if (noiseSource && noiseSource !== loopMediaSrc && noiseSource !== customSrc) {
+    try { noiseSource.stop(); } catch(e) {}
+  }
+  noiseSource = null;
+  if (loopAudioEl)    loopAudioEl.pause();
+  if (loopMediaSrc)   { try { loopMediaSrc.disconnect();   } catch(e) {} }
+  if (customSrc) {
+    // Save playback position so monitor/EQ switches don't restart the track
+    const _buf = customBuffers.length ? customBuffers[customIdx % customBuffers.length] : null;
+    if (_buf && customSrcStartTime) customSrcOffset = ((audioCtx.currentTime - customSrcStartTime) + customSrcOffset) % _buf.duration;
+    try { customSrc.stop(); } catch(e){} customSrc = null;
+  }
+  if (currentShotSrc) { try { currentShotSrc.stop(); } catch(e) {} currentShotSrc = null; }
+  chainNodes.forEach(n => { try { n.disconnect(); } catch(e) {} });
+  chainNodes = [];
+  if (outGain) { try { outGain.disconnect(); } catch(e) {} outGain = null; }
+  isPlaying = false;
+  const pp = document.getElementById('btnPlayPause'); if(pp && !isPaused){pp.textContent='▶ Play';}
+}
+
+function startOneShotLoop(dest) {
+  const fire = () => {
+    if (!isPlaying || sourceType !== 'oneShot') return;
+    const s = audioCtx.createBufferSource();
+    s.buffer = oneShotBuffers[oneShotIdx % oneShotBuffers.length].buffer;
+    s.connect(dest); s.start(0); currentShotSrc = s;
+  };
+  fire(); shotLoopTimer = setInterval(fire, 5000);
+}
+
+function playContinuousSource(dest) {
+  if (sourceType === 'loop' && loopFileNames.length > 0) {
+    if (!loopAudioEl) { loopAudioEl = new Audio(); loopAudioEl.loop = true; }
+    if (!loopMediaSrc) loopMediaSrc = audioCtx.createMediaElementSource(loopAudioEl);
+    const fname = loopFileNames[loopIdx % loopFileNames.length];
+    if (loopAudioEl._cur !== fname) { loopAudioEl.src=`../samples/loops/${fname}`; loopAudioEl._cur=fname; }
+    loopMediaSrc.connect(dest);
+    loopAudioEl.play().catch(()=>{});
+    noiseSource = loopMediaSrc;
+  } else if (sourceType === 'custom' && customBuffers.filter(Boolean).length > 0) {
+    const buf = customBuffers[customIdx % customBuffers.length];
+    if (buf) {
+      if (customSrc) { try { customSrc.stop(); } catch(e){} customSrc = null; }
+      customSrc = audioCtx.createBufferSource();
+      customSrc.buffer = buf; customSrc.loop = true;
+      customSrc.connect(dest);
+      customSrc.start(0, customSrcOffset % buf.duration);
+      customSrcStartTime = audioCtx.currentTime;
+      noiseSource = customSrc;
+    }
+  } else {
+    const src = makePinkNoise(8);
+    src.connect(dest); src.start(0);
+    noiseSource = src;
+  }
+}
+
+// ── Pause / Restart ────────────────────────────────────────────────────────────
+function togglePlayPause() {
+  if (!roundActive) return;
+  if (!isPlaying) { playCurrentRound(); return; }
+  togglePause();
+}
+
+function togglePause() {
+  if (!roundActive || !audioCtx) return;
+  const btn = document.getElementById('btnPlayPause');
+  if (isPaused) {
+    if (loopAudioEl   && sourceType==='loop')   loopAudioEl.play().catch(()=>{});
+    // buffer source resumed by audioCtx.resume()
+    audioCtx.resume().then(() => {
+      isPaused = false; btn.textContent='⏸ Pause'; btn.classList.remove('is-paused');
+      if (sourceType==='oneShot' && isPlaying) { stopPlayback(); playCurrentRound(); }
+    });
+  } else {
+    if (loopAudioEl   && sourceType==='loop')   loopAudioEl.pause();
+    // buffer source paused by audioCtx.suspend()
+    if (shotLoopTimer) { clearInterval(shotLoopTimer); shotLoopTimer=null; }
+    audioCtx.suspend().then(() => { isPaused=true; btn.textContent='▶ Resume'; btn.classList.add('is-paused'); });
+  }
+}
+
+function restartAudio() {
+  if (!roundActive) return;
+  initAudio();
+  if (isPaused) {
+    audioCtx.resume(); isPaused=false;
+    const pp = document.getElementById('btnPlayPause');
+    if(pp){pp.textContent='⏸ Pause'; pp.classList.remove('is-paused');}
+  }
+  if (loopAudioEl   && sourceType==='loop')   loopAudioEl.currentTime=0;
+  customSrcOffset = 0;
+  stopPlayback(); playCurrentRound();
+}
+
+// ── Sample loading ─────────────────────────────────────────────────────────────
+async function getManifest() {
+  if (samplesManifest) return samplesManifest;
+  const r = await fetch('../samples/manifest.json');
+  samplesManifest = await r.json(); return samplesManifest;
+}
+async function loadOneShotSamples() {
+  if (oneShotLoaded) return;
+  initAudio();
+  const btn = document.getElementById('srcOneShot');
+  btn.classList.add('loading'); btn.textContent='Loading…';
+  oneShotBuffers=[];
+  const manifest = await getManifest();
+  await Promise.all(manifest.oneShots.map(async fname => {
+    try {
+      const r=await fetch(`../samples/one-shots/${fname}`); if (!r.ok) return;
+      oneShotBuffers.push({ buffer: await audioCtx.decodeAudioData(await r.arrayBuffer()) });
+    } catch(e) {}
+  }));
+  oneShotLoaded = oneShotBuffers.length>0;
+  if (oneShotLoaded) oneShotIdx=Math.floor(Math.random()*oneShotBuffers.length);
+  btn.textContent='One-Shots'; btn.classList.remove('loading');
+  if (!oneShotLoaded) { showToast('No one-shots found'); sourceType='pink'; updateSourceUI(); }
+}
+async function loadLoopSamples() {
+  if (loopManifestLoaded) return;
+  const manifest = await getManifest();
+  loopFileNames = manifest.loops||[];
+  loopManifestLoaded = loopFileNames.length>0;
+  if (loopManifestLoaded) loopIdx=Math.floor(Math.random()*loopFileNames.length);
+  if (!loopManifestLoaded) { showToast('No loops found'); sourceType='pink'; updateSourceUI(); }
+}
+function setSource(type) {
+  if (type==='oneShot' && !oneShotLoaded) { loadOneShotSamples().then(()=>{if(oneShotLoaded){sourceType='oneShot';updateSourceUI();}}); return; }
+  if (type==='loop' && !loopManifestLoaded) { loadLoopSamples().then(()=>{if(loopManifestLoaded){sourceType='loop';updateSourceUI();}}); return; }
+  sourceType=type; updateSourceUI();
+}
+function updateSourceUI() {
+  ['pink','oneShot','loop','custom'].forEach(t =>
+    document.getElementById(`src${t[0].toUpperCase()+t.slice(1).replace('S','S')}`
+      .replace('src','src').replace('Src','src'))
+  );
+  document.getElementById('srcPink').classList.toggle('active',    sourceType==='pink');
+  document.getElementById('srcOneShot').classList.toggle('active', sourceType==='oneShot');
+  document.getElementById('srcLoop').classList.toggle('active',    sourceType==='loop');
+  document.getElementById('srcCustom').classList.toggle('active',  sourceType==='custom');
+}
+function triggerUpload() {
+  if (customFiles.length>0) { setSource('custom'); return; }
+  document.getElementById('folderInput').click();
+}
+function handleFolderUpload(e) {
+  const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/') || /\.(mp3|wav|ogg|aac|flac|m4a)$/i.test(f.name));
+  if (!files.length) return;
+  initAudio();
+  customFiles = files; customIdx = 0; customBuffers = [];
+  const label = document.getElementById('uploadLabel') || document.getElementById('folderLabel');
+  if (label) label.textContent = '⧗ Loading...';
+  let loaded = 0;
+  Promise.all(files.map((f, i) =>
+    f.arrayBuffer()
+      .then(ab => audioCtx.decodeAudioData(ab))
+      .then(buf => { customBuffers[i] = buf; loaded++; if (label) label.textContent = '⧗ ' + loaded + '/' + files.length; })
+      .catch(err => { console.warn('Could not decode', f.name, err); customBuffers[i] = null; loaded++; })
+  )).then(() => {
+    const n = customBuffers.filter(Boolean).length;
+    if (label) label.textContent = '📁 ' + n + ' tracks';
+    setSource('custom');
+    if (typeof showToast === 'function') showToast(n + ' tracks ready');
+    if (typeof setLoadStatus === 'function') { setLoadStatus(n + ' tracks ready', false); setTimeout(() => setLoadStatus(null), 2500); }
+  });
+}
+
+// ── Skip track / seek ──────────────────────────────────────────────────────────
+function seekMusic(delta) {
+  if (!roundActive || !isPlaying) return;
+  if (sourceType==='loop' && loopAudioEl) { loopAudioEl.currentTime=Math.max(0,loopAudioEl.currentTime+delta); showToast(`${delta>0?'+':''}${delta}s`); }
+  if (sourceType==='custom' && customSrc) { const b=customBuffers[customIdx%customBuffers.length]; if(b){const el=audioCtx.currentTime-customSrcStartTime; customSrcOffset=Math.max(0,(customSrcOffset+el+delta))%b.duration; customSrcStartTime=audioCtx.currentTime; const dest2=outGain; try{customSrc.stop();}catch(e){} customSrc=audioCtx.createBufferSource(); customSrc.buffer=b; customSrc.loop=true; const ch=buildBiquadChain(getCurrentEQBands(),outGain); customSrc.connect(ch); customSrc.start(0,customSrcOffset); noiseSource=customSrc;} showToast(`${delta>0?'+':''}${delta}s`); }
+}
+function skipTrack(delta) {
+  if (!roundActive || !isPlaying || !audioCtx) return;
+  if (sourceType==='oneShot' && oneShotBuffers.length>0) {
+    oneShotIdx=((oneShotIdx+delta)%oneShotBuffers.length+oneShotBuffers.length)%oneShotBuffers.length;
+    stopPlayback(); playCurrentRound(); showToast(`Shot ${oneShotIdx+1}/${oneShotBuffers.length}`);
+  } else if (sourceType==='loop' && loopFileNames.length>0) {
+    loopIdx=((loopIdx+delta)%loopFileNames.length+loopFileNames.length)%loopFileNames.length;
+    if (loopAudioEl){loopAudioEl.src=`../samples/loops/${loopFileNames[loopIdx]}`;loopAudioEl._cur=loopFileNames[loopIdx];loopAudioEl.play().catch(()=>{});}
+    showToast(`Loop ${loopIdx+1}/${loopFileNames.length}`);
+  } else if (sourceType==='custom' && customFiles.length>0) {
+    customIdx=((customIdx+delta)%customBuffers.length+customFiles.length)%customBuffers.length;
+    customSrcOffset=0; if(customBuffers[customIdx]&&isPlaying){ playCurrentRound(); }
+    showToast(`Track ${customIdx+1}/${customFiles.length}`);
+  }
+}
+
+// ── Submit ─────────────────────────────────────────────────────────────────────
+function cardPick(choice) { if (!roundActive || answered) return; submitAnswer(choice); }
+
+function submitAnswer(choice) {
+  if (!roundActive || answered) return;
+  answered = true;
+  stopPlayback();
+
+  const isCorrect = choice === correctChoice;
+  const pts = window.ScoringEngine ? ScoringEngine.points('quick-eq', { difficulty, numBands }) : 100;
+  if (isCorrect) { correctCount++; streak++; scoreTotal += pts; }
+  else { streak = 0; }
+
+  if (window.SonicSandbox) {
+    SonicSandbox.saveScore({ game: 'quick-eq', correct: isCorrect, roundScore: isCorrect ? pts : 0 });
+  }
+
+  updateScoreDisplay();
+  addHistory(isCorrect);
+  const _sd = document.getElementById('scoreDelta');
+  const _ml = window.ScoringEngine ? ScoringEngine.label('quick-eq', { difficulty, numBands }) : '×1.0';
+  if (_sd) { _sd.textContent = isCorrect ? `+${pts} pts  ${_ml}` : _ml; _sd.className = `score-delta ${isCorrect ? 'good' : 'bad'}`; }
+
+  // Visual reveal
+  const correctPanel = correctChoice === 'A' ? 'panelA' : 'panelB';
+  const wrongPanel   = correctChoice === 'A' ? 'panelB' : 'panelA';
+  const chosenPanel  = choice === 'A' ? 'panelA' : 'panelB';
+
+  document.getElementById(correctPanel).classList.add('reveal-correct','answered');
+  document.getElementById(wrongPanel).classList.add('reveal-wrong','answered');
+  document.getElementById('panelA').classList.add('answered');
+  document.getElementById('panelB').classList.add('answered');
+  if (!isCorrect) document.getElementById(chosenPanel).classList.add('picked-wrong');
+
+  // Result badges
+  const resA = document.getElementById('resultA');
+  const resB = document.getElementById('resultB');
+  resA.classList.add('show');
+  resB.classList.add('show');
+  if (correctChoice === 'A') {
+    resA.className = 'panel-result show correct-res'; resA.textContent = '✓ Correct EQ';
+    resB.className = 'panel-result show wrong-res';   resB.textContent = '✗ Incorrect';
+  } else {
+    resB.className = 'panel-result show correct-res'; resB.textContent = '✓ Correct EQ';
+    resA.className = 'panel-result show wrong-res';   resA.textContent = '✗ Incorrect';
+  }
+
+  // If curves were hidden, reveal them now
+  if (!showCurves) {
+    document.getElementById('overlayA').style.display = 'none';
+    document.getElementById('overlayB').style.display = 'none';
+    redrawCanvases();
+    renderKnobs(eqA, 'paramsA', '#00d4ff');
+    renderKnobs(eqB, 'paramsB', '#f0a862');
+  }
+
+  // Disable pick buttons
+  document.getElementById('pickA').disabled = true;
+  document.getElementById('pickB').disabled = true;
+
+  // Auto-advance with progress bar
+  const delay = isCorrect ? 2200 : 3000;
+  const bar  = document.getElementById('nextBarWrap');
+  const fill = document.getElementById('nextBarFill');
+  bar.style.display = 'block';
+  fill.style.transition = 'none'; fill.style.width = '100%';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    fill.style.transition = `width ${delay}ms linear`;
+    fill.style.width = '0%';
+  }));
+  nextTimeout = setTimeout(newRound, delay);
+
+  // Replay the correct (target) EQ after a short pause
+  setTimeout(() => {
+    if (answered && roundActive) {
+      currentMonitor = 'target';
+      updateMonitorUI();
+      playCurrentRound();
+    }
+  }, 500);
+}
+
+// ── Score display ──────────────────────────────────────────────────────────────
+function updateScoreDisplay() {
+  document.getElementById('scoreVal').textContent    = scoreTotal;
+  document.getElementById('streakVal').textContent   = streak;
+  document.getElementById('accuracyVal').textContent =
+    totalRounds > 0 ? Math.round(correctCount / totalRounds * 100) + '%' : '—';
+}
+
+function addHistory(correct) {
+  const strip = document.getElementById('historyStrip');
+  const dot   = document.createElement('div');
+  dot.className = `hist-dot ${correct ? 'c' : 'w'}`;
+  strip.appendChild(dot);
+  while (strip.children.length > 48) strip.removeChild(strip.firstChild);
+}
+
+
+function toggleShortcuts(e) {
+  e.stopPropagation();
+  const pop = document.getElementById('shortcutsPopover');
+  pop.classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  const pop = document.getElementById('shortcutsPopover');
+  if (pop) pop.classList.remove('open');
+});
+// ── Keyboard shortcuts ─────────────────────────────────────────────────────────
+function toggleTargetDry() {
+  if (!roundActive) return;
+  setMonitor(currentMonitor === 'target' ? 'dry' : 'target');
+}
+
+window.addEventListener('keydown', e => {
+  if (e.target.tagName==='INPUT') return;
+  if (audioCtx && audioCtx.state==='suspended' && e.code!=='KeyP') audioCtx.resume();
+  if (e.code==='Space')     { e.preventDefault(); toggleTargetDry(); }
+  if (e.code==='KeyD')      { e.preventDefault(); toggleTargetDry(); }
+  if (e.code==='KeyP')      { e.preventDefault(); togglePause(); }
+  if (e.code==='KeyF')      { e.preventDefault(); restartAudio(); }
+  if (e.code==='Digit1')    { e.preventDefault(); if (roundActive&&!answered) submitAnswer('A'); }
+  if (e.code==='Digit2')    { e.preventDefault(); if (roundActive&&!answered) submitAnswer('B'); }
+  if (e.code==='ArrowLeft') { e.preventDefault(); seekMusic(-10); }
+  if (e.code==='ArrowRight'){ e.preventDefault(); seekMusic(+10); }
+  if (e.code==='ArrowUp')   { e.preventDefault(); skipTrack(+1); }
+  if (e.code==='ArrowDown') { e.preventDefault(); skipTrack(-1); }
+});
+
+// ── Toast / resize ─────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+window.addEventListener('resize', () => {
+  if (roundActive) redrawCanvases();
+});
+
+updateMultBadge();
+
+// ── Service worker ─────────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW failed', err));
+  });
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../supabase-client.js"></script>
+<!-- Auth modal -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" id="closeAuthBtn">&times;</button>
+    <div class="modal-tabs">
+      <button class="modal-tab active" data-tab="signin">Sign in</button>
+      <button class="modal-tab" data-tab="signup">Create account</button>
+    </div>
+    <div id="tabSignin">
+      <label>Email</label>
+      <input type="email" id="siEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label>
+      <input type="password" id="siPassword" placeholder="••••••••" autocomplete="current-password">
+      <button class="modal-submit" id="siSubmit">Sign in</button>
+      <div class="modal-msg" id="siMsg"></div>
+      <button class="forgot-pw-link" id="forgotPwBtn" type="button">Forgot password?</button>
+    </div>
+    <div id="tabForgot" style="display:none;">
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:18px;">Enter your email and we'll send you a reset link.</p>
+      <label>Email</label>
+      <input type="email" id="fpEmail" placeholder="you@example.com" autocomplete="email">
+      <button class="modal-submit" id="fpSubmit">Send reset link</button>
+      <div class="modal-msg" id="fpMsg"></div>
+      <button class="forgot-pw-link" id="backToSigninBtn" type="button">← Back to sign in</button>
+    </div>
+    <div id="tabSignup" style="display:none;">
+      <label>Email</label>
+      <input type="email" id="suEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label>
+      <input type="password" id="suPassword" placeholder="At least 6 characters" autocomplete="new-password">
+      <button class="modal-submit" id="suSubmit">Create account</button>
+      <div class="modal-msg" id="suMsg"></div>
+    </div>
+  </div>
+</div>
+<!-- Footer -->
+<footer>
+  <div class="footer-left">
+    <a href="/">SonicSandbox</a>
+    &nbsp;·&nbsp; Ear training for producers, engineers, &amp; musicians
+    &nbsp;·&nbsp; <a href="/about/">About</a>
+    &nbsp;·&nbsp; <a href="/privacy/">Privacy Policy</a>
+    &nbsp;·&nbsp; <a href="/support/">Support</a>
+  </div>
+  <div class="footer-right">
+    <span>© 2026 Zach Snider</span>
+  </div>
+</footer>
+<script>
+  // ── Auth modal ────────────────────────────────────────────
+  const authModal = document.getElementById('authModal');
+  const authArea  = document.getElementById('authArea');
+  const openBtn   = document.getElementById('openAuthBtn');
+  const closeBtn  = document.getElementById('closeAuthBtn');
+  const tabs      = document.querySelectorAll('.modal-tab');
+  const tabSignin = document.getElementById('tabSignin');
+  const tabSignup = document.getElementById('tabSignup');
+  const tabForgot = document.getElementById('tabForgot');
+
+  if (openBtn) openBtn.addEventListener('click', () => authModal.classList.add('open'));
+  closeBtn.addEventListener('click', () => { authModal.classList.remove('open'); showSigninPanel(); });
+  authModal.addEventListener('click', e => { if (e.target === authModal) { authModal.classList.remove('open'); showSigninPanel(); } });
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      tabSignin.style.display = tab.dataset.tab === 'signin' ? '' : 'none';
+      tabSignup.style.display = tab.dataset.tab === 'signup' ? '' : 'none';
+      tabForgot.style.display = 'none';
+    });
+  });
+
+  function showSigninPanel() { tabForgot.style.display = 'none'; tabSignin.style.display = ''; }
+  function showForgotPanel() {
+    tabSignin.style.display = 'none'; tabForgot.style.display = '';
+    const e = document.getElementById('siEmail').value.trim();
+    if (e) document.getElementById('fpEmail').value = e;
+    document.getElementById('fpMsg').textContent = '';
+  }
+
+  document.getElementById('forgotPwBtn').addEventListener('click', showForgotPanel);
+  document.getElementById('backToSigninBtn').addEventListener('click', showSigninPanel);
+
+  document.getElementById('siSubmit').addEventListener('click', async () => {
+    const msg = document.getElementById('siMsg');
+    msg.textContent = 'Signing in…'; msg.className = 'modal-msg';
+    const { error } = await SonicSandbox.signIn(
+      document.getElementById('siEmail').value.trim(),
+      document.getElementById('siPassword').value
+    );
+    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+    else { authModal.classList.remove('open'); }
+  });
+
+  document.getElementById('fpSubmit').addEventListener('click', async () => {
+    const email = document.getElementById('fpEmail').value.trim();
+    const msg = document.getElementById('fpMsg');
+    if (!email) { msg.textContent = 'Please enter your email.'; msg.className = 'modal-msg error'; return; }
+    msg.textContent = 'Sending…'; msg.className = 'modal-msg';
+    const { error } = await SonicSandbox.resetPasswordForEmail(email);
+    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+    else { msg.textContent = 'Reset link sent! Check your inbox.'; msg.className = 'modal-msg success'; document.getElementById('fpSubmit').disabled = true; }
+  });
+
+  document.getElementById('suSubmit').addEventListener('click', async () => {
+    const msg = document.getElementById('suMsg');
+    msg.textContent = 'Creating account…'; msg.className = 'modal-msg';
+    const { error } = await SonicSandbox.signUp(
+      document.getElementById('suEmail').value.trim(),
+      document.getElementById('suPassword').value
+    );
+    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+    else { msg.textContent = 'Check your email to confirm your account.'; msg.className = 'modal-msg success'; }
+  });
+
+  // ── Auth state ────────────────────────────────────────────
+  document.addEventListener('ss:authchange', async e => {
+    const user = e.detail;
+    if (user) {
+      authArea.innerHTML = `<div class="user-pill"><span class="username-display" style="color:var(--muted);font-size:12px;">${user.email}</span></div>`;
+      const profile = await SonicSandbox.getProfile();
+      if (profile?.username) {
+        const el = document.querySelector('.username-display');
+        if (el) el.outerHTML = `<a class="set-username-link" href="/account/">@${profile.username}</a>`;
+      }
+    } else {
+      authArea.innerHTML = `<button class="auth-btn" id="openAuthBtn">Sign in</button>`;
+      document.getElementById('openAuthBtn').addEventListener('click', () => authModal.classList.add('open'));
+    }
+  });
+</script>
+</body>
+</html>

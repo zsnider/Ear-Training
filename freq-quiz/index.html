@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta charset="UTF-8">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cloud.umami.is 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://aolaxmmrmvovbzumlybe.supabase.co wss://aolaxmmrmvovbzumlybe.supabase.co https://cloud.umami.is; img-src 'self' data:; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
+<meta name="description" content="Identify boosted or cut frequencies by ear from 9 choices. The fastest way to build EQ frequency recognition for producers and engineers. Free, no sign-up required.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="canonical" href="https://sonicsandbox.app/freq-quiz/">
+
+<title>Frequency Ear Training Game — Free EQ Frequency Recognition | SonicSandbox</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
+  <link rel="stylesheet" href="../daw-ui.css">
+<style>
+  /* ── FreqQuiz identity (cyan analyzer phosphor) ─────────────── */
+  body {
+    --accent:  #00d4ff;
+    --accent2: #60e8ff;
+    --boost:   #f0b429;
+    --boost2:  #ffd166;
+    --cut:     #f45b69;
+    --cut2:    #ff8a94;
+    --correct: #3ecf8e;
+    --wrong:   #f45b69;
+  }
+
+  /* ── Device top: LCD detect readout shares the monitor row ──── */
+  .device .device-top { align-items: stretch; }
+  .detect-readout {
+    flex: 1 1 360px; min-width: 280px;
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    background:
+      radial-gradient(120% 140% at 14% 0%, rgba(0,212,255,0.06), transparent 60%),
+      var(--well);
+    border: 1px solid var(--well-edge);
+    border-radius: 12px; padding: 13px 18px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.55) inset, 0 1px 0 rgba(255,255,255,0.03);
+    position: relative; overflow: hidden;
+    transition: box-shadow 0.4s ease;
+  }
+  .detect-readout::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,0,0,0.18) 3px 4px);
+    opacity: 0.25;
+  }
+  .detect-readout.correct-flash { box-shadow: 0 3px 12px rgba(0,0,0,0.55) inset, 0 0 0 1px var(--correct) inset, 0 0 26px -6px var(--correct); }
+  .detect-readout.wrong-flash   { box-shadow: 0 3px 12px rgba(0,0,0,0.55) inset, 0 0 0 1px var(--wrong) inset,   0 0 26px -6px var(--wrong); }
+
+  .readout-left { display: flex; flex-direction: column; gap: 8px; position: relative; z-index: 1; min-width: 0; }
+  .direction-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 5px 12px; border-radius: 7px; width: fit-content;
+    white-space: nowrap;
+  }
+  .direction-badge.boost { background: rgba(240,180,41,0.14); color: var(--boost2); border: 1px solid rgba(240,180,41,0.4); box-shadow: 0 0 16px -6px var(--boost); }
+  .direction-badge.cut   { background: rgba(244,91,105,0.12); color: var(--cut2);   border: 1px solid rgba(244,91,105,0.35); box-shadow: 0 0 16px -6px var(--cut); }
+
+  .prompt-question {
+    font-size: 17px; font-weight: 500; color: var(--text);
+    line-height: 1.25; letter-spacing: 0.01em;
+  }
+  .prompt-question span { color: var(--accent2); font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
+
+  .result-msg-inline {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 21px; font-weight: 700;
+    margin-left: auto; white-space: nowrap; position: relative; z-index: 1;
+    opacity: 0;
+  }
+  .result-msg-inline.show-correct { opacity: 1; color: var(--correct); text-shadow: 0 0 18px rgba(62,207,142,0.5); }
+  .result-msg-inline.show-wrong   { opacity: 1; color: var(--wrong);   text-shadow: 0 0 18px rgba(244,91,105,0.45); }
+
+  .next-bar {
+    height: 3px; background: rgba(255,255,255,0.07);
+    border-radius: 2px; overflow: hidden; margin-top: 4px; width: 220px; max-width: 100%;
+  }
+  .next-fill { height: 100%; border-radius: 2px; background: var(--accent2); width: 100%; box-shadow: 0 0 8px var(--accent); }
+
+  /* ── Analyzer well ──────────────────────────────────────────── */
+  .analyzer-well {
+    background:
+      radial-gradient(130% 120% at 50% -10%, rgba(0,212,255,0.045), transparent 55%),
+      var(--well);
+    border: 1px solid var(--well-edge);
+    border-radius: 14px; padding: 12px 14px 10px;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.6) inset, 0 1px 0 rgba(255,255,255,0.03);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .analyzer-head { display: flex; align-items: center; justify-content: space-between; padding: 0 2px; }
+  .analyzer-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .analyzer-scale {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px; letter-spacing: 0.1em; color: var(--muted); opacity: 0.7;
+  }
+  canvas#eqCanvas {
+    display: block; width: 100%; height: 230px;
+    border-radius: 8px; background: #050607;
+  }
+  @media (max-width: 600px) { canvas#eqCanvas { height: 168px; } }
+
+  /* ── Band rail (the 9-pad spectrum) ─────────────────────────── */
+  .band-rail { display: flex; flex-direction: column; gap: 10px; }
+  .freq-grid {
+    display: grid; grid-template-columns: repeat(9, 1fr); gap: 8px;
+  }
+  @media (max-width: 600px) { .freq-grid { grid-template-columns: repeat(3, 1fr); } }
+
+  .freq-btn {
+    --pad-hue: 195;
+    position: relative; overflow: hidden;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.06), transparent 26%),
+      linear-gradient(180deg, var(--metal-1) 0%, var(--metal-2) 100%);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 12px;
+    padding: 16px 6px 13px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 -2px 0 rgba(0,0,0,0.45) inset, 0 10px 22px -16px #000;
+    transition: transform 0.11s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+  /* spectrum LED strip across the top edge */
+  .freq-btn .pad-led {
+    position: absolute; top: 0; left: 10%; right: 10%; height: 3px;
+    border-radius: 0 0 3px 3px;
+    background: hsl(var(--pad-hue) 85% 60%);
+    opacity: 0.32; transition: opacity 0.15s ease, box-shadow 0.15s ease;
+  }
+  .freq-btn .pad-index {
+    position: absolute; top: 6px; left: 9px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600;
+    color: var(--muted); opacity: 0.55;
+  }
+  .freq-hz {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 17px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; line-height: 1;
+  }
+  .freq-sub { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+  .freq-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 8.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    color: hsl(var(--pad-hue) 70% 68%); opacity: 0.85; margin-top: 4px;
+  }
+
+  .freq-btn:hover:not(:disabled) {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, hsl(var(--pad-hue) 85% 60%) 70%, transparent);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.08) inset, 0 -2px 0 rgba(0,0,0,0.45) inset, 0 16px 30px -16px hsl(var(--pad-hue) 85% 55% / 0.5);
+  }
+  .freq-btn:hover:not(:disabled) .pad-led { opacity: 1; box-shadow: 0 0 12px hsl(var(--pad-hue) 90% 60%); }
+  .freq-btn:active:not(:disabled), .freq-btn.pressed {
+    transform: translateY(1px);
+    box-shadow: 0 2px 7px rgba(0,0,0,0.6) inset, 0 0 0 1px hsl(var(--pad-hue) 85% 55% / 0.4) inset;
+  }
+  .freq-btn:disabled { cursor: default; }
+  .freq-btn.freq-off { visibility: hidden; pointer-events: none; }
+
+  /* Answer states — subtle, plug-in style glow + soft pulse */
+  .freq-btn.correct {
+    border-color: var(--correct);
+    background: linear-gradient(180deg, rgba(62,207,142,0.22), rgba(62,207,142,0.06));
+    animation: padCorrect 1.1s ease-out;
+  }
+  .freq-btn.correct .pad-led { opacity: 1; background: var(--correct); box-shadow: 0 0 12px var(--correct); }
+  .freq-btn.correct .freq-hz { color: #b8f4d6; }
+  @keyframes padCorrect {
+    0%   { box-shadow: 0 0 0 0 rgba(62,207,142,0.55), 0 1px 0 rgba(255,255,255,0.05) inset; }
+    60%  { box-shadow: 0 0 0 7px rgba(62,207,142,0), 0 0 30px -4px var(--correct); }
+    100% { box-shadow: 0 0 22px -6px var(--correct), 0 1px 0 rgba(255,255,255,0.05) inset; }
+  }
+  .freq-btn.wrong {
+    border-color: var(--wrong);
+    background: linear-gradient(180deg, rgba(244,91,105,0.2), rgba(244,91,105,0.05));
+    animation: padWrong 0.4s ease;
+  }
+  .freq-btn.wrong .pad-led { opacity: 1; background: var(--wrong); box-shadow: 0 0 12px var(--wrong); }
+  .freq-btn.wrong .freq-hz { color: var(--cut2); }
+  @keyframes padWrong {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+  .freq-btn.reveal {
+    border-color: rgba(62,207,142,0.6); border-style: dashed;
+    background: linear-gradient(180deg, rgba(62,207,142,0.1), transparent);
+    animation: revealPulse 1.4s ease-in-out infinite;
+  }
+  .freq-btn.reveal .pad-led { opacity: 0.9; background: var(--correct); }
+  .freq-btn.reveal .freq-hz { color: #b8f4d6; }
+  @keyframes revealPulse {
+    0%,100% { box-shadow: 0 0 14px -8px var(--correct); }
+    50%     { box-shadow: 0 0 22px -2px rgba(62,207,142,0.55); }
+  }
+  .freq-btn.dimmed { opacity: 0.32; }
+
+  /* spectrum ribbon under the rail */
+  .spectrum-ribbon { display: flex; flex-direction: column; gap: 5px; padding: 0 2px; }
+  .ribbon-bar {
+    height: 5px; border-radius: 3px;
+    background: linear-gradient(90deg,
+      hsl(265 70% 55%) 0%, hsl(225 75% 56%) 28%,
+      hsl(190 80% 52%) 60%, hsl(172 78% 52%) 100%);
+    opacity: 0.55; box-shadow: 0 0 10px -4px var(--accent);
+  }
+  .ribbon-ends {
+    display: flex; justify-content: space-between;
+    font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+  }
+
+  /* ── Monitor switch (Filtered / Dry), playing animation gate ──── */
+  .monitor-switch .listen-bar { animation: none; }
+  .monitor-switch.live .mon-btn.active .listen-bar { animation: barBounce 0.75s ease-in-out infinite; opacity: 1; }
+  .mon-btn .mon-sub {
+    font-family: 'IBM Plex Mono', monospace; font-size: 8px;
+    letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6;
+  }
+
+  /* ── Transport / play ────────────────────────────────────────── */
+  .control-deck .settings-row { gap: 9px; }
+  .btn-transport {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(255,255,255,0.03); color: var(--text);
+    border: 1px solid var(--border2); border-radius: 9px;
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 500;
+    padding: 9px 15px; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .btn-transport:hover:not(:disabled) { border-color: var(--accent); color: var(--accent2); }
+  .btn-transport:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-transport.paused { background: rgba(244,91,105,0.1); border-color: var(--red); color: var(--cut2); }
+  .btn-play {
+    background: linear-gradient(180deg, var(--accent2), var(--accent));
+    color: #04222b; font-weight: 700;
+    box-shadow: 0 6px 20px -8px var(--accent), inset 0 1px 0 rgba(255,255,255,0.35);
+    border: none;
+  }
+  .btn-play:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
+  .btn-play.playing { background: linear-gradient(180deg, var(--accent), #0090b0); }
+
+  .pulse-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #04222b; flex-shrink: 0;
+  }
+  .btn-play.playing .pulse-dot { background: #eafcff; animation: pdot 1.1s infinite; }
+  @keyframes pdot { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.3;transform:scale(0.55);} }
+
+  .source-pill { padding: 7px 13px; font-size: 12px; }
+  .source-pill.loading { opacity: 0.6; cursor: wait; }
+  .pill.inactive { opacity: 0.38; }
+
+  /* ── History strip ──────────────────────────────────────────── */
+  .history-wrap { display: flex; align-items: center; gap: 12px; padding: 0 4px; }
+  .history-label { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  .history-strip { display: flex; gap: 5px; flex-wrap: wrap; min-height: 12px; }
+  .hist-dot { width: 9px; height: 9px; border-radius: 2px; transition: all 0.2s; }
+  .hist-dot.c { background: var(--correct); box-shadow: 0 0 7px -1px var(--correct); }
+  .hist-dot.w { background: var(--wrong); }
+
+  /* ── Help frequency reference cards ─────────────────────────── */
+  .help-freq-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; margin-top: 4px; }
+  .help-freq-card {
+    background: rgba(255,255,255,0.025); border: 1px solid var(--border);
+    border-radius: 10px; padding: 13px 16px; display: flex; flex-direction: column; gap: 4px;
+  }
+  .help-freq-card .freq-label { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+  .help-freq-card .freq-range { font-size: 11px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+  .help-freq-card .freq-desc { font-size: 12.5px; color: var(--muted); line-height: 1.55; margin-top: 2px; }
+</style>
+  <script src="../scoring.js"></script>
+
+  <!-- Open Graph / Social -->
+  <meta property="og:type"        content="website">
+  <meta property="og:url"         content="https://sonicsandbox.app/freq-quiz/">
+  <meta property="og:title"       content="Frequency Ear Training Game — Free EQ Frequency Recognition | SonicSandbox">
+  <meta property="og:description" content="Identify boosted or cut frequencies by ear from 9 choices. The fastest way to build EQ frequency recognition for producers and engineers. Free, no sign-up required.">
+  <meta property="og:image"       content="https://sonicsandbox.app/og-image.png">
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:title"       content="Frequency Ear Training Game — Free EQ Frequency Recognition | SonicSandbox">
+  <meta name="twitter:description" content="Identify boosted or cut frequencies by ear from 9 choices. The fastest way to build EQ frequency recognition for producers and engineers. Free, no sign-up required.">
+  <meta name="twitter:image"       content="https://sonicsandbox.app/og-image.png">
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="a4e7fbcc-763c-4844-8f4f-669cf411e799"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Freq Quiz — SonicSandbox",
+    "url": "https://sonicsandbox.app/freq-quiz/",
+    "description": "Identify boosted or cut frequencies by ear from 9 choices. Fast rounds for building EQ frequency recognition.",
+    "applicationCategory": "GameApplication",
+    "operatingSystem": "Web Browser",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "keywords": "frequency ear training, EQ training, frequency recognition game, free ear training"
+  }
+  </script>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="nav-logo-wrap">
+    <a class="nav-logo" href="/">Sonic<span>Sandbox</span></a>
+  </div>
+  <div class="nav-center">
+    <a class="nav-link" href="/">Home</a>
+    <a class="nav-link active" href="/games/">Games</a>
+    <a class="nav-link" href="/learn/">Learn</a>
+    <a class="nav-link" href="/stats/">Stats</a>
+  </div>
+  <div class="nav-right">
+    <div id="authArea">
+      <button class="auth-btn" id="openAuthBtn">Sign in</button>
+    </div>
+  </div>
+</nav>
+<div class="game-bar">
+  <div class="game-bar-left">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <rect x="2"  y="16" width="2.5" height="6" rx="1" fill="white" opacity="0.4"/>
+          <rect x="6"  y="14" width="2.5" height="8" rx="1" fill="white" opacity="0.55"/>
+          <rect x="10" y="10" width="2.5" height="12" rx="1" fill="white" opacity="0.7"/>
+          <rect x="14" y="4"  width="2.5" height="18" rx="1" fill="white"/>
+          <rect x="18" y="12" width="2.5" height="10" rx="1" fill="white" opacity="0.55"/>
+        </svg>
+      </div>
+      <span class="brand-name">Freq Quiz</span>
+    </div>
+  </div>
+  <div class="game-bar-right">
+    <div class="score-row">
+    <div class="stat">
+      <div class="stat-val" id="scoreVal">—</div>
+      <div class="stat-label">Score</div>
+    </div>
+    <div class="vdiv"></div>
+    <div class="stat">
+      <div class="stat-val" id="streakVal">—</div>
+      <div class="stat-label">Streak</div>
+    </div>
+    <div class="vdiv"></div>
+    <div class="stat">
+      <div class="stat-val" id="accuracyVal">—</div>
+      <div class="stat-label">Accuracy</div>
+    </div>
+    <div class="vdiv"></div>
+    <div class="stat">
+      <div class="stat-val" id="roundVal">—</div>
+      <div class="stat-label">Round</div>
+    </div>
+    </div>
+    <div id="multBadge" class="mult-badge">×1.0</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Settings: Gain + Direction -->
+  <div class="settings-bar">
+    <div class="settings-row">
+      <span class="label">Gain</span>
+      <select id="gainSelect" onchange="setGainAmount(+this.value)">
+        <option value="12" selected>± 12 dB (Easy)</option>
+        <option value="9">± 9 dB</option>
+        <option value="6">± 6 dB (Medium)</option>
+        <option value="4">± 4 dB</option>
+        <option value="3">± 3 dB (Hard)</option>
+        <option value="2">± 2 dB (Expert)</option>
+      </select>
+      <div class="vdiv"></div>
+      <span class="label">Direction</span>
+      <div class="pill"        id="dirBoth"  onclick="setDirection('both',this)">Both</div>
+      <div class="pill active" id="dirBoost" onclick="setDirection('boost',this)">Boost Only</div>
+      <div class="pill"        id="dirCut"   onclick="setDirection('cut',this)">Cut Only</div>
+      <div style="margin-left:auto; position:relative;" class="shortcuts-wrap">
+        <button class="shortcuts-btn" onclick="toggleShortcuts(event)">&#9000; Shortcuts</button>
+        <div class="shortcuts-popover" id="shortcutsPopover">
+          <div class="shortcut-row"><span>Answer band</span><div class="shortcut-keys"><kbd>1</kbd>–<kbd>9</kbd></div></div>
+          <div class="shortcut-row"><span>A/B filtered ↔ dry</span><div class="shortcut-keys"><kbd>Space</kbd><kbd>D</kbd></div></div>
+          <div class="shortcut-row"><span>Pause</span><div class="shortcut-keys"><kbd>P</kbd></div></div>
+          <div class="shortcut-row"><span>Restart</span><div class="shortcut-keys"><kbd>F</kbd></div></div>
+          <div class="shortcut-row"><span>Seek</span><div class="shortcut-keys"><kbd>←</kbd><kbd>→</kbd></div></div>
+          <div class="shortcut-row"><span>Skip track</span><div class="shortcut-keys"><kbd>↑</kbd><kbd>↓</kbd></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- The analyzer device -->
+  <section class="device">
+
+    <div class="device-top">
+      <!-- Detect readout (LCD) — shares the row with the monitor controls -->
+      <div class="detect-readout" id="promptCard">
+        <div class="readout-left">
+          <div class="direction-badge boost" id="dirBadge">↑ Boost</div>
+          <div class="prompt-question" id="promptText">Press <span>Play</span> to start</div>
+          <div class="next-bar" id="nextBar" style="display:none;"><div class="next-fill" id="nextFill"></div></div>
+        </div>
+        <div class="result-msg-inline" id="resultInline">Correct!</div>
+      </div>
+      <div class="monitor">
+        <span class="monitor-label">Monitor</span>
+        <div class="monitor-switch" id="monitorSwitch">
+          <button class="mon-btn user-btn active" id="monFiltered" onclick="setMonitor('filtered')" disabled>
+            <span class="listen-bars"><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span></span>
+            <span class="listen-btn-label">Filtered</span>
+            <span class="mon-sub">EQ on</span>
+          </button>
+          <button class="mon-btn dry-btn" id="monDry" onclick="setMonitor('dry')" disabled>
+            <span class="listen-bars"><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span><span class="listen-bar"></span></span>
+            <span class="listen-btn-label">Dry</span>
+            <span class="mon-sub">bypass</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Spectrum analyzer well -->
+    <div class="analyzer-well">
+      <div class="analyzer-head">
+        <span class="analyzer-title">Spectrum Analyzer</span>
+        <span class="analyzer-scale">±15 dB &middot; 1/1-oct bands</span>
+      </div>
+      <canvas id="eqCanvas"></canvas>
+    </div>
+
+    <!-- The 9-band rail (the whole game) -->
+    <div class="band-rail">
+      <div class="freq-grid" id="freqGrid"></div>
+      <div class="spectrum-ribbon">
+        <div class="ribbon-bar"></div>
+        <div class="ribbon-ends"><span>&#9664; Low &middot; 20 Hz</span><span>20 kHz &middot; High &#9654;</span></div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Control deck: transport + source + bands -->
+  <div class="settings-bar control-deck">
+    <div class="settings-row">
+      <button class="btn-transport btn-play" id="btnPlay" onclick="playCurrentRound()"><span class="pulse-dot" id="playDot"></span> Play</button>
+      <button class="btn-transport" id="btnPause"   onclick="togglePause()"  disabled title="Pause / Resume (P)">&#9646;&#9646; Pause</button>
+      <button class="btn-transport" id="btnRestart" onclick="restartAudio()" disabled title="Restart (F)">&#8635; Restart</button>
+      <button class="btn-transport" id="btnSkip"    onclick="skipRound()"    disabled>Skip &#8594;</button>
+      <div class="vdiv" style="margin-left:auto;"></div>
+      <span class="label">Source</span>
+      <div class="source-pill active" id="srcPink"    onclick="setSource('pink')">Pink</div>
+      <div class="source-pill"        id="srcOneShot" onclick="setSource('oneShot')">One-Shots</div>
+      <div class="source-pill"        id="srcLoop"    onclick="setSource('loop')">Loops</div>
+      <div class="source-pill"        id="srcCustom"  onclick="triggerUpload()" style="border-style:dashed;"><span id="uploadLabel">Upload Folder</span></div>
+      <input type="file" id="folderInput" webkitdirectory directory multiple onchange="handleFolderUpload(event)" style="display:none;">
+    </div>
+    <div class="settings-row-divider"></div>
+    <div class="settings-row" id="freqTogglesRow">
+      <span class="label">Active Bands</span>
+      <!-- pills injected by buildFreqToggles() -->
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="history-wrap">
+    <span class="history-label">Recent</span>
+    <div class="history-strip" id="historyStrip"></div>
+  </div>
+
+</div>
+
+<!-- Help Toggle -->
+<button class="help-toggle" id="helpToggle" onclick="toggleHelp()">
+  <span class="toggle-arrow">▶</span> How to play
+</button>
+
+<!-- Help Section -->
+<div class="help-section" id="helpSection">
+
+  <div class="help-block">
+    <h2>Where to start</h2>
+    <p>
+      Press <strong>Play</strong> to hear a short clip with a single frequency boosted or cut.
+      Your job is to identify <strong>which frequency</strong> was affected by clicking one of the buttons in the grid.
+      Start with <strong>Boost Only</strong> and <strong>±12 dB (Easy)</strong> — large boosts are much easier
+      to hear while you're building your ear.
+    </p>
+    <p>
+      As your accuracy improves, reduce the gain step by step (±9 dB → ±6 dB → ±4 dB) to train for
+      subtler differences. Enabling <strong>Both</strong> directions adds the additional challenge of
+      identifying whether the frequency was boosted or cut.
+    </p>
+  </div>
+
+  <hr class="help-divider">
+
+  <div class="help-block">
+    <h2>What to listen for</h2>
+    <p>
+      Each frequency region has a distinct character. A boost at <strong>low frequencies</strong> adds
+      weight and rumble; in the <strong>mids</strong> it adds body or honkiness; in the
+      <strong>highs</strong> it adds brightness or edge. Focus on that character and match it to the
+      frequency cards in the grid.
+    </p>
+    <p>
+      Use <strong>Pink Noise</strong> as your starting source — it's spectrally flat, so nothing musical
+      distracts you from the EQ change. Once you're scoring well on pink noise, switch to Loops or One-shots
+      to practice on real music.
+    </p>
+    <p>
+      The <kbd>Space</kbd>/<kbd>D</kbd>
+      keys toggle between the filtered and dry signal so you can hear the difference directly.
+    </p>
+  </div>
+
+  <hr class="help-divider">
+
+  <div class="help-block">
+    <h2>Frequency reference</h2>
+    <div class="help-freq-grid">
+
+      <div class="help-freq-card">
+        <span class="freq-label" style="color:#c97bff;">Sub-Bass</span>
+        <span class="freq-range">20 – 60 Hz</span>
+        <span class="freq-desc">The deepest rumble — felt in the body more than heard. Controls the "oomph" of kick drums and sub-bass. Too much causes a mix to sound muddy or undefined.</span>
+      </div>
+
+      <div class="help-freq-card">
+        <span class="freq-label" style="color:#5b6aff;">Bass</span>
+        <span class="freq-range">60 – 250 Hz</span>
+        <span class="freq-desc">Provides the fundamental rhythm and power of a song. Houses the primary body of bass guitars and drum shells. Build-up here often makes a track sound bloated.</span>
+      </div>
+
+      <div class="help-freq-card">
+        <span class="freq-label" style="color:#3ecf8e;">Low-Midrange</span>
+        <span class="freq-range">250 – 500 Hz</span>
+        <span class="freq-desc">Adds warmth and foundation to instruments and vocals. Boosts add "thickness" to a sound; cuts are often used to reduce boxiness.</span>
+      </div>
+
+      <div class="help-freq-card">
+        <span class="freq-label" style="color:#f5a623;">Midrange</span>
+        <span class="freq-range">500 Hz – 2 kHz</span>
+        <span class="freq-desc">The most sensitive range for human hearing. Contains the fundamental notes of most melodic instruments and vocals. Too much here sounds "honky" or causes masking.</span>
+      </div>
+
+      <div class="help-freq-card">
+        <span class="freq-label" style="color:#f0b429;">Upper-Midrange</span>
+        <span class="freq-range">2 – 4 kHz</span>
+        <span class="freq-desc">Defines the attack and punch of instruments. Adjusting here helps vocals, guitars, and snares cut through a busy mix.</span>
+      </div>
+
+      <div class="help-freq-card">
+        <span class="freq-label" style="color:#f45b69;">Presence</span>
+        <span class="freq-range">4 – 6 kHz</span>
+        <span class="freq-desc">Dictates the clarity and definition of a sound. Boosting here makes elements feel closer and more upfront to the listener.</span>
+      </div>
+
+      <div class="help-freq-card">
+        <span class="freq-label" style="color:#60e8ff;">Brilliance / Air</span>
+        <span class="freq-range">6 – 20 kHz</span>
+        <span class="freq-desc">Provides "sparkle," "sheen," and "air." Controls the crispness of cymbals, acoustic guitar strings, and vocal breath. Over-boosting quickly leads to harshness or listener fatigue.</span>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Help Section ───────────────────────────────────────────────────────────────
+function toggleHelp() {
+  const btn = document.getElementById('helpToggle');
+  const sec = document.getElementById('helpSection');
+  const open = sec.classList.toggle('visible');
+  btn.classList.toggle('open', open);
+}
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+const FREQS = [63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+const FREQ_LABELS = ['63', '125', '250', '500', '1k', '2k', '4k', '8k', '16k'];
+const FREQ_SUBS   = ['Hz','Hz','Hz','Hz','kHz','kHz','kHz','kHz','kHz'];
+const FREQ_TAGS   = ['Sub','Lows','Lo-Mid','Body','Mid','Pres','Edge','Bril','Air'];
+// cool spectrum: violet (low) → cyan (high)
+const BAND_HUES   = [270, 258, 246, 234, 222, 210, 198, 188, 176];
+const PAD_GAP = 8;          // must match .freq-grid gap
+const LOG_MIN = Math.log10(20), LOG_MAX = Math.log10(22000);
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let gainAmount  = 12;
+let direction   = 'boost';
+let targetFreq  = null;
+let targetGain  = null;
+let roundActive = false;
+let answered    = false;
+let score=0, streak=0, totalRounds=0, correctCount=0;
+
+// Frequency toggles
+let activeFreqs = new Set(FREQS);
+
+// Audio
+let audioCtx       = null;
+let noiseSource    = null;
+let eqFilter       = null;
+let outGain        = null;
+let isPlaying      = false;
+let isDry          = false;
+let isPaused       = false;
+let shotLoopTimer  = null;
+let playTimeout    = null;
+let nextTimeout    = null;
+let currentShotSrc = null;
+
+// Source
+let sourceType = 'pink';  // 'pink' | 'oneShot' | 'loop' | 'custom'
+
+// One-shot state
+let oneShotBuffers = [], oneShotLoaded = false, oneShotIdx = 0;
+
+// Loop state
+let loopFileNames = [], loopManifestLoaded = false, loopIdx = 0;
+
+// Pick a random index different from current (falls back to 0 if only 1 item)
+function randNext(len, cur) {
+  if (len <= 1) return 0;
+  let next;
+  do { next = Math.floor(Math.random() * len); } while (next === cur);
+  return next;
+}
+let loopAudioEl = null, loopMediaSrc = null;
+
+// Custom (uploaded) state
+let customFiles = [], customIdx = 0;
+let customBuffers=[], customSrc=null, customSrcOffset=0, customSrcStartTime=0;
+
+const canvas = document.getElementById('eqCanvas');
+const ctx2d  = canvas.getContext('2d');
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+function setGainAmount(v) {
+  gainAmount = v;
+  updateMultBadge();
+  if (roundActive && !answered) newRound();
+}
+
+function updateMultBadge() {
+  const el = document.getElementById('multBadge');
+  if (el && window.ScoringEngine) el.textContent = ScoringEngine.label('freq-quiz', { gainAmount });
+}
+
+function setDirection(d, el) {
+  direction = d;
+  ['dirBoth','dirBoost','dirCut'].forEach(id => document.getElementById(id).classList.remove('active'));
+  el.classList.add('active');
+  if (roundActive && !answered) newRound();
+}
+
+// ── Load status helper ────────────────────────────────────────────────────────
+function setLoadStatus(pillId, msg, loading) {
+  const el = document.getElementById(pillId);
+  if (!el) return;
+  if (loading) { el.classList.add('loading'); el.textContent = msg; }
+  else { el.classList.remove('loading'); }
+}
+
+// ── Sample loading ────────────────────────────────────────────────────────────
+// ── Samples manifest (edit samples/manifest.json to add new files) ────────────
+let samplesManifest = null;
+async function getManifest() {
+  if (samplesManifest) return samplesManifest;
+  const r = await fetch('../samples/manifest.json');
+  samplesManifest = await r.json();
+  return samplesManifest;
+}
+
+async function loadOneShotSamples() {
+  if (oneShotLoaded) return;
+  initAudio();
+  setLoadStatus('srcOneShot', 'Loading…', true);
+  oneShotBuffers = [];
+  const manifest = await getManifest();
+  await Promise.all(manifest.oneShots.map(async fname => {
+    try {
+      const r = await fetch(`../samples/one-shots/${fname}`);
+      if (!r.ok) return;
+      const ab = await r.arrayBuffer();
+      oneShotBuffers.push({ name: fname.replace(/\.\w+$/, ''), buffer: await audioCtx.decodeAudioData(ab) });
+    } catch(e) { console.warn('one-shot load fail:', fname, e); }
+  }));
+  oneShotBuffers.sort((a,b) => a.name.localeCompare(b.name));
+  oneShotLoaded = oneShotBuffers.length > 0;
+  if (oneShotLoaded) oneShotIdx = Math.floor(Math.random() * oneShotBuffers.length);
+  document.getElementById('srcOneShot').textContent = 'One-Shots';
+  setLoadStatus('srcOneShot', '', false);
+  if (!oneShotLoaded) { showToast('No one-shots found in samples/one-shots/'); sourceType='pink'; updateSourceUI(); }
+}
+
+async function loadLoopSamples() {
+  if (loopManifestLoaded) return;
+  const manifest = await getManifest();
+  loopFileNames = manifest.loops || [];
+  loopManifestLoaded = loopFileNames.length > 0;
+  if (loopManifestLoaded) loopIdx = Math.floor(Math.random() * loopFileNames.length);
+  document.getElementById('srcLoop').textContent = 'Loops';
+  setLoadStatus('srcLoop', '', false);
+  if (!loopManifestLoaded) { showToast('No loops found in samples/loops/'); sourceType='pink'; updateSourceUI(); }
+}
+
+// ── Frequency toggles ─────────────────────────────────────────────────────────
+function buildFreqToggles() {
+  const row = document.getElementById('freqTogglesRow');
+  FREQS.forEach((f, i) => {
+    const pill = document.createElement('div');
+    pill.className = 'pill active';
+    pill.id = `ftog-${f}`;
+    pill.textContent = FREQ_LABELS[i];
+    pill.title = `${FREQ_LABELS[i]} ${FREQ_SUBS[i]} — click to exclude`;
+    pill.addEventListener('click', () => toggleFreq(f, pill));
+    row.appendChild(pill);
+  });
+}
+
+function toggleFreq(f, pill) {
+  if (activeFreqs.has(f)) {
+    if (activeFreqs.size <= 2) { showToast('Need at least 2 frequencies active'); return; }
+    activeFreqs.delete(f);
+    pill.classList.remove('active');
+    pill.classList.add('inactive');
+  } else {
+    activeFreqs.add(f);
+    pill.classList.add('active');
+    pill.classList.remove('inactive');
+  }
+  applyFreqVisibility();
+  if (roundActive && !answered && targetFreq && !activeFreqs.has(targetFreq)) newRound();
+}
+
+function applyFreqVisibility() {
+  FREQS.forEach(f => {
+    const btn = document.getElementById(`freq-${f}`);
+    if (!btn) return;
+    btn.classList.toggle('freq-off', !activeFreqs.has(f));
+  });
+}
+
+// ── Backlit spectrum analyzer (graticule + aligned band reveal) ───────────────
+// Bands are drawn evenly spaced to line up exactly with the 9 pads below.
+const EQ_PAD = 5;          // inner horizontal inset (px)
+const EQ_SCALE = 15;       // dB half-range shown
+let eqReveal = 1;          // 0..1 reveal animation factor
+let revealRAF = null;
+
+function bandX(i, W) {
+  const railW = W - EQ_PAD * 2;
+  const colW = (railW - PAD_GAP * 8) / 9;
+  return EQ_PAD + i * (colW + PAD_GAP) + colW / 2;
+}
+function bandSpacing(W) {
+  const railW = W - EQ_PAD * 2;
+  const colW = (railW - PAD_GAP * 8) / 9;
+  return colW + PAD_GAP;
+}
+
+function drawEQ(centerFreq, gain) {
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.clientWidth || canvas.parentElement.clientWidth;
+  const H = canvas.clientHeight || 230;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  const g = ctx2d;
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, W, H);
+
+  // phosphor background
+  const bg = g.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#080d10'); bg.addColorStop(1, '#04070a');
+  g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  const glow = g.createRadialGradient(W/2, -40, 20, W/2, -40, W*0.75);
+  glow.addColorStop(0, 'rgba(0,212,255,0.07)'); glow.addColorStop(1, 'transparent');
+  g.fillStyle = glow; g.fillRect(0, 0, W, H);
+
+  const midY = H / 2;
+  const halfH = H / 2 - 18;
+  const yOf = v => midY - (v / EQ_SCALE) * halfH;
+
+  // horizontal dB graticule
+  g.font = '9px "IBM Plex Mono", monospace';
+  g.textBaseline = 'middle';
+  for (const db of [12, 6, 0, -6, -12]) {
+    const y = yOf(db), zero = db === 0;
+    g.strokeStyle = zero ? 'rgba(0,212,255,0.26)' : 'rgba(255,255,255,0.055)';
+    g.lineWidth = 1;
+    g.beginPath(); g.moveTo(EQ_PAD, y + 0.5); g.lineTo(W - EQ_PAD, y + 0.5); g.stroke();
+    g.fillStyle = zero ? 'rgba(96,232,255,0.55)' : 'rgba(255,255,255,0.2)';
+    g.textAlign = 'right';
+    g.fillText((db > 0 ? '+' : '') + db, W - EQ_PAD - 4, y - (zero ? 0 : 7));
+  }
+
+  // vertical band lines + freq labels (aligned to pads)
+  g.textBaseline = 'bottom';
+  for (let i = 0; i < 9; i++) {
+    const x = bandX(i, W), on = activeFreqs.has(FREQS[i]);
+    g.strokeStyle = on ? 'rgba(0,212,255,0.085)' : 'rgba(255,255,255,0.03)';
+    g.lineWidth = 1;
+    g.beginPath(); g.moveTo(x + 0.5, 8); g.lineTo(x + 0.5, H - 16); g.stroke();
+    g.fillStyle = on ? 'rgba(150,196,220,0.5)' : 'rgba(255,255,255,0.13)';
+    g.textAlign = 'center';
+    g.fillText(FREQ_LABELS[i], x, H - 3);
+  }
+
+  if (centerFreq == null) return;
+  const ci = FREQS.indexOf(centerFreq);
+  if (ci < 0) return;
+  const cx = bandX(ci, W);
+  const sigma = bandSpacing(W) * 0.6;
+  const isBoost = gain > 0;
+  const stroke = isBoost ? '#ffd166' : '#ff8a94';
+  const fill   = isBoost ? 'rgba(240,180,41,0.16)' : 'rgba(244,91,105,0.16)';
+  const amp = gain * eqReveal;
+
+  // bell curve
+  g.beginPath();
+  for (let px = EQ_PAD; px <= W - EQ_PAD; px++) {
+    const d = px - cx;
+    const v = amp * Math.exp(-0.5 * (d / sigma) * (d / sigma));
+    const y = yOf(v);
+    px === EQ_PAD ? g.moveTo(px, y) : g.lineTo(px, y);
+  }
+  g.strokeStyle = stroke; g.lineWidth = 2.5;
+  g.shadowColor = stroke; g.shadowBlur = 12; g.stroke(); g.shadowBlur = 0;
+  g.lineTo(W - EQ_PAD, midY); g.lineTo(EQ_PAD, midY); g.closePath();
+  g.fillStyle = fill; g.fill();
+
+  // highlight target column + peak dot
+  g.strokeStyle = 'rgba(255,255,255,0.14)'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(cx + 0.5, 8); g.lineTo(cx + 0.5, H - 16); g.stroke();
+  const py = yOf(amp);
+  g.beginPath(); g.arc(cx, py, 4.5, 0, Math.PI * 2);
+  g.fillStyle = stroke; g.shadowColor = stroke; g.shadowBlur = 12; g.fill(); g.shadowBlur = 0;
+}
+
+// reveal the EQ band when the round resolves (draw immediately — robust,
+// the satisfying motion comes from the pad pulse + result slide-in)
+function revealEQ(centerFreq, gain) {
+  cancelAnimationFrame(revealRAF);
+  eqReveal = 1;
+  drawEQ(centerFreq, gain);
+}
+
+// ── Build freq buttons ────────────────────────────────────────────────────────
+function buildFreqGrid() {
+  const grid = document.getElementById('freqGrid');
+  grid.innerHTML = '';
+  FREQS.forEach((f, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'freq-btn';
+    btn.id = `freq-${f}`;
+    btn.dataset.freq = f;
+    btn.disabled = true;
+    btn.style.setProperty('--pad-hue', BAND_HUES[i]);
+    btn.innerHTML = `<span class="pad-led"></span><span class="pad-index">${i+1}</span>`
+      + `<span class="freq-hz">${FREQ_LABELS[i]}</span>`
+      + `<span class="freq-sub">${FREQ_SUBS[i]}</span>`
+      + `<span class="freq-tag">${FREQ_TAGS[i]}</span>`;
+    btn.addEventListener('click', () => submitAnswer(f));
+    grid.appendChild(btn);
+  });
+  applyFreqVisibility();
+}
+
+// ── Round ─────────────────────────────────────────────────────────────────────
+function newRound() {
+  clearTimeout(nextTimeout);
+  stopPlayback();
+  musicOffset = 0;
+
+  // Advance track indices each round
+  if (sourceType === 'oneShot' && oneShotBuffers.length > 0)
+    oneShotIdx = randNext(oneShotBuffers.length, oneShotIdx);
+  if (sourceType === 'loop' && loopFileNames.length > 0)
+    loopIdx = randNext(loopFileNames.length, loopIdx);
+  if (sourceType === 'custom' && customFiles.length > 0)
+    customIdx = (customIdx + 1) % customFiles.length;
+
+  answered = false;
+  roundActive = true;
+
+  isDry = false; setMonitor('filtered');
+  if (isPaused && audioCtx) { audioCtx.resume(); isPaused=false; const pb=document.getElementById('btnPause'); if(pb){pb.innerHTML='&#9646;&#9646; Pause';pb.classList.remove('paused');} }
+
+  const activeArr = FREQS.filter(f => activeFreqs.has(f));
+  if (activeArr.length === 0) return;
+  targetFreq = activeArr[Math.floor(Math.random() * activeArr.length)];
+
+  if (direction === 'boost') targetGain = gainAmount;
+  else if (direction === 'cut') targetGain = -gainAmount;
+  else targetGain = Math.random() > 0.5 ? gainAmount : -gainAmount;
+
+  totalRounds++;
+  document.getElementById('roundVal').textContent = totalRounds;
+
+  const isBoost = targetGain > 0;
+  const badge = document.getElementById('dirBadge');
+  badge.textContent = isBoost ? `↑ Boost  ${gainAmount} dB` : `↓ Cut  ${gainAmount} dB`;
+  badge.className = `direction-badge ${isBoost ? 'boost' : 'cut'}`;
+  document.getElementById('promptText').innerHTML = `Which frequency is being <span>${isBoost ? 'boosted' : 'cut'}</span>?`;
+
+  document.getElementById('promptCard').classList.remove('correct-flash','wrong-flash');
+  document.getElementById('resultInline').className = 'result-msg-inline';
+  document.getElementById('nextBar').style.display = 'none';
+
+  FREQS.forEach(f => {
+    const btn = document.getElementById(`freq-${f}`);
+    btn.className = 'freq-btn';
+    if (activeFreqs.has(f)) { btn.disabled = false; }
+    else { btn.disabled = true; btn.classList.add('freq-off'); }
+  });
+
+  document.getElementById('btnSkip').disabled = false;
+  eqReveal = 1;
+  drawEQ(null, 0);   // empty graticule — no answer shown yet
+  document.getElementById('monFiltered').disabled = false;
+  document.getElementById('monDry').disabled = false;
+  document.getElementById('btnPause').disabled = false;
+  document.getElementById('btnRestart').disabled = false;
+
+  playCurrentRound();
+}
+
+// ── Play / stop ───────────────────────────────────────────────────────────────
+function playCurrentRound() {
+  if (!roundActive) { newRound(); return; }
+  stopPlayback();
+  initAudio();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  drawEQ(null, 0);   // analyzer stays empty while the round is live
+
+  if (sourceType === 'oneShot') {
+    startOneShotLoop();
+  } else {
+    playNoiseBurst();
+  }
+
+  document.getElementById('btnPlay').classList.add('playing');
+  const ms = document.getElementById('monitorSwitch'); if (ms) ms.classList.add('live');
+}
+
+function buildEQChain(outputGain) {
+  eqFilter = audioCtx.createBiquadFilter();
+  eqFilter.type = 'peaking';
+  eqFilter.frequency.value = targetFreq;
+  eqFilter.Q.value = 3.0;
+  eqFilter.gain.value = isDry ? 0 : targetGain;
+  outGain = audioCtx.createGain(); outGain.gain.value = outputGain;
+  eqFilter.connect(outGain); outGain.connect(audioCtx.destination);
+}
+
+function startOneShotLoop() {
+  if (!oneShotBuffers.length) return;
+  buildEQChain(0.8);
+  isPlaying = true;
+  const fireShot = () => {
+    if (!isPlaying || sourceType !== 'oneShot') return;
+    const sample = oneShotBuffers[oneShotIdx % oneShotBuffers.length];
+    const src = audioCtx.createBufferSource();
+    src.buffer = sample.buffer;
+    src.connect(eqFilter);
+    src.start(0);
+    currentShotSrc = src;
+  };
+  fireShot();
+  shotLoopTimer = setInterval(fireShot, 5000);
+}
+
+function playNoiseBurst() {
+  buildEQChain(0.6);
+
+  if (sourceType === 'loop' && loopFileNames.length > 0) {
+    if (!loopAudioEl) { loopAudioEl = new Audio(); loopAudioEl.loop = true; }
+    if (!loopMediaSrc) { loopMediaSrc = audioCtx.createMediaElementSource(loopAudioEl); }
+    const fname = loopFileNames[loopIdx % loopFileNames.length];
+    if (loopAudioEl._currentFname !== fname) {
+      loopAudioEl.src = `../samples/loops/${fname}`;
+      loopAudioEl._currentFname = fname;
+    }
+    loopMediaSrc.connect(eqFilter);
+    loopAudioEl.play().catch(e => console.warn('Loop autoplay blocked:', e));
+    noiseSource = loopMediaSrc;
+
+  } else if (sourceType === 'custom' && customBuffers.filter(Boolean).length > 0) {
+    const buf = customBuffers[customIdx % customBuffers.length];
+    if (buf) {
+      if (customSrc) { try { customSrc.stop(); } catch(e){} customSrc = null; }
+      customSrc = audioCtx.createBufferSource();
+      customSrc.buffer = buf; customSrc.loop = true;
+      customSrc.connect(eqFilter);
+      customSrc.start(0, customSrcOffset % buf.duration);
+      customSrcStartTime = audioCtx.currentTime;
+      noiseSource = customSrc;
+    }
+
+  } else {
+    // Pink noise
+    const src = makePinkNoise(5);
+    src.loop = true;
+    src.connect(eqFilter);
+    src.start(0);
+    noiseSource = src;
+  }
+
+  isPlaying = true;
+}
+
+function stopPlayback() {
+  clearTimeout(playTimeout);
+  if (shotLoopTimer)  { clearInterval(shotLoopTimer); shotLoopTimer = null; }
+  if (noiseSource && noiseSource !== loopMediaSrc && noiseSource !== customSrc) {
+    try { noiseSource.stop(); } catch(e){}
+  }
+  noiseSource = null;
+  if (loopAudioEl)   loopAudioEl.pause();
+  if (loopMediaSrc)   { try { loopMediaSrc.disconnect();   } catch(e) {} }
+  if (customSrc) { try { customSrc.stop(); } catch(e){} customSrc = null; customSrcOffset = 0; }
+  if (currentShotSrc) { try { currentShotSrc.stop(); } catch(e){} currentShotSrc = null; }
+  if (eqFilter)  { try { eqFilter.disconnect(); }  catch(e){} eqFilter = null; }
+  if (outGain)   { try { outGain.disconnect(); }   catch(e){} outGain = null; }
+  isPlaying = false;
+  document.getElementById('btnPlay').classList.remove('playing');
+  const ms = document.getElementById('monitorSwitch'); if (ms) ms.classList.remove('live');
+}
+
+// ── Seek (loop + custom, ±10s) ────────────────────────────────────────────────
+function seekMusic(deltaSecs) {
+  if (!roundActive || !isPlaying) return;
+  if (sourceType === 'loop' && loopFileNames.length > 0 && loopAudioEl) {
+    loopAudioEl.currentTime = Math.max(0, loopAudioEl.currentTime + deltaSecs);
+    showToast(`${deltaSecs > 0 ? '+' : ''}${deltaSecs}s`);
+  } else if (sourceType === 'custom' && customBuffers.filter(Boolean).length > 0 && customSrc) {
+    const buf = customBuffers[customIdx % customBuffers.length];
+    if (buf) {
+      const elapsed = audioCtx.currentTime - customSrcStartTime;
+      customSrcOffset = Math.max(0, (customSrcOffset + elapsed + deltaSecs)) % buf.duration;
+      customSrcStartTime = audioCtx.currentTime;
+      try { customSrc.stop(); } catch(e){}
+      customSrc = audioCtx.createBufferSource();
+      customSrc.buffer = buf; customSrc.loop = true;
+      customSrc.connect(eqFilter);
+      customSrc.start(0, customSrcOffset);
+      noiseSource = customSrc;
+    }
+    showToast(`${deltaSecs > 0 ? '+' : ''}${deltaSecs}s`);
+  }
+}
+
+// ── Skip track (oneShot / loop / custom) ──────────────────────────────────────
+function skipTrack(delta) {
+  if (!roundActive || !isPlaying || !audioCtx) return;
+
+  if (sourceType === 'oneShot' && oneShotBuffers.length > 0) {
+    oneShotIdx = ((oneShotIdx + delta) % oneShotBuffers.length + oneShotBuffers.length) % oneShotBuffers.length;
+    if (shotLoopTimer) { clearInterval(shotLoopTimer); shotLoopTimer = null; }
+    if (currentShotSrc) { try { currentShotSrc.stop(); } catch(e){} currentShotSrc = null; }
+    const fireShot = () => {
+      if (!isPlaying || sourceType !== 'oneShot') return;
+      const s = audioCtx.createBufferSource();
+      s.buffer = oneShotBuffers[oneShotIdx % oneShotBuffers.length].buffer;
+      s.connect(eqFilter); s.start(0); currentShotSrc = s;
+    };
+    fireShot(); shotLoopTimer = setInterval(fireShot, 5000);
+    showToast(`Shot ${oneShotIdx + 1} / ${oneShotBuffers.length}`);
+
+  } else if (sourceType === 'loop' && loopFileNames.length > 0) {
+    loopIdx = ((loopIdx + delta) % loopFileNames.length + loopFileNames.length) % loopFileNames.length;
+    if (loopAudioEl) {
+      const fname = loopFileNames[loopIdx];
+      loopAudioEl.src = `../samples/loops/${fname}`;
+      loopAudioEl._currentFname = fname;
+      loopAudioEl.play().catch(()=>{});
+    }
+    showToast(`Loop ${loopIdx + 1} / ${loopFileNames.length}`);
+
+  } else if (sourceType === 'custom' && customBuffers.filter(Boolean).length > 0) {
+    customIdx = ((customIdx + delta) % customBuffers.length + customBuffers.length) % customBuffers.length;
+    customSrcOffset = 0;
+    const buf = customBuffers[customIdx];
+    if (buf && customSrc) {
+      try { customSrc.stop(); } catch(e){}
+      customSrc = audioCtx.createBufferSource();
+      customSrc.buffer = buf; customSrc.loop = true;
+      customSrc.connect(eqFilter);
+      customSrc.start(0);
+      customSrcStartTime = audioCtx.currentTime;
+      noiseSource = customSrc;
+    }
+    showToast(`Track ${customIdx + 1} / ${customBuffers.filter(Boolean).length}`);
+  }
+}
+
+// ── Answer ────────────────────────────────────────────────────────────────────
+function submitAnswer(clickedFreq) {
+  if (!roundActive || answered) return;
+  if (!activeFreqs.has(clickedFreq)) return;
+  answered = true;
+  revealEQ(targetFreq, targetGain);
+  stopPlayback();
+
+  const isCorrect = (clickedFreq === targetFreq);
+  const pts = window.ScoringEngine ? ScoringEngine.points('freq-quiz', { gainAmount }) : 100;
+  if (isCorrect) { score += pts; streak++; correctCount++; } else streak = 0;
+  if (window.SonicSandbox) SonicSandbox.saveScore({ game: 'freq-quiz', correct: isCorrect, roundScore: isCorrect ? pts : 0 });
+
+  document.getElementById('scoreVal').textContent  = score;
+  document.getElementById('streakVal').textContent = streak;
+  document.getElementById('accuracyVal').textContent =
+    totalRounds > 0 ? Math.round(correctCount/totalRounds*100)+'%' : '—';
+
+  FREQS.forEach(f => {
+    const btn = document.getElementById(`freq-${f}`);
+    btn.disabled = true;
+    if (!activeFreqs.has(f)) { btn.classList.add('freq-off'); return; }
+    if (f === targetFreq && isCorrect)  btn.classList.add('correct');
+    else if (f === clickedFreq && !isCorrect) btn.classList.add('wrong');
+    else if (f === targetFreq && !isCorrect)  btn.classList.add('reveal');
+    else btn.classList.add('dimmed');
+  });
+
+  document.getElementById('promptCard').classList.add(isCorrect ? 'correct-flash' : 'wrong-flash');
+  const ri = document.getElementById('resultInline');
+  const _multLbl = window.ScoringEngine ? ScoringEngine.label('freq-quiz', { gainAmount }) : '×1.0';
+  ri.textContent = isCorrect ? `✓ Correct   +${pts} pts  ${_multLbl}` : `✗ Incorrect — ${fmtFreq(targetFreq)}`;
+  ri.className = `result-msg-inline ${isCorrect ? 'show-correct' : 'show-wrong'}`;
+
+  addHistory(isCorrect);
+
+  const delay = isCorrect ? 1200 : 2000;
+  const bar = document.getElementById('nextBar'), fill = document.getElementById('nextFill');
+  bar.style.display = 'block'; fill.style.transition = 'none'; fill.style.width = '100%';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    fill.style.transition = `width ${delay}ms linear`; fill.style.width = '0%';
+  }));
+  nextTimeout = setTimeout(newRound, delay);
+  document.getElementById('btnSkip').disabled = true;
+}
+
+function skipRound() {
+  if (!roundActive || answered) return;
+  answered = true;
+  revealEQ(targetFreq, targetGain);
+  stopPlayback();
+  streak = 0; document.getElementById('streakVal').textContent = streak;
+
+  FREQS.forEach(f => {
+    const btn = document.getElementById(`freq-${f}`);
+    btn.disabled = true;
+    if (!activeFreqs.has(f)) { btn.classList.add('freq-off'); return; }
+    btn.classList.add(f === targetFreq ? 'reveal' : 'dimmed');
+  });
+
+  const ri = document.getElementById('resultInline');
+  ri.textContent = `→ ${fmtFreq(targetFreq)}`;
+  ri.className = 'result-msg-inline show-wrong';
+  addHistory(false);
+
+  const bar = document.getElementById('nextBar'), fill = document.getElementById('nextFill');
+  bar.style.display = 'block'; fill.style.transition = 'none'; fill.style.width = '100%';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    fill.style.transition = 'width 1800ms linear'; fill.style.width = '0%';
+  }));
+  nextTimeout = setTimeout(newRound, 1800);
+  document.getElementById('btnSkip').disabled = true;
+}
+
+// ── History ───────────────────────────────────────────────────────────────────
+function addHistory(correct) {
+  const strip = document.getElementById('historyStrip');
+  const dot = document.createElement('div');
+  dot.className = `hist-dot ${correct ? 'c' : 'w'}`;
+  strip.appendChild(dot);
+  while (strip.children.length > 40) strip.removeChild(strip.firstChild);
+}
+
+// ── Audio setup ───────────────────────────────────────────────────────────────
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function makePinkNoise(durationSecs) {
+  const rate = audioCtx.sampleRate;
+  const len  = Math.ceil(rate * durationSecs);
+  const buf  = audioCtx.createBuffer(1, len, rate);
+  const d    = buf.getChannelData(0);
+  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+  for (let i=0;i<len;i++){
+    const w=Math.random()*2-1;
+    b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
+    b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
+    b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
+    d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11; b6=w*0.115926;
+  }
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf; return src;
+}
+
+// ── Source ────────────────────────────────────────────────────────────────────
+function setSource(type) {
+  if (type === 'oneShot' && !oneShotLoaded) {
+    loadOneShotSamples().then(() => { if (oneShotLoaded) { sourceType='oneShot'; updateSourceUI(); } });
+    return;
+  }
+  if (type === 'loop' && !loopManifestLoaded) {
+    loadLoopSamples().then(() => { if (loopManifestLoaded) { sourceType='loop'; updateSourceUI(); } });
+    return;
+  }
+  sourceType = type; updateSourceUI();
+}
+
+function updateSourceUI() {
+  document.getElementById('srcPink').classList.toggle('active',    sourceType==='pink');
+  document.getElementById('srcOneShot').classList.toggle('active', sourceType==='oneShot');
+  document.getElementById('srcLoop').classList.toggle('active',    sourceType==='loop');
+  document.getElementById('srcCustom').classList.toggle('active',  sourceType==='custom');
+}
+
+function triggerUpload() {
+  if (customFiles.length > 0) { setSource('custom'); return; }
+  document.getElementById('folderInput').click();
+}
+
+function handleFolderUpload(e) {
+  const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/') || /\.(mp3|wav|ogg|aac|flac|m4a)$/i.test(f.name));
+  if (!files.length) return;
+  initAudio();
+  customFiles = files; customIdx = 0; customBuffers = [];
+  const label = document.getElementById('uploadLabel') || document.getElementById('folderLabel');
+  if (label) label.textContent = '⧗ Loading...';
+  let loaded = 0;
+  Promise.all(files.map((f, i) =>
+    f.arrayBuffer()
+      .then(ab => audioCtx.decodeAudioData(ab))
+      .then(buf => { customBuffers[i] = buf; loaded++; if (label) label.textContent = '⧗ ' + loaded + '/' + files.length; })
+      .catch(err => { console.warn('Could not decode', f.name, err); customBuffers[i] = null; loaded++; })
+  )).then(() => {
+    const n = customBuffers.filter(Boolean).length;
+    if (label) label.textContent = '📁 ' + n + ' tracks';
+    setSource('custom');
+    if (typeof showToast === 'function') showToast(n + ' tracks ready');
+    if (typeof setLoadStatus === 'function') { setLoadStatus(n + ' tracks ready', false); setTimeout(() => setLoadStatus(null), 2500); }
+  });
+}
+
+// ── Monitor switch (Filtered / Dry) ───────────────────────────────────────────
+function setMonitor(mode) {
+  isDry = (mode === 'dry');
+  if (eqFilter && audioCtx)
+    eqFilter.gain.setTargetAtTime(isDry ? 0 : targetGain, audioCtx.currentTime, 0.01);
+  updateMonitorUI();
+}
+function updateMonitorUI() {
+  const f = document.getElementById('monFiltered'), d = document.getElementById('monDry');
+  if (f) f.classList.toggle('active', !isDry);
+  if (d) d.classList.toggle('active', isDry);
+}
+function toggleDry() {
+  if (!roundActive) return;
+  setMonitor(isDry ? 'filtered' : 'dry');
+}
+
+// ── Pause / Resume ────────────────────────────────────────────────────────────
+function togglePause() {
+  if (!roundActive || !audioCtx) return;
+  const btn = document.getElementById('btnPause');
+  if (isPaused) {
+    if (loopAudioEl   && sourceType==='loop')   loopAudioEl.play().catch(()=>{});
+    // buffer source resumed by audioCtx.resume()
+    audioCtx.resume().then(() => {
+      isPaused = false;
+      btn.innerHTML = '&#9646;&#9646; Pause'; btn.classList.remove('paused');
+      if (sourceType === 'oneShot' && isPlaying) {
+        if (shotLoopTimer) clearInterval(shotLoopTimer);
+        const fireShot = () => {
+          if (!isPlaying) return;
+          const s = audioCtx.createBufferSource();
+          s.buffer = oneShotBuffers[oneShotIdx % oneShotBuffers.length].buffer;
+          if (eqFilter) s.connect(eqFilter); s.start(0); currentShotSrc = s;
+        };
+        fireShot(); shotLoopTimer = setInterval(fireShot, 5000);
+      }
+    });
+  } else {
+    if (loopAudioEl   && sourceType==='loop')   loopAudioEl.pause();
+    // customSrc paused by audioCtx.suspend()
+    if (shotLoopTimer) { clearInterval(shotLoopTimer); shotLoopTimer = null; }
+    audioCtx.suspend().then(() => {
+      isPaused = true;
+      btn.innerHTML = '&#9654; Resume'; btn.classList.add('paused');
+    });
+  }
+}
+
+// ── Restart ───────────────────────────────────────────────────────────────────
+function restartAudio() {
+  if (!roundActive) return;
+  initAudio();
+  if (isPaused) {
+    audioCtx.resume(); isPaused = false;
+    const btn = document.getElementById('btnPause');
+    btn.innerHTML = '&#9646;&#9646; Pause'; btn.classList.remove('paused');
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  if (loopAudioEl   && sourceType==='loop')   loopAudioEl.currentTime = 0;
+  customSrcOffset = 0;
+  stopPlayback(); playCurrentRound();
+  showToast('Restarted');
+}
+
+
+function toggleShortcuts(e) {
+  e.stopPropagation();
+  const pop = document.getElementById('shortcutsPopover');
+  pop.classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  const pop = document.getElementById('shortcutsPopover');
+  if (pop) pop.classList.remove('open');
+});
+// ── Keyboard shortcuts ────────────────────────────────────────────────────────
+window.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (e.code !== 'KeyP' && audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+
+  if (e.code === 'Space')      { e.preventDefault(); toggleDry(); }
+  if (e.code === 'KeyD')       { e.preventDefault(); toggleDry(); }
+  if (e.code === 'ArrowLeft')  { e.preventDefault(); seekMusic(-10); }
+  if (e.code === 'ArrowRight') { e.preventDefault(); seekMusic(+10); }
+  if (e.code === 'ArrowUp')    { e.preventDefault(); skipTrack(+1); }
+  if (e.code === 'ArrowDown')  { e.preventDefault(); skipTrack(-1); }
+  if (e.code === 'KeyP')       { e.preventDefault(); togglePause(); }
+  if (e.code === 'KeyF')       { e.preventDefault(); restartAudio(); }
+
+  const numMatch = e.key.match(/^[1-9]$/);
+  if (numMatch && roundActive && !answered) {
+    const idx = parseInt(e.key) - 1;
+    if (idx < FREQS.length && activeFreqs.has(FREQS[idx])) submitAnswer(FREQS[idx]);
+  }
+});
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function fmtFreq(f) { return f >= 1000 ? (f/1000)+'kHz' : f+'Hz'; }
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+buildFreqToggles();
+buildFreqGrid();
+drawEQ(null, 0);
+updateMultBadge();
+window.addEventListener('resize', () => drawEQ(answered ? targetFreq : null, targetGain ?? 0));
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(()=>console.log('SW registered'))
+      .catch(err=>console.warn('SW failed',err));
+  });
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../supabase-client.js"></script>
+<!-- Auth modal -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" id="closeAuthBtn">&times;</button>
+    <div class="modal-tabs">
+      <button class="modal-tab active" data-tab="signin">Sign in</button>
+      <button class="modal-tab" data-tab="signup">Create account</button>
+    </div>
+    <div id="tabSignin">
+      <label>Email</label>
+      <input type="email" id="siEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label>
+      <input type="password" id="siPassword" placeholder="••••••••" autocomplete="current-password">
+      <button class="modal-submit" id="siSubmit">Sign in</button>
+      <div class="modal-msg" id="siMsg"></div>
+      <button class="forgot-pw-link" id="forgotPwBtn" type="button">Forgot password?</button>
+    </div>
+    <div id="tabForgot" style="display:none;">
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:18px;">Enter your email and we'll send you a reset link.</p>
+      <label>Email</label>
+      <input type="email" id="fpEmail" placeholder="you@example.com" autocomplete="email">
+      <button class="modal-submit" id="fpSubmit">Send reset link</button>
+      <div class="modal-msg" id="fpMsg"></div>
+      <button class="forgot-pw-link" id="backToSigninBtn" type="button">← Back to sign in</button>
+    </div>
+    <div id="tabSignup" style="display:none;">
+      <label>Email</label>
+      <input type="email" id="suEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label>
+      <input type="password" id="suPassword" placeholder="At least 6 characters" autocomplete="new-password">
+      <button class="modal-submit" id="suSubmit">Create account</button>
+      <div class="modal-msg" id="suMsg"></div>
+    </div>
+  </div>
+</div>
+<!-- Footer -->
+<footer>
+  <div class="footer-left">
+    <a href="/">SonicSandbox</a>
+    &nbsp;·&nbsp; Ear training for producers, engineers, &amp; musicians
+    &nbsp;·&nbsp; <a href="/about/">About</a>
+    &nbsp;·&nbsp; <a href="/privacy/">Privacy Policy</a>
+    &nbsp;·&nbsp; <a href="/support/">Support</a>
+  </div>
+  <div class="footer-right">
+    <span>© 2026 Zach Snider</span>
+  </div>
+</footer>
+<script>
+  // ── Auth modal ────────────────────────────────────────────
+  const authModal = document.getElementById('authModal');
+  const authArea  = document.getElementById('authArea');
+  const openBtn   = document.getElementById('openAuthBtn');
+  const closeBtn  = document.getElementById('closeAuthBtn');
+  const tabs      = document.querySelectorAll('.modal-tab');
+  const tabSignin = document.getElementById('tabSignin');
+  const tabSignup = document.getElementById('tabSignup');
+  const tabForgot = document.getElementById('tabForgot');
+
+  if (openBtn) openBtn.addEventListener('click', () => authModal.classList.add('open'));
+  closeBtn.addEventListener('click', () => { authModal.classList.remove('open'); showSigninPanel(); });
+  authModal.addEventListener('click', e => { if (e.target === authModal) { authModal.classList.remove('open'); showSigninPanel(); } });
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      tabSignin.style.display = tab.dataset.tab === 'signin' ? '' : 'none';
+      tabSignup.style.display = tab.dataset.tab === 'signup' ? '' : 'none';
+      tabForgot.style.display = 'none';
+    });
+  });
+
+  function showSigninPanel() { tabForgot.style.display = 'none'; tabSignin.style.display = ''; }
+  function showForgotPanel() {
+    tabSignin.style.display = 'none'; tabForgot.style.display = '';
+    const e = document.getElementById('siEmail').value.trim();
+    if (e) document.getElementById('fpEmail').value = e;
+    document.getElementById('fpMsg').textContent = '';
+  }
+
+  document.getElementById('forgotPwBtn').addEventListener('click', showForgotPanel);
+  document.getElementById('backToSigninBtn').addEventListener('click', showSigninPanel);
+
+  document.getElementById('siSubmit').addEventListener('click', async () => {
+    const msg = document.getElementById('siMsg');
+    msg.textContent = 'Signing in…'; msg.className = 'modal-msg';
+    const { error } = await SonicSandbox.signIn(
+      document.getElementById('siEmail').value.trim(),
+      document.getElementById('siPassword').value
+    );
+    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+    else { authModal.classList.remove('open'); }
+  });
+
+  document.getElementById('fpSubmit').addEventListener('click', async () => {
+    const email = document.getElementById('fpEmail').value.trim();
+    const msg = document.getElementById('fpMsg');
+    if (!email) { msg.textContent = 'Please enter your email.'; msg.className = 'modal-msg error'; return; }
+    msg.textContent = 'Sending…'; msg.className = 'modal-msg';
+    const { error } = await SonicSandbox.resetPasswordForEmail(email);
+    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+    else { msg.textContent = 'Reset link sent! Check your inbox.'; msg.className = 'modal-msg success'; document.getElementById('fpSubmit').disabled = true; }
+  });
+
+  document.getElementById('suSubmit').addEventListener('click', async () => {
+    const msg = document.getElementById('suMsg');
+    msg.textContent = 'Creating account…'; msg.className = 'modal-msg';
+    const { error } = await SonicSandbox.signUp(
+      document.getElementById('suEmail').value.trim(),
+      document.getElementById('suPassword').value
+    );
+    if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+    else { msg.textContent = 'Check your email to confirm your account.'; msg.className = 'modal-msg success'; }
+  });
+
+  // ── Auth state ────────────────────────────────────────────
+  document.addEventListener('ss:authchange', async e => {
+    const user = e.detail;
+    if (user) {
+      authArea.innerHTML = `<div class="user-pill"><span class="username-display" style="color:var(--muted);font-size:12px;">${user.email}</span></div>`;
+      const profile = await SonicSandbox.getProfile();
+      if (profile?.username) {
+        const el = document.querySelector('.username-display');
+        if (el) el.outerHTML = `<a class="set-username-link" href="/account/">@${profile.username}</a>`;
+      }
+    } else {
+      authArea.innerHTML = `<button class="auth-btn" id="openAuthBtn">Sign in</button>`;
+      document.getElementById('openAuthBtn').addEventListener('click', () => authModal.classList.add('open'));
+    }
+  });
+</script>
+</body>
+</html>
