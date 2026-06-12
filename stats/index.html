@@ -41,6 +41,12 @@
     --ll-accent:    #f0b429;  --ll-accent2:    #ffd166;
     --qeq-accent:   #818cf8;  --qeq-accent2:   #a5b4fc;
     --sca-accent:   #39d353;  --sca-accent2:   #7ce88f;
+    --mt-chord-accent:  #f472b6;  --mt-chord-accent2:  #f9a8d4;
+    --mt-int-accent:    #fb923c;  --mt-int-accent2:    #fdba74;
+    --mt-prog-accent:   #a78bfa;  --mt-prog-accent2:   #c4b5fd;
+    --mt-sq-accent:     #34d399;  --mt-sq-accent2:     #6ee7b7;
+    --mt-ss-accent:     #fbbf24;  --mt-ss-accent2:     #fcd34d;
+    --mt-staff-accent:  #60a5fa;  --mt-staff-accent2:  #93c5fd;
   }
   body {
     font-family: 'IBM Plex Sans', sans-serif;
@@ -306,6 +312,25 @@
     transform: translateX(18px); background: var(--accent2);
   }
 
+  /* ── Game filter pills ───────────────────────────────── */
+  .filter-wrap { display: flex; align-items: center; flex-shrink: 0; }
+  .filter-pills {
+    display: flex; gap: 3px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 3px;
+  }
+  .filter-pill {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    padding: 5px 12px; border-radius: 6px;
+    border: none; background: none;
+    color: var(--muted); cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+  }
+  .filter-pill:hover { color: var(--text); }
+  .filter-pill.active { background: var(--surface3); color: var(--accent2); }
+
   /* ── States ──────────────────────────────────────────── */
   .loading-state, .empty-state, .auth-wall {
     text-align: center; padding: 80px 20px;
@@ -385,6 +410,17 @@
           <span class="toggle-track"></span>
         </label>
         <span class="toggle-lbl" id="chartScoreLbl">Score</span>
+      </div>
+    </div>
+    <div class="settings-row-item">
+      <div class="setting-label">Game Filter</div>
+      <div class="setting-desc">Show stats for all games, audio processing only, or music theory only.</div>
+      <div class="filter-wrap">
+        <div class="filter-pills" id="filterPills">
+          <button class="filter-pill" data-filter="all"    onclick="onFilterChange('all')">All Games</button>
+          <button class="filter-pill" data-filter="audio"  onclick="onFilterChange('audio')">Audio Processing</button>
+          <button class="filter-pill" data-filter="theory" onclick="onFilterChange('theory')">Music Theory</button>
+        </div>
       </div>
     </div>
   </div>
@@ -498,18 +534,7 @@ function onChartModeToggle(isScore) {
   chartMode = isScore ? 'score' : 'accuracy';
   localStorage.setItem('ss_chart_mode', chartMode);
   syncChartModeUI(isScore);
-  // Redraw all charts with new mode
-  if (_allScores.length) {
-    const title = document.getElementById('overallChartTitle');
-    if (title) title.textContent = isScore ? 'Score Over Time' : 'Accuracy Over Time';
-    drawOverallChart(_allScores);
-    _sortedGames.forEach(g => {
-      drawGameChart(`chart-${g}`, _byGame[g], GAME_COLORS[g] || '#8892ff');
-      // Sync the per-game chart mode label
-      const lbl = document.getElementById(`chart-mode-label-${g}`);
-      if (lbl) lbl.textContent = isScore ? 'Score Over Time' : 'Accuracy Over Time';
-    });
-  }
+  if (_allScores.length) renderStats();
 }
 
 function syncChartModeUI(isScore) {
@@ -522,6 +547,7 @@ function syncChartModeUI(isScore) {
 // Run on load
 initWeightedToggle();
 initChartModeToggle();
+initFilterPills();
 
 // ── Chart registry (destroy before redraw) ────────────────
 const chartRegistry = {};
@@ -531,17 +557,26 @@ function destroyChart(id) {
 
 // ── Game accent colours for sparklines ────────────────────
 const GAME_COLORS = {
-  'eq-match':           '#8892ff',
-  'compressor':         '#f0a882',
-  'quick-compress':     '#5eefc0',
-  'reverb-master':      '#8b6fff',
-  'distortion-master':  '#f07050',
-  'freq-quiz':          '#60e8ff',
-  'freq-hunter':        '#50f0d8',
-  'spatial-specialist': '#a58aff',
+  // Audio processing
+  'eq-match':              '#8892ff',
+  'compressor':            '#f0a882',
+  'quick-compress':        '#5eefc0',
+  'reverb-master':         '#8b6fff',
+  'distortion-master':     '#f07050',
+  'freq-quiz':             '#60e8ff',
+  'freq-hunter':           '#50f0d8',
+  'spatial-specialist':    '#a58aff',
+  // Music theory
+  'chord-quiz':            '#f472b6',
+  'interval-master':       '#fb923c',
+  'progression-detection': '#a78bfa',
+  'scale-quiz':            '#34d399',
+  'scale-sight':           '#fbbf24',
+  'staff-specialist':      '#60a5fa',
 };
 
 const GAME_LABELS = {
+  // Audio processing
   'eq-match':              'EQ Match',
   'compressor':            'Compressor',
   'quick-compress':        'Quick Compress',
@@ -554,18 +589,83 @@ const GAME_LABELS = {
   'spatial-specialist':    'Spatial Specialist',
   'level-logic':           'Level Logic',
   'signal-chain-architect':'Signal Chain Architect',
+  // Music theory
+  'chord-quiz':            'Chord Quiz',
+  'interval-master':       'Interval Master',
+  'progression-detection': 'Progression Detection',
+  'scale-quiz':            'Scale Quiz',
+  'scale-sight':           'Scale Sight',
+  'staff-specialist':      'Staff Specialist',
 };
 
 const GAME_PATHS = {
-  'eq-match':           '../eq-match/',
-  'compressor':         '../compressor/',
-  'quick-compress':     '../quick-compress/',
-  'reverb-master':      '../reverb-master/',
-  'distortion-master':  '../distortion-master/',
-  'freq-quiz':          '../freq-quiz/',
-  'freq-hunter':        '../freq-hunter/',
-  'spatial-specialist': '../spatial-specialist/',
+  // Audio processing
+  'eq-match':              '../eq-match/',
+  'compressor':            '../compressor/',
+  'quick-compress':        '../quick-compress/',
+  'quick-eq':              '../quick-eq/',
+  'reverb-master':         '../reverb-master/',
+  'distortion-master':     '../distortion-master/',
+  'delay-master':          '../delay-master/',
+  'freq-quiz':             '../freq-quiz/',
+  'freq-hunter':           '../freq-hunter/',
+  'spatial-specialist':    '../spatial-specialist/',
+  'level-logic':           '../level-logic/',
+  'signal-chain-architect':'../signal-chain-architect/',
+  // Music theory
+  'chord-quiz':            '../chord-quiz/',
+  'interval-master':       '../interval-master/',
+  'progression-detection': '../progression-detection/',
+  'scale-quiz':            '../scale-quiz/',
+  'scale-sight':           '../scale-sight/',
+  'staff-specialist':      '../staff-specialist/',
 };
+
+// ── Game type map (audio processing vs music theory) ─────
+const GAME_TYPES = {
+  'eq-match':              'audio',
+  'compressor':            'audio',
+  'quick-compress':        'audio',
+  'quick-eq':              'audio',
+  'reverb-master':         'audio',
+  'distortion-master':     'audio',
+  'delay-master':          'audio',
+  'freq-quiz':             'audio',
+  'freq-hunter':           'audio',
+  'spatial-specialist':    'audio',
+  'level-logic':           'audio',
+  'signal-chain-architect':'audio',
+  'chord-quiz':            'theory',
+  'interval-master':       'theory',
+  'progression-detection': 'theory',
+  'scale-quiz':            'theory',
+  'scale-sight':           'theory',
+  'staff-specialist':      'theory',
+};
+
+// ── Game filter state ─────────────────────────────────────
+let gameFilter = localStorage.getItem('ss_game_filter') || 'all';
+
+function initFilterPills() {
+  document.querySelectorAll('.filter-pill').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === gameFilter);
+  });
+}
+
+function onFilterChange(filter) {
+  gameFilter = filter;
+  localStorage.setItem('ss_game_filter', filter);
+  document.querySelectorAll('.filter-pill').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === filter);
+  });
+  if (_allScores.length) renderStats();
+}
+
+function getFilteredScores() {
+  if (gameFilter === 'all') return _allScores;
+  const targetType = gameFilter === 'theory' ? 'theory' : 'audio';
+  return _allScores.filter(s => (GAME_TYPES[s.game] || 'audio') === targetType);
+}
 
 function timeAgo(dateStr) {
   const diff = (Date.now() - new Date(dateStr)) / 1000;
@@ -805,8 +905,10 @@ function drawGameChart(canvasId, rows, color) {
 //                 + recency component  (0–100) × 0.4
 // Accuracy component: (100 − accPct) — lower accuracy = higher priority
 // Recency component:  days since last played, capped at 14d, scaled 0–100
-function getRecommendations(byGame) {
-  const ALL_GAMES = Object.keys(GAME_LABELS);
+function getRecommendations(byGame, filter) {
+  const ALL_GAMES = Object.keys(GAME_LABELS).filter(g =>
+    filter === 'all' || (GAME_TYPES[g] || 'audio') === filter
+  );
 
   const scored = ALL_GAMES.map(game => {
     const rows = byGame[game];
@@ -895,12 +997,84 @@ function buildLastPlayedRow(game, byGame) {
     </a>`;
 }
 
+// ── Filter-aware render (called after load and on filter/toggle changes) ──
+function renderStats() {
+  const filteredScores = getFilteredScores();
+
+  if (!filteredScores.length) {
+    const msg = gameFilter === 'all'
+      ? 'No rounds played yet — jump into a game!'
+      : `No rounds played for ${gameFilter === 'theory' ? 'music theory' : 'audio processing'} games yet.`;
+    document.getElementById('summaryRow').innerHTML =
+      `<div class="empty-state" style="grid-column:1/-1">${msg}</div>`;
+    document.getElementById('overallChartCard').style.display = 'none';
+    document.getElementById('planGrid').innerHTML     = '';
+    document.getElementById('gameGrid').innerHTML     = '';
+    document.getElementById('activityList').innerHTML = '';
+    return;
+  }
+
+  // Summary stats (from filtered scores)
+  const total    = filteredScores.length;
+  const correct  = filteredScores.filter(s => s.correct).length;
+  const accPct   = Math.round(correct / total * 100);
+  const scored   = filteredScores.filter(s => s.round_score !== null);
+  const avgScore = scored.length
+    ? Math.round(scored.reduce((s, r) => s + r.round_score, 0) / scored.length)
+    : '—';
+  const gamesPlayed = new Set(filteredScores.map(s => s.game)).size;
+
+  document.getElementById('statTotal').textContent    = total;
+  document.getElementById('statAccuracy').textContent = accPct + '%';
+  document.getElementById('statAvgScore').textContent = avgScore;
+  document.getElementById('statGames').textContent    = gamesPlayed;
+
+  // Group filtered scores by game
+  const byGame = {};
+  filteredScores.forEach(s => { (byGame[s.game] = byGame[s.game] || []).push(s); });
+
+  // Per-game cards sorted by most rounds played
+  const sortedGames = Object.keys(byGame).sort((a, b) => byGame[b].length - byGame[a].length);
+  _sortedGames = sortedGames;
+
+  // Overall chart
+  drawOverallChart(filteredScores);
+
+  // Training plan (filtered to relevant game types)
+  const recs = getRecommendations(byGame, gameFilter);
+  document.getElementById('planGrid').innerHTML = recs.map((r, i) => buildPlanCard(r, i)).join('');
+
+  // Per-game cards
+  document.getElementById('gameGrid').innerHTML = sortedGames.map(g => buildGameCard(g, byGame[g])).join('');
+
+  // Draw per-game sparklines (after HTML is set)
+  sortedGames.forEach(g => {
+    drawGameChart(`chart-${g}`, byGame[g], GAME_COLORS[g] || '#8892ff');
+  });
+
+  // Last played — games for current filter, played first sorted by recency
+  const allGames      = Object.keys(GAME_LABELS).filter(g =>
+    gameFilter === 'all' || (GAME_TYPES[g] || 'audio') === gameFilter
+  );
+  const playedGames   = allGames.filter(g =>  byGame[g]).sort((a, b) =>
+    new Date(byGame[b][0].created_at) - new Date(byGame[a][0].created_at));
+  const unplayedGames = allGames.filter(g => !byGame[g]);
+  document.getElementById('activityList').innerHTML =
+    [...playedGames, ...unplayedGames].map(g => buildLastPlayedRow(g, byGame)).join('');
+}
+
 async function loadStats(user) {
   document.getElementById('loadingState').style.display = 'none';
   document.getElementById('mainContent').style.display  = 'block';
   document.getElementById('subheader').textContent = user.email;
 
   const scores = await SonicSandbox.getScores();
+
+  // Store at module level for filter/toggle redraws
+  _allScores = scores;
+  const byGame = {};
+  scores.forEach(s => { (byGame[s.game] = byGame[s.game] || []).push(s); });
+  _byGame = byGame;
 
   if (!scores.length) {
     document.getElementById('summaryRow').innerHTML =
@@ -911,56 +1085,7 @@ async function loadStats(user) {
     return;
   }
 
-  // Overall stats
-  const total    = scores.length;
-  const correct  = scores.filter(s => s.correct).length;
-  const accPct   = Math.round(correct / total * 100);
-  const scored   = scores.filter(s => s.round_score !== null);
-  const avgScore = scored.length
-    ? Math.round(scored.reduce((s, r) => s + r.round_score, 0) / scored.length)
-    : '—';
-  const gamesPlayed = new Set(scores.map(s => s.game)).size;
-
-  document.getElementById('statTotal').textContent    = total;
-  document.getElementById('statAccuracy').textContent = accPct + '%';
-  document.getElementById('statAvgScore').textContent = avgScore;
-  document.getElementById('statGames').textContent    = gamesPlayed;
-
-  // Group by game (scores already sorted newest-first from Supabase)
-  const byGame = {};
-  scores.forEach(s => { (byGame[s.game] = byGame[s.game] || []).push(s); });
-
-  // Store at module level for chart redraws on toggle change
-  _allScores   = scores;
-  _byGame      = byGame;
-
-  // Training plan
-  const recs = getRecommendations(byGame);
-  document.getElementById('planGrid').innerHTML = recs.map((r, i) => buildPlanCard(r, i)).join('');
-
-  // Per-game cards, sorted by most rounds played
-  const sortedGames = Object.keys(byGame).sort((a, b) => byGame[b].length - byGame[a].length);
-  _sortedGames = sortedGames;
-  document.getElementById('gameGrid').innerHTML = sortedGames.map(g => buildGameCard(g, byGame[g])).join('');
-
-  // Draw overall chart (needs DOM to exist first)
-  drawOverallChart(scores);
-
-  // Draw per-game sparklines
-  sortedGames.forEach(g => {
-    const color = GAME_COLORS[g] || '#8892ff';
-    drawGameChart(`chart-${g}`, byGame[g], color);
-  });
-
-  // Last played — all 8 games, played ones sorted by recency, unplayed at bottom
-  const allGames   = Object.keys(GAME_LABELS);
-  const playedGames   = allGames.filter(g =>  byGame[g]).sort((a, b) =>
-    new Date(byGame[b][0].created_at) - new Date(byGame[a][0].created_at));
-  const unplayedGames = allGames.filter(g => !byGame[g]);
-  const orderedGames  = [...playedGames, ...unplayedGames];
-
-  document.getElementById('activityList').innerHTML =
-    orderedGames.map(g => buildLastPlayedRow(g, byGame)).join('');
+  renderStats();
 }
 
 function buildGameCard(game, rows) {

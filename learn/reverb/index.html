@@ -41,12 +41,15 @@
     --ll-accent:    #f0b429;  --ll-accent2:    #ffd166;
     --qeq-accent:   #818cf8;  --qeq-accent2:   #a5b4fc;
     --sca-accent:   #39d353;  --sca-accent2:   #7ce88f;
+    --sidebar-w: 264px;
+    --learn-accent: #a78bfa; --learn-accent2: #c4b5fd;
+    --rev-accent: #a78bfa; --rev-accent2: #c4b5fd;
   }
   body {
     font-family: 'IBM Plex Sans', sans-serif;
     background: var(--bg); color: var(--text);
     min-height: 100vh;
-    display: flex; flex-direction: column; align-items: center;
+    display: flex; flex-direction: column;
   }
 
 nav {
@@ -77,7 +80,7 @@ nav {
   .soon-badge { font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; background: rgba(255,255,255,0.06); color: var(--muted); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.08); }
   .tool-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: 0.7; flex-shrink: 0; }
 
-  .module-wrap { width: 100%; max-width: 860px; padding: 0 24px 80px; }
+  .module-wrap { width: 100%; max-width: 860px; padding: 36px 24px 80px; }
 
   .progress-bar-wrap { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
   .progress-dots { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -151,6 +154,62 @@ nav {
     .step-nav { flex-direction: column; }
     .nav-btn { width: 100%; justify-content: center; }
   }
+
+  /* ── Learn layout ───────────────────────────────────────── */
+  .learn-layout { flex: 1; display: flex; align-items: flex-start; }
+  .learn-sidebar {
+    width: var(--sidebar-w); flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    position: sticky; top: 61px; height: calc(100vh - 61px);
+    overflow-y: auto; background: var(--bg);
+    scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.08) transparent; z-index: 10;
+  }
+  .learn-sidebar::-webkit-scrollbar { width: 4px; }
+  .learn-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+  .sidebar-header { padding: 16px 20px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--bg); z-index: 1; }
+  .sidebar-header-label { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+  .sidebar-close-btn { display: none; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 20px; line-height: 1; padding: 0 2px; }
+  .sidebar-close-btn:hover { color: var(--text); }
+  .sidebar-body { padding: 10px 0 48px; }
+  .sidebar-section { margin-bottom: 2px; }
+  .sidebar-section-label { display: flex; align-items: center; gap: 8px; padding: 12px 20px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.28); }
+  .section-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+  .sidebar-divider { height: 1px; background: var(--border); margin: 10px 0 6px; }
+  .course-hdr { display: flex; align-items: center; gap: 8px; padding: 7px 20px; cursor: pointer; transition: background 0.14s; user-select: none; }
+  .course-hdr:hover { background: rgba(255,255,255,0.035); }
+  .course-n { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; color: var(--muted); min-width: 18px; flex-shrink: 0; }
+  .course-label { font-size: 12.5px; font-weight: 500; color: var(--text); flex: 1; line-height: 1.3; }
+  .course-soon-badge { font-family: 'IBM Plex Mono', monospace; font-size: 7.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.22); padding: 2px 5px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
+  .course-chevron { color: var(--muted); font-size: 12px; flex-shrink: 0; transition: transform 0.18s; }
+  .sidebar-course.is-open .course-chevron { transform: rotate(90deg); }
+  .course-lessons { display: none; padding: 1px 0 4px; border-left: 2px solid var(--border); margin-left: 28px; }
+  .sidebar-course.is-open .course-lessons { display: block; }
+  .lesson-row { display: flex; align-items: flex-start; gap: 8px; padding: 4px 16px 4px 12px; cursor: pointer; transition: background 0.12s; border-left: 2px solid transparent; margin-left: -2px; text-decoration: none; }
+  .lesson-row:hover:not(.lesson-soon) { background: rgba(255,255,255,0.035); }
+  .lesson-row.is-active { background: rgba(255,255,255,0.05); }
+  .lesson-n { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--muted); min-width: 28px; flex-shrink: 0; padding-top: 1px; }
+  .lesson-label { font-size: 11.5px; color: var(--muted); line-height: 1.45; font-weight: 300; }
+  .lesson-row.is-active .lesson-label { color: var(--text); font-weight: 400; }
+  .lesson-row.lesson-soon { opacity: 0.38; cursor: not-allowed; }
+  .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 30; backdrop-filter: blur(1px); }
+  .sidebar-overlay.is-open { display: block; }
+  .learn-main { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; }
+  .learn-breadcrumb { width: 100%; padding: 13px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .breadcrumb-toggle { display: none; align-items: center; gap: 7px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 7px; padding: 6px 11px; cursor: pointer; font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; color: var(--muted); flex-shrink: 0; }
+  .breadcrumb-toggle:hover { color: var(--text); }
+  .bc-path { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.04em; display: flex; align-items: center; gap: 6px; }
+  .bc-path a { color: var(--muted); text-decoration: none; }
+  .bc-path a:hover { color: var(--text); }
+  .bc-sep { opacity: 0.35; }
+  .bc-current { color: var(--text); font-weight: 500; }
+  @media (max-width: 900px) {
+    .learn-sidebar { position: fixed; top: 0; left: 0; height: 100vh; transform: translateX(-100%); transition: transform 0.24s cubic-bezier(0.4,0,0.2,1); z-index: 50; box-shadow: 4px 0 24px rgba(0,0,0,0.5); border-right: 1px solid var(--border2); }
+    .learn-sidebar.is-open { transform: translateX(0); }
+    .sidebar-close-btn { display: block; }
+    .breadcrumb-toggle { display: flex; }
+    .learn-main { width: 100%; }
+  }
+
 </style>
 
   <!-- Open Graph / Social -->
@@ -196,33 +255,40 @@ nav {
     <a class="nav-link" href="/stats/">Stats</a>
   </div>
     <div class="nav-right">
-    <div id="authArea"><a class="auth-btn" href="/learn/" style="text-decoration:none;">Sign in</a></div>
+    <div id="authArea"><button class="auth-btn" id="openAuthBtn">Sign in</button></div>
   </div>
 </nav>
+<div class="learn-layout">
 
-<!-- Page header -->
-<div class="page-header">
-  <div class="page-eyebrow">SonicSandbox / Learning Center</div>
-  <h1 class="page-title">Learn the tools.</h1>
-  <p class="page-sub">Guided lessons on the audio processing tools that shape every mix. Read, listen, and understand — then go train your ears.</p>
-</div>
+  <aside class="learn-sidebar" id="learnSidebar" aria-label="Course navigation">
+    <div class="sidebar-header">
+      <span class="sidebar-header-label">Learning Center</span>
+      <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close menu">✕</button>
+    </div>
+    <div class="sidebar-body" id="sidebarBody"></div>
+  </aside>
 
-<!-- Topic selector -->
-<div class="tool-selector-wrap">
-  <div class="tool-selector-label">Choose a topic</div>
-  <div class="tool-selector">
-    <a class="tool-btn" href="/learn/"><div class="tool-dot" style="color:#8892ff"></div>EQ</a>
-    <a class="tool-btn" href="/learn/gain-staging/"><div class="tool-dot" style="color:#86efac"></div>Gain Staging</a>
-    <a class="tool-btn" href="/learn/compression/"><div class="tool-dot" style="color:#f0a882"></div>Compression</a>
-    <a class="tool-btn" href="/learn/saturation/"><div class="tool-dot" style="color:#fbbf24"></div>Saturation</a>
-    <span class="tool-btn active"><div class="tool-dot" style="color:#a78bfa"></div>Reverb</span>
-    <a class="tool-btn" href="/learn/delay/"><div class="tool-dot" style="color:#f97316"></div>Delay</a>
-    <a class="tool-btn" href="/learn/soundstage/"><div class="tool-dot" style="color:#38bdf8"></div>Spatial Mixing</a>
-    <a class="tool-btn" href="/learn/signal-chain/"><div class="tool-dot" style="color:#22d3ee"></div>Signal Chain</a>
-    <a class="tool-btn" href="/learn/modulation/"><div class="tool-dot" style="color:#34d399"></div>Modulation</a>
-    <a class="tool-btn" href="/learn/limiting/"><div class="tool-dot" style="color:#fda4af"></div>Limiting</a>
-  </div>
-</div>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <main class="learn-main">
+
+    <div class="learn-breadcrumb">
+      <button class="breadcrumb-toggle" id="sidebarToggleBtn" aria-label="Open course menu">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <rect y="1" width="14" height="1.5" rx="0.75" fill="currentColor"/>
+          <rect y="6" width="10" height="1.5" rx="0.75" fill="currentColor"/>
+          <rect y="11" width="12" height="1.5" rx="0.75" fill="currentColor"/>
+        </svg>
+        Courses
+      </button>
+      <div class="bc-path">
+        <a href="/learn/">Learn</a>
+        <span class="bc-sep">›</span>
+        <span>Audio Engineering</span>
+        <span class="bc-sep">›</span>
+        <span class="bc-current">Reverb</span>
+      </div>
+    </div>
 
 <div class="module-wrap">
   <div class="progress-bar-wrap">
@@ -237,6 +303,10 @@ nav {
   </div>
 </div>
 
+
+  </main>
+</div><!-- /learn-layout -->
+
 <footer>
   <div class="footer-left">
     <a href="/">SonicSandbox</a>
@@ -250,29 +320,85 @@ nav {
   </div>
 </footer>
 
+<!-- ── Auth modal ────────────────────────────────────────── -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" id="closeAuthBtn">&times;</button>
+    <div class="modal-tabs">
+      <button class="modal-tab active" data-tab="signin">Sign in</button>
+      <button class="modal-tab" data-tab="signup">Create account</button>
+    </div>
+    <div id="tabSignin">
+      <label>Email</label>
+      <input type="email" id="siEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label>
+      <input type="password" id="siPassword" placeholder="••••••••" autocomplete="current-password">
+      <button class="modal-submit" id="siSubmit">Sign in</button>
+      <div class="modal-msg" id="siMsg"></div>
+      <button class="forgot-pw-link" id="forgotPwBtn" type="button">Forgot password?</button>
+    </div>
+    <div id="tabForgot" style="display:none;">
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:18px;">Enter your email and we'll send you a reset link.</p>
+      <label>Email</label>
+      <input type="email" id="fpEmail" placeholder="you@example.com" autocomplete="email">
+      <button class="modal-submit" id="fpSubmit">Send reset link</button>
+      <div class="modal-msg" id="fpMsg"></div>
+      <button class="forgot-pw-link" id="backToSigninBtn" type="button">← Back to sign in</button>
+    </div>
+    <div id="tabSignup" style="display:none;">
+      <label>Email</label>
+      <input type="email" id="suEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label>
+      <input type="password" id="suPassword" placeholder="At least 6 characters" autocomplete="new-password">
+      <button class="modal-submit" id="suSubmit">Create account</button>
+      <div class="modal-msg" id="suMsg"></div>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="usernameModal">
+  <div class="modal">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent2);margin-bottom:8px;">Welcome</div>
+    <h2 style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;margin-bottom:10px;">Choose a username</h2>
+    <p style="font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:26px;">Your username will appear on leaderboards and game stats.</p>
+    <label for="usernameInput">Username</label>
+    <input type="text" id="usernameInput" placeholder="e.g. basshead42" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <div class="username-check" id="usernameCheck"></div>
+    <p class="username-hint">3–20 characters · Letters, numbers, _ and - only</p>
+    <button class="modal-submit" id="usernameSubmit">Set username</button>
+    <div class="modal-msg" id="usernameMsg"></div>
+    <button class="username-skip" id="usernameSkip">Skip for now</button>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="../../supabase-client.js"></script>
+<script src="/supabase-client.js"></script>
 <script>
-(function() {
-  const authArea = document.getElementById('authArea');
-  document.addEventListener('ss:authchange', async e => {
-    const user = e.detail;
-    if (user) {
-      authArea.innerHTML = `<div class="user-pill"><span class="username-display" style="color:var(--muted);font-size:12px;">${user.email}</span></div>`;
-      const profile = await SonicSandbox.getProfile();
-      const el = authArea.querySelector('.username-display');
-      if (!el) return;
-      if (profile?.username) {
-        el.outerHTML = `<a class="set-username-link" href="/account/">@${profile.username}</a>`;
-      } else {
-        el.outerHTML = `<a class="set-username-link" href="/account/">Set username</a>`;
-      }
-    } else {
-      authArea.innerHTML = `<a class="auth-btn" href="/">Sign in</a>`;
-    }
-  });
-})();
+// ── Auth modal ────────────────────────────────────────────────
+const authModal=document.getElementById('authModal'),authArea=document.getElementById('authArea');
+const closeBtn=document.getElementById('closeAuthBtn'),tabs=document.querySelectorAll('.modal-tab');
+const tabSignin=document.getElementById('tabSignin'),tabSignup=document.getElementById('tabSignup'),tabForgot=document.getElementById('tabForgot');
+function openAuthModal(){authModal.classList.add('open');}function closeAuthModal(){authModal.classList.remove('open');showSigninPanel();}
+document.getElementById('openAuthBtn').addEventListener('click',openAuthModal);
+closeBtn.addEventListener('click',closeAuthModal);
+authModal.addEventListener('click',e=>{if(e.target===authModal)closeAuthModal();});
+tabs.forEach(tab=>{tab.addEventListener('click',()=>{tabs.forEach(t=>t.classList.remove('active'));tab.classList.add('active');tabSignin.style.display=tab.dataset.tab==='signin'?'':'none';tabSignup.style.display=tab.dataset.tab==='signup'?'':'none';tabForgot.style.display='none';});});
+function showForgotPanel(){tabSignin.style.display='none';tabForgot.style.display='';const e=document.getElementById('siEmail').value.trim();if(e)document.getElementById('fpEmail').value=e;document.getElementById('fpMsg').textContent='';}
+function showSigninPanel(){tabForgot.style.display='none';tabSignin.style.display='';}
+document.getElementById('forgotPwBtn').addEventListener('click',showForgotPanel);
+document.getElementById('backToSigninBtn').addEventListener('click',showSigninPanel);
+document.getElementById('siSubmit').addEventListener('click',async()=>{const msg=document.getElementById('siMsg');msg.textContent='Signing in…';msg.className='modal-msg';const{error}=await SonicSandbox.signIn(document.getElementById('siEmail').value.trim(),document.getElementById('siPassword').value);if(error){msg.textContent=error.message;msg.className='modal-msg error';}else{closeAuthModal();}});
+document.getElementById('fpSubmit').addEventListener('click',async()=>{const email=document.getElementById('fpEmail').value.trim(),msg=document.getElementById('fpMsg');if(!email){msg.textContent='Please enter your email.';msg.className='modal-msg error';return;}msg.textContent='Sending…';msg.className='modal-msg';const{error}=await SonicSandbox.resetPasswordForEmail(email);if(error){msg.textContent=error.message;msg.className='modal-msg error';}else{msg.textContent='Reset link sent!';msg.className='modal-msg success';document.getElementById('fpSubmit').disabled=true;}});
+document.getElementById('suSubmit').addEventListener('click',async()=>{const msg=document.getElementById('suMsg');msg.textContent='Creating account…';msg.className='modal-msg';const{error}=await SonicSandbox.signUp(document.getElementById('suEmail').value.trim(),document.getElementById('suPassword').value);if(error){msg.textContent=error.message;msg.className='modal-msg error';}else{msg.textContent='Check your email to confirm.';msg.className='modal-msg success';}});
+function validateUsername(val){if(val.length<3)return'Too short';if(val.length>20)return'Too long';if(!/^[a-zA-Z0-9_-]+$/.test(val))return'Letters, numbers, _ and - only';return null;}
+let _unCheckTimer;
+document.getElementById('usernameInput').addEventListener('input',()=>{const val=document.getElementById('usernameInput').value.trim();clearTimeout(_unCheckTimer);const err=validateUsername(val);if(err){document.getElementById('usernameCheck').textContent=val.length>0?err:'';document.getElementById('usernameCheck').className='username-check';return;}document.getElementById('usernameCheck').textContent='Checking…';document.getElementById('usernameCheck').className='username-check';_unCheckTimer=setTimeout(async()=>{const taken=await SonicSandbox.isUsernameTaken(val);document.getElementById('usernameCheck').textContent=taken?`"${val}" is already taken`:`"${val}" is available ✓`;document.getElementById('usernameCheck').className=taken?'username-check taken':'username-check available';},500);});
+document.getElementById('usernameSubmit').addEventListener('click',async()=>{const val=document.getElementById('usernameInput').value.trim(),err=validateUsername(val);if(err){document.getElementById('usernameMsg').textContent=err;document.getElementById('usernameMsg').className='modal-msg error';return;}document.getElementById('usernameMsg').textContent='Saving…';document.getElementById('usernameMsg').className='modal-msg';const{error}=await SonicSandbox.setUsername(val);if(error){document.getElementById('usernameMsg').textContent=error.message;document.getElementById('usernameMsg').className='modal-msg error';}else{document.getElementById('usernameModal').classList.remove('open');}});
+document.getElementById('usernameSkip').addEventListener('click',()=>document.getElementById('usernameModal').classList.remove('open'));
+document.getElementById('usernameModal').addEventListener('click',e=>{if(e.target===document.getElementById('usernameModal'))document.getElementById('usernameModal').classList.remove('open');});
+document.addEventListener('ss:authchange',async e=>{const user=e.detail;if(user){authArea.innerHTML=`<div class="user-pill"><span class="username-display" style="color:var(--muted);font-size:12px;">${user.email}</span></div>`;const profile=await SonicSandbox.getProfile();const el=authArea.querySelector('.username-display');if(!el)return;if(profile?.username){el.outerHTML=`<a class="set-username-link" href="/account/">@${profile.username}</a>`;}else{el.outerHTML=`<a class="set-username-link" href="/account/">Set username</a>`;}}else{authArea.innerHTML=`<button class="auth-btn" id="openAuthBtn">Sign in</button>`;document.getElementById('openAuthBtn').addEventListener('click',openAuthModal);}});
 </script>
+<script src="/learn/ae-shared.js"></script>
+
 
 <script>
 // ─────────────────────────────────────────────────────────────
@@ -1365,5 +1491,22 @@ function navigate(dir) {
   renderStep(0);
 })();
 </script>
+<script>
+buildSidebar('reverb');
+initMobileSidebar();
+// Wire sidebar active state to navigation
+(function() {
+  var _orig = window.goToStep;
+  if (typeof _orig === 'function') {
+    window.goToStep = function(i) { _orig(i); updateSidebarActive(i, 'reverb'); };
+  }
+  var _origNav = window.navigate;
+  if (typeof _origNav === 'function') {
+    window.navigate = function(dir) { _origNav(dir); setTimeout(function(){updateSidebarActive(window.currentStep||0,'reverb');},0); };
+  }
+  setTimeout(function(){updateSidebarActive(window.currentStep||0,'reverb');},50);
+})();
+</script>
+
 </body>
 </html>

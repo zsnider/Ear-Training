@@ -28,6 +28,9 @@
     --green: #3ecf8e; --amber: #f59e0b; --red: #f45b69;
     --fq-accent2:#60e8ff; --ll-accent2:#ffd166; --pan-accent2:#a58aff;
     --comp-accent:#e8865a; --comp-accent2:#f0a882;
+    --theory-accent:#c4843a; --theory-accent2:#e0a85a;
+    --interval-accent:#2d9b6f; --interval-accent2:#4ecf9a;
+    --scale-accent:#1e8e8e; --scale-accent2:#36cece;
   }
   body {
     font-family: 'IBM Plex Sans', sans-serif;
@@ -200,6 +203,19 @@
   .rec-card.fq:hover  { border-color: rgba(0,212,255,0.4); }
   .rec-card.ll:hover  { border-color: rgba(240,180,41,0.4); }
   .rec-card.pan:hover { border-color: rgba(124,92,252,0.4); }
+  .rec-card.sq:hover  { border-color: rgba(30,142,142,0.4); }
+  .rec-card.cq:hover  { border-color: rgba(196,132,58,0.4); }
+  .rec-card.im:hover  { border-color: rgba(45,155,111,0.4); }
+
+  /* ── Rec-section eyebrow ──────────────────────────────── */
+  .rec-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--accent2); margin-bottom: 4px;
+  }
+  .rec-eyebrow.theory { color: var(--theory-accent2); }
+  .rec-header { align-items: flex-start; }
 
   /* ── Stats strip ──────────────────────────────────────── */
   .stats-section {
@@ -290,6 +306,17 @@
     transition: opacity 0.15s; width: fit-content;
   }
   .feature-link:hover { opacity: 0.85; }
+  .feature-link.theory { background: var(--theory-accent); }
+
+  /* ── Flipped feature band (viz on right) ─────────────── */
+  .feature-band.flip .feature-viz {
+    order: 2; border-right: none; border-left: 1px solid var(--border);
+  }
+  .feature-band.flip .feature-learn { order: 1; }
+  @media (max-width: 780px) {
+    .feature-band.flip .feature-viz  { order: unset; border-left: none; }
+    .feature-band.flip .feature-learn { order: unset; }
+  }
 </style>
 
   <!-- Open Graph / Social -->
@@ -349,14 +376,14 @@
 <!-- Hero -->
 <div class="hero">
   <div class="hero-left">
-    <p class="hero-eyebrow">Ear Training for Producers &amp; Engineers</p>
+    <p class="hero-eyebrow">Ear training for sound engineers, producers, and musicians</p>
     <h1 class="hero-title">Train your ears.<br>Hear the difference.</h1>
-    <p class="hero-sub">Interactive games to sharpen your listening skills — EQ, compression, dynamics, reverb, distortion, delay, and spatial perception.</p>
+    <p class="hero-sub">SonicSandbox incldues both types of ear training. Ear training for audio processing (EQ, compression, dynamics, reverb, saturation, delay, spatial perception) and ear training for music theory (chord, interval, scales, and progressions).</p>
     <div class="hero-ctas">
       <a class="cta-primary" href="/freq-quiz/">Start training</a>
       <a class="cta-secondary" href="/games/">Browse all games</a>
     </div>
-    <p class="hero-proof"><strong>12 games</strong> &nbsp;·&nbsp; EQ &nbsp;·&nbsp; Dynamics &nbsp;·&nbsp; Space &nbsp;·&nbsp; Time</p>
+    <p class="hero-proof"><strong>12 audio processing games</strong> &nbsp;·&nbsp; <strong>6 music theory games</strong> &nbsp;·&nbsp; EQ &nbsp;·&nbsp; Dynamics &nbsp;·&nbsp; Space &nbsp;·&nbsp; Time &nbsp;·&nbsp; Theory</p>
   </div>
   <div class="hero-right">
     <p class="viz-label">EQ Match</p>
@@ -447,7 +474,10 @@
 <!-- Begin with these games -->
 <div class="rec-section">
   <div class="rec-header">
-    <h2 class="rec-title">Begin with these games</h2>
+    <div>
+      <p class="rec-eyebrow">Audio Processing</p>
+      <h2 class="rec-title">Begin with these games</h2>
+    </div>
     <a class="rec-all-link" href="/games/">Browse all games →</a>
   </div>
   <div class="rec-grid">
@@ -513,23 +543,145 @@
   </div>
 </div>
 
-<!-- Feature band: compressor viz + learn blurb -->
+<!-- Feature band: Progression Detection viz + music theory blurb -->
 <div class="feature-band">
 
-  <!-- Left: compressor transfer curve -->
+  <!-- Left: Progression Detection viz -->
+  <div class="feature-viz">
+    <p class="viz-label">Progression Detection</p>
+    <div class="viz-wrap">
+      <svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg" width="100%">
+        <rect width="400" height="200" fill="#0f1117"/>
+        <!-- subtle grid -->
+        <line x1="0" y1="50"  x2="400" y2="50"  stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+        <line x1="0" y1="100" x2="400" y2="100" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+        <line x1="0" y1="150" x2="400" y2="150" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+        <!-- Key label -->
+        <text x="16" y="18" font-size="8" fill="rgba(255,255,255,0.2)" font-family="monospace" letter-spacing="0.12em">KEY: C MAJOR</text>
+        <!-- Chord I — active/highlighted -->
+        <rect x="16" y="26" width="80" height="102" rx="8" fill="rgba(196,132,58,0.18)" stroke="#c4843a" stroke-width="1.5"/>
+        <text x="56" y="78" font-size="32" fill="#e0a85a" text-anchor="middle" font-family="monospace" font-weight="700">I</text>
+        <text x="56" y="99" font-size="9" fill="rgba(224,168,90,0.75)" text-anchor="middle" font-family="monospace">C MAJOR</text>
+        <circle cx="56" cy="148" r="5" fill="#e0a85a"/>
+        <!-- Chord V -->
+        <rect x="108" y="26" width="80" height="102" rx="8" fill="rgba(196,132,58,0.06)" stroke="rgba(196,132,58,0.2)" stroke-width="1.5"/>
+        <text x="148" y="78" font-size="32" fill="rgba(224,168,90,0.38)" text-anchor="middle" font-family="monospace" font-weight="700">V</text>
+        <text x="148" y="99" font-size="9" fill="rgba(224,168,90,0.28)" text-anchor="middle" font-family="monospace">G MAJOR</text>
+        <circle cx="148" cy="148" r="4" fill="rgba(224,168,90,0.22)"/>
+        <!-- Chord vi -->
+        <rect x="200" y="26" width="80" height="102" rx="8" fill="rgba(196,132,58,0.06)" stroke="rgba(196,132,58,0.2)" stroke-width="1.5"/>
+        <text x="240" y="78" font-size="26" fill="rgba(224,168,90,0.38)" text-anchor="middle" font-family="monospace" font-weight="700">vi</text>
+        <text x="240" y="99" font-size="9" fill="rgba(224,168,90,0.28)" text-anchor="middle" font-family="monospace">A MINOR</text>
+        <circle cx="240" cy="148" r="4" fill="rgba(224,168,90,0.22)"/>
+        <!-- Chord IV -->
+        <rect x="292" y="26" width="92" height="102" rx="8" fill="rgba(196,132,58,0.06)" stroke="rgba(196,132,58,0.2)" stroke-width="1.5"/>
+        <text x="338" y="78" font-size="26" fill="rgba(224,168,90,0.38)" text-anchor="middle" font-family="monospace" font-weight="700">IV</text>
+        <text x="338" y="99" font-size="9" fill="rgba(224,168,90,0.28)" text-anchor="middle" font-family="monospace">F MAJOR</text>
+        <circle cx="338" cy="148" r="4" fill="rgba(224,168,90,0.22)"/>
+        <!-- Answer badge -->
+        <rect x="216" y="163" width="168" height="20" rx="5" fill="rgba(196,132,58,0.1)" stroke="rgba(196,132,58,0.32)" stroke-width="0.5"/>
+        <text x="300" y="177" font-size="9" fill="#e0a85a" text-anchor="middle" font-family="monospace" font-weight="600">I – V – vi – IV ✓</text>
+      </svg>
+    </div>
+    <p class="viz-caption">Identify the Roman numeral progression by ear</p>
+  </div>
+
+  <!-- Right: learn blurb -->
+  <div class="feature-learn">
+    <p class="feature-eyebrow">Learn</p>
+    <h2 class="feature-title">Understand the tools<br>you're training with.</h2>
+    <p class="feature-sub">Short, focused guides on compression, EQ, reverb, and more — written for producers and engineers who want the theory behind the ear training.</p>
+    <a class="feature-link" href="/learn/">Browse learning modules</a>
+  </div>
+
+</div>
+
+<!-- Music Theory rec-section -->
+<div class="rec-section">
+  <div class="rec-header">
+    <div>
+      <p class="rec-eyebrow theory">Music Theory</p>
+      <h2 class="rec-title">Begin with these games</h2>
+    </div>
+    <a class="rec-all-link" href="/games/#theory">Browse all theory games →</a>
+  </div>
+  <div class="rec-grid">
+
+    <!-- Scale Quiz -->
+    <a class="rec-card sq" href="/scale-quiz/">
+      <div class="rec-card-top">
+        <div class="rec-icon" style="background:rgba(30,142,142,0.12)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M3 19l3-4 3 4 3-4 3 4 3-4 3 4" stroke="var(--scale-accent2)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="3" y1="8"  x2="21" y2="8"  stroke="var(--scale-accent2)" stroke-width="1.1" stroke-linecap="round" opacity="0.4"/>
+            <line x1="3" y1="12" x2="21" y2="12" stroke="var(--scale-accent2)" stroke-width="1.1" stroke-linecap="round" opacity="0.4"/>
+            <line x1="3" y1="4"  x2="21" y2="4"  stroke="var(--scale-accent2)" stroke-width="1.1" stroke-linecap="round" opacity="0.4"/>
+          </svg>
+        </div>
+        <div class="rec-name">Scale Quiz</div>
+      </div>
+      <div class="rec-desc">An ascending scale plays in a random key. Identify the type — major, natural minor, pentatonic, modes, blues, and more.</div>
+      <div class="rec-play" style="color:var(--scale-accent2);background:rgba(30,142,142,0.1);border-color:rgba(30,142,142,0.28)">Play →</div>
+    </a>
+
+    <!-- Chord Quiz -->
+    <a class="rec-card cq" href="/chord-quiz/">
+      <div class="rec-card-top">
+        <div class="rec-icon" style="background:rgba(196,132,58,0.12)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M9 18V5l12-2v13" stroke="var(--theory-accent2)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="6"  cy="18" r="3" stroke="var(--theory-accent2)" stroke-width="1.8" fill="none"/>
+            <circle cx="18" cy="16" r="3" stroke="var(--theory-accent2)" stroke-width="1.8" fill="none"/>
+          </svg>
+        </div>
+        <div class="rec-name">Chord Quiz</div>
+      </div>
+      <div class="rec-desc">A chord plays in a random key. Identify the type — major, minor, dominant 7th, diminished, augmented, and more.</div>
+      <div class="rec-play" style="color:var(--theory-accent2);background:rgba(196,132,58,0.1);border-color:rgba(196,132,58,0.28)">Play →</div>
+    </a>
+
+    <!-- Interval Master -->
+    <a class="rec-card im" href="/interval-master/">
+      <div class="rec-card-top">
+        <div class="rec-icon" style="background:rgba(45,155,111,0.1)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <line x1="4"  y1="18" x2="4"  y2="8"  stroke="var(--interval-accent2)" stroke-width="2" stroke-linecap="round"/>
+            <line x1="20" y1="18" x2="20" y2="4"  stroke="var(--interval-accent2)" stroke-width="2" stroke-linecap="round"/>
+            <line x1="4"  y1="18" x2="20" y2="18" stroke="var(--interval-accent2)" stroke-width="1.4" stroke-linecap="round" opacity="0.45"/>
+            <line x1="4"  y1="8"  x2="20" y2="8"  stroke="var(--interval-accent2)" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="3 2" opacity="0.55"/>
+            <line x1="4"  y1="4"  x2="20" y2="4"  stroke="var(--interval-accent2)" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="3 2" opacity="0.3"/>
+            <line x1="20" y1="8"  x2="20" y2="4"  stroke="var(--interval-accent2)" stroke-width="1.4" stroke-linecap="round" opacity="0.5"/>
+          </svg>
+        </div>
+        <div class="rec-name">Interval Master</div>
+      </div>
+      <div class="rec-desc">Two notes play in sequence or together. Identify the interval — minor 2nd, perfect 5th, major 7th, and more.</div>
+      <div class="rec-play" style="color:var(--interval-accent2);background:rgba(45,155,111,0.1);border-color:rgba(45,155,111,0.28)">Play →</div>
+    </a>
+
+  </div>
+</div>
+
+<!-- Feature band: stats blurb (left) + compressor viz (right) -->
+<div class="feature-band flip">
+
+  <!-- Left: stats/account blurb -->
+  <div class="feature-learn">
+    <p class="feature-eyebrow">Track Your Progress</p>
+    <h2 class="feature-title">See how you're<br>improving over time.</h2>
+    <p class="feature-sub">Create a free account to track your daily rounds, streak, and stats across all games — audio processing and music theory.</p>
+    <a class="feature-link" href="/stats/">View stats page</a>
+  </div>
+
+  <!-- Right: compressor transfer curve -->
   <div class="feature-viz">
     <p class="viz-label">Compressor</p>
     <div class="viz-wrap">
       <svg viewBox="0 0 520 240" xmlns="http://www.w3.org/2000/svg" width="100%">
         <rect width="520" height="240" fill="#0f1117"/>
-        <!-- Right panel divider + bg -->
         <line x1="340" y1="0" x2="340" y2="240" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
         <rect x="340" y="0" width="180" height="240" fill="rgba(255,255,255,0.018)"/>
-
-        <!-- Transfer curve plot (x:50–322, y:20–208) -->
         <rect x="50" y="20" width="272" height="188" fill="rgba(0,0,0,0.25)" rx="3"/>
-
-        <!-- Grid -->
         <line x1="50" y1="208" x2="322" y2="208" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>
         <line x1="50" y1="20"  x2="322" y2="20"  stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>
         <line x1="50" y1="114" x2="322" y2="114" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
@@ -540,22 +692,12 @@
         <line x1="186" y1="20" x2="186" y2="208" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
         <line x1="141" y1="20" x2="141" y2="208" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/>
         <line x1="231" y1="20" x2="231" y2="208" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/>
-
-        <!-- 1:1 reference -->
         <line x1="50" y1="208" x2="322" y2="20" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="4 3"/>
-
-        <!-- Threshold guides -->
         <line x1="186" y1="114" x2="186" y2="208" stroke="rgba(232,134,90,0.35)" stroke-width="1" stroke-dasharray="3 3"/>
         <line x1="50"  y1="114" x2="186" y2="114" stroke="rgba(232,134,90,0.35)" stroke-width="1" stroke-dasharray="3 3"/>
-
-        <!-- Fill + compressed curve -->
         <polygon points="50,208 186,114 322,83 322,208" fill="rgba(232,134,90,0.07)"/>
         <polyline points="50,208 186,114 322,83" stroke="#f0a882" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-
-        <!-- Knee dot -->
         <circle cx="186" cy="114" r="4.5" fill="#e8865a" stroke="#0f1117" stroke-width="2"/>
-
-        <!-- Axis labels -->
         <text x="50"  y="221" font-size="7.5" fill="rgba(255,255,255,0.2)"  text-anchor="middle" font-family="monospace">−36</text>
         <text x="186" y="221" font-size="7.5" fill="rgba(255,255,255,0.45)" text-anchor="middle" font-family="monospace">−18</text>
         <text x="322" y="221" font-size="7.5" fill="rgba(255,255,255,0.25)" text-anchor="middle" font-family="monospace">0</text>
@@ -564,8 +706,6 @@
         <text x="44" y="24"  font-size="7.5" fill="rgba(255,255,255,0.25)" text-anchor="end" font-family="monospace">0</text>
         <text x="186" y="234" font-size="7" fill="rgba(255,255,255,0.18)" text-anchor="middle" font-family="monospace" letter-spacing="0.08em">INPUT (dB)</text>
         <text x="188" y="33"  font-size="7" fill="rgba(232,134,90,0.55)" font-family="monospace">threshold  −18 dB</text>
-
-        <!-- Parameters panel -->
         <text x="358" y="40" font-size="7.5" fill="rgba(255,255,255,0.22)" font-family="monospace" letter-spacing="0.12em">PARAMETERS</text>
         <text x="358" y="66"  font-size="7.5" fill="rgba(255,255,255,0.28)" font-family="monospace">THRESHOLD</text>
         <text x="510" y="66"  font-size="13"  fill="#f0a882" font-family="monospace" text-anchor="end" font-weight="600">−18 dB</text>
@@ -575,27 +715,15 @@
         <text x="510" y="126" font-size="13"  fill="#f0a882" font-family="monospace" text-anchor="end" font-weight="600">20 ms</text>
         <text x="358" y="156" font-size="7.5" fill="rgba(255,255,255,0.28)" font-family="monospace">RELEASE</text>
         <text x="510" y="156" font-size="13"  fill="#f0a882" font-family="monospace" text-anchor="end" font-weight="600">120 ms</text>
-
-        <!-- GR meter -->
         <text x="358" y="184" font-size="7.5" fill="rgba(255,255,255,0.28)" font-family="monospace">GAIN REDUCTION</text>
         <rect x="358" y="192" width="144" height="5" rx="2.5" fill="rgba(255,255,255,0.07)"/>
         <rect x="358" y="192" width="43"  height="5" rx="2.5" fill="#e8865a"/>
         <text x="510" y="199" font-size="7.5" fill="#f0a882" font-family="monospace" text-anchor="end">−6.0 dB</text>
-
-        <!-- Score badge -->
         <rect x="355" y="216" width="156" height="16" rx="4" fill="rgba(232,134,90,0.09)" stroke="rgba(232,134,90,0.28)" stroke-width="0.5"/>
         <text x="433" y="227" font-size="7.5" fill="#f0a882" text-anchor="middle" font-family="monospace" font-weight="600">Score: 71 / 100</text>
       </svg>
     </div>
     <p class="viz-caption">Match threshold, ratio, attack, and release by ear</p>
-  </div>
-
-  <!-- Right: learn blurb -->
-  <div class="feature-learn">
-    <p class="feature-eyebrow">Learn</p>
-    <h2 class="feature-title">Understand the tools<br>you're training with.</h2>
-    <p class="feature-sub">Short, focused guides on compression, EQ, reverb, and more — written for producers and engineers who want the theory behind the ear training.</p>
-    <a class="feature-link" href="/learn/">Browse learning modules</a>
   </div>
 
 </div>

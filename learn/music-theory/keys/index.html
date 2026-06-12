@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cloud.umami.is 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://aolaxmmrmvovbzumlybe.supabase.co wss://aolaxmmrmvovbzumlybe.supabase.co https://cloud.umami.is; img-src 'self' data:; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="canonical" href="https://sonicsandbox.app/learn/music-theory/keys/">
+<title>Keys & Circle of Fifths — Music Theory | SonicSandbox</title>
+<meta name="description" content="Learn key signatures, the circle of fifths, relative major and minor keys, and parallel keys. Free interactive music theory lessons.">
+<link rel="stylesheet" href="/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  :root{
+    --bg:#0a0b0d;--surface:#13151a;--surface2:#1a1d24;--surface3:#21252f;
+    --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+    --text:#dde2ee;--muted:#6b7280;--accent:#c084fc;--accent2:#d8b4fe;
+    --mt-accent:#c084fc;--mt-accent2:#d8b4fe;
+    --sidebar-w:264px;
+  }
+  body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+  nav{width:100%;padding:20px 32px;display:flex;align-items:center;border-bottom:1px solid var(--border);flex-shrink:0;position:sticky;top:0;z-index:40;background:var(--bg);}
+  @media(max-width:600px){nav{padding:16px 20px;}}
+  .learn-layout{flex:1;display:flex;align-items:flex-start;}
+  .learn-sidebar{width:var(--sidebar-w);flex-shrink:0;border-right:1px solid var(--border);position:sticky;top:61px;height:calc(100vh - 61px);overflow-y:auto;background:var(--bg);scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.08) transparent;z-index:10;}
+  .learn-sidebar::-webkit-scrollbar{width:4px;}.learn-sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:2px;}
+  .sidebar-header{padding:16px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:1;}
+  .sidebar-header-label{font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);}
+  .sidebar-close-btn{display:none;background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1;padding:0 2px;}
+  .sidebar-close-btn:hover{color:var(--text);}
+  .sidebar-body{padding:10px 0 48px;}
+  .sidebar-section{margin-bottom:2px;}
+  .sidebar-section-label{display:flex;align-items:center;gap:8px;padding:12px 20px 6px;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,0.28);}
+  .section-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+  .sidebar-divider{height:1px;background:var(--border);margin:10px 0 6px;}
+  .course-hdr{display:flex;align-items:center;gap:8px;padding:7px 20px;cursor:pointer;transition:background .14s;user-select:none;}
+  .course-hdr:hover{background:rgba(255,255,255,0.035);}
+  .course-hdr.is-active{background:rgba(192,132,252,0.07);}
+  .course-n{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:var(--muted);min-width:18px;flex-shrink:0;}
+  .course-label{font-size:12.5px;font-weight:500;color:var(--text);flex:1;line-height:1.3;}
+  .course-soon-badge{font-family:'IBM Plex Mono',monospace;font-size:7.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.22);padding:2px 5px;border-radius:3px;border:1px solid rgba(255,255,255,0.06);flex-shrink:0;}
+  .course-chevron{color:var(--muted);font-size:12px;flex-shrink:0;transition:transform .18s;}
+  .sidebar-course.is-open .course-chevron{transform:rotate(90deg);}
+  .course-lessons{display:none;padding:1px 0 4px;border-left:2px solid var(--border);margin-left:28px;}
+  .sidebar-course.is-open .course-lessons{display:block;}
+  .lesson-row{display:flex;align-items:flex-start;gap:8px;padding:4px 16px 4px 12px;cursor:pointer;transition:background .12s;border-left:2px solid transparent;margin-left:-2px;text-decoration:none;}
+  .lesson-row:hover:not(.lesson-soon){background:rgba(255,255,255,0.035);}
+  .lesson-row.is-active{border-left-color:var(--mt-accent);background:rgba(192,132,252,0.08);}
+  .lesson-n{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);min-width:28px;flex-shrink:0;padding-top:1px;}
+  .lesson-row.is-active .lesson-n{color:var(--mt-accent);}
+  .lesson-label{font-size:11.5px;color:var(--muted);line-height:1.45;font-weight:300;}
+  .lesson-row.is-active .lesson-label{color:var(--text);font-weight:400;}
+  .lesson-row.lesson-soon{opacity:.38;cursor:not-allowed;}
+  .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:30;backdrop-filter:blur(1px);}
+  .sidebar-overlay.is-open{display:block;}
+  .learn-main{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;}
+  .learn-breadcrumb{width:100%;padding:13px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0;}
+  .breadcrumb-toggle{display:none;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;padding:6px 11px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--muted);flex-shrink:0;}
+  .breadcrumb-toggle:hover{color:var(--text);}
+  .bc-path{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.04em;display:flex;align-items:center;gap:6px;}
+  .bc-path a{color:var(--muted);text-decoration:none;}.bc-path a:hover{color:var(--text);}
+  .bc-sep{opacity:.35;}.bc-current{color:var(--text);font-weight:500;}
+  .module-wrap{width:100%;max-width:860px;padding:36px 24px 80px;}
+  .progress-bar-wrap{display:flex;align-items:center;gap:12px;margin-bottom:28px;}
+  .progress-dots{display:flex;gap:6px;flex-wrap:wrap;}
+  .progress-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);transition:background .2s,transform .2s;cursor:pointer;}
+  .progress-dot.done{background:rgba(192,132,252,0.4);}
+  .progress-dot.active{background:var(--mt-accent2);transform:scale(1.3);}
+  .progress-label{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-left:auto;}
+  .step-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px 36px 32px;position:relative;overflow:hidden;}
+  .step-card::before{content:'';position:absolute;inset:0;border-radius:20px;background:radial-gradient(ellipse at top left,rgba(192,132,252,0.05),transparent 60%);pointer-events:none;}
+  .step-number{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--mt-accent);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .step-number::after{content:'';flex:1;height:1px;background:var(--border);}
+  .step-title{font-family:'IBM Plex Mono',monospace;font-size:clamp(20px,3vw,28px);font-weight:600;letter-spacing:-.02em;color:var(--text);margin-bottom:18px;line-height:1.25;}
+  .step-body{font-size:15px;color:var(--muted);line-height:1.75;font-weight:300;margin-bottom:28px;}
+  .step-body strong{color:var(--text);font-weight:500;}
+  .step-body em{color:var(--mt-accent2);font-style:normal;font-weight:500;}
+  .piano-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px 20px 16px;margin-bottom:24px;overflow:hidden;}
+  .piano-label{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+  .piano-svg-container{overflow-x:auto;padding-bottom:4px;}
+  /* Circle of fifths diagram */
+  .diagram-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:24px 20px;margin-bottom:24px;display:flex;flex-direction:column;align-items:center;}
+  .diagram-label{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;align-self:flex-start;}
+  /* Key sig table */
+  .key-table{width:100%;border-collapse:collapse;margin-bottom:24px;font-size:13px;}
+  .key-table th{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);text-align:left;}
+  .key-table td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--muted);vertical-align:middle;}
+  .key-table td:first-child{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--text);white-space:nowrap;}
+  .key-table td:nth-child(2){font-family:'IBM Plex Mono',monospace;color:var(--mt-accent);font-weight:600;}
+  .key-table tr:last-child td{border-bottom:none;}
+  /* Key points */
+  .key-points{background:rgba(192,132,252,0.05);border:1px solid rgba(192,132,252,0.13);border-radius:12px;padding:18px 20px;margin-bottom:24px;display:flex;flex-direction:column;gap:10px;}
+  .key-points-label{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--mt-accent);margin-bottom:4px;}
+  .key-point{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted);line-height:1.55;}
+  .key-point::before{content:'→';color:var(--mt-accent2);font-family:'IBM Plex Mono',monospace;font-size:12px;margin-top:1px;flex-shrink:0;}
+  .key-point strong{color:var(--text);font-weight:500;}
+  /* Audio demo */
+  .audio-demo{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+  .audio-demo-info{flex:1;min-width:200px;}
+  .audio-demo-label{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+  .audio-demo-desc{font-size:13px;color:var(--muted);line-height:1.5;}
+  .play-btn{width:44px;height:44px;border-radius:50%;background:var(--mt-accent);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .15s,opacity .15s;flex-shrink:0;}
+  .play-btn:hover{transform:scale(1.08);opacity:.9;}
+  .play-btn svg{pointer-events:none;}
+  .play-btn.playing{background:rgba(192,132,252,0.2);border:1.5px solid var(--mt-accent);}
+  /* Nav */
+  .step-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:4px;}
+  .nav-btn{display:flex;align-items:center;gap:8px;padding:11px 22px;border-radius:10px;border:1px solid var(--border2);background:var(--surface2);font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:border-color .15s,color .15s,transform .15s;text-decoration:none;}
+  .nav-btn:hover{color:var(--text);transform:translateY(-1px);}
+  .nav-btn:disabled{opacity:.3;cursor:not-allowed;transform:none;}
+  .nav-btn.primary{background:var(--mt-accent);border-color:var(--mt-accent);color:#0a0b0d;}
+  .nav-btn.primary:hover{opacity:.88;}
+  .nav-btn.finish{background:rgba(192,132,252,0.12);border-color:var(--mt-accent);color:var(--mt-accent2);}
+  .step-counter{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+  .completion-card{text-align:center;padding:56px 36px;}
+  .completion-title{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;color:var(--text);margin-bottom:12px;}
+  .completion-sub{font-size:15px;color:var(--muted);line-height:1.7;max-width:440px;margin:0 auto 32px;}
+  .completion-cta{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border-radius:10px;background:var(--mt-accent);color:#0a0b0d;font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;text-decoration:none;transition:opacity .15s,transform .15s;}
+  .completion-cta:hover{opacity:.88;transform:translateY(-1px);}
+  .completion-restart{display:block;margin:18px auto 0;background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;text-decoration:underline;font-family:inherit;}
+  @media(max-width:900px){
+    .learn-sidebar{position:fixed;top:0;left:0;height:100vh;transform:translateX(-100%);transition:transform .24s cubic-bezier(.4,0,.2,1);z-index:50;box-shadow:4px 0 24px rgba(0,0,0,.5);border-right:1px solid var(--border2);}
+    .learn-sidebar.is-open{transform:translateX(0);}
+    .sidebar-close-btn{display:block;}
+    .breadcrumb-toggle{display:flex;}
+    .learn-main{width:100%;}
+  }
+  @media(max-width:600px){
+    .step-card{padding:24px 20px 22px;}
+    .module-wrap{padding:24px 16px 60px;}
+    .step-nav{flex-direction:column;}
+    .nav-btn{width:100%;justify-content:center;}
+    .learn-breadcrumb{padding:10px 16px;}
+  }
+</style>
+<script defer src="https://cloud.umami.is/script.js" data-website-id="a4e7fbcc-763c-4844-8f4f-669cf411e799"></script>
+</head>
+<body>
+<nav>
+  <div class="nav-logo-wrap"><a class="nav-logo" href="/">Sonic<span>Sandbox</span></a></div>
+  <div class="nav-center">
+    <a class="nav-link" href="/">Home</a>
+    <a class="nav-link" href="/games/">Games</a>
+    <a class="nav-link active" href="/learn/">Learn</a>
+    <a class="nav-link" href="/stats/">Stats</a>
+  </div>
+  <div class="nav-right"><div id="authArea"><button class="auth-btn" id="openAuthBtn">Sign in</button></div></div>
+</nav>
+
+<div class="learn-layout">
+  <aside class="learn-sidebar" id="learnSidebar" aria-label="Course navigation">
+    <div class="sidebar-header">
+      <span class="sidebar-header-label">Learning Center</span>
+      <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close menu">✕</button>
+    </div>
+    <div class="sidebar-body" id="sidebarBody"></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <main class="learn-main">
+    <div class="learn-breadcrumb">
+      <button class="breadcrumb-toggle" id="sidebarToggleBtn" aria-label="Open courses">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect y="1" width="14" height="1.5" rx=".75" fill="currentColor"/><rect y="6" width="10" height="1.5" rx=".75" fill="currentColor"/><rect y="11" width="12" height="1.5" rx=".75" fill="currentColor"/></svg>
+        Courses
+      </button>
+      <div class="bc-path">
+        <a href="/learn/">Learn</a><span class="bc-sep">›</span>
+        <span>Music Theory</span><span class="bc-sep">›</span>
+        <span class="bc-current">Keys &amp; Circle of Fifths</span>
+      </div>
+    </div>
+    <div class="module-wrap">
+      <div class="progress-bar-wrap">
+        <div class="progress-dots" id="progressDots"></div>
+        <div class="progress-label" id="progressLabel">Step 1 of 4</div>
+      </div>
+      <div class="step-card" id="stepCard"></div>
+      <div class="step-nav" id="stepNav" style="margin-top:20px;">
+        <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>← Previous</button>
+        <span class="step-counter" id="stepCounter"></span>
+        <button class="nav-btn primary" id="nextBtn" onclick="navigate(1)">Next →</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <div class="footer-left">
+    <a href="/">SonicSandbox</a> &nbsp;·&nbsp; Ear training for producers, engineers, &amp; musicians
+    &nbsp;·&nbsp; <a href="/about/">About</a> &nbsp;·&nbsp; <a href="/privacy/">Privacy Policy</a> &nbsp;·&nbsp; <a href="/support/">Support</a>
+  </div>
+  <div class="footer-right"><span>© 2026 Zach Snider</span></div>
+</footer>
+
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" id="closeAuthBtn">&times;</button>
+    <div class="modal-tabs">
+      <button class="modal-tab active" data-tab="signin">Sign in</button>
+      <button class="modal-tab" data-tab="signup">Create account</button>
+    </div>
+    <div id="tabSignin">
+      <label>Email</label><input type="email" id="siEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label><input type="password" id="siPassword" placeholder="••••••••" autocomplete="current-password">
+      <button class="modal-submit" id="siSubmit">Sign in</button>
+      <div class="modal-msg" id="siMsg"></div>
+      <button class="forgot-pw-link" id="forgotPwBtn" type="button">Forgot password?</button>
+    </div>
+    <div id="tabForgot" style="display:none;">
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:18px;">Enter your email and we'll send you a reset link.</p>
+      <label>Email</label><input type="email" id="fpEmail" placeholder="you@example.com" autocomplete="email">
+      <button class="modal-submit" id="fpSubmit">Send reset link</button>
+      <div class="modal-msg" id="fpMsg"></div>
+      <button class="forgot-pw-link" id="backToSigninBtn" type="button">← Back to sign in</button>
+    </div>
+    <div id="tabSignup" style="display:none;">
+      <label>Email</label><input type="email" id="suEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label><input type="password" id="suPassword" placeholder="At least 6 characters" autocomplete="new-password">
+      <button class="modal-submit" id="suSubmit">Create account</button>
+      <div class="modal-msg" id="suMsg"></div>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="usernameModal">
+  <div class="modal">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent2);margin-bottom:8px;">Welcome</div>
+    <h2 style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;margin-bottom:10px;">Choose a username</h2>
+    <p style="font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:26px;">Your username will appear on leaderboards and game stats.</p>
+    <label for="usernameInput">Username</label>
+    <input type="text" id="usernameInput" placeholder="e.g. basshead42" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <div class="username-check" id="usernameCheck"></div>
+    <p class="username-hint">3–20 characters · Letters, numbers, _ and - only</p>
+    <button class="modal-submit" id="usernameSubmit">Set username</button>
+    <div class="modal-msg" id="usernameMsg"></div>
+    <button class="username-skip" id="usernameSkip">Skip for now</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/supabase-client.js"></script>
+<script>
+const authModal=document.getElementById('authModal'),authArea=document.getElementById('authArea');
+const closeBtn=document.getElementById('closeAuthBtn'),tabs=document.querySelectorAll('.modal-tab');
+const tabSignin=document.getElementById('tabSignin'),tabSignup=document.getElementById('tabSignup'),tabForgot=document.getElementById('tabForgot');
+function openAuthModal(){authModal.classList.add('open');}function closeAuthModal(){authModal.classList.remove('open');showSigninPanel();}
+document.getElementById('openAuthBtn').addEventListener('click',openAuthModal);
+closeBtn.addEventListener('click',closeAuthModal);
+authModal.addEventListener('click',e=>{if(e.target===authModal)closeAuthModal();});
+tabs.forEach(tab=>{tab.addEventListener('click',()=>{tabs.forEach(t=>t.classList.remove('active'));tab.classList.add('active');tabSignin.style.display=tab.dataset.tab==='signin'?'':'none';tabSignup.style.display=tab.dataset.tab==='signup'?'':'none';tabForgot.style.display='none';});});
+function showForgotPanel(){tabSignin.style.display='none';tabForgot.style.display='';const e=document.getElementById('siEmail').value.trim();if(e)document.getElementById('fpEmail').value=e;document.getElementById('fpMsg').textContent='';}
+function showSigninPanel(){tabForgot.style.display='none';tabSignin.style.display='';}
+document.getElementById('forgotPwBtn').addEventListener('click',showForgotPanel);
+document.getElementById('backToSigninBtn').addEventListener('click',showSigninPanel);
+document.getElementById('siSubmit').addEventListener('click',async()=>{const msg=document.getElementById('siMsg');msg.textContent='Signing in…';msg.className='modal-msg';const{error}=await SonicSandbox.signIn(document.getElementById('siEmail').value.trim(),document.getElementById('siPassword').value);if(error){msg.textContent=error.message;msg.className='modal-msg error';}else{closeAuthModal();}});
+document.getElementById('fpSubmit').addEventListener('click',async()=>{const email=document.getElementById('fpEmail').value.trim(),msg=document.getElementById('fpMsg');if(!email){msg.textContent='Please enter your email.';msg.className='modal-msg error';return;}msg.textContent='Sending…';msg.className='modal-msg';const{error}=await SonicSandbox.resetPasswordForEmail(email);if(error){msg.textContent=error.message;msg.className='modal-msg error';}else{msg.textContent='Reset link sent!';msg.className='modal-msg success';document.getElementById('fpSubmit').disabled=true;}});
+document.getElementById('suSubmit').addEventListener('click',async()=>{const msg=document.getElementById('suMsg');msg.textContent='Creating account…';msg.className='modal-msg';const{error}=await SonicSandbox.signUp(document.getElementById('suEmail').value.trim(),document.getElementById('suPassword').value);if(error){msg.textContent=error.message;msg.className='modal-msg error';}else{msg.textContent='Check your email to confirm.';msg.className='modal-msg success';}});
+function validateUsername(val){if(val.length<3)return'Too short';if(val.length>20)return'Too long';if(!/^[a-zA-Z0-9_-]+$/.test(val))return'Letters, numbers, _ and - only';return null;}
+let _unCheckTimer;
+document.getElementById('usernameInput').addEventListener('input',()=>{const val=document.getElementById('usernameInput').value.trim();clearTimeout(_unCheckTimer);const err=validateUsername(val);if(err){document.getElementById('usernameCheck').textContent=val.length>0?err:'';document.getElementById('usernameCheck').className='username-check';return;}document.getElementById('usernameCheck').textContent='Checking…';document.getElementById('usernameCheck').className='username-check';_unCheckTimer=setTimeout(async()=>{const taken=await SonicSandbox.isUsernameTaken(val);document.getElementById('usernameCheck').textContent=taken?`"${val}" is already taken`:`"${val}" is available ✓`;document.getElementById('usernameCheck').className=taken?'username-check taken':'username-check available';},500);});
+document.getElementById('usernameSubmit').addEventListener('click',async()=>{const val=document.getElementById('usernameInput').value.trim(),err=validateUsername(val);if(err){document.getElementById('usernameMsg').textContent=err;document.getElementById('usernameMsg').className='modal-msg error';return;}document.getElementById('usernameMsg').textContent='Saving…';document.getElementById('usernameMsg').className='modal-msg';const{error}=await SonicSandbox.setUsername(val);if(error){document.getElementById('usernameMsg').textContent=error.message;document.getElementById('usernameMsg').className='modal-msg error';}else{document.getElementById('usernameModal').classList.remove('open');}});
+document.getElementById('usernameSkip').addEventListener('click',()=>document.getElementById('usernameModal').classList.remove('open'));
+document.getElementById('usernameModal').addEventListener('click',e=>{if(e.target===document.getElementById('usernameModal'))document.getElementById('usernameModal').classList.remove('open');});
+document.addEventListener('ss:authchange',async e=>{const user=e.detail;if(user){authArea.innerHTML=`<div class="user-pill"><span class="username-display" style="color:var(--muted);font-size:12px;">${user.email}</span></div>`;const profile=await SonicSandbox.getProfile();const el=authArea.querySelector('.username-display');if(!el)return;if(profile?.username){el.outerHTML=`<a class="set-username-link" href="/account/">@${profile.username}</a>`;}else{el.outerHTML=`<a class="set-username-link" href="/account/">Set username</a>`;}}else{authArea.innerHTML=`<button class="auth-btn" id="openAuthBtn">Sign in</button>`;document.getElementById('openAuthBtn').addEventListener('click',openAuthModal);}});
+</script>
+<script src="/learn/music-theory/mt-shared.js"></script>
+<script>
+const COURSE_UID = 'mt-keys';
+const ACCENT = '#c084fc';
+
+// Circle of Fifths SVG
+function circleOfFifthsSVG() {
+  const W = 480, CX = 240, CY = 240, R_outer = 210, R_inner = 145, R_label = 178, R_minor = 115;
+  // Major keys clockwise from top: C, G, D, A, E, B/Cb, F#/Gb, Db/C#, Ab, Eb, Bb, F
+  const major = ['C','G','D','A','E','B','F♯/G♭','D♭','A♭','E♭','B♭','F'];
+  const minor = ['Am','Em','Bm','F♯m','C♯m','G♯m','D♯m/E♭m','B♭m','Fm','Cm','Gm','Dm'];
+  const sharpsFlats = ['0','1♯','2♯','3♯','4♯','5♯','6♯/6♭','5♭','4♭','3♭','2♭','1♭'];
+  const accent = '#c084fc';
+
+  let slices = '', labels = '', minorLabels = '', sfLabels = '';
+
+  major.forEach((key, i) => {
+    const startAngle = (i * 30 - 105) * Math.PI / 180;
+    const endAngle   = ((i + 1) * 30 - 105) * Math.PI / 180;
+    const midAngle   = (i * 30 - 90) * Math.PI / 180;
+
+    const x1 = CX + R_outer * Math.cos(startAngle);
+    const y1 = CY + R_outer * Math.sin(startAngle);
+    const x2 = CX + R_outer * Math.cos(endAngle);
+    const y2 = CY + R_outer * Math.sin(endAngle);
+    const x3 = CX + R_inner * Math.cos(endAngle);
+    const y3 = CY + R_inner * Math.sin(endAngle);
+    const x4 = CX + R_inner * Math.cos(startAngle);
+    const y4 = CY + R_inner * Math.sin(startAngle);
+
+    const fillOpacity = i === 0 ? '0.22' : '0.07';
+    slices += `<path d="M ${x1} ${y1} A ${R_outer} ${R_outer} 0 0 1 ${x2} ${y2} L ${x3} ${y3} A ${R_inner} ${R_inner} 0 0 0 ${x4} ${y4} Z" fill="${accent}" fill-opacity="${fillOpacity}" stroke="rgba(192,132,252,0.2)" stroke-width="1"/>`;
+
+    const lx = CX + R_label * Math.cos(midAngle);
+    const ly = CY + R_label * Math.sin(midAngle);
+    labels += `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-size="${key.length > 2 ? '9' : '13'}" font-weight="600" fill="${i === 0 ? accent : '#dde2ee'}" font-family="IBM Plex Mono, monospace">${key}</text>`;
+
+    const mx = CX + R_minor * Math.cos(midAngle);
+    const my = CY + R_minor * Math.sin(midAngle);
+    minorLabels += `<text x="${mx}" y="${my}" text-anchor="middle" dominant-baseline="middle" font-size="9" fill="rgba(107,114,128,0.8)" font-family="IBM Plex Mono, monospace">${minor[i]}</text>`;
+  });
+
+  // Inner circle fill
+  const innerCircle = `<circle cx="${CX}" cy="${CY}" r="${R_inner - 2}" fill="rgba(192,132,252,0.03)" stroke="rgba(192,132,252,0.15)" stroke-width="1"/>`;
+  // Outer ring border
+  const outerBorder = `<circle cx="${CX}" cy="${CY}" r="${R_outer}" fill="none" stroke="rgba(192,132,252,0.2)" stroke-width="1"/>`;
+
+  // Center label
+  const center = `<text x="${CX}" y="${CY - 8}" text-anchor="middle" font-size="9" fill="rgba(107,114,128,0.6)" font-family="IBM Plex Mono, monospace" letter-spacing="0.1em">CIRCLE</text><text x="${CX}" y="${CY + 8}" text-anchor="middle" font-size="9" fill="rgba(107,114,128,0.6)" font-family="IBM Plex Mono, monospace" letter-spacing="0.1em">OF FIFTHS</text>`;
+
+  return `<svg viewBox="0 0 ${W} ${W}" xmlns="http://www.w3.org/2000/svg" style="max-width:340px;width:100%;height:auto;display:block;margin:0 auto;">${slices}${outerBorder}${innerCircle}${labels}${minorLabels}${center}</svg>`;
+}
+
+// Key signature table
+function keySigTableHTML() {
+  const rows = [
+    ['C major / A minor',  '0',  '—',               'All white keys'],
+    ['G major / E minor',  '1♯', 'F♯',              'One sharp'],
+    ['D major / B minor',  '2♯', 'F♯ C♯',           'Two sharps'],
+    ['A major / F♯ minor', '3♯', 'F♯ C♯ G♯',        'Three sharps'],
+    ['F major / D minor',  '1♭', 'B♭',              'One flat'],
+    ['B♭ major / G minor', '2♭', 'B♭ E♭',           'Two flats'],
+    ['E♭ major / C minor', '3♭', 'B♭ E♭ A♭',        'Three flats'],
+  ];
+  return `<div style="overflow-x:auto;margin-bottom:24px;">
+    <table class="key-table">
+      <thead><tr><th>Key</th><th>Sig</th><th>Accidentals</th><th>Notes</th></tr></thead>
+      <tbody>${rows.map(([k,s,a,n])=>`<tr><td>${k}</td><td>${s}</td><td style="font-family:'IBM Plex Mono',monospace;letter-spacing:.04em;">${a}</td><td>${n}</td></tr>`).join('')}</tbody>
+    </table>
+  </div>`;
+}
+
+const steps = [
+  {
+    title: 'Key Signatures',
+    number: 'Step 01 — Foundations',
+    body: `A <strong>key</strong> is the tonal home of a piece of music — the note and scale that everything gravitates toward. When a piece is "in C major," the note C feels like rest, and the C major scale provides the vocabulary of pitches used.
+
+<br><br>A <strong>key signature</strong> is a shorthand notation placed at the start of every staff line that tells you which notes are consistently sharp or flat throughout the piece. Instead of writing a ♯ or ♭ next to every single note, you declare it once in the key signature and it applies to every occurrence.
+
+<br><br>Key signatures are defined by their <em>sharps</em> or <em>flats</em> — never both. C major is the one key with no sharps and no flats: all white keys on the piano. Every other major key adds accidentals in a specific, fixed order that forms the circle of fifths.`,
+    table: true,
+    keyPoints: [
+      {strong:'Key',      rest:' — the tonal center; the note everything resolves to'},
+      {strong:'Key signature', rest:' — sharps or flats at the start of the staff that apply throughout'},
+      {strong:'C major',  rest:' — the only key with zero accidentals (all white keys)'},
+      {strong:'Sharps/flats order', rest:' — always added in the same fixed sequence (FCGDAEB for sharps, BEADGCF for flats)'},
+    ],
+    piano: { startNote:'C3', endNote:'C5', highlight:['C3','D3','E3','F3','G3','A3','B3','C4','D4','E4','F4','G4','A4','B4','C5'], label:'C Major — all natural notes, no accidentals' },
+    audio: { desc:'C major scale — the simplest key, no sharps or flats.', fn:()=>mtPlaySeq(['C3','D3','E3','F3','G3','A3','B3','C4'],0.38) },
+  },
+  {
+    title: 'The Circle of Fifths',
+    number: 'Step 02 — The Map',
+    body: `The <strong>circle of fifths</strong> is the single most useful diagram in Western music theory. It arranges all 12 major keys (and their relative minors) in a circle where each adjacent key is a <em>perfect fifth apart</em>.
+
+<br><br>Moving <strong>clockwise</strong>, each step goes up a perfect fifth and adds one sharp to the key signature: C → G → D → A → E → B → F♯/G♭. Moving <strong>counterclockwise</strong>, each step goes up a perfect fourth (or down a fifth) and adds one flat: C → F → B♭ → E♭ → A♭ → D♭ → G♭/F♯.
+
+<br><br>The circle tells you at a glance: how many accidentals any key has, what the closely related keys are (neighbors share many notes), and why modulations between adjacent keys sound so smooth. Keys directly opposite each other (C and F♯/G♭) are the most harmonically distant — they share the fewest common notes.`,
+    circle: true,
+    keyPoints: [
+      {strong:'Clockwise',   rest:' — adds sharps, goes up a perfect 5th each step'},
+      {strong:'Counterclockwise', rest:' — adds flats, goes up a perfect 4th each step'},
+      {strong:'Neighbors',   rest:' — adjacent keys share 6 of 7 scale notes; transitions sound natural'},
+      {strong:'Opposites',   rest:' — keys across from each other (C and F♯/G♭) share only 1 scale note'},
+    ],
+    audio: { desc:'The first four clockwise keys — C, G, D, A — each a perfect fifth apart.', fn:()=>mtPlayChordSeq([['C3','E3','G3'],['G3','B3','D4'],['D3','F#3','A3'],['A3','C#4','E4']],1.6,0.4) },
+  },
+  {
+    title: 'Relative Major & Minor',
+    number: 'Step 03 — Shared Keys',
+    body: `Every major key has a <strong>relative minor</strong> that uses the <em>exact same key signature</em> — the same sharps or flats — but has a different tonal center. C major and A natural minor are both written with no sharps or flats; they use identical notes, but A minor sounds dark and unresolved where C major sounds bright and settled.
+
+<br><br>The relative minor always starts on the <em>6th degree</em> of its relative major, which is also 3 semitones (a minor third) below the major root. C → A, G → E, D → B, F → D, and so on. You can find any relative minor instantly: count up to the 6th note of the major scale, or drop 3 semitones from the major root.
+
+<br><br>This relationship explains why pieces can shift between a major key and its relative minor without any change to the notes being played — only the emphasis and harmonic context shifts. A song "in A minor" using only white keys sounds completely different to the same notes "in C major."`,
+    keyPoints: [
+      {strong:'Relative minor', rest:' — same key signature as its major, different root and feel'},
+      {strong:'Formula',        rest:' — start on the 6th degree of major, or 3 semitones below the root'},
+      {strong:'C major ↔ A minor', rest:' — the most common relative pair; zero accidentals each'},
+      {strong:'Character',      rest:' — same notes, opposite emotional gravity: major = bright, minor = dark'},
+    ],
+    piano: { startNote:'C3', endNote:'C5', highlight:['C3','D3','E3','F3','G3','A3','B3','C4','D4','E4','F4','G4','A4','B4','C5'], label:'C major and A minor share all the same notes — only the tonal center differs' },
+    audio: { desc:'C major scale then A natural minor — same notes, completely different feel.', fn:()=>mtPlayChordSeq([['C3','E3','G3'],['A2','C3','E3']],2.0,0.5) },
+  },
+  {
+    title: 'Parallel Keys',
+    number: 'Step 04 — Same Root, Different Feel',
+    body: `<strong>Parallel keys</strong> share the same root note but use different key signatures. C major and C minor are parallel keys — both start on C, but C major uses no accidentals while C minor uses three flats (B♭, E♭, A♭). Unlike relative keys (same notes, different root), parallel keys start from the same place and diverge from there.
+
+<br><br>Switching between parallel keys is one of the most powerful moves in music: the same chord progression suddenly shifts from triumphant to melancholic. The "borrowed chord" technique — taking a chord from the parallel minor into a major key — is the engine behind countless emotional moments in pop, film, and classical music. That haunting ♭VII chord in an otherwise major song? Borrowed from the parallel minor.
+
+<br><br>Knowing parallel relationships unlocks <em>modal interchange</em>, which we'll explore in the Chord Progressions module. For now, the key insight: same root, same name, completely different emotional world.`,
+    keyPoints: [
+      {strong:'Parallel keys',     rest:' — same root note, different key signature and scale'},
+      {strong:'C major vs C minor',rest:' — both start on C; differ by 3 flats (E♭, A♭, B♭)'},
+      {strong:'Borrowed chords',   rest:' — pulling chords from the parallel minor into a major key'},
+      {strong:'vs Relative keys',  rest:' — relative = same notes, different root; parallel = same root, different notes'},
+    ],
+    piano: { startNote:'C3', endNote:'C5', highlight:['C3','D3','Eb3','F3','G3','Ab3','Bb3','C4'], label:'C Natural Minor — C D E♭ F G A♭ B♭ C (three flats vs C major)' },
+    audio: { desc:'C major chord then C minor chord — same root, parallel relationship.', fn:()=>mtPlayChordSeq([['C3','E3','G3'],['C3','Eb3','G3']],2.2,0.6) },
+  },
+];
+
+let currentStep = 0;
+
+function renderStep(idx) {
+  mtStop();
+  const step = steps[idx];
+  const total = steps.length;
+  const card = document.getElementById('stepCard');
+
+  const kpHTML = step.keyPoints.map(kp => `<div class="key-point"><strong>${kp.strong}</strong>${kp.rest}</div>`).join('');
+
+  const pianoHTML = step.piano ? `<div class="piano-wrap">
+    <div class="piano-label">${step.piano.label}</div>
+    <div class="piano-svg-container">${buildPianoSVG({startNote:step.piano.startNote,endNote:step.piano.endNote,highlight:step.piano.highlight,accent:ACCENT})}</div>
+  </div>` : '';
+
+  const tableHTML = step.table ? keySigTableHTML() : '';
+  const circleHTML = step.circle ? `<div class="diagram-wrap"><div class="diagram-label">Circle of Fifths</div>${circleOfFifthsSVG()}</div>` : '';
+
+  card.innerHTML = `
+    <div class="step-number">${step.number}</div>
+    <h2 class="step-title">${step.title}</h2>
+    <div class="step-body">${step.body}</div>
+    ${pianoHTML}${circleHTML}${tableHTML}
+    <div class="key-points"><div class="key-points-label">Key Takeaways</div>${kpHTML}</div>
+    <div class="audio-demo">
+      <div class="audio-demo-info">
+        <div class="audio-demo-label">Listen</div>
+        <div class="audio-demo-desc">${step.audio.desc}</div>
+      </div>
+      <button class="play-btn" id="playBtn" onclick="handlePlay()" title="Play / Stop">
+        <svg class="play-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"><polygon points="6,4 20,12 6,20" fill="${ACCENT}"/></svg>
+        <svg class="stop-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" style="display:none"><rect x="5" y="5" width="14" height="14" rx="2" fill="${ACCENT}"/></svg>
+      </button>
+    </div>
+  `;
+
+  document.getElementById('progressDots').innerHTML = steps.map((_,i) =>
+    `<div class="progress-dot ${i<idx?'done':''} ${i===idx?'active':''}" onclick="jumpToStep(${i})" title="Step ${i+1}"></div>`).join('');
+  document.getElementById('progressLabel').textContent = `Step ${idx+1} of ${total}`;
+  document.getElementById('stepCounter').textContent = `${idx+1} / ${total}`;
+  document.getElementById('prevBtn').disabled = idx === 0;
+  const nextBtn = document.getElementById('nextBtn');
+  if (idx === total - 1) { nextBtn.textContent='Complete ✓'; nextBtn.className='nav-btn finish'; nextBtn.onclick=showCompletion; }
+  else { nextBtn.textContent='Next →'; nextBtn.className='nav-btn primary'; nextBtn.onclick=()=>navigate(1); }
+  updateSidebarActive(idx, COURSE_UID);
+}
+
+function handlePlay() {
+  const fn = steps[currentStep]?.audio?.fn;
+  if (!fn) return;
+  if (_mtPlaying) { mtStop(); return; }
+  fn();
+}
+
+function jumpToStep(idx) {
+  if (idx < 0 || idx >= steps.length) return;
+  currentStep = idx;
+  renderStep(currentStep);
+  history.replaceState(null,'','#'+(idx+1));
+  window.scrollTo({top:document.getElementById('stepCard').offsetTop-90,behavior:'smooth'});
+  if (window.innerWidth<=900) { document.getElementById('learnSidebar').classList.remove('is-open'); document.getElementById('sidebarOverlay').classList.remove('is-open'); }
+}
+
+function navigate(dir) { jumpToStep(currentStep + dir); }
+
+function showCompletion() {
+  mtStop();
+  document.getElementById('stepCard').innerHTML = `
+    <div class="completion-card">
+      <svg width="56" height="56" viewBox="0 0 56 56" fill="none" style="display:block;margin:0 auto 20px;">
+        <circle cx="28" cy="28" r="25" stroke="${ACCENT}" stroke-width="1.5" fill="rgba(192,132,252,0.06)"/>
+        <polyline points="17,28 25,36 39,19" stroke="${ACCENT}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="completion-title">Keys Complete!</div>
+      <p class="completion-sub">You know key signatures, the circle of fifths, and the difference between relative and parallel keys. Next up: Chord Progressions.</p>
+      <a class="completion-cta" href="/learn/music-theory/progressions/">Chord Progressions →</a>
+      <button class="completion-restart" onclick="jumpToStep(0)">← Restart this module</button>
+    </div>`;
+  document.getElementById('stepNav').style.display='none';
+  document.getElementById('progressLabel').textContent='Complete!';
+  document.getElementById('progressDots').innerHTML=steps.map((_,i)=>`<div class="progress-dot done" onclick="jumpToStep(${i})" title="Step ${i+1}"></div>`).join('');
+}
+
+buildSidebar(COURSE_UID);
+initMobileSidebar();
+const hashStep = parseInt(location.hash.replace('#','')) - 1;
+currentStep = (!isNaN(hashStep) && hashStep >= 0 && hashStep < steps.length) ? hashStep : 0;
+renderStep(currentStep);
+document.addEventListener('keydown', e => {
+  if (e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+  if (e.key==='ArrowRight'||e.key==='ArrowDown') navigate(1);
+  if (e.key==='ArrowLeft'||e.key==='ArrowUp') navigate(-1);
+  if (e.key===' ') { e.preventDefault(); handlePlay(); }
+});
+</script>
+</body>
+</html>

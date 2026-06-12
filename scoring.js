@@ -149,6 +149,21 @@ window.ScoringEngine = (() => {
         return dm * cm;
       }
 
+      // ── Music Theory games ────────────────────────────────────────────────────
+
+      // Chord Quiz — keyed by difficulty; more chord types = harder = more points
+      case 'chord-quiz': {
+        const CHORD_QUIZ = { beginner: 1.0, intermediate: 1.5, advanced: 2.5 };
+        return CHORD_QUIZ[settings.difficulty] ?? 1.0;
+      }
+
+      // Staff Specialist — beginner: treble only naturals; intermediate: both clefs;
+      // advanced: both clefs with accidentals (12 chromatic choices)
+      case 'staff-specialist': {
+        const STAFF = { beginner: 1.0, intermediate: 1.4, advanced: 2.2 };
+        return STAFF[settings.difficulty] ?? 1.0;
+      }
+
       // ── Mobile iOS games ──────────────────────────────────────────────────────
 
       case 'freq-quiz-ios':
