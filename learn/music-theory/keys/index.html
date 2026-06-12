@@ -5,9 +5,9 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cloud.umami.is 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://aolaxmmrmvovbzumlybe.supabase.co wss://aolaxmmrmvovbzumlybe.supabase.co https://cloud.umami.is; img-src 'self' data:; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="canonical" href="https://sonicsandbox.app/learn/music-theory/rhythm/">
-<title>Rhythm & Meter — Music Theory | SonicSandbox</title>
-<meta name="description" content="Learn note values, time signatures, ties & dots, syncopation, and groove. Free interactive music theory lessons.">
+<link rel="canonical" href="https://sonicsandbox.app/learn/music-theory/keys/">
+<title>Keys & Circle of Fifths — Music Theory | SonicSandbox</title>
+<meta name="description" content="Learn key signatures, the circle of fifths, relative major and minor keys, and parallel keys. Free interactive music theory lessons.">
 <link rel="stylesheet" href="/style.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,8 +17,8 @@
   :root{
     --bg:#0a0b0d;--surface:#13151a;--surface2:#1a1d24;--surface3:#21252f;
     --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
-    --text:#dde2ee;--muted:#6b7280;--accent:#a3e635;--accent2:#bef264;
-    --mt-accent:#a3e635;--mt-accent2:#bef264;
+    --text:#dde2ee;--muted:#6b7280;--accent:#c084fc;--accent2:#d8b4fe;
+    --mt-accent:#c084fc;--mt-accent2:#d8b4fe;
     --sidebar-w:264px;
   }
   body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
@@ -38,7 +38,7 @@
   .sidebar-divider{height:1px;background:var(--border);margin:10px 0 6px;}
   .course-hdr{display:flex;align-items:center;gap:8px;padding:7px 20px;cursor:pointer;transition:background .14s;user-select:none;}
   .course-hdr:hover{background:rgba(255,255,255,0.035);}
-  .course-hdr.is-active{background:rgba(163,230,53,0.07);}
+  .course-hdr.is-active{background:rgba(192,132,252,0.07);}
   .course-n{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:var(--muted);min-width:18px;flex-shrink:0;}
   .course-label{font-size:12.5px;font-weight:500;color:var(--text);flex:1;line-height:1.3;}
   .course-soon-badge{font-family:'IBM Plex Mono',monospace;font-size:7.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.22);padding:2px 5px;border-radius:3px;border:1px solid rgba(255,255,255,0.06);flex-shrink:0;}
@@ -48,7 +48,7 @@
   .sidebar-course.is-open .course-lessons{display:block;}
   .lesson-row{display:flex;align-items:flex-start;gap:8px;padding:4px 16px 4px 12px;cursor:pointer;transition:background .12s;border-left:2px solid transparent;margin-left:-2px;text-decoration:none;}
   .lesson-row:hover:not(.lesson-soon){background:rgba(255,255,255,0.035);}
-  .lesson-row.is-active{border-left-color:var(--mt-accent);background:rgba(163,230,53,0.08);}
+  .lesson-row.is-active{border-left-color:var(--mt-accent);background:rgba(192,132,252,0.08);}
   .lesson-n{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);min-width:28px;flex-shrink:0;padding-top:1px;}
   .lesson-row.is-active .lesson-n{color:var(--mt-accent);}
   .lesson-label{font-size:11.5px;color:var(--muted);line-height:1.45;font-weight:300;}
@@ -67,40 +67,32 @@
   .progress-bar-wrap{display:flex;align-items:center;gap:12px;margin-bottom:28px;}
   .progress-dots{display:flex;gap:6px;flex-wrap:wrap;}
   .progress-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);transition:background .2s,transform .2s;cursor:pointer;}
-  .progress-dot.done{background:rgba(163,230,53,0.4);}
+  .progress-dot.done{background:rgba(192,132,252,0.4);}
   .progress-dot.active{background:var(--mt-accent2);transform:scale(1.3);}
   .progress-label{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-left:auto;}
   .step-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px 36px 32px;position:relative;overflow:hidden;}
-  .step-card::before{content:'';position:absolute;inset:0;border-radius:20px;background:radial-gradient(ellipse at top left,rgba(163,230,53,0.05),transparent 60%);pointer-events:none;}
+  .step-card::before{content:'';position:absolute;inset:0;border-radius:20px;background:radial-gradient(ellipse at top left,rgba(192,132,252,0.05),transparent 60%);pointer-events:none;}
   .step-number{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--mt-accent);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
   .step-number::after{content:'';flex:1;height:1px;background:var(--border);}
   .step-title{font-family:'IBM Plex Mono',monospace;font-size:clamp(20px,3vw,28px);font-weight:600;letter-spacing:-.02em;color:var(--text);margin-bottom:18px;line-height:1.25;}
   .step-body{font-size:15px;color:var(--muted);line-height:1.75;font-weight:300;margin-bottom:28px;}
   .step-body strong{color:var(--text);font-weight:500;}
   .step-body em{color:var(--mt-accent2);font-style:normal;font-weight:500;}
-  /* Note value grid */
-  .note-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:24px;}
-  .note-cell{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px 12px;text-align:center;}
-  .note-symbol{font-size:38px;line-height:1;margin-bottom:8px;}
-  .note-name{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--text);margin-bottom:4px;}
-  .note-beats{font-size:12px;color:var(--muted);}
-  /* Time sig display */
-  .time-sig-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
-  .time-sig-cell{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:center;}
-  .time-sig-fraction{font-family:'IBM Plex Mono',monospace;font-size:36px;font-weight:700;line-height:1;color:var(--mt-accent);margin-bottom:10px;letter-spacing:-.02em;}
-  .time-sig-name{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
-  .time-sig-desc{font-size:12px;color:var(--muted);line-height:1.5;}
-  /* Rhythm visualizer */
-  .rhythm-viz{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:24px;}
-  .rhythm-viz-label{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}
-  .beat-row{display:flex;gap:6px;margin-bottom:10px;align-items:center;}
-  .beat-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);min-width:80px;flex-shrink:0;}
-  .beat-block{height:28px;border-radius:5px;flex:1;min-width:0;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;color:rgba(0,0,0,0.7);transition:transform .1s;}
-  .beat-block.on{background:var(--mt-accent);}
-  .beat-block.rest{background:rgba(255,255,255,0.04);border:1px dashed rgba(255,255,255,0.1);}
-  .beat-block.synco{background:rgba(163,230,53,0.3);border:1px solid rgba(163,230,53,0.4);}
+  .piano-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px 20px 16px;margin-bottom:24px;overflow:hidden;}
+  .piano-label{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+  .piano-svg-container{overflow-x:auto;padding-bottom:4px;}
+  /* Circle of fifths diagram */
+  .diagram-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:24px 20px;margin-bottom:24px;display:flex;flex-direction:column;align-items:center;}
+  .diagram-label{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;align-self:flex-start;}
+  /* Key sig table */
+  .key-table{width:100%;border-collapse:collapse;margin-bottom:24px;font-size:13px;}
+  .key-table th{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);text-align:left;}
+  .key-table td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--muted);vertical-align:middle;}
+  .key-table td:first-child{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--text);white-space:nowrap;}
+  .key-table td:nth-child(2){font-family:'IBM Plex Mono',monospace;color:var(--mt-accent);font-weight:600;}
+  .key-table tr:last-child td{border-bottom:none;}
   /* Key points */
-  .key-points{background:rgba(163,230,53,0.05);border:1px solid rgba(163,230,53,0.13);border-radius:12px;padding:18px 20px;margin-bottom:24px;display:flex;flex-direction:column;gap:10px;}
+  .key-points{background:rgba(192,132,252,0.05);border:1px solid rgba(192,132,252,0.13);border-radius:12px;padding:18px 20px;margin-bottom:24px;display:flex;flex-direction:column;gap:10px;}
   .key-points-label{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--mt-accent);margin-bottom:4px;}
   .key-point{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted);line-height:1.55;}
   .key-point::before{content:'→';color:var(--mt-accent2);font-family:'IBM Plex Mono',monospace;font-size:12px;margin-top:1px;flex-shrink:0;}
@@ -113,6 +105,7 @@
   .play-btn{width:44px;height:44px;border-radius:50%;background:var(--mt-accent);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .15s,opacity .15s;flex-shrink:0;}
   .play-btn:hover{transform:scale(1.08);opacity:.9;}
   .play-btn svg{pointer-events:none;}
+  .play-btn.playing{background:rgba(192,132,252,0.2);border:1.5px solid var(--mt-accent);}
   /* Nav */
   .step-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:4px;}
   .nav-btn{display:flex;align-items:center;gap:8px;padding:11px 22px;border-radius:10px;border:1px solid var(--border2);background:var(--surface2);font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:border-color .15s,color .15s,transform .15s;text-decoration:none;}
@@ -120,7 +113,7 @@
   .nav-btn:disabled{opacity:.3;cursor:not-allowed;transform:none;}
   .nav-btn.primary{background:var(--mt-accent);border-color:var(--mt-accent);color:#0a0b0d;}
   .nav-btn.primary:hover{opacity:.88;}
-  .nav-btn.finish{background:rgba(163,230,53,0.12);border-color:var(--mt-accent);color:var(--mt-accent2);}
+  .nav-btn.finish{background:rgba(192,132,252,0.12);border-color:var(--mt-accent);color:var(--mt-accent2);}
   .step-counter{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
   .completion-card{text-align:center;padding:56px 36px;}
   .completion-title{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;color:var(--text);margin-bottom:12px;}
@@ -141,7 +134,6 @@
     .step-nav{flex-direction:column;}
     .nav-btn{width:100%;justify-content:center;}
     .learn-breadcrumb{padding:10px 16px;}
-    .time-sig-grid{grid-template-columns:1fr;}
   }
 </style>
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a4e7fbcc-763c-4844-8f4f-669cf411e799"></script>
@@ -176,13 +168,13 @@
       <div class="bc-path">
         <a href="/learn/">Learn</a><span class="bc-sep">›</span>
         <span>Music Theory</span><span class="bc-sep">›</span>
-        <span class="bc-current">Rhythm &amp; Meter</span>
+        <span class="bc-current">Keys &amp; Circle of Fifths</span>
       </div>
     </div>
     <div class="module-wrap">
       <div class="progress-bar-wrap">
         <div class="progress-dots" id="progressDots"></div>
-        <div class="progress-label" id="progressLabel">Step 1 of 5</div>
+        <div class="progress-label" id="progressLabel">Step 1 of 4</div>
       </div>
       <div class="step-card" id="stepCard"></div>
       <div class="step-nav" id="stepNav" style="margin-top:20px;">
@@ -274,247 +266,149 @@ document.addEventListener('ss:authchange',async e=>{const user=e.detail;if(user)
 </script>
 <script src="/learn/music-theory/mt-shared.js"></script>
 <script>
-const COURSE_UID = 'mt-rhythm';
-const ACCENT = '#a3e635';
+const COURSE_UID = 'mt-keys';
+const ACCENT = '#c084fc';
 
-// ── Drum synthesis ──────────────────────────────────────────────
-function _drumKick(ctx, when) {
-  const osc = ctx.createOscillator();
-  const env = ctx.createGain();
-  osc.type = 'sine';
-  osc.frequency.setValueAtTime(140, when);
-  osc.frequency.exponentialRampToValueAtTime(30, when + 0.24);
-  env.gain.setValueAtTime(0.85, when);
-  env.gain.exponentialRampToValueAtTime(0.001, when + 0.28);
-  osc.connect(env); env.connect(ctx.destination);
-  osc.start(when); osc.stop(when + 0.3);
+// Circle of Fifths SVG
+function circleOfFifthsSVG() {
+  const W = 480, CX = 240, CY = 240, R_outer = 210, R_inner = 145, R_label = 178, R_minor = 115;
+  // Major keys clockwise from top: C, G, D, A, E, B/Cb, F#/Gb, Db/C#, Ab, Eb, Bb, F
+  const major = ['C','G','D','A','E','B','F♯/G♭','D♭','A♭','E♭','B♭','F'];
+  const minor = ['Am','Em','Bm','F♯m','C♯m','G♯m','D♯m/E♭m','B♭m','Fm','Cm','Gm','Dm'];
+  const sharpsFlats = ['0','1♯','2♯','3♯','4♯','5♯','6♯/6♭','5♭','4♭','3♭','2♭','1♭'];
+  const accent = '#c084fc';
+
+  let slices = '', labels = '', minorLabels = '', sfLabels = '';
+
+  major.forEach((key, i) => {
+    const startAngle = (i * 30 - 105) * Math.PI / 180;
+    const endAngle   = ((i + 1) * 30 - 105) * Math.PI / 180;
+    const midAngle   = (i * 30 - 90) * Math.PI / 180;
+
+    const x1 = CX + R_outer * Math.cos(startAngle);
+    const y1 = CY + R_outer * Math.sin(startAngle);
+    const x2 = CX + R_outer * Math.cos(endAngle);
+    const y2 = CY + R_outer * Math.sin(endAngle);
+    const x3 = CX + R_inner * Math.cos(endAngle);
+    const y3 = CY + R_inner * Math.sin(endAngle);
+    const x4 = CX + R_inner * Math.cos(startAngle);
+    const y4 = CY + R_inner * Math.sin(startAngle);
+
+    const fillOpacity = i === 0 ? '0.22' : '0.07';
+    slices += `<path d="M ${x1} ${y1} A ${R_outer} ${R_outer} 0 0 1 ${x2} ${y2} L ${x3} ${y3} A ${R_inner} ${R_inner} 0 0 0 ${x4} ${y4} Z" fill="${accent}" fill-opacity="${fillOpacity}" stroke="rgba(192,132,252,0.2)" stroke-width="1"/>`;
+
+    const lx = CX + R_label * Math.cos(midAngle);
+    const ly = CY + R_label * Math.sin(midAngle);
+    labels += `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-size="${key.length > 2 ? '9' : '13'}" font-weight="600" fill="${i === 0 ? accent : '#dde2ee'}" font-family="IBM Plex Mono, monospace">${key}</text>`;
+
+    const mx = CX + R_minor * Math.cos(midAngle);
+    const my = CY + R_minor * Math.sin(midAngle);
+    minorLabels += `<text x="${mx}" y="${my}" text-anchor="middle" dominant-baseline="middle" font-size="9" fill="rgba(107,114,128,0.8)" font-family="IBM Plex Mono, monospace">${minor[i]}</text>`;
+  });
+
+  // Inner circle fill
+  const innerCircle = `<circle cx="${CX}" cy="${CY}" r="${R_inner - 2}" fill="rgba(192,132,252,0.03)" stroke="rgba(192,132,252,0.15)" stroke-width="1"/>`;
+  // Outer ring border
+  const outerBorder = `<circle cx="${CX}" cy="${CY}" r="${R_outer}" fill="none" stroke="rgba(192,132,252,0.2)" stroke-width="1"/>`;
+
+  // Center label
+  const center = `<text x="${CX}" y="${CY - 8}" text-anchor="middle" font-size="9" fill="rgba(107,114,128,0.6)" font-family="IBM Plex Mono, monospace" letter-spacing="0.1em">CIRCLE</text><text x="${CX}" y="${CY + 8}" text-anchor="middle" font-size="9" fill="rgba(107,114,128,0.6)" font-family="IBM Plex Mono, monospace" letter-spacing="0.1em">OF FIFTHS</text>`;
+
+  return `<svg viewBox="0 0 ${W} ${W}" xmlns="http://www.w3.org/2000/svg" style="max-width:340px;width:100%;height:auto;display:block;margin:0 auto;">${slices}${outerBorder}${innerCircle}${labels}${minorLabels}${center}</svg>`;
 }
-function _drumSnare(ctx, when) {
-  const len = Math.floor(ctx.sampleRate * 0.13);
-  const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-  const d = buf.getChannelData(0);
-  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
-  const src = ctx.createBufferSource();
-  src.buffer = buf;
-  const hpf = ctx.createBiquadFilter();
-  hpf.type = 'highpass'; hpf.frequency.value = 1800;
-  const env = ctx.createGain();
-  env.gain.setValueAtTime(0.5, when);
-  env.gain.exponentialRampToValueAtTime(0.001, when + 0.13);
-  src.connect(hpf); hpf.connect(env); env.connect(ctx.destination);
-  src.start(when); src.stop(when + 0.14);
-}
-function _scheduleDrums(bpm, measures) {
-  const ctx = mtGetCtx();
-  if (!ctx) return;
-  const beat = 60 / bpm;
-  const start = ctx.currentTime + 0.05;
-  for (let b = 0; b < 4 * measures; b++) {
-    const t = start + b * beat;
-    const pos = b % 4;
-    if (pos === 0 || pos === 2) _drumKick(ctx, t);
-    if (pos === 1 || pos === 3) _drumSnare(ctx, t);
-  }
+
+// Key signature table
+function keySigTableHTML() {
+  const rows = [
+    ['C major / A minor',  '0',  '—',               'All white keys'],
+    ['G major / E minor',  '1♯', 'F♯',              'One sharp'],
+    ['D major / B minor',  '2♯', 'F♯ C♯',           'Two sharps'],
+    ['A major / F♯ minor', '3♯', 'F♯ C♯ G♯',        'Three sharps'],
+    ['F major / D minor',  '1♭', 'B♭',              'One flat'],
+    ['B♭ major / G minor', '2♭', 'B♭ E♭',           'Two flats'],
+    ['E♭ major / C minor', '3♭', 'B♭ E♭ A♭',        'Three flats'],
+  ];
+  return `<div style="overflow-x:auto;margin-bottom:24px;">
+    <table class="key-table">
+      <thead><tr><th>Key</th><th>Sig</th><th>Accidentals</th><th>Notes</th></tr></thead>
+      <tbody>${rows.map(([k,s,a,n])=>`<tr><td>${k}</td><td>${s}</td><td style="font-family:'IBM Plex Mono',monospace;letter-spacing:.04em;">${a}</td><td>${n}</td></tr>`).join('')}</tbody>
+    </table>
+  </div>`;
 }
 
 const steps = [
   {
-    title: 'Note Values',
-    number: 'Step 01 — Duration',
-    body: `<strong>Rhythm</strong> is music organized in time. Before you can understand rhythm, you need to understand <strong>note values</strong> — the notation system that tells you how long each note lasts relative to the beat.
+    title: 'Key Signatures',
+    number: 'Step 01 — Foundations',
+    body: `A <strong>key</strong> is the tonal home of a piece of music — the note and scale that everything gravitates toward. When a piece is "in C major," the note C feels like rest, and the C major scale provides the vocabulary of pitches used.
 
-<br><br>The system is hierarchical: a <em>whole note</em> lasts the longest. A <em>half note</em> is half as long as a whole. A <em>quarter note</em> is half of a half, and so on. In 4/4 time (the most common), a whole note fills the entire measure, a half note fills half, and a quarter note gets one beat.
+<br><br>A <strong>key signature</strong> is a shorthand notation placed at the start of every staff line that tells you which notes are consistently sharp or flat throughout the piece. Instead of writing a ♯ or ♭ next to every single note, you declare it once in the key signature and it applies to every occurrence.
 
-<br><br>Each note has an equivalent <strong>rest</strong> — a symbol for the same duration of silence. A quarter rest means "be quiet for one beat." Rests are just as musically important as notes; the silence between notes shapes the rhythm as much as the notes themselves.`,
-    noteGrid: true,
-    audio: { desc:'Quarter note pulse at 120 BPM with kick & snare reference beat behind it.', fn:()=>{ _scheduleDrums(120,2); mtPlaySeq(['C3','C3','C3','C3','C3','C3','C3','C3'],0.5); } },
+<br><br>Key signatures are defined by their <em>sharps</em> or <em>flats</em> — never both. C major is the one key with no sharps and no flats: all white keys on the piano. Every other major key adds accidentals in a specific, fixed order that forms the circle of fifths.`,
+    table: true,
     keyPoints: [
-      {strong:'Whole note', rest:' — 4 beats (fills an entire 4/4 measure)'},
-      {strong:'Half note',  rest:' — 2 beats'},
-      {strong:'Quarter note', rest:' — 1 beat (the most common unit)'},
-      {strong:'Eighth note', rest:' — ½ beat; two per quarter note'},
-      {strong:'Sixteenth note', rest:' — ¼ beat; four per quarter note'},
+      {strong:'Key',      rest:' — the tonal center; the note everything resolves to'},
+      {strong:'Key signature', rest:' — sharps or flats at the start of the staff that apply throughout'},
+      {strong:'C major',  rest:' — the only key with zero accidentals (all white keys)'},
+      {strong:'Sharps/flats order', rest:' — always added in the same fixed sequence (FCGDAEB for sharps, BEADGCF for flats)'},
     ],
+    piano: { startNote:'C3', endNote:'C5', highlight:['C3','D3','E3','F3','G3','A3','B3','C4','D4','E4','F4','G4','A4','B4','C5'], label:'C Major — all natural notes, no accidentals' },
+    audio: { desc:'C major scale — the simplest key, no sharps or flats.', fn:()=>mtPlaySeq(['C3','D3','E3','F3','G3','A3','B3','C4'],0.38) },
   },
   {
-    title: 'Time Signatures',
-    number: 'Step 02 — The Grid',
-    body: `A <strong>time signature</strong> tells you two things: how many beats are in each measure, and which note value counts as one beat. Written as a fraction at the start of a piece — <em>4/4</em>, <em>3/4</em>, <em>6/8</em> — the top number gives the beat count and the bottom number gives the note value.
+    title: 'The Circle of Fifths',
+    number: 'Step 02 — The Map',
+    body: `The <strong>circle of fifths</strong> is the single most useful diagram in Western music theory. It arranges all 12 major keys (and their relative minors) in a circle where each adjacent key is a <em>perfect fifth apart</em>.
 
-<br><br>In <em>4/4</em> time ("common time"), there are 4 beats per measure and the quarter note gets one beat. This is the most common time signature in pop, rock, jazz, and hip-hop. In <em>3/4</em> time ("waltz time"), there are 3 beats — lending it that characteristic one-two-three swing. In <em>6/8</em>, there are 6 eighth notes per measure, but they're usually felt in two groups of three, giving a lilting, compound feel.
+<br><br>Moving <strong>clockwise</strong>, each step goes up a perfect fifth and adds one sharp to the key signature: C → G → D → A → E → B → F♯/G♭. Moving <strong>counterclockwise</strong>, each step goes up a perfect fourth (or down a fifth) and adds one flat: C → F → B♭ → E♭ → A♭ → D♭ → G♭/F♯.
 
-<br><br>The time signature creates the <strong>meter</strong> — the repeating pattern of strong and weak beats that gives rhythm its pulse and feel.`,
-    timeSigs: true,
-    audio: { desc:'4/4 at 90 BPM — feel the kick on 1 & 3, snare on 2 & 4, notes on every beat.', fn:()=>{ _scheduleDrums(90,2); mtPlaySeq(['C3','C3','C3','C3','C3','C3','C3','C3'],0.667); } },
+<br><br>The circle tells you at a glance: how many accidentals any key has, what the closely related keys are (neighbors share many notes), and why modulations between adjacent keys sound so smooth. Keys directly opposite each other (C and F♯/G♭) are the most harmonically distant — they share the fewest common notes.`,
+    circle: true,
     keyPoints: [
-      {strong:'Top number', rest:' — beats per measure'},
-      {strong:'Bottom number', rest:' — which note value = 1 beat (4 = quarter, 8 = eighth)'},
-      {strong:'4/4',  rest:' — four quarter beats; the standard for most popular music'},
-      {strong:'3/4',  rest:' — three quarter beats; waltz feel; strong on beat 1'},
-      {strong:'6/8',  rest:' — six eighth beats in two groups of three; compound lilting feel'},
+      {strong:'Clockwise',   rest:' — adds sharps, goes up a perfect 5th each step'},
+      {strong:'Counterclockwise', rest:' — adds flats, goes up a perfect 4th each step'},
+      {strong:'Neighbors',   rest:' — adjacent keys share 6 of 7 scale notes; transitions sound natural'},
+      {strong:'Opposites',   rest:' — keys across from each other (C and F♯/G♭) share only 1 scale note'},
     ],
+    audio: { desc:'The first four clockwise keys — C, G, D, A — each a perfect fifth apart.', fn:()=>mtPlayChordSeq([['C3','E3','G3'],['G3','B3','D4'],['D3','F#3','A3'],['A3','C#4','E4']],1.6,0.4) },
   },
   {
-    title: 'Ties & Dots',
-    number: 'Step 03 — Extending Notes',
-    body: `Two notation devices let you create note durations that don't fit neatly into standard values: <strong>ties</strong> and <strong>dots</strong>.
+    title: 'Relative Major & Minor',
+    number: 'Step 03 — Shared Keys',
+    body: `Every major key has a <strong>relative minor</strong> that uses the <em>exact same key signature</em> — the same sharps or flats — but has a different tonal center. C major and A natural minor are both written with no sharps or flats; they use identical notes, but A minor sounds dark and unresolved where C major sounds bright and settled.
 
-<br><br>A <em>tie</em> connects two notes of the same pitch, making them sound as one continuous note for the combined duration. A quarter note tied to a half note sounds for 3 beats. Ties are essential for holding notes across bar lines — you can't write a 5-beat note, but you can tie a half note in one measure to a half note in the next.
+<br><br>The relative minor always starts on the <em>6th degree</em> of its relative major, which is also 3 semitones (a minor third) below the major root. C → A, G → E, D → B, F → D, and so on. You can find any relative minor instantly: count up to the 6th note of the major scale, or drop 3 semitones from the major root.
 
-<br><br>A <em>dot</em> after a note increases its duration by half. A dotted quarter note = 1½ beats. A dotted half note = 3 beats. A dotted eighth note = ¾ of a beat. The dot is more compact notation for a common durational relationship, and dotted rhythms are everywhere — they create a characteristic "long-short" feel that drives forward motion in marches, baroque music, and jazz.`,
-    rhythmViz: {
-      label: 'Dotted quarter = ¼ note + ⅛ note (1½ beats)',
-      rows: [
-        { label:'Quarter (1 beat)', cells: ['on','rest'] },
-        { label:'Dotted quarter (1.5)', cells: ['on','on','rest'] },
-        { label:'Eighth (0.5)', cells: ['on'] },
-      ]
-    },
-    audio: { desc:'Dotted-quarter pattern over a steady beat — hear the long-short against the kick & snare.', fn:()=>{ _scheduleDrums(90,2); mtPlaySeq(['C3','E3','C3','E3','C3','E3','C3','E3'],0.5); } },
+<br><br>This relationship explains why pieces can shift between a major key and its relative minor without any change to the notes being played — only the emphasis and harmonic context shifts. A song "in A minor" using only white keys sounds completely different to the same notes "in C major."`,
     keyPoints: [
-      {strong:'Tie',         rest:' — connects two same-pitch notes into one sustained note'},
-      {strong:'Dot',         rest:' — adds half the note\'s value to its duration'},
-      {strong:'Dotted quarter', rest:' — 1.5 beats; often paired with an eighth note (long-short)'},
-      {strong:'Dotted half', rest:' — 3 beats; common in 3/4 and 4/4 time'},
+      {strong:'Relative minor', rest:' — same key signature as its major, different root and feel'},
+      {strong:'Formula',        rest:' — start on the 6th degree of major, or 3 semitones below the root'},
+      {strong:'C major ↔ A minor', rest:' — the most common relative pair; zero accidentals each'},
+      {strong:'Character',      rest:' — same notes, opposite emotional gravity: major = bright, minor = dark'},
     ],
+    piano: { startNote:'C3', endNote:'C5', highlight:['C3','D3','E3','F3','G3','A3','B3','C4','D4','E4','F4','G4','A4','B4','C5'], label:'C major and A minor share all the same notes — only the tonal center differs' },
+    audio: { desc:'C major scale then A natural minor — same notes, completely different feel.', fn:()=>mtPlayChordSeq([['C3','E3','G3'],['A2','C3','E3']],2.0,0.5) },
   },
   {
-    title: 'Syncopation',
-    number: 'Step 04 — Off the Beat',
-    body: `<strong>Syncopation</strong> is the placement of emphasis on beats or parts of beats that are normally weak or unstressed. In 4/4 time, beats 1 and 3 are strong; beats 2 and 4 are weaker. Syncopation shifts accents to the weaker beats or to the spaces between beats (the "ands").
+    title: 'Parallel Keys',
+    number: 'Step 04 — Same Root, Different Feel',
+    body: `<strong>Parallel keys</strong> share the same root note but use different key signatures. C major and C minor are parallel keys — both start on C, but C major uses no accidentals while C minor uses three flats (B♭, E♭, A♭). Unlike relative keys (same notes, different root), parallel keys start from the same place and diverge from there.
 
-<br><br>When you tap your foot in 4/4, the down-tap is beat 1, the up-tap between beats is the "and." A syncopated note lands on an "and" — creating a push, a lift, a sense of forward momentum that straightforward on-beat rhythms lack. This is the engine of funk, reggae, Latin rhythms, and jazz.
+<br><br>Switching between parallel keys is one of the most powerful moves in music: the same chord progression suddenly shifts from triumphant to melancholic. The "borrowed chord" technique — taking a chord from the parallel minor into a major key — is the engine behind countless emotional moments in pop, film, and classical music. That haunting ♭VII chord in an otherwise major song? Borrowed from the parallel minor.
 
-<br><br>The simplest syncopation: tie a note across beat 3 so the attack happens on the "and of 2" instead. Or accent beat 2 and 4 (the "backbeat") in rock. More complex syncopation — like polyrhythm or the clave pattern in Latin music — layers different rhythmic cycles against each other.`,
-    syncoViz: true,
-    audio: { desc:'Melody over a beat — hear how the notes push between the kick & snare.', fn:()=>{ _scheduleDrums(90,2); mtPlaySeq(['C3','E3','G3','E3','C3','E3','G3','C4'],0.333); } },
+<br><br>Knowing parallel relationships unlocks <em>modal interchange</em>, which we'll explore in the Chord Progressions module. For now, the key insight: same root, same name, completely different emotional world.`,
     keyPoints: [
-      {strong:'Syncopation',  rest:' — accents on weak beats or the "ands" between beats'},
-      {strong:'Backbeat',     rest:' — emphasis on beats 2 and 4; the backbone of rock and soul'},
-      {strong:'"And" of a beat', rest:' — the upstroke between two beats; where syncopated attacks land'},
-      {strong:'Feel',         rest:' — syncopation creates momentum, lift, and groove'},
+      {strong:'Parallel keys',     rest:' — same root note, different key signature and scale'},
+      {strong:'C major vs C minor',rest:' — both start on C; differ by 3 flats (E♭, A♭, B♭)'},
+      {strong:'Borrowed chords',   rest:' — pulling chords from the parallel minor into a major key'},
+      {strong:'vs Relative keys',  rest:' — relative = same notes, different root; parallel = same root, different notes'},
     ],
-  },
-  {
-    title: 'Feel & Groove',
-    number: 'Step 05 — Straight vs. Swing',
-    body: `Written rhythm notation is only the starting point. The actual <strong>feel</strong> of a rhythm — how it sits in time — depends on whether it's played <em>straight</em> or <em>swung</em>.
-
-<br><br>In <strong>straight feel</strong>, eighth notes are evenly spaced: each lasts exactly half a beat. This is precise, mechanical, and characteristic of rock, electronic music, and classical. In <strong>swing feel</strong>, eighth notes are uneven: the first is longer (roughly ⅔ of a beat) and the second is shorter (⅓). The result is a triplet-based lilt: "long-short, long-short" — the sound of jazz, blues, and shuffle grooves.
-
-<br><br>Beyond straight vs. swing, feel encompasses <strong>timing relationships</strong>: playing slightly ahead of or behind the beat creates tension or relaxation. A drummer laying back on the beat sounds heavy and powerful; playing on top of the beat sounds urgent and driving. Great groove is the interplay between these micro-timing choices across the ensemble.`,
-    grooveViz: true,
-    audio: { desc:'C major scale over a straight beat — feel the even spacing of the notes against the kick & snare.', fn:()=>{ _scheduleDrums(90,2); mtPlaySeq(['C3','D3','E3','F3','G3','A3','B3','C4'],0.667); } },
-    keyPoints: [
-      {strong:'Straight feel', rest:' — even eighths; precise, mechanical, rock/electronic'},
-      {strong:'Swing feel',    rest:' — uneven eighths (long-short); jazz, blues, shuffle'},
-      {strong:'Ahead of the beat', rest:' — urgent, driving, energetic'},
-      {strong:'Behind the beat', rest:' — laid-back, heavy, relaxed groove'},
-    ],
+    piano: { startNote:'C3', endNote:'C5', highlight:['C3','D3','Eb3','F3','G3','Ab3','Bb3','C4'], label:'C Natural Minor — C D E♭ F G A♭ B♭ C (three flats vs C major)' },
+    audio: { desc:'C major chord then C minor chord — same root, parallel relationship.', fn:()=>mtPlayChordSeq([['C3','E3','G3'],['C3','Eb3','G3']],2.2,0.6) },
   },
 ];
 
 let currentStep = 0;
-
-function noteGridHTML() {
-  const ac = ACCENT;
-  // fill-rule="evenodd" compound paths give truly transparent holes in hollow noteheads
-  const sv = {
-    'Whole Note':    `<svg viewBox="0 0 52 34" style="width:64px;height:42px;display:block;margin:0 auto 10px;"><g transform="rotate(-15,26,17)"><path fill="${ac}" fill-rule="evenodd" d="M6,17 A20,12 0 1,0 46,17 A20,12 0 1,0 6,17 Z M16,17 A10,5.5 0 1,0 36,17 A10,5.5 0 1,0 16,17 Z"/></g></svg>`,
-    'Half Note':     `<svg viewBox="0 0 42 74" style="width:42px;height:74px;display:block;margin:0 auto 10px;"><g transform="rotate(-15,15,60)"><path fill="${ac}" fill-rule="evenodd" d="M0,60 A15,10 0 1,0 30,60 A15,10 0 1,0 0,60 Z M7,60 A8,4.5 0 1,0 23,60 A8,4.5 0 1,0 7,60 Z"/></g><line x1="29" y1="55" x2="29" y2="8" stroke="${ac}" stroke-width="2.8" stroke-linecap="round"/></svg>`,
-    'Quarter Note':  `<svg viewBox="0 0 42 74" style="width:42px;height:74px;display:block;margin:0 auto 10px;"><g transform="rotate(-15,15,60)"><ellipse cx="15" cy="60" rx="15" ry="10" fill="${ac}"/></g><line x1="29" y1="55" x2="29" y2="8" stroke="${ac}" stroke-width="2.8" stroke-linecap="round"/></svg>`,
-    'Eighth Note':   `<svg viewBox="0 0 50 74" style="width:50px;height:74px;display:block;margin:0 auto 10px;"><g transform="rotate(-15,15,60)"><ellipse cx="15" cy="60" rx="15" ry="10" fill="${ac}"/></g><line x1="29" y1="55" x2="29" y2="8" stroke="${ac}" stroke-width="2.8" stroke-linecap="round"/><path d="M29,8 C46,16 46,40 29,46 L29,8 Z" fill="${ac}"/></svg>`,
-    'Sixteenth Note':`<svg viewBox="0 0 50 82" style="width:50px;height:82px;display:block;margin:0 auto 10px;"><g transform="rotate(-15,15,68)"><ellipse cx="15" cy="68" rx="15" ry="10" fill="${ac}"/></g><line x1="29" y1="63" x2="29" y2="8" stroke="${ac}" stroke-width="2.8" stroke-linecap="round"/><path d="M29,8 C46,16 46,38 29,44 L29,8 Z" fill="${ac}"/><path d="M29,26 C46,34 46,56 29,62 L29,26 Z" fill="${ac}"/></svg>`,
-    'Whole Rest':    `<svg viewBox="0 0 54 36" style="width:64px;height:42px;display:block;margin:0 auto 10px;"><line x1="6" y1="11" x2="48" y2="11" stroke="${ac}" stroke-width="1.5" stroke-linecap="round"/><rect x="12" y="11" width="30" height="15" rx="1" fill="${ac}"/></svg>`,
-    'Half Rest':     `<svg viewBox="0 0 54 36" style="width:64px;height:42px;display:block;margin:0 auto 10px;"><rect x="12" y="10" width="30" height="15" rx="1" fill="${ac}"/><line x1="6" y1="25" x2="48" y2="25" stroke="${ac}" stroke-width="1.5" stroke-linecap="round"/></svg>`,
-    'Quarter Rest':  `<svg viewBox="0 0 36 74" style="width:36px;height:74px;display:block;margin:0 auto 10px;"><path d="M26,8 L12,26 L28,37 L12,50 L19,67" fill="none" stroke="${ac}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-  };
-  const notes = [
-    { key:'Whole Note',    beats:'4 beats' },
-    { key:'Half Note',     beats:'2 beats' },
-    { key:'Quarter Note',  beats:'1 beat' },
-    { key:'Eighth Note',   beats:'½ beat' },
-    { key:'Sixteenth Note',beats:'¼ beat' },
-    { key:'Whole Rest',    beats:'4 beats silence' },
-    { key:'Half Rest',     beats:'2 beats silence' },
-    { key:'Quarter Rest',  beats:'1 beat silence' },
-  ];
-  return `<div class="note-grid">${notes.map(n=>`<div class="note-cell">${sv[n.key]}<div class="note-name">${n.key}</div><div class="note-beats">${n.beats}</div></div>`).join('')}</div>`;
-}
-
-function timeSigHTML() {
-  return `<div class="time-sig-grid">
-    <div class="time-sig-cell"><div class="time-sig-fraction">4/4</div><div class="time-sig-name">Common Time</div><div class="time-sig-desc">4 quarter-note beats per measure. The most common time signature in pop, rock, and jazz.</div></div>
-    <div class="time-sig-cell"><div class="time-sig-fraction">3/4</div><div class="time-sig-name">Waltz Time</div><div class="time-sig-desc">3 quarter-note beats per measure. Strong beat on 1, lighter on 2 and 3. Waltzes, folk, ballads.</div></div>
-    <div class="time-sig-cell"><div class="time-sig-fraction">6/8</div><div class="time-sig-name">Compound Duple</div><div class="time-sig-desc">6 eighth-note beats, felt in 2 groups of 3. Lilting "sea shanty" or "12-bar blues" feel.</div></div>
-  </div>`;
-}
-
-function rhythmVizHTML(viz) {
-  const colors = { on: 'on', rest: 'rest', synco: 'synco' };
-  return `<div class="rhythm-viz">
-    <div class="rhythm-viz-label">${viz.label}</div>
-    ${viz.rows.map(r=>`<div class="beat-row">
-      <div class="beat-label">${r.label}</div>
-      ${r.cells.map(c=>`<div class="beat-block ${colors[c] || 'rest'}">${c==='on'?'●':''}</div>`).join('')}
-    </div>`).join('')}
-  </div>`;
-}
-
-function syncoVizHTML() {
-  return `<div class="rhythm-viz">
-    <div class="rhythm-viz-label">4/4 — Beats vs. Syncopated Accents</div>
-    <div class="beat-row">
-      <div class="beat-label">Beats (on)</div>
-      <div class="beat-block on">1</div><div class="beat-block rest">+</div>
-      <div class="beat-block on">2</div><div class="beat-block rest">+</div>
-      <div class="beat-block on">3</div><div class="beat-block rest">+</div>
-      <div class="beat-block on">4</div><div class="beat-block rest">+</div>
-    </div>
-    <div class="beat-row">
-      <div class="beat-label">Syncopated</div>
-      <div class="beat-block rest">1</div><div class="beat-block synco">+</div>
-      <div class="beat-block rest">2</div><div class="beat-block synco">+</div>
-      <div class="beat-block rest">3</div><div class="beat-block synco">+</div>
-      <div class="beat-block rest">4</div><div class="beat-block synco">+</div>
-    </div>
-    <div class="beat-row">
-      <div class="beat-label">Backbeat</div>
-      <div class="beat-block rest">1</div><div class="beat-block rest">+</div>
-      <div class="beat-block on">2</div><div class="beat-block rest">+</div>
-      <div class="beat-block rest">3</div><div class="beat-block rest">+</div>
-      <div class="beat-block on">4</div><div class="beat-block rest">+</div>
-    </div>
-  </div>`;
-}
-
-function grooveVizHTML() {
-  return `<div class="rhythm-viz">
-    <div class="rhythm-viz-label">Straight vs. Swing Eighth Notes</div>
-    <div class="beat-row">
-      <div class="beat-label">Straight</div>
-      <div class="beat-block on" style="flex:1">1</div>
-      <div class="beat-block on" style="flex:1">+</div>
-      <div class="beat-block on" style="flex:1">2</div>
-      <div class="beat-block on" style="flex:1">+</div>
-      <div class="beat-block on" style="flex:1">3</div>
-      <div class="beat-block on" style="flex:1">+</div>
-      <div class="beat-block on" style="flex:1">4</div>
-      <div class="beat-block on" style="flex:1">+</div>
-    </div>
-    <div class="beat-row">
-      <div class="beat-label">Swing</div>
-      <div class="beat-block on" style="flex:2">1 (long)</div>
-      <div class="beat-block synco" style="flex:1">+</div>
-      <div class="beat-block on" style="flex:2">2 (long)</div>
-      <div class="beat-block synco" style="flex:1">+</div>
-      <div class="beat-block on" style="flex:2">3 (long)</div>
-      <div class="beat-block synco" style="flex:1">+</div>
-      <div class="beat-block on" style="flex:2">4 (long)</div>
-      <div class="beat-block synco" style="flex:1">+</div>
-    </div>
-  </div>`;
-}
 
 function renderStep(idx) {
   mtStop();
@@ -522,20 +416,21 @@ function renderStep(idx) {
   const total = steps.length;
   const card = document.getElementById('stepCard');
 
-  const kpHTML = step.keyPoints.map(kp=>`<div class="key-point"><strong>${kp.strong}</strong>${kp.rest}</div>`).join('');
+  const kpHTML = step.keyPoints.map(kp => `<div class="key-point"><strong>${kp.strong}</strong>${kp.rest}</div>`).join('');
 
-  let extraHTML = '';
-  if (step.noteGrid) extraHTML += noteGridHTML();
-  if (step.timeSigs) extraHTML += timeSigHTML();
-  if (step.rhythmViz) extraHTML += rhythmVizHTML(step.rhythmViz);
-  if (step.syncoViz) extraHTML += syncoVizHTML();
-  if (step.grooveViz) extraHTML += grooveVizHTML();
+  const pianoHTML = step.piano ? `<div class="piano-wrap">
+    <div class="piano-label">${step.piano.label}</div>
+    <div class="piano-svg-container">${buildPianoSVG({startNote:step.piano.startNote,endNote:step.piano.endNote,highlight:step.piano.highlight,accent:ACCENT})}</div>
+  </div>` : '';
+
+  const tableHTML = step.table ? keySigTableHTML() : '';
+  const circleHTML = step.circle ? `<div class="diagram-wrap"><div class="diagram-label">Circle of Fifths</div>${circleOfFifthsSVG()}</div>` : '';
 
   card.innerHTML = `
     <div class="step-number">${step.number}</div>
     <h2 class="step-title">${step.title}</h2>
     <div class="step-body">${step.body}</div>
-    ${extraHTML}
+    ${pianoHTML}${circleHTML}${tableHTML}
     <div class="key-points"><div class="key-points-label">Key Takeaways</div>${kpHTML}</div>
     <div class="audio-demo">
       <div class="audio-demo-info">
@@ -543,13 +438,14 @@ function renderStep(idx) {
         <div class="audio-demo-desc">${step.audio.desc}</div>
       </div>
       <button class="play-btn" id="playBtn" onclick="handlePlay()" title="Play / Stop">
-        <svg class="play-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"><polygon points="6,4 20,12 6,20" fill="#0a0b0d"/></svg>
-        <svg class="stop-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" style="display:none"><rect x="5" y="5" width="14" height="14" rx="2" fill="#0a0b0d"/></svg>
+        <svg class="play-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"><polygon points="6,4 20,12 6,20" fill="${ACCENT}"/></svg>
+        <svg class="stop-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" style="display:none"><rect x="5" y="5" width="14" height="14" rx="2" fill="${ACCENT}"/></svg>
       </button>
     </div>
   `;
 
-  document.getElementById('progressDots').innerHTML = steps.map((_,i)=>`<div class="progress-dot ${i<idx?'done':''} ${i===idx?'active':''}" onclick="jumpToStep(${i})" title="Step ${i+1}"></div>`).join('');
+  document.getElementById('progressDots').innerHTML = steps.map((_,i) =>
+    `<div class="progress-dot ${i<idx?'done':''} ${i===idx?'active':''}" onclick="jumpToStep(${i})" title="Step ${i+1}"></div>`).join('');
   document.getElementById('progressLabel').textContent = `Step ${idx+1} of ${total}`;
   document.getElementById('stepCounter').textContent = `${idx+1} / ${total}`;
   document.getElementById('prevBtn').disabled = idx === 0;
@@ -582,12 +478,12 @@ function showCompletion() {
   document.getElementById('stepCard').innerHTML = `
     <div class="completion-card">
       <svg width="56" height="56" viewBox="0 0 56 56" fill="none" style="display:block;margin:0 auto 20px;">
-        <circle cx="28" cy="28" r="25" stroke="${ACCENT}" stroke-width="1.5" fill="rgba(163,230,53,0.06)"/>
+        <circle cx="28" cy="28" r="25" stroke="${ACCENT}" stroke-width="1.5" fill="rgba(192,132,252,0.06)"/>
         <polyline points="17,28 25,36 39,19" stroke="${ACCENT}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      <div class="completion-title">Rhythm Complete!</div>
-      <p class="completion-sub">You now understand note values, time signatures, syncopation, and feel. One more module to go — Staff Notation.</p>
-      <a class="completion-cta" href="/learn/music-theory/notation/">Staff Notation →</a>
+      <div class="completion-title">Keys Complete!</div>
+      <p class="completion-sub">You know key signatures, the circle of fifths, and the difference between relative and parallel keys. Next up: Chord Progressions.</p>
+      <a class="completion-cta" href="/learn/music-theory/progressions/">Chord Progressions →</a>
       <button class="completion-restart" onclick="jumpToStep(0)">← Restart this module</button>
     </div>`;
   document.getElementById('stepNav').style.display='none';

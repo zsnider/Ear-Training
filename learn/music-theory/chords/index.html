@@ -5,9 +5,9 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cloud.umami.is 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://aolaxmmrmvovbzumlybe.supabase.co wss://aolaxmmrmvovbzumlybe.supabase.co https://cloud.umami.is; img-src 'self' data:; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="canonical" href="https://sonicsandbox.app/learn/music-theory/rhythm/">
-<title>Rhythm & Meter — Music Theory | SonicSandbox</title>
-<meta name="description" content="Learn note values, time signatures, ties & dots, syncopation, and groove. Free interactive music theory lessons.">
+<link rel="canonical" href="https://sonicsandbox.app/learn/music-theory/chords/">
+<title>Chords & Triads — Music Theory | SonicSandbox</title>
+<meta name="description" content="Learn major and minor triads, diminished and augmented chords, seventh chords, extensions, and voicings. Free interactive music theory lessons.">
 <link rel="stylesheet" href="/style.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,8 +17,8 @@
   :root{
     --bg:#0a0b0d;--surface:#13151a;--surface2:#1a1d24;--surface3:#21252f;
     --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
-    --text:#dde2ee;--muted:#6b7280;--accent:#a3e635;--accent2:#bef264;
-    --mt-accent:#a3e635;--mt-accent2:#bef264;
+    --text:#dde2ee;--muted:#6b7280;--accent:#f97316;--accent2:#fdba74;
+    --mt-accent:#f97316;--mt-accent2:#fdba74;
     --sidebar-w:264px;
   }
   body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
@@ -38,7 +38,7 @@
   .sidebar-divider{height:1px;background:var(--border);margin:10px 0 6px;}
   .course-hdr{display:flex;align-items:center;gap:8px;padding:7px 20px;cursor:pointer;transition:background .14s;user-select:none;}
   .course-hdr:hover{background:rgba(255,255,255,0.035);}
-  .course-hdr.is-active{background:rgba(163,230,53,0.07);}
+  .course-hdr.is-active{background:rgba(249,115,22,0.07);}
   .course-n{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:var(--muted);min-width:18px;flex-shrink:0;}
   .course-label{font-size:12.5px;font-weight:500;color:var(--text);flex:1;line-height:1.3;}
   .course-soon-badge{font-family:'IBM Plex Mono',monospace;font-size:7.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.22);padding:2px 5px;border-radius:3px;border:1px solid rgba(255,255,255,0.06);flex-shrink:0;}
@@ -48,7 +48,7 @@
   .sidebar-course.is-open .course-lessons{display:block;}
   .lesson-row{display:flex;align-items:flex-start;gap:8px;padding:4px 16px 4px 12px;cursor:pointer;transition:background .12s;border-left:2px solid transparent;margin-left:-2px;text-decoration:none;}
   .lesson-row:hover:not(.lesson-soon){background:rgba(255,255,255,0.035);}
-  .lesson-row.is-active{border-left-color:var(--mt-accent);background:rgba(163,230,53,0.08);}
+  .lesson-row.is-active{border-left-color:var(--mt-accent);background:rgba(249,115,22,0.08);}
   .lesson-n{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);min-width:28px;flex-shrink:0;padding-top:1px;}
   .lesson-row.is-active .lesson-n{color:var(--mt-accent);}
   .lesson-label{font-size:11.5px;color:var(--muted);line-height:1.45;font-weight:300;}
@@ -67,40 +67,36 @@
   .progress-bar-wrap{display:flex;align-items:center;gap:12px;margin-bottom:28px;}
   .progress-dots{display:flex;gap:6px;flex-wrap:wrap;}
   .progress-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);transition:background .2s,transform .2s;cursor:pointer;}
-  .progress-dot.done{background:rgba(163,230,53,0.4);}
+  .progress-dot.done{background:rgba(249,115,22,0.4);}
   .progress-dot.active{background:var(--mt-accent2);transform:scale(1.3);}
   .progress-label{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-left:auto;}
   .step-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px 36px 32px;position:relative;overflow:hidden;}
-  .step-card::before{content:'';position:absolute;inset:0;border-radius:20px;background:radial-gradient(ellipse at top left,rgba(163,230,53,0.05),transparent 60%);pointer-events:none;}
+  .step-card::before{content:'';position:absolute;inset:0;border-radius:20px;background:radial-gradient(ellipse at top left,rgba(249,115,22,0.05),transparent 60%);pointer-events:none;}
   .step-number{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--mt-accent);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
   .step-number::after{content:'';flex:1;height:1px;background:var(--border);}
   .step-title{font-family:'IBM Plex Mono',monospace;font-size:clamp(20px,3vw,28px);font-weight:600;letter-spacing:-.02em;color:var(--text);margin-bottom:18px;line-height:1.25;}
   .step-body{font-size:15px;color:var(--muted);line-height:1.75;font-weight:300;margin-bottom:28px;}
   .step-body strong{color:var(--text);font-weight:500;}
   .step-body em{color:var(--mt-accent2);font-style:normal;font-weight:500;}
-  /* Note value grid */
-  .note-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:24px;}
-  .note-cell{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px 12px;text-align:center;}
-  .note-symbol{font-size:38px;line-height:1;margin-bottom:8px;}
-  .note-name{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--text);margin-bottom:4px;}
-  .note-beats{font-size:12px;color:var(--muted);}
-  /* Time sig display */
-  .time-sig-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
-  .time-sig-cell{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:center;}
-  .time-sig-fraction{font-family:'IBM Plex Mono',monospace;font-size:36px;font-weight:700;line-height:1;color:var(--mt-accent);margin-bottom:10px;letter-spacing:-.02em;}
-  .time-sig-name{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
-  .time-sig-desc{font-size:12px;color:var(--muted);line-height:1.5;}
-  /* Rhythm visualizer */
-  .rhythm-viz{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:24px;}
-  .rhythm-viz-label{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}
-  .beat-row{display:flex;gap:6px;margin-bottom:10px;align-items:center;}
-  .beat-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);min-width:80px;flex-shrink:0;}
-  .beat-block{height:28px;border-radius:5px;flex:1;min-width:0;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;color:rgba(0,0,0,0.7);transition:transform .1s;}
-  .beat-block.on{background:var(--mt-accent);}
-  .beat-block.rest{background:rgba(255,255,255,0.04);border:1px dashed rgba(255,255,255,0.1);}
-  .beat-block.synco{background:rgba(163,230,53,0.3);border:1px solid rgba(163,230,53,0.4);}
+  .piano-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px 20px 16px;margin-bottom:24px;overflow:hidden;}
+  .piano-label{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+  .piano-svg-container{overflow-x:auto;padding-bottom:4px;}
+  /* Chord anatomy diagram */
+  .chord-stack{display:flex;align-items:flex-end;gap:4px;margin-bottom:24px;flex-wrap:wrap;}
+  .chord-note-block{display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .chord-note-pill{padding:6px 14px;border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;background:var(--mt-accent);color:#0a0b0d;min-width:48px;text-align:center;}
+  .chord-note-pill.dim{background:var(--surface3);color:var(--muted);border:1px solid var(--border2);}
+  .chord-interval-badge{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.08em;color:var(--muted);text-align:center;}
+  .chord-plus{font-size:18px;color:var(--border2);padding-bottom:22px;line-height:1;}
+  /* Chord type table */
+  .chord-table{width:100%;border-collapse:collapse;margin-bottom:24px;font-size:13px;}
+  .chord-table th{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);text-align:left;}
+  .chord-table td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--muted);line-height:1.4;vertical-align:top;}
+  .chord-table td:first-child{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--text);white-space:nowrap;}
+  .chord-table td:nth-child(2){font-family:'IBM Plex Mono',monospace;color:var(--mt-accent);font-weight:600;}
+  .chord-table tr:last-child td{border-bottom:none;}
   /* Key points */
-  .key-points{background:rgba(163,230,53,0.05);border:1px solid rgba(163,230,53,0.13);border-radius:12px;padding:18px 20px;margin-bottom:24px;display:flex;flex-direction:column;gap:10px;}
+  .key-points{background:rgba(249,115,22,0.05);border:1px solid rgba(249,115,22,0.13);border-radius:12px;padding:18px 20px;margin-bottom:24px;display:flex;flex-direction:column;gap:10px;}
   .key-points-label{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--mt-accent);margin-bottom:4px;}
   .key-point{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted);line-height:1.55;}
   .key-point::before{content:'→';color:var(--mt-accent2);font-family:'IBM Plex Mono',monospace;font-size:12px;margin-top:1px;flex-shrink:0;}
@@ -113,6 +109,7 @@
   .play-btn{width:44px;height:44px;border-radius:50%;background:var(--mt-accent);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .15s,opacity .15s;flex-shrink:0;}
   .play-btn:hover{transform:scale(1.08);opacity:.9;}
   .play-btn svg{pointer-events:none;}
+  .play-btn.playing{background:rgba(249,115,22,0.2);border:1.5px solid var(--mt-accent);}
   /* Nav */
   .step-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:4px;}
   .nav-btn{display:flex;align-items:center;gap:8px;padding:11px 22px;border-radius:10px;border:1px solid var(--border2);background:var(--surface2);font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:border-color .15s,color .15s,transform .15s;text-decoration:none;}
@@ -120,8 +117,9 @@
   .nav-btn:disabled{opacity:.3;cursor:not-allowed;transform:none;}
   .nav-btn.primary{background:var(--mt-accent);border-color:var(--mt-accent);color:#0a0b0d;}
   .nav-btn.primary:hover{opacity:.88;}
-  .nav-btn.finish{background:rgba(163,230,53,0.12);border-color:var(--mt-accent);color:var(--mt-accent2);}
+  .nav-btn.finish{background:rgba(249,115,22,0.12);border-color:var(--mt-accent);color:var(--mt-accent2);}
   .step-counter{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+  /* Completion */
   .completion-card{text-align:center;padding:56px 36px;}
   .completion-title{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;color:var(--text);margin-bottom:12px;}
   .completion-sub{font-size:15px;color:var(--muted);line-height:1.7;max-width:440px;margin:0 auto 32px;}
@@ -141,12 +139,12 @@
     .step-nav{flex-direction:column;}
     .nav-btn{width:100%;justify-content:center;}
     .learn-breadcrumb{padding:10px 16px;}
-    .time-sig-grid{grid-template-columns:1fr;}
   }
 </style>
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a4e7fbcc-763c-4844-8f4f-669cf411e799"></script>
 </head>
 <body>
+
 <nav>
   <div class="nav-logo-wrap"><a class="nav-logo" href="/">Sonic<span>Sandbox</span></a></div>
   <div class="nav-center">
@@ -167,6 +165,7 @@
     <div class="sidebar-body" id="sidebarBody"></div>
   </aside>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
   <main class="learn-main">
     <div class="learn-breadcrumb">
       <button class="breadcrumb-toggle" id="sidebarToggleBtn" aria-label="Open courses">
@@ -176,13 +175,14 @@
       <div class="bc-path">
         <a href="/learn/">Learn</a><span class="bc-sep">›</span>
         <span>Music Theory</span><span class="bc-sep">›</span>
-        <span class="bc-current">Rhythm &amp; Meter</span>
+        <span class="bc-current">Chords &amp; Triads</span>
       </div>
     </div>
+
     <div class="module-wrap">
       <div class="progress-bar-wrap">
         <div class="progress-dots" id="progressDots"></div>
-        <div class="progress-label" id="progressLabel">Step 1 of 5</div>
+        <div class="progress-label" id="progressLabel">Step 1 of 6</div>
       </div>
       <div class="step-card" id="stepCard"></div>
       <div class="step-nav" id="stepNav" style="margin-top:20px;">
@@ -202,6 +202,7 @@
   <div class="footer-right"><span>© 2026 Zach Snider</span></div>
 </footer>
 
+<!-- Auth modal -->
 <div class="modal-overlay" id="authModal">
   <div class="modal">
     <button class="modal-close" id="closeAuthBtn">&times;</button>
@@ -248,7 +249,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="/supabase-client.js"></script>
+<script src="/learn/music-theory/mt-shared.js"></script>
 <script>
+// ── Auth (condensed) ──────────────────────────────────────────
 const authModal=document.getElementById('authModal'),authArea=document.getElementById('authArea');
 const closeBtn=document.getElementById('closeAuthBtn'),tabs=document.querySelectorAll('.modal-tab');
 const tabSignin=document.getElementById('tabSignin'),tabSignup=document.getElementById('tabSignup'),tabForgot=document.getElementById('tabForgot');
@@ -272,290 +275,291 @@ document.getElementById('usernameSkip').addEventListener('click',()=>document.ge
 document.getElementById('usernameModal').addEventListener('click',e=>{if(e.target===document.getElementById('usernameModal'))document.getElementById('usernameModal').classList.remove('open');});
 document.addEventListener('ss:authchange',async e=>{const user=e.detail;if(user){authArea.innerHTML=`<div class="user-pill"><span class="username-display" style="color:var(--muted);font-size:12px;">${user.email}</span></div>`;const profile=await SonicSandbox.getProfile();const el=authArea.querySelector('.username-display');if(!el)return;if(profile?.username){el.outerHTML=`<a class="set-username-link" href="/account/">@${profile.username}</a>`;}else{el.outerHTML=`<a class="set-username-link" href="/account/">Set username</a>`;}}else{authArea.innerHTML=`<button class="auth-btn" id="openAuthBtn">Sign in</button>`;document.getElementById('openAuthBtn').addEventListener('click',openAuthModal);}});
 </script>
-<script src="/learn/music-theory/mt-shared.js"></script>
-<script>
-const COURSE_UID = 'mt-rhythm';
-const ACCENT = '#a3e635';
 
-// ── Drum synthesis ──────────────────────────────────────────────
-function _drumKick(ctx, when) {
-  const osc = ctx.createOscillator();
-  const env = ctx.createGain();
-  osc.type = 'sine';
-  osc.frequency.setValueAtTime(140, when);
-  osc.frequency.exponentialRampToValueAtTime(30, when + 0.24);
-  env.gain.setValueAtTime(0.85, when);
-  env.gain.exponentialRampToValueAtTime(0.001, when + 0.28);
-  osc.connect(env); env.connect(ctx.destination);
-  osc.start(when); osc.stop(when + 0.3);
+<script>
+// ─────────────────────────────────────────────────────────────
+//  MODULE 4: CHORDS & TRIADS
+// ─────────────────────────────────────────────────────────────
+
+const COURSE_UID = 'mt-chords';
+const ACCENT = '#f97316';
+
+// ── Chord stack diagram ──────────────────────────────────────
+// notes: [{label, interval, dim}] — dim = greyed out (not in chord)
+function chordStackHTML(notes) {
+  let html = '<div class="chord-stack">';
+  notes.forEach((n, i) => {
+    html += `<div class="chord-note-block">
+      <div class="chord-note-pill${n.dim ? ' dim' : ''}">${n.label}</div>
+      <div class="chord-interval-badge">${n.interval || ''}</div>
+    </div>`;
+    if (i < notes.length - 1) html += `<div class="chord-plus">+</div>`;
+  });
+  html += '</div>';
+  return html;
 }
-function _drumSnare(ctx, when) {
-  const len = Math.floor(ctx.sampleRate * 0.13);
-  const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-  const d = buf.getChannelData(0);
-  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
-  const src = ctx.createBufferSource();
-  src.buffer = buf;
-  const hpf = ctx.createBiquadFilter();
-  hpf.type = 'highpass'; hpf.frequency.value = 1800;
-  const env = ctx.createGain();
-  env.gain.setValueAtTime(0.5, when);
-  env.gain.exponentialRampToValueAtTime(0.001, when + 0.13);
-  src.connect(hpf); hpf.connect(env); env.connect(ctx.destination);
-  src.start(when); src.stop(when + 0.14);
-}
-function _scheduleDrums(bpm, measures) {
-  const ctx = mtGetCtx();
-  if (!ctx) return;
-  const beat = 60 / bpm;
-  const start = ctx.currentTime + 0.05;
-  for (let b = 0; b < 4 * measures; b++) {
-    const t = start + b * beat;
-    const pos = b % 4;
-    if (pos === 0 || pos === 2) _drumKick(ctx, t);
-    if (pos === 1 || pos === 3) _drumSnare(ctx, t);
-  }
+
+// ── Seventh chord table ──────────────────────────────────────
+function seventhChordTableHTML() {
+  const rows = [
+    ['Major 7th',       'Cmaj7', '4 + 3 + 4', 'C  E  G  B',  'Lush, sophisticated, jazzy'],
+    ['Dominant 7th',    'C7',    '4 + 3 + 3', 'C  E  G  Bb', 'Tense — the most "pull" toward resolution'],
+    ['Minor 7th',       'Cm7',   '3 + 4 + 3', 'C  Eb G  Bb', 'Dark, smooth, soulful'],
+    ['Minor-major 7th', 'CmM7',  '3 + 4 + 4', 'C  Eb G  B',  'Dramatic, tense, film scores'],
+    ['Half-diminished', 'Cø7',   '3 + 3 + 4', 'C  Eb Gb Bb', 'Unstable — jazz ii chord'],
+    ['Diminished 7th',  'Cdim7', '3 + 3 + 3', 'C  Eb Gb A',  'Maximally tense — all minor 3rds'],
+  ];
+  return `<div style="overflow-x:auto;margin-bottom:24px;">
+    <table class="chord-table">
+      <thead><tr><th>Chord type</th><th>Symbol</th><th>Semitones</th><th>Notes (from C)</th><th>Sound quality</th></tr></thead>
+      <tbody>
+        ${rows.map(([type,sym,st,notes,q]) =>
+          `<tr><td>${type}</td><td>${sym}</td><td>${st}</td><td style="font-family:'IBM Plex Mono',monospace;letter-spacing:.04em;">${notes}</td><td>${q}</td></tr>`
+        ).join('')}
+      </tbody>
+    </table>
+  </div>`;
 }
 
 const steps = [
+
+  // ── Step 1: What is a Chord? ─────────────────────────────
   {
-    title: 'Note Values',
-    number: 'Step 01 — Duration',
-    body: `<strong>Rhythm</strong> is music organized in time. Before you can understand rhythm, you need to understand <strong>note values</strong> — the notation system that tells you how long each note lasts relative to the beat.
+    title: 'What is a Chord?',
+    number: 'Step 01 — Foundations',
+    body: `A <strong>chord</strong> is any combination of three or more notes sounded together. While two notes form an interval, three notes form a chord — and that's where harmony begins.
 
-<br><br>The system is hierarchical: a <em>whole note</em> lasts the longest. A <em>half note</em> is half as long as a whole. A <em>quarter note</em> is half of a half, and so on. In 4/4 time (the most common), a whole note fills the entire measure, a half note fills half, and a quarter note gets one beat.
+<br><br>Almost all Western harmony is built on <strong>tertian harmony</strong>: chords constructed by stacking <em>thirds</em> on top of each other. Start on C, skip a note to E (a third up), skip again to G (another third) — you have a <strong>triad</strong>, the fundamental three-note chord. The word "triad" literally means "a group of three."
 
-<br><br>Each note has an equivalent <strong>rest</strong> — a symbol for the same duration of silence. A quarter rest means "be quiet for one beat." Rests are just as musically important as notes; the silence between notes shapes the rhythm as much as the notes themselves.`,
-    noteGrid: true,
-    audio: { desc:'Quarter note pulse at 120 BPM with kick & snare reference beat behind it.', fn:()=>{ _scheduleDrums(120,2); mtPlaySeq(['C3','C3','C3','C3','C3','C3','C3','C3'],0.5); } },
-    keyPoints: [
-      {strong:'Whole note', rest:' — 4 beats (fills an entire 4/4 measure)'},
-      {strong:'Half note',  rest:' — 2 beats'},
-      {strong:'Quarter note', rest:' — 1 beat (the most common unit)'},
-      {strong:'Eighth note', rest:' — ½ beat; two per quarter note'},
-      {strong:'Sixteenth note', rest:' — ¼ beat; four per quarter note'},
+<br><br>The quality of each third — major (4 semitones) or minor (3 semitones) — determines the whole chord's character. Every major chord, minor chord, jazz voicing, and power chord ultimately comes from this simple idea of layered thirds.`,
+    stack: [
+      { label:'G', interval:'3rd above E' },
+      { label:'E', interval:'3rd above C' },
+      { label:'C', interval:'Root' },
     ],
-  },
-  {
-    title: 'Time Signatures',
-    number: 'Step 02 — The Grid',
-    body: `A <strong>time signature</strong> tells you two things: how many beats are in each measure, and which note value counts as one beat. Written as a fraction at the start of a piece — <em>4/4</em>, <em>3/4</em>, <em>6/8</em> — the top number gives the beat count and the bottom number gives the note value.
-
-<br><br>In <em>4/4</em> time ("common time"), there are 4 beats per measure and the quarter note gets one beat. This is the most common time signature in pop, rock, jazz, and hip-hop. In <em>3/4</em> time ("waltz time"), there are 3 beats — lending it that characteristic one-two-three swing. In <em>6/8</em>, there are 6 eighth notes per measure, but they're usually felt in two groups of three, giving a lilting, compound feel.
-
-<br><br>The time signature creates the <strong>meter</strong> — the repeating pattern of strong and weak beats that gives rhythm its pulse and feel.`,
-    timeSigs: true,
-    audio: { desc:'4/4 at 90 BPM — feel the kick on 1 & 3, snare on 2 & 4, notes on every beat.', fn:()=>{ _scheduleDrums(90,2); mtPlaySeq(['C3','C3','C3','C3','C3','C3','C3','C3'],0.667); } },
     keyPoints: [
-      {strong:'Top number', rest:' — beats per measure'},
-      {strong:'Bottom number', rest:' — which note value = 1 beat (4 = quarter, 8 = eighth)'},
-      {strong:'4/4',  rest:' — four quarter beats; the standard for most popular music'},
-      {strong:'3/4',  rest:' — three quarter beats; waltz feel; strong on beat 1'},
-      {strong:'6/8',  rest:' — six eighth beats in two groups of three; compound lilting feel'},
+      { strong:'Chord', rest:' — 3 or more notes sounded simultaneously' },
+      { strong:'Tertian harmony', rest:' — chords built by stacking 3rds (every other scale note)' },
+      { strong:'Triad', rest:' — the foundational 3-note chord: root, 3rd, 5th' },
+      { strong:'Root', rest:' — the note the chord is named after; gives it its tonal center' },
     ],
-  },
-  {
-    title: 'Ties & Dots',
-    number: 'Step 03 — Extending Notes',
-    body: `Two notation devices let you create note durations that don't fit neatly into standard values: <strong>ties</strong> and <strong>dots</strong>.
-
-<br><br>A <em>tie</em> connects two notes of the same pitch, making them sound as one continuous note for the combined duration. A quarter note tied to a half note sounds for 3 beats. Ties are essential for holding notes across bar lines — you can't write a 5-beat note, but you can tie a half note in one measure to a half note in the next.
-
-<br><br>A <em>dot</em> after a note increases its duration by half. A dotted quarter note = 1½ beats. A dotted half note = 3 beats. A dotted eighth note = ¾ of a beat. The dot is more compact notation for a common durational relationship, and dotted rhythms are everywhere — they create a characteristic "long-short" feel that drives forward motion in marches, baroque music, and jazz.`,
-    rhythmViz: {
-      label: 'Dotted quarter = ¼ note + ⅛ note (1½ beats)',
-      rows: [
-        { label:'Quarter (1 beat)', cells: ['on','rest'] },
-        { label:'Dotted quarter (1.5)', cells: ['on','on','rest'] },
-        { label:'Eighth (0.5)', cells: ['on'] },
-      ]
+    piano: {
+      startNote:'C3', endNote:'C5',
+      highlight:['C3','E3','G3'],
+      label:'C Major Triad — C, E, G (root, 3rd, 5th)',
     },
-    audio: { desc:'Dotted-quarter pattern over a steady beat — hear the long-short against the kick & snare.', fn:()=>{ _scheduleDrums(90,2); mtPlaySeq(['C3','E3','C3','E3','C3','E3','C3','E3'],0.5); } },
-    keyPoints: [
-      {strong:'Tie',         rest:' — connects two same-pitch notes into one sustained note'},
-      {strong:'Dot',         rest:' — adds half the note\'s value to its duration'},
-      {strong:'Dotted quarter', rest:' — 1.5 beats; often paired with an eighth note (long-short)'},
-      {strong:'Dotted half', rest:' — 3 beats; common in 3/4 and 4/4 time'},
-    ],
+    audio: { desc:'Hear a C major triad — the three notes C, E, and G played together.', fn:()=>mtPlayChord(['C3','E3','G3'],2.5) },
   },
+
+  // ── Step 2: Major & Minor Triads ─────────────────────────
   {
-    title: 'Syncopation',
-    number: 'Step 04 — Off the Beat',
-    body: `<strong>Syncopation</strong> is the placement of emphasis on beats or parts of beats that are normally weak or unstressed. In 4/4 time, beats 1 and 3 are strong; beats 2 and 4 are weaker. Syncopation shifts accents to the weaker beats or to the spaces between beats (the "ands").
+    title: 'Major & Minor Triads',
+    number: 'Step 02 — The Two Families',
+    body: `The two most essential triads are <strong>major</strong> and <strong>minor</strong>. Both have a root, a third, and a perfect fifth — but the third is different by just one semitone, and that difference defines everything.
 
-<br><br>When you tap your foot in 4/4, the down-tap is beat 1, the up-tap between beats is the "and." A syncopated note lands on an "and" — creating a push, a lift, a sense of forward momentum that straightforward on-beat rhythms lack. This is the engine of funk, reggae, Latin rhythms, and jazz.
+<br><br>A <strong>major triad</strong> uses a <em>major 3rd</em> (4 semitones) from root to middle note: C → E. Add a minor 3rd (3 semitones) on top to reach the 5th: E → G. The formula is <em>4 + 3</em>. Major chords sound bright, stable, and resolved — the bedrock of happy-sounding music.
 
-<br><br>The simplest syncopation: tie a note across beat 3 so the attack happens on the "and of 2" instead. Or accent beat 2 and 4 (the "backbeat") in rock. More complex syncopation — like polyrhythm or the clave pattern in Latin music — layers different rhythmic cycles against each other.`,
-    syncoViz: true,
-    audio: { desc:'Melody over a beat — hear how the notes push between the kick & snare.', fn:()=>{ _scheduleDrums(90,2); mtPlaySeq(['C3','E3','G3','E3','C3','E3','G3','C4'],0.333); } },
-    keyPoints: [
-      {strong:'Syncopation',  rest:' — accents on weak beats or the "ands" between beats'},
-      {strong:'Backbeat',     rest:' — emphasis on beats 2 and 4; the backbone of rock and soul'},
-      {strong:'"And" of a beat', rest:' — the upstroke between two beats; where syncopated attacks land'},
-      {strong:'Feel',         rest:' — syncopation creates momentum, lift, and groove'},
+<br><br>A <strong>minor triad</strong> swaps the order: a <em>minor 3rd</em> first (3 semitones), then a major 3rd (4 semitones). C → E♭ → G. The formula is <em>3 + 4</em>. That single flattened note — E dropping to E♭ — shifts the entire emotional character toward darker, more introspective territory. Same root, same fifth, completely different feel.`,
+    stack: [
+      { label:'G',  interval:'P5 (both)' },
+      { label:'E♭ / E', interval:'m3 or M3' },
+      { label:'C',  interval:'Root' },
     ],
+    keyPoints: [
+      { strong:'Major triad formula', rest:' — root + M3 (4 st) + P5 · e.g. C E G' },
+      { strong:'Minor triad formula', rest:' — root + m3 (3 st) + P5 · e.g. C E♭ G' },
+      { strong:'One semitone difference', rest:' — E vs E♭ is all that separates "happy" from "sad"' },
+      { strong:'Same 5th', rest:' — the perfect 5th (7 semitones) is unchanged in both triads' },
+    ],
+    piano: {
+      startNote:'C3', endNote:'C5',
+      highlight:['C3','Eb3','E3','G3'],
+      label:'C major uses E · C minor uses E♭ — one semitone apart',
+    },
+    audio: { desc:'C major (C E G), then C minor (C E♭ G). One note changes; the mood shifts completely.', fn:()=>mtPlayChordSeq([['C3','E3','G3'],['C3','Eb3','G3']],2.2,0.5) },
   },
+
+  // ── Step 3: Diminished & Augmented ───────────────────────
   {
-    title: 'Feel & Groove',
-    number: 'Step 05 — Straight vs. Swing',
-    body: `Written rhythm notation is only the starting point. The actual <strong>feel</strong> of a rhythm — how it sits in time — depends on whether it's played <em>straight</em> or <em>swung</em>.
+    title: 'Diminished & Augmented',
+    number: 'Step 03 — The Outer Triads',
+    body: `Two more triad types complete the family by altering the <strong>fifth</strong> itself. Where major and minor triads both use a perfect 5th (7 semitones), these go further.
 
-<br><br>In <strong>straight feel</strong>, eighth notes are evenly spaced: each lasts exactly half a beat. This is precise, mechanical, and characteristic of rock, electronic music, and classical. In <strong>swing feel</strong>, eighth notes are uneven: the first is longer (roughly ⅔ of a beat) and the second is shorter (⅓). The result is a triplet-based lilt: "long-short, long-short" — the sound of jazz, blues, and shuffle grooves.
+<br><br>A <strong>diminished triad</strong> stacks two minor 3rds (3 + 3 = 6 semitones to the top note): C → E♭ → G♭. That top note is a <em>diminished 5th</em> — the tritone. It creates a chord with no stable resting point; pure tension. Diminished chords appear naturally on the 7th degree of every major scale and are essential tools for harmonic tension in classical, jazz, and metal.
 
-<br><br>Beyond straight vs. swing, feel encompasses <strong>timing relationships</strong>: playing slightly ahead of or behind the beat creates tension or relaxation. A drummer laying back on the beat sounds heavy and powerful; playing on top of the beat sounds urgent and driving. Great groove is the interplay between these micro-timing choices across the ensemble.`,
-    grooveViz: true,
-    audio: { desc:'C major scale over a straight beat — feel the even spacing of the notes against the kick & snare.', fn:()=>{ _scheduleDrums(90,2); mtPlaySeq(['C3','D3','E3','F3','G3','A3','B3','C4'],0.667); } },
-    keyPoints: [
-      {strong:'Straight feel', rest:' — even eighths; precise, mechanical, rock/electronic'},
-      {strong:'Swing feel',    rest:' — uneven eighths (long-short); jazz, blues, shuffle'},
-      {strong:'Ahead of the beat', rest:' — urgent, driving, energetic'},
-      {strong:'Behind the beat', rest:' — laid-back, heavy, relaxed groove'},
+<br><br>An <strong>augmented triad</strong> stacks two major 3rds (4 + 4 = 8 semitones): C → E → G♯. The raised fifth gives it a <em>floating, ambiguous</em> quality — no strong sense of gravity pulling it anywhere. Its perfect symmetry means it sounds the same from any of its three notes. Composers use it for dreamlike transitions and moments of uncertainty.`,
+    stack: [
+      { label:'G♭ / G♯', interval:'d5 or A5' },
+      { label:'E♭ / E', interval:'m3 or M3' },
+      { label:'C', interval:'Root' },
     ],
+    keyPoints: [
+      { strong:'Diminished triad', rest:' — root + m3 + d5 (3+3 st) · e.g. C E♭ G♭ · pure tension' },
+      { strong:'Augmented triad', rest:' — root + M3 + A5 (4+4 st) · e.g. C E G♯ · floating, ambiguous' },
+      { strong:'Symmetric structures', rest:' — dim = two m3s stacked; aug = two M3s stacked' },
+      { strong:'Diminished 5th', rest:' — the tritone interval makes diminished chords maximally tense' },
+    ],
+    piano: {
+      startNote:'C3', endNote:'C5',
+      highlight:['C3','Eb3','Gb3'],
+      label:'C Diminished — C E♭ G♭ (two stacked minor 3rds)',
+    },
+    audio: { desc:'C diminished (C E♭ G♭) — tense and unstable. Then C augmented (C E G♯) — floating and unresolved.', fn:()=>mtPlayChordSeq([['C3','Eb3','Gb3'],['C3','E3','G#3']],2.2,0.6) },
+  },
+
+  // ── Step 4: Seventh Chords ───────────────────────────────
+  {
+    title: 'Seventh Chords',
+    number: 'Step 04 — Adding the 7th',
+    body: `Stack one more third on top of any triad and you get a <strong>seventh chord</strong> — four notes that form the harmonic foundation of jazz, blues, and virtually all modern music. The name comes from the interval between the root and the new top note: a 7th.
+
+<br><br>The <strong>dominant seventh</strong> (C7 = C E G B♭) is the single most important chord in tonal music. The tritone between its 3rd and 7th (E and B♭) creates irresistible tension that wants to resolve to the tonic — it's the engine that drives harmonic motion. The <strong>major seventh</strong> (Cmaj7 = C E G B) replaces that resolution with sophistication: lush, complex, at rest but shimmering. The <strong>minor seventh</strong> (Cm7 = C E♭ G B♭) is the smooth backbone of jazz and R&B.`,
+    chordTable: true,
+    keyPoints: [
+      { strong:'Dominant 7th (C7)', rest:' — C E G B♭ · maximum tension, drives resolution to the tonic' },
+      { strong:'Major 7th (Cmaj7)', rest:' — C E G B · lush and sophisticated, found in jazz ballads' },
+      { strong:'Minor 7th (Cm7)', rest:' — C E♭ G B♭ · smooth, soulful, the most common jazz chord' },
+      { strong:'Half-dim (Cø7)', rest:' — C E♭ G♭ B♭ · appears as the ii chord in minor key progressions' },
+    ],
+    piano: {
+      startNote:'C3', endNote:'C5',
+      highlight:['C3','E3','G3','B3'],
+      label:'Cmaj7 — C E G B (major triad + major 7th)',
+    },
+    audio: { desc:'Major 7th (Cmaj7), then Dominant 7th (C7), then Minor 7th (Cm7). Hear the character shift.', fn:()=>mtPlayChordSeq([['C3','E3','G3','B3'],['C3','E3','G3','Bb3'],['C3','Eb3','G3','Bb3']],2.0,0.5) },
+  },
+
+  // ── Step 5: Extended Chords ──────────────────────────────
+  {
+    title: 'Extended Chords',
+    number: 'Step 05 — Beyond the 7th',
+    body: `Keep stacking thirds beyond the 7th and you reach <strong>extended chords</strong>: the <em>9th</em>, the <em>11th</em>, and the <em>13th</em>. These are the colours of jazz, neo-soul, gospel, and contemporary R&B — chords that feel rich, complex, and harmonically alive.
+
+<br><br>A <strong>9th chord</strong> adds the note a major 2nd above the octave (C9 = C E G B♭ D, or Cmaj9 = C E G B D). The 9th adds a breathy, "open" quality. A <strong>Cadd9</strong> includes the 9th but skips the 7th — warmer and more pop-friendly. The <strong>11th</strong> (the 4th, often raised to avoid clashing with the 3rd) and <strong>13th</strong> (the 6th) push into full jazz orchestration territory.
+
+<br><br>In practice, extended chords are never played as dense close-position stacks — you'd run out of fingers and the chord would turn to mud. The art is <em>which</em> extensions to include and how to space them. The 5th is almost always dropped; the top extension defines the colour.`,
+    stack: [
+      { label:'D',  interval:'9th' },
+      { label:'B',  interval:'maj 7th' },
+      { label:'G',  interval:'5th' },
+      { label:'E',  interval:'3rd' },
+      { label:'C',  interval:'Root' },
+    ],
+    keyPoints: [
+      { strong:'9th chord (C9 / Cmaj9)', rest:' — adds D above the octave · breathy, open, sophisticated' },
+      { strong:'Add9 (Cadd9)', rest:' — triad + 9th, no 7th · warmer, more pop-friendly than a full 9th chord' },
+      { strong:'11th & 13th', rest:' — further extensions, common in jazz and gospel arrangements' },
+      { strong:'Drop the 5th', rest:' — in practice, the 5th is usually omitted in extended voicings to avoid mud' },
+    ],
+    piano: {
+      startNote:'C3', endNote:'C5',
+      highlight:['C3','E3','G3','B3','D4'],
+      label:'Cmaj9 — C E G B D (major 7th + the 9th)',
+    },
+    audio: { desc:'Cmaj7 alone, then Cmaj9 with the added D. Hear how the 9th opens the chord up.', fn:()=>mtPlayChordSeq([['C3','E3','G3','B3'],['C3','E3','G3','B3','D4']],2.4,0.6) },
+  },
+
+  // ── Step 6: Voicings & Inversions ────────────────────────
+  {
+    title: 'Voicings & Inversions',
+    number: 'Step 06 — Arrangement',
+    body: `Knowing the notes in a chord is only half the story. <em>How</em> you arrange those notes — which octave each appears in, what order they're stacked — is the <strong>voicing</strong>. Same chord, wildly different feel.
+
+<br><br><strong>Inversions</strong> change which note sits in the bass. <em>Root position</em> (C E G) is the most grounded — the root is lowest. <em>First inversion</em> puts the 3rd in the bass (E G C), creating slight forward motion. <em>Second inversion</em> puts the 5th lowest (G C E) — used at cadence points for a floaty, unresolved quality before landing back on root position. Composers use inversions to create <strong>smooth voice leading</strong>: moving from chord to chord with the minimum possible movement in each voice.
+
+<br><br><strong>Open voicing</strong> spreads notes more than an octave apart — airy, spacious, orchestral. <strong>Close voicing</strong> packs them as tightly as possible — dense and full. The same four notes of Cmaj7 can sound like a Bill Evans jazz ballad, a church hymn, or a film score depending entirely on how they're voiced.`,
+    stack: [
+      { label:'C', interval:'Root pos.', dim:false },
+      { label:'E', interval:'1st inv.',  dim:false },
+      { label:'G', interval:'2nd inv.',  dim:false },
+    ],
+    keyPoints: [
+      { strong:'Root position', rest:' — root in bass (C E G) · most stable, clearest chord identity' },
+      { strong:'1st inversion', rest:' — 3rd in bass (E G C) · lighter, good for passing motion' },
+      { strong:'2nd inversion', rest:' — 5th in bass (G C E) · floaty, used at cadence points' },
+      { strong:'Voice leading', rest:' — moving between chords with minimal note movement; inversions make this smooth' },
+    ],
+    piano: {
+      startNote:'C3', endNote:'C5',
+      highlight:['C3','E3','G3','C4','E4'],
+      label:'Root (C E G) · 1st inversion (E G C) · 2nd inversion (G C E)',
+    },
+    audio: { desc:'C major in root position, then 1st inversion (E G C), then 2nd inversion (G C E). Same notes, different bass.', fn:()=>mtPlayChordSeq([['C3','E3','G3'],['E3','G3','C4'],['G3','C4','E4']],2.0,0.45) },
   },
 ];
 
+// ─────────────────────────────────────────────────────────────
+//  STEP RENDERER
+// ─────────────────────────────────────────────────────────────
+
 let currentStep = 0;
-
-function noteGridHTML() {
-  const ac = ACCENT;
-  // fill-rule="evenodd" compound paths give truly transparent holes in hollow noteheads
-  const sv = {
-    'Whole Note':    `<svg viewBox="0 0 52 34" style="width:64px;height:42px;display:block;margin:0 auto 10px;"><g transform="rotate(-15,26,17)"><path fill="${ac}" fill-rule="evenodd" d="M6,17 A20,12 0 1,0 46,17 A20,12 0 1,0 6,17 Z M16,17 A10,5.5 0 1,0 36,17 A10,5.5 0 1,0 16,17 Z"/></g></svg>`,
-    'Half Note':     `<svg viewBox="0 0 42 74" style="width:42px;height:74px;display:block;margin:0 auto 10px;"><g transform="rotate(-15,15,60)"><path fill="${ac}" fill-rule="evenodd" d="M0,60 A15,10 0 1,0 30,60 A15,10 0 1,0 0,60 Z M7,60 A8,4.5 0 1,0 23,60 A8,4.5 0 1,0 7,60 Z"/></g><line x1="29" y1="55" x2="29" y2="8" stroke="${ac}" stroke-width="2.8" stroke-linecap="round"/></svg>`,
-    'Quarter Note':  `<svg viewBox="0 0 42 74" style="width:42px;height:74px;display:block;margin:0 auto 10px;"><g transform="rotate(-15,15,60)"><ellipse cx="15" cy="60" rx="15" ry="10" fill="${ac}"/></g><line x1="29" y1="55" x2="29" y2="8" stroke="${ac}" stroke-width="2.8" stroke-linecap="round"/></svg>`,
-    'Eighth Note':   `<svg viewBox="0 0 50 74" style="width:50px;height:74px;display:block;margin:0 auto 10px;"><g transform="rotate(-15,15,60)"><ellipse cx="15" cy="60" rx="15" ry="10" fill="${ac}"/></g><line x1="29" y1="55" x2="29" y2="8" stroke="${ac}" stroke-width="2.8" stroke-linecap="round"/><path d="M29,8 C46,16 46,40 29,46 L29,8 Z" fill="${ac}"/></svg>`,
-    'Sixteenth Note':`<svg viewBox="0 0 50 82" style="width:50px;height:82px;display:block;margin:0 auto 10px;"><g transform="rotate(-15,15,68)"><ellipse cx="15" cy="68" rx="15" ry="10" fill="${ac}"/></g><line x1="29" y1="63" x2="29" y2="8" stroke="${ac}" stroke-width="2.8" stroke-linecap="round"/><path d="M29,8 C46,16 46,38 29,44 L29,8 Z" fill="${ac}"/><path d="M29,26 C46,34 46,56 29,62 L29,26 Z" fill="${ac}"/></svg>`,
-    'Whole Rest':    `<svg viewBox="0 0 54 36" style="width:64px;height:42px;display:block;margin:0 auto 10px;"><line x1="6" y1="11" x2="48" y2="11" stroke="${ac}" stroke-width="1.5" stroke-linecap="round"/><rect x="12" y="11" width="30" height="15" rx="1" fill="${ac}"/></svg>`,
-    'Half Rest':     `<svg viewBox="0 0 54 36" style="width:64px;height:42px;display:block;margin:0 auto 10px;"><rect x="12" y="10" width="30" height="15" rx="1" fill="${ac}"/><line x1="6" y1="25" x2="48" y2="25" stroke="${ac}" stroke-width="1.5" stroke-linecap="round"/></svg>`,
-    'Quarter Rest':  `<svg viewBox="0 0 36 74" style="width:36px;height:74px;display:block;margin:0 auto 10px;"><path d="M26,8 L12,26 L28,37 L12,50 L19,67" fill="none" stroke="${ac}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-  };
-  const notes = [
-    { key:'Whole Note',    beats:'4 beats' },
-    { key:'Half Note',     beats:'2 beats' },
-    { key:'Quarter Note',  beats:'1 beat' },
-    { key:'Eighth Note',   beats:'½ beat' },
-    { key:'Sixteenth Note',beats:'¼ beat' },
-    { key:'Whole Rest',    beats:'4 beats silence' },
-    { key:'Half Rest',     beats:'2 beats silence' },
-    { key:'Quarter Rest',  beats:'1 beat silence' },
-  ];
-  return `<div class="note-grid">${notes.map(n=>`<div class="note-cell">${sv[n.key]}<div class="note-name">${n.key}</div><div class="note-beats">${n.beats}</div></div>`).join('')}</div>`;
-}
-
-function timeSigHTML() {
-  return `<div class="time-sig-grid">
-    <div class="time-sig-cell"><div class="time-sig-fraction">4/4</div><div class="time-sig-name">Common Time</div><div class="time-sig-desc">4 quarter-note beats per measure. The most common time signature in pop, rock, and jazz.</div></div>
-    <div class="time-sig-cell"><div class="time-sig-fraction">3/4</div><div class="time-sig-name">Waltz Time</div><div class="time-sig-desc">3 quarter-note beats per measure. Strong beat on 1, lighter on 2 and 3. Waltzes, folk, ballads.</div></div>
-    <div class="time-sig-cell"><div class="time-sig-fraction">6/8</div><div class="time-sig-name">Compound Duple</div><div class="time-sig-desc">6 eighth-note beats, felt in 2 groups of 3. Lilting "sea shanty" or "12-bar blues" feel.</div></div>
-  </div>`;
-}
-
-function rhythmVizHTML(viz) {
-  const colors = { on: 'on', rest: 'rest', synco: 'synco' };
-  return `<div class="rhythm-viz">
-    <div class="rhythm-viz-label">${viz.label}</div>
-    ${viz.rows.map(r=>`<div class="beat-row">
-      <div class="beat-label">${r.label}</div>
-      ${r.cells.map(c=>`<div class="beat-block ${colors[c] || 'rest'}">${c==='on'?'●':''}</div>`).join('')}
-    </div>`).join('')}
-  </div>`;
-}
-
-function syncoVizHTML() {
-  return `<div class="rhythm-viz">
-    <div class="rhythm-viz-label">4/4 — Beats vs. Syncopated Accents</div>
-    <div class="beat-row">
-      <div class="beat-label">Beats (on)</div>
-      <div class="beat-block on">1</div><div class="beat-block rest">+</div>
-      <div class="beat-block on">2</div><div class="beat-block rest">+</div>
-      <div class="beat-block on">3</div><div class="beat-block rest">+</div>
-      <div class="beat-block on">4</div><div class="beat-block rest">+</div>
-    </div>
-    <div class="beat-row">
-      <div class="beat-label">Syncopated</div>
-      <div class="beat-block rest">1</div><div class="beat-block synco">+</div>
-      <div class="beat-block rest">2</div><div class="beat-block synco">+</div>
-      <div class="beat-block rest">3</div><div class="beat-block synco">+</div>
-      <div class="beat-block rest">4</div><div class="beat-block synco">+</div>
-    </div>
-    <div class="beat-row">
-      <div class="beat-label">Backbeat</div>
-      <div class="beat-block rest">1</div><div class="beat-block rest">+</div>
-      <div class="beat-block on">2</div><div class="beat-block rest">+</div>
-      <div class="beat-block rest">3</div><div class="beat-block rest">+</div>
-      <div class="beat-block on">4</div><div class="beat-block rest">+</div>
-    </div>
-  </div>`;
-}
-
-function grooveVizHTML() {
-  return `<div class="rhythm-viz">
-    <div class="rhythm-viz-label">Straight vs. Swing Eighth Notes</div>
-    <div class="beat-row">
-      <div class="beat-label">Straight</div>
-      <div class="beat-block on" style="flex:1">1</div>
-      <div class="beat-block on" style="flex:1">+</div>
-      <div class="beat-block on" style="flex:1">2</div>
-      <div class="beat-block on" style="flex:1">+</div>
-      <div class="beat-block on" style="flex:1">3</div>
-      <div class="beat-block on" style="flex:1">+</div>
-      <div class="beat-block on" style="flex:1">4</div>
-      <div class="beat-block on" style="flex:1">+</div>
-    </div>
-    <div class="beat-row">
-      <div class="beat-label">Swing</div>
-      <div class="beat-block on" style="flex:2">1 (long)</div>
-      <div class="beat-block synco" style="flex:1">+</div>
-      <div class="beat-block on" style="flex:2">2 (long)</div>
-      <div class="beat-block synco" style="flex:1">+</div>
-      <div class="beat-block on" style="flex:2">3 (long)</div>
-      <div class="beat-block synco" style="flex:1">+</div>
-      <div class="beat-block on" style="flex:2">4 (long)</div>
-      <div class="beat-block synco" style="flex:1">+</div>
-    </div>
-  </div>`;
-}
 
 function renderStep(idx) {
   mtStop();
   const step = steps[idx];
   const total = steps.length;
-  const card = document.getElementById('stepCard');
+  const card  = document.getElementById('stepCard');
 
-  const kpHTML = step.keyPoints.map(kp=>`<div class="key-point"><strong>${kp.strong}</strong>${kp.rest}</div>`).join('');
+  const kpHTML = step.keyPoints.map(kp =>
+    `<div class="key-point"><strong>${kp.strong}</strong>${kp.rest}</div>`
+  ).join('');
 
-  let extraHTML = '';
-  if (step.noteGrid) extraHTML += noteGridHTML();
-  if (step.timeSigs) extraHTML += timeSigHTML();
-  if (step.rhythmViz) extraHTML += rhythmVizHTML(step.rhythmViz);
-  if (step.syncoViz) extraHTML += syncoVizHTML();
-  if (step.grooveViz) extraHTML += grooveVizHTML();
+  const pianoHTML = step.piano
+    ? `<div class="piano-wrap">
+        <div class="piano-label">${step.piano.label}</div>
+        <div class="piano-svg-container">
+          ${buildPianoSVG({ startNote:step.piano.startNote, endNote:step.piano.endNote, highlight:step.piano.highlight, accent:ACCENT })}
+        </div>
+       </div>`
+    : '';
+
+  const stackHTML = step.stack
+    ? `<div style="margin-bottom:24px;">${chordStackHTML(step.stack)}</div>`
+    : '';
+
+  const tableHTML = step.chordTable
+    ? seventhChordTableHTML()
+    : '';
 
   card.innerHTML = `
     <div class="step-number">${step.number}</div>
     <h2 class="step-title">${step.title}</h2>
     <div class="step-body">${step.body}</div>
-    ${extraHTML}
-    <div class="key-points"><div class="key-points-label">Key Takeaways</div>${kpHTML}</div>
+    ${pianoHTML}
+    ${stackHTML}
+    ${tableHTML}
+    <div class="key-points">
+      <div class="key-points-label">Key Takeaways</div>
+      ${kpHTML}
+    </div>
     <div class="audio-demo">
       <div class="audio-demo-info">
         <div class="audio-demo-label">Listen</div>
         <div class="audio-demo-desc">${step.audio.desc}</div>
       </div>
       <button class="play-btn" id="playBtn" onclick="handlePlay()" title="Play / Stop">
-        <svg class="play-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"><polygon points="6,4 20,12 6,20" fill="#0a0b0d"/></svg>
-        <svg class="stop-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" style="display:none"><rect x="5" y="5" width="14" height="14" rx="2" fill="#0a0b0d"/></svg>
+        <svg class="play-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"><polygon points="6,4 20,12 6,20" fill="${ACCENT}"/></svg>
+        <svg class="stop-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" style="display:none"><rect x="5" y="5" width="14" height="14" rx="2" fill="${ACCENT}"/></svg>
       </button>
     </div>
   `;
 
-  document.getElementById('progressDots').innerHTML = steps.map((_,i)=>`<div class="progress-dot ${i<idx?'done':''} ${i===idx?'active':''}" onclick="jumpToStep(${i})" title="Step ${i+1}"></div>`).join('');
+  const dots = document.getElementById('progressDots');
+  dots.innerHTML = steps.map((_,i) =>
+    `<div class="progress-dot ${i<idx?'done':''} ${i===idx?'active':''}" onclick="jumpToStep(${i})" title="Step ${i+1}"></div>`
+  ).join('');
   document.getElementById('progressLabel').textContent = `Step ${idx+1} of ${total}`;
-  document.getElementById('stepCounter').textContent = `${idx+1} / ${total}`;
+  document.getElementById('stepCounter').textContent   = `${idx+1} / ${total}`;
+
   document.getElementById('prevBtn').disabled = idx === 0;
   const nextBtn = document.getElementById('nextBtn');
-  if (idx === total - 1) { nextBtn.textContent='Complete ✓'; nextBtn.className='nav-btn finish'; nextBtn.onclick=showCompletion; }
-  else { nextBtn.textContent='Next →'; nextBtn.className='nav-btn primary'; nextBtn.onclick=()=>navigate(1); }
+  if (idx === total - 1) {
+    nextBtn.textContent = 'Complete ✓'; nextBtn.className = 'nav-btn finish';
+    nextBtn.onclick = showCompletion;
+  } else {
+    nextBtn.textContent = 'Next →'; nextBtn.className = 'nav-btn primary';
+    nextBtn.onclick = () => navigate(1);
+  }
   updateSidebarActive(idx, COURSE_UID);
 }
 
@@ -570,9 +574,9 @@ function jumpToStep(idx) {
   if (idx < 0 || idx >= steps.length) return;
   currentStep = idx;
   renderStep(currentStep);
-  history.replaceState(null,'','#'+(idx+1));
-  window.scrollTo({top:document.getElementById('stepCard').offsetTop-90,behavior:'smooth'});
-  if (window.innerWidth<=900) { document.getElementById('learnSidebar').classList.remove('is-open'); document.getElementById('sidebarOverlay').classList.remove('is-open'); }
+  history.replaceState(null, '', '#' + (idx + 1));
+  window.scrollTo({ top: document.getElementById('stepCard').offsetTop - 90, behavior:'smooth' });
+  if (window.innerWidth <= 900) closeSidebar?.();
 }
 
 function navigate(dir) { jumpToStep(currentStep + dir); }
@@ -582,24 +586,27 @@ function showCompletion() {
   document.getElementById('stepCard').innerHTML = `
     <div class="completion-card">
       <svg width="56" height="56" viewBox="0 0 56 56" fill="none" style="display:block;margin:0 auto 20px;">
-        <circle cx="28" cy="28" r="25" stroke="${ACCENT}" stroke-width="1.5" fill="rgba(163,230,53,0.06)"/>
+        <circle cx="28" cy="28" r="25" stroke="${ACCENT}" stroke-width="1.5" fill="rgba(249,115,22,0.06)"/>
         <polyline points="17,28 25,36 39,19" stroke="${ACCENT}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      <div class="completion-title">Rhythm Complete!</div>
-      <p class="completion-sub">You now understand note values, time signatures, syncopation, and feel. One more module to go — Staff Notation.</p>
-      <a class="completion-cta" href="/learn/music-theory/notation/">Staff Notation →</a>
+      <div class="completion-title">Chords Complete!</div>
+      <p class="completion-sub">You now know the full triad family, seventh chords, extensions, and how voicings shape a chord's sound. Test your ears in Chord Quiz.</p>
+      <a class="completion-cta" href="/chord-quiz/">Try Chord Quiz →</a>
       <button class="completion-restart" onclick="jumpToStep(0)">← Restart this module</button>
     </div>`;
-  document.getElementById('stepNav').style.display='none';
-  document.getElementById('progressLabel').textContent='Complete!';
-  document.getElementById('progressDots').innerHTML=steps.map((_,i)=>`<div class="progress-dot done" onclick="jumpToStep(${i})" title="Step ${i+1}"></div>`).join('');
+  document.getElementById('stepNav').style.display = 'none';
+  document.getElementById('progressLabel').textContent = 'Complete!';
+  document.getElementById('progressDots').innerHTML = steps.map((_,i) =>
+    `<div class="progress-dot done" onclick="jumpToStep(${i})" title="Step ${i+1}"></div>`).join('');
 }
 
+// ── Init ─────────────────────────────────────────────────────
 buildSidebar(COURSE_UID);
 initMobileSidebar();
 const hashStep = parseInt(location.hash.replace('#','')) - 1;
 currentStep = (!isNaN(hashStep) && hashStep >= 0 && hashStep < steps.length) ? hashStep : 0;
 renderStep(currentStep);
+setTimeout(() => updateSidebarActive(currentStep, COURSE_UID), 0);
 document.addEventListener('keydown', e => {
   if (e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
   if (e.key==='ArrowRight'||e.key==='ArrowDown') navigate(1);

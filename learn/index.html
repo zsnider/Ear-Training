@@ -1,0 +1,1784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cloud.umami.is 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://aolaxmmrmvovbzumlybe.supabase.co wss://aolaxmmrmvovbzumlybe.supabase.co https://cloud.umami.is; img-src 'self' data:; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="canonical" href="https://sonicsandbox.app/learn/">
+<title>EQ Ear Training — Learn How EQ Works | SonicSandbox</title>
+<meta name="description" content="Learn how EQ works — frequency ranges, parametric EQ, shelves, high-pass filters, and Q explained with interactive examples. Free ear training for producers and engineers.">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
+<style>
+  /* ── Base reset & theme ─────────────────────────────────── */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg:      #0a0b0d;
+    --surface: #13151a;
+    --surface2:#1a1d24;
+    --surface3:#21252f;
+    --border:  rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text:    #dde2ee;
+    --muted:   #6b7280;
+    --accent:  #5b6aff;
+    --accent2: #8892ff;
+    --green: #3ecf8e; --amber: #f59e0b; --red: #f45b69;
+    --eq-accent: #5b6aff; --eq-accent2: #8892ff;
+    --comp-accent: #e8865a; --comp-accent2: #f0a882;
+    --rev-accent: #5b3fd4; --rev-accent2: #8b6fff;
+    --dist-accent: #d44a2a; --dist-accent2: #f07050;
+    --fq-accent: #00d4ff; --fq-accent2: #60e8ff;
+    --fh-accent: #00e5cc; --fh-accent2: #50f0d8;
+    --pan-accent: #7c5cfc; --pan-accent2: #a58aff;
+    --qc-accent: #2dd4a0; --qc-accent2: #5eefc0;
+    --delay-accent: #f97316; --delay-accent2: #fb923c;
+    --ll-accent: #f0b429; --ll-accent2: #ffd166;
+    --qeq-accent: #818cf8; --qeq-accent2: #a5b4fc;
+    --sca-accent: #39d353; --sca-accent2: #7ce88f;
+    --sidebar-w: 264px;
+  }
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+  }
+
+  nav {
+    width: 100%;
+    padding: 20px 32px;
+    display: flex; align-items: center;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    position: sticky; top: 0; z-index: 40;
+    background: var(--bg);
+  }
+  @media (max-width: 600px) { nav { padding: 16px 20px; } }
+
+  /* ── Learn layout ───────────────────────────────────────── */
+  .learn-layout {
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    min-height: 0;
+  }
+
+  /* ── Sidebar ────────────────────────────────────────────── */
+  .learn-sidebar {
+    width: var(--sidebar-w);
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 61px; /* nav height */
+    height: calc(100vh - 61px);
+    overflow-y: auto;
+    background: var(--bg);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.08) transparent;
+    z-index: 10;
+  }
+  .learn-sidebar::-webkit-scrollbar { width: 4px; }
+  .learn-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+
+  .sidebar-header {
+    padding: 16px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; background: var(--bg); z-index: 1;
+  }
+  .sidebar-header-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9.5px; font-weight: 600;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .sidebar-close-btn {
+    display: none;
+    background: none; border: none;
+    color: var(--muted); cursor: pointer;
+    font-size: 20px; line-height: 1; padding: 0 2px;
+    transition: color 0.15s;
+  }
+  .sidebar-close-btn:hover { color: var(--text); }
+
+  .sidebar-body { padding: 10px 0 48px; }
+
+  .sidebar-section { margin-bottom: 2px; }
+
+  .sidebar-section-label {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 20px 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px; font-weight: 600;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: rgba(255,255,255,0.28);
+  }
+  .section-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .sidebar-divider {
+    height: 1px; background: var(--border);
+    margin: 10px 0 6px;
+  }
+
+  /* Course */
+  .sidebar-course {}
+  .course-hdr {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 20px;
+    cursor: pointer; transition: background 0.14s;
+    user-select: none;
+  }
+  .course-hdr:hover { background: rgba(255,255,255,0.035); }
+  .course-hdr.is-active { background: rgba(91,106,255,0.07); }
+  .course-n {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    color: var(--muted); min-width: 18px; flex-shrink: 0;
+  }
+  .course-label {
+    font-size: 12.5px; font-weight: 500;
+    color: var(--text); flex: 1; line-height: 1.3;
+  }
+  .course-soon-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 7.5px; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    background: rgba(255,255,255,0.04);
+    color: rgba(255,255,255,0.22);
+    padding: 2px 5px; border-radius: 3px;
+    border: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0;
+  }
+  .course-chevron {
+    color: var(--muted); font-size: 12px;
+    font-weight: 400; line-height: 1;
+    flex-shrink: 0;
+    transition: transform 0.18s;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .sidebar-course.is-open .course-chevron { transform: rotate(90deg); }
+
+  /* Lessons */
+  .course-lessons {
+    display: none;
+    padding: 1px 0 4px;
+    border-left: 2px solid var(--border);
+    margin-left: 28px;
+  }
+  .sidebar-course.is-open .course-lessons { display: block; }
+
+  .lesson-row {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 4px 16px 4px 12px;
+    cursor: pointer;
+    transition: background 0.12s;
+    border-left: 2px solid transparent;
+    margin-left: -2px;
+    text-decoration: none;
+  }
+  .lesson-row:hover:not(.lesson-soon) { background: rgba(255,255,255,0.035); }
+  .lesson-row.is-active {
+    border-left-color: var(--eq-accent);
+    background: rgba(91,106,255,0.08);
+  }
+  .lesson-n {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px; color: var(--muted);
+    min-width: 28px; flex-shrink: 0;
+    padding-top: 1px;
+  }
+  .lesson-row.is-active .lesson-n { color: var(--eq-accent); }
+  .lesson-label {
+    font-size: 11.5px; color: var(--muted);
+    line-height: 1.45; font-weight: 300;
+  }
+  .lesson-row.is-active .lesson-label { color: var(--text); font-weight: 400; }
+  .lesson-row.lesson-soon { opacity: 0.38; cursor: not-allowed; }
+
+  /* ── Sidebar overlay (mobile) ───────────────────────────── */
+  .sidebar-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.65);
+    z-index: 30;
+    backdrop-filter: blur(1px);
+  }
+  .sidebar-overlay.is-open { display: block; }
+
+  /* ── Main content area ──────────────────────────────────── */
+  .learn-main {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column;
+    align-items: center;
+  }
+
+  /* Breadcrumb bar */
+  .learn-breadcrumb {
+    width: 100%;
+    padding: 13px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+    flex-shrink: 0;
+  }
+  .breadcrumb-toggle {
+    display: none;
+    align-items: center; gap: 7px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 7px;
+    padding: 6px 11px;
+    cursor: pointer;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600; color: var(--muted);
+    flex-shrink: 0;
+    transition: color 0.14s, border-color 0.14s;
+  }
+  .breadcrumb-toggle:hover { color: var(--text); border-color: var(--border2); }
+  .bc-path {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; color: var(--muted);
+    letter-spacing: 0.04em;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .bc-path a { color: var(--muted); text-decoration: none; }
+  .bc-path a:hover { color: var(--text); }
+  .bc-sep { opacity: 0.35; }
+  .bc-current { color: var(--text); font-weight: 500; }
+
+  /* ── Step progress bar ──────────────────────────────────── */
+  .progress-bar-wrap {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 28px;
+  }
+  .progress-dots { display: flex; gap: 6px; flex-wrap: wrap; }
+  .progress-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border2);
+    transition: background 0.2s, transform 0.2s;
+    cursor: pointer;
+  }
+  .progress-dot.done   { background: rgba(91,106,255,0.45); }
+  .progress-dot.active { background: var(--eq-accent2); transform: scale(1.3); }
+  .progress-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); margin-left: auto;
+  }
+
+  /* ── Module content wrapper ─────────────────────────────── */
+  .module-wrap {
+    width: 100%; max-width: 860px;
+    padding: 36px 24px 80px;
+  }
+
+  /* ── Step card ──────────────────────────────────────────── */
+  .step-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 36px 36px 32px;
+    position: relative; overflow: hidden;
+  }
+  .step-card::before {
+    content: ''; position: absolute; inset: 0; border-radius: 20px;
+    background: radial-gradient(ellipse at top left, rgba(91,106,255,0.09), transparent 60%);
+    pointer-events: none;
+  }
+  .step-number {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--eq-accent); margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .step-number::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+  .step-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(20px, 3vw, 28px);
+    font-weight: 600; letter-spacing: -0.02em;
+    color: var(--text); margin-bottom: 18px; line-height: 1.25;
+  }
+  .step-body {
+    font-size: 15px; color: var(--muted);
+    line-height: 1.75; font-weight: 300; margin-bottom: 28px;
+  }
+  .step-body strong { color: var(--text); font-weight: 500; }
+  .step-body em { color: var(--eq-accent2); font-style: normal; font-weight: 500; }
+
+  /* ── Spectrum viz ───────────────────────────────────────── */
+  .spectrum-wrap {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 20px 12px;
+    margin-bottom: 24px;
+  }
+  .spectrum-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 12px;
+  }
+  .spectrum-svg { width: 100%; height: auto; display: block; }
+
+  /* ── Key points ─────────────────────────────────────────── */
+  .key-points {
+    background: rgba(91,106,255,0.05);
+    border: 1px solid rgba(91,106,255,0.14);
+    border-radius: 12px; padding: 18px 20px;
+    margin-bottom: 24px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .key-points-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--eq-accent); margin-bottom: 4px;
+  }
+  .key-point {
+    display: flex; gap: 10px; align-items: flex-start;
+    font-size: 13px; color: var(--muted); line-height: 1.55;
+  }
+  .key-point::before {
+    content: '→'; color: var(--eq-accent2);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; margin-top: 1px; flex-shrink: 0;
+  }
+  .key-point strong { color: var(--text); font-weight: 500; }
+
+  /* ── Audio demo ─────────────────────────────────────────── */
+  .audio-demo {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 20px;
+    margin-bottom: 28px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  .audio-demo-info { flex: 1; min-width: 200px; }
+  .audio-demo-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 4px;
+  }
+  .audio-demo-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .demo-controls { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .play-btn {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--eq-accent); border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: transform 0.15s, opacity 0.15s; flex-shrink: 0;
+  }
+  .play-btn:hover { transform: scale(1.08); opacity: 0.9; }
+  .play-btn svg { pointer-events: none; }
+  .play-btn.playing { background: rgba(91,106,255,0.3); border: 1.5px solid var(--eq-accent); }
+  .vol-wrap { display: flex; align-items: center; gap: 8px; }
+  .vol-icon { color: var(--muted); font-size: 14px; }
+  input[type=range].vol-slider {
+    -webkit-appearance: none; appearance: none;
+    width: 72px; height: 3px;
+    border-radius: 2px; background: var(--border2); outline: none; cursor: pointer;
+  }
+  input[type=range].vol-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 13px; height: 13px;
+    border-radius: 50%; background: var(--eq-accent2); cursor: pointer;
+  }
+
+  /* ── Step navigation ────────────────────────────────────── */
+  .step-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; margin-top: 4px;
+  }
+  .nav-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 11px 22px; border-radius: 10px;
+    border: 1px solid var(--border2); background: var(--surface2);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; font-weight: 600; color: var(--muted);
+    cursor: pointer; transition: border-color 0.15s, color 0.15s, transform 0.15s;
+    text-decoration: none;
+  }
+  .nav-btn:hover { border-color: var(--border2); color: var(--text); transform: translateY(-1px); }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+  .nav-btn.primary { background: var(--eq-accent); border-color: var(--eq-accent); color: #fff; }
+  .nav-btn.primary:hover { opacity: 0.88; }
+  .nav-btn.finish {
+    background: rgba(91,106,255,0.15); border-color: var(--eq-accent); color: var(--eq-accent2);
+  }
+  .step-counter {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; color: var(--muted);
+  }
+
+  /* ── Completion card ────────────────────────────────────── */
+  .completion-card { text-align: center; padding: 56px 36px; }
+  .completion-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 26px; font-weight: 600; color: var(--text); margin-bottom: 12px;
+  }
+  .completion-sub {
+    font-size: 15px; color: var(--muted); line-height: 1.7;
+    max-width: 440px; margin: 0 auto 32px;
+  }
+  .completion-cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 28px; border-radius: 10px;
+    background: var(--eq-accent); color: #fff;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px; font-weight: 600; text-decoration: none;
+    transition: opacity 0.15s, transform 0.15s;
+  }
+  .completion-cta:hover { opacity: 0.88; transform: translateY(-1px); }
+  .completion-restart {
+    display: block; margin: 18px auto 0;
+    background: none; border: none; color: var(--muted);
+    font-size: 13px; cursor: pointer; text-decoration: underline; font-family: inherit;
+  }
+  .completion-restart:hover { color: var(--text); }
+
+  /* ── Mobile responsive ──────────────────────────────────── */
+  @media (max-width: 900px) {
+    .learn-sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      transform: translateX(-100%);
+      transition: transform 0.24s cubic-bezier(0.4,0,0.2,1);
+      z-index: 50;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+      border-right: 1px solid var(--border2);
+    }
+    .learn-sidebar.is-open { transform: translateX(0); }
+    .sidebar-close-btn { display: block; }
+    .breadcrumb-toggle { display: flex; }
+    .learn-main { width: 100%; }
+  }
+  @media (max-width: 600px) {
+    .step-card { padding: 24px 20px 22px; }
+    .module-wrap { padding: 24px 16px 60px; }
+    .step-nav { flex-direction: column; }
+    .nav-btn { width: 100%; justify-content: center; }
+    .learn-breadcrumb { padding: 10px 16px; }
+  }
+</style>
+
+  <!-- Open Graph / Social -->
+  <meta property="og:type"        content="website">
+  <meta property="og:url"         content="https://sonicsandbox.app/learn/">
+  <meta property="og:title"       content="EQ Ear Training — Learn How EQ Works | SonicSandbox">
+  <meta property="og:description" content="Learn how EQ works — frequency ranges, parametric EQ, shelves, high-pass filters, and Q explained with interactive examples. Free ear training for producers and engineers.">
+  <meta property="og:image"       content="https://sonicsandbox.app/og-image.png">
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:title"       content="EQ Ear Training — Learn How EQ Works | SonicSandbox">
+  <meta name="twitter:description" content="Learn how EQ works — frequency ranges, parametric EQ, shelves, high-pass filters, and Q explained with interactive examples. Free ear training for producers and engineers.">
+  <meta name="twitter:image"       content="https://sonicsandbox.app/og-image.png">
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="a4e7fbcc-763c-4844-8f4f-669cf411e799"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LearningResource",
+    "name": "EQ Ear Training — Learn How EQ Works",
+    "url": "https://sonicsandbox.app/learn/",
+    "description": "Learn how EQ works — frequency ranges, parametric EQ, shelves, high-pass filters, and Q explained with interactive examples.",
+    "teaches": "Equalization, EQ, frequency recognition, audio mixing",
+    "educationalLevel": "Beginner",
+    "isAccessibleForFree": true,
+    "provider": {
+      "@type": "Organization",
+      "name": "SonicSandbox",
+      "url": "https://sonicsandbox.app/"
+    }
+  }
+  </script>
+</head>
+<body>
+
+<!-- ── Nav ──────────────────────────────────────────────── -->
+<nav>
+  <div class="nav-logo-wrap">
+    <a class="nav-logo" href="/">Sonic<span>Sandbox</span></a>
+  </div>
+  <div class="nav-center">
+    <a class="nav-link" href="/">Home</a>
+    <a class="nav-link" href="/games/">Games</a>
+    <a class="nav-link active" href="/learn/">Learn</a>
+    <a class="nav-link" href="/stats/">Stats</a>
+  </div>
+  <div class="nav-right">
+    <div id="authArea">
+      <button class="auth-btn" id="openAuthBtn">Sign in</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Learn layout ─────────────────────────────────────── -->
+<div class="learn-layout">
+
+  <!-- Sidebar -->
+  <aside class="learn-sidebar" id="learnSidebar" aria-label="Course navigation">
+    <div class="sidebar-header">
+      <span class="sidebar-header-label">Learning Center</span>
+      <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close menu">✕</button>
+    </div>
+    <div class="sidebar-body" id="sidebarBody">
+      <!-- Populated by JS -->
+    </div>
+  </aside>
+
+  <!-- Mobile overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Main content -->
+  <main class="learn-main">
+
+    <!-- Breadcrumb / mobile toggle -->
+    <div class="learn-breadcrumb">
+      <button class="breadcrumb-toggle" id="sidebarToggleBtn" aria-label="Open course menu">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <rect y="1" width="14" height="1.5" rx="0.75" fill="currentColor"/>
+          <rect y="6" width="10" height="1.5" rx="0.75" fill="currentColor"/>
+          <rect y="11" width="12" height="1.5" rx="0.75" fill="currentColor"/>
+        </svg>
+        Courses
+      </button>
+      <div class="bc-path">
+        <a href="/learn/">Learn</a>
+        <span class="bc-sep">›</span>
+        <span>Audio Engineering</span>
+        <span class="bc-sep">›</span>
+        <span class="bc-current" id="bcCurrent">EQ</span>
+      </div>
+    </div>
+
+    <!-- Module content -->
+    <div class="module-wrap">
+
+      <!-- Progress -->
+      <div class="progress-bar-wrap">
+        <div class="progress-dots" id="progressDots"></div>
+        <div class="progress-label" id="progressLabel">Step 1 of 10</div>
+      </div>
+
+      <!-- Step card -->
+      <div class="step-card" id="stepCard"><!-- Rendered by JS --></div>
+
+      <!-- Step navigation -->
+      <div class="step-nav" id="stepNav" style="margin-top:20px;">
+        <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>← Previous</button>
+        <span class="step-counter" id="stepCounter"></span>
+        <button class="nav-btn primary" id="nextBtn" onclick="navigate(1)">Next →</button>
+      </div>
+
+    </div><!-- /module-wrap -->
+  </main>
+</div><!-- /learn-layout -->
+
+
+<!-- Static SEO content — visually hidden, crawlable -->
+<article class="seo-article" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;">
+  <h2>How EQ Works — A Guide for Producers and Engineers</h2>
+  Equalization (EQ) is the process of adjusting the balance of frequency components in an audio signal. It is one of the most fundamental tools in music production and audio engineering.
+  A parametric EQ lets you control three main parameters for each band: frequency, gain, and Q. Common frequency ranges include: sub-bass (20–80 Hz), bass (80–250 Hz), low-midrange (250–500 Hz), midrange (500 Hz–2 kHz), upper-midrange (2–6 kHz), and air (8–20 kHz). EQ ear training involves learning to identify frequencies by ear through tools like SonicSandbox's Freq Quiz and EQ Match games.
+</article>
+
+<!-- ── Footer ────────────────────────────────────────────── -->
+<footer>
+  <div class="footer-left">
+    <a href="/">SonicSandbox</a>
+    &nbsp;·&nbsp; Ear training for producers, engineers, &amp; musicians
+    &nbsp;·&nbsp; <a href="/about/">About</a>
+    &nbsp;·&nbsp; <a href="/privacy/">Privacy Policy</a>
+    &nbsp;·&nbsp; <a href="/support/">Support</a>
+  </div>
+  <div class="footer-right"><span>© 2026 Zach Snider</span></div>
+</footer>
+
+<!-- ── Auth modal ────────────────────────────────────────── -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" id="closeAuthBtn">&times;</button>
+    <div class="modal-tabs">
+      <button class="modal-tab active" data-tab="signin">Sign in</button>
+      <button class="modal-tab" data-tab="signup">Create account</button>
+    </div>
+    <div id="tabSignin">
+      <label>Email</label>
+      <input type="email" id="siEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label>
+      <input type="password" id="siPassword" placeholder="••••••••" autocomplete="current-password">
+      <button class="modal-submit" id="siSubmit">Sign in</button>
+      <div class="modal-msg" id="siMsg"></div>
+      <button class="forgot-pw-link" id="forgotPwBtn" type="button">Forgot password?</button>
+    </div>
+    <div id="tabForgot" style="display:none;">
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:18px;">Enter your email and we'll send you a reset link.</p>
+      <label>Email</label>
+      <input type="email" id="fpEmail" placeholder="you@example.com" autocomplete="email">
+      <button class="modal-submit" id="fpSubmit">Send reset link</button>
+      <div class="modal-msg" id="fpMsg"></div>
+      <button class="forgot-pw-link" id="backToSigninBtn" type="button">← Back to sign in</button>
+    </div>
+    <div id="tabSignup" style="display:none;">
+      <label>Email</label>
+      <input type="email" id="suEmail" placeholder="you@example.com" autocomplete="email">
+      <label>Password</label>
+      <input type="password" id="suPassword" placeholder="At least 6 characters" autocomplete="new-password">
+      <button class="modal-submit" id="suSubmit">Create account</button>
+      <div class="modal-msg" id="suMsg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Username setup modal -->
+<div class="modal-overlay" id="usernameModal">
+  <div class="modal">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent2);margin-bottom:8px;">Welcome</div>
+    <h2 style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;margin-bottom:10px;">Choose a username</h2>
+    <p style="font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:26px;">Your username will appear on leaderboards and game stats. You can change it later.</p>
+    <label for="usernameInput">Username</label>
+    <input type="text" id="usernameInput" placeholder="e.g. basshead42" maxlength="20"
+           autocomplete="off" autocapitalize="off" spellcheck="false">
+    <div class="username-check" id="usernameCheck"></div>
+    <p class="username-hint">3–20 characters · Letters, numbers, _ and - only</p>
+    <button class="modal-submit" id="usernameSubmit">Set username</button>
+    <div class="modal-msg" id="usernameMsg"></div>
+    <button class="username-skip" id="usernameSkip">Skip for now</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../supabase-client.js"></script>
+<script>
+// ── Auth modal logic ─────────────────────────────────────────
+const authModal  = document.getElementById('authModal');
+const authArea   = document.getElementById('authArea');
+const closeBtn   = document.getElementById('closeAuthBtn');
+const tabs       = document.querySelectorAll('.modal-tab');
+const tabSignin  = document.getElementById('tabSignin');
+const tabSignup  = document.getElementById('tabSignup');
+const tabForgot  = document.getElementById('tabForgot');
+const usernameModal  = document.getElementById('usernameModal');
+const usernameInput  = document.getElementById('usernameInput');
+const usernameCheck  = document.getElementById('usernameCheck');
+const usernameSubmit = document.getElementById('usernameSubmit');
+const usernameMsg    = document.getElementById('usernameMsg');
+
+function openAuthModal() { authModal.classList.add('open'); }
+function closeAuthModal() { authModal.classList.remove('open'); showSigninPanel(); }
+
+document.getElementById('openAuthBtn').addEventListener('click', openAuthModal);
+closeBtn.addEventListener('click', closeAuthModal);
+authModal.addEventListener('click', e => { if (e.target === authModal) closeAuthModal(); });
+
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    tabSignin.style.display = tab.dataset.tab === 'signin' ? '' : 'none';
+    tabSignup.style.display = tab.dataset.tab === 'signup' ? '' : 'none';
+    tabForgot.style.display = 'none';
+  });
+});
+
+function showForgotPanel() {
+  tabSignin.style.display = 'none'; tabForgot.style.display = '';
+  const e = document.getElementById('siEmail').value.trim();
+  if (e) document.getElementById('fpEmail').value = e;
+  document.getElementById('fpMsg').textContent = '';
+}
+function showSigninPanel() { tabForgot.style.display = 'none'; tabSignin.style.display = ''; }
+
+document.getElementById('forgotPwBtn').addEventListener('click', showForgotPanel);
+document.getElementById('backToSigninBtn').addEventListener('click', showSigninPanel);
+
+document.getElementById('siSubmit').addEventListener('click', async () => {
+  const msg = document.getElementById('siMsg');
+  msg.textContent = 'Signing in…'; msg.className = 'modal-msg';
+  const { error } = await SonicSandbox.signIn(
+    document.getElementById('siEmail').value.trim(),
+    document.getElementById('siPassword').value
+  );
+  if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+  else { closeAuthModal(); }
+});
+
+document.getElementById('fpSubmit').addEventListener('click', async () => {
+  const email = document.getElementById('fpEmail').value.trim();
+  const msg = document.getElementById('fpMsg');
+  if (!email) { msg.textContent = 'Please enter your email.'; msg.className = 'modal-msg error'; return; }
+  msg.textContent = 'Sending…'; msg.className = 'modal-msg';
+  const { error } = await SonicSandbox.resetPasswordForEmail(email);
+  if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+  else { msg.textContent = 'Reset link sent! Check your inbox.'; msg.className = 'modal-msg success'; document.getElementById('fpSubmit').disabled = true; }
+});
+
+document.getElementById('suSubmit').addEventListener('click', async () => {
+  const msg = document.getElementById('suMsg');
+  msg.textContent = 'Creating account…'; msg.className = 'modal-msg';
+  const { error } = await SonicSandbox.signUp(
+    document.getElementById('suEmail').value.trim(),
+    document.getElementById('suPassword').value
+  );
+  if (error) { msg.textContent = error.message; msg.className = 'modal-msg error'; }
+  else { msg.textContent = 'Check your email to confirm your account.'; msg.className = 'modal-msg success'; }
+});
+
+// Username modal
+function validateUsername(val) {
+  if (val.length < 3)  return 'Too short — min 3 characters';
+  if (val.length > 20) return 'Too long — max 20 characters';
+  if (!/^[a-zA-Z0-9_-]+$/.test(val)) return 'Letters, numbers, _ and - only';
+  return null;
+}
+function openUsernameModal() {
+  usernameInput.value = ''; usernameCheck.textContent = '';
+  usernameCheck.className = 'username-check'; usernameMsg.textContent = '';
+  usernameModal.classList.add('open');
+  setTimeout(() => usernameInput.focus(), 50);
+}
+let _unCheckTimer;
+usernameInput.addEventListener('input', () => {
+  const val = usernameInput.value.trim();
+  clearTimeout(_unCheckTimer);
+  const err = validateUsername(val);
+  if (err) { usernameCheck.textContent = val.length > 0 ? err : ''; usernameCheck.className = 'username-check'; return; }
+  usernameCheck.textContent = 'Checking…'; usernameCheck.className = 'username-check';
+  _unCheckTimer = setTimeout(async () => {
+    const taken = await SonicSandbox.isUsernameTaken(val);
+    if (usernameInput.value.trim() !== val) return;
+    usernameCheck.textContent = taken ? `"${val}" is already taken` : `"${val}" is available ✓`;
+    usernameCheck.className = taken ? 'username-check taken' : 'username-check available';
+  }, 500);
+});
+usernameSubmit.addEventListener('click', async () => {
+  const val = usernameInput.value.trim();
+  const err = validateUsername(val);
+  if (err) { usernameMsg.textContent = err; usernameMsg.className = 'modal-msg error'; return; }
+  usernameMsg.textContent = 'Saving…'; usernameMsg.className = 'modal-msg';
+  const { error } = await SonicSandbox.setUsername(val);
+  if (error) {
+    const isConflict = error.message?.toLowerCase().includes('duplicate') || error.message?.toLowerCase().includes('unique') || error.code === '23505';
+    usernameMsg.textContent = isConflict ? `"${val}" is already taken — try another.` : error.message;
+    usernameMsg.className = 'modal-msg error';
+  } else {
+    usernameModal.classList.remove('open');
+    const el = authArea.querySelector('.username-display');
+    if (el) el.textContent = '@' + val;
+  }
+});
+document.getElementById('usernameSkip').addEventListener('click', () => usernameModal.classList.remove('open'));
+usernameModal.addEventListener('click', e => { if (e.target === usernameModal) usernameModal.classList.remove('open'); });
+
+// Auth state
+document.addEventListener('ss:authchange', async e => {
+  const user = e.detail;
+  if (user) {
+    authArea.innerHTML = `<div class="user-pill"><span class="username-display" style="color:var(--muted);font-size:12px;">${user.email}</span></div>`;
+    const profile = await SonicSandbox.getProfile();
+    const el = authArea.querySelector('.username-display');
+    if (!el) return;
+    if (profile?.username) {
+      el.outerHTML = `<a class="set-username-link" href="/account/">@${profile.username}</a>`;
+    } else {
+      el.outerHTML = `<a class="set-username-link" href="/account/">Set username</a>`;
+    }
+  } else {
+    authArea.innerHTML = `<button class="auth-btn" id="openAuthBtn">Sign in</button>`;
+    document.getElementById('openAuthBtn').addEventListener('click', openAuthModal);
+  }
+});
+</script>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+//  SIDEBAR DATA
+// ─────────────────────────────────────────────────────────────
+
+const AE_COURSES = [
+  {
+    num: 1, id: 'eq', label: 'EQ', url: '/learn/', current: true, accent: '#5b6aff',
+    lessons: [
+      'What is EQ?', 'The Frequency Spectrum', 'Sub Bass — 20 to 60 Hz',
+      'Bass — 60 to 250 Hz', 'Low Mids — 250 to 500 Hz', 'Midrange — 500 Hz to 2 kHz',
+      'High Mids — 2 to 6 kHz', 'Presence & Air — 6 to 20 kHz',
+      'EQ Filter Types', 'Practical EQ Tips',
+    ]
+  },
+  {
+    num: 2, id: 'gain-staging', label: 'Gain Staging', url: '/learn/gain-staging/', accent: '#86efac',
+    lessons: [
+      'What Is Gain Staging?', 'Decibels — The Language of Loudness',
+      'Clipping — When Signal Goes Too Hot', 'Headroom — Give Transients Room',
+      'How Gain Accumulates Through a Chain', 'Reading Meters — Peak, RMS, LUFS',
+      'The −18 dBFS Target', 'Input, Output & Gain Compensation', 'Gain Staging the Mix Bus',
+    ]
+  },
+  {
+    num: 3, id: 'compression', label: 'Compression', url: '/learn/compression/', accent: '#e8865a',
+    lessons: [
+      'What is Compression?', 'How Compression Works', 'Threshold', 'Ratio',
+      'Attack', 'Release', 'Knee', 'Makeup Gain', 'Compressor Types',
+      'Parallel Compression', 'Sidechain Compression', 'Practical Tips',
+    ]
+  },
+  {
+    num: 4, id: 'saturation', label: 'Saturation', url: '/learn/saturation/', accent: '#fbbf24',
+    lessons: [
+      'What is Saturation?', 'Even vs Odd Harmonics', 'Soft vs Hard Clipping',
+      'Drive', 'Tape Saturation', 'Tube Saturation',
+      'Transistor & Digital Clipping', 'Parallel Saturation', 'Where to Use Saturation', 'Practical Workflow',
+    ]
+  },
+  {
+    num: 5, id: 'reverb', label: 'Reverb', url: '/learn/reverb/', accent: '#a78bfa',
+    lessons: [
+      'What is Reverb?', 'Direct Sound & Early Reflections', 'Wet/Dry Balance',
+      'Pre-delay', 'Decay Time', 'Room Reverb', 'Hall Reverb',
+      'Plate & Spring', 'Diffusion & Damping', 'Reverb in the Mix',
+    ]
+  },
+  {
+    num: 6, id: 'delay', label: 'Delay', url: '/learn/delay/', accent: '#f97316',
+    lessons: [
+      'What is Delay?', 'Feedback & Repeats', 'Delay Time & Tempo Sync',
+      'Tape Delay', 'Analog Delay', 'Digital Delay & Ping-Pong',
+      'Modulation in Delay', 'The Haas Effect', 'Where to Use Delay', 'Practical Workflow',
+    ]
+  },
+  {
+    num: 7, id: 'soundstage', label: 'Spatial Mixing', url: '/learn/soundstage/', accent: '#38bdf8',
+    lessons: [
+      'Spatial Mixing', 'The Three Axes', 'Left & Right — Panning',
+      'Front & Back — Depth', 'Up & Down — Frequency as Height',
+      'Width — Mono vs Stereo', 'Reverb as Depth', 'Conventional Placement',
+      'Creating Space', 'Building Your Soundstage',
+    ]
+  },
+  {
+    num: 8, id: 'signal-chain', label: 'Signal Chain', url: '/learn/signal-chain/', accent: '#22d3ee',
+    lessons: [
+      'What Is a Signal Chain?', 'Why Order Matters', 'Gate & Expander',
+      'EQ → Compression', 'Compression Before Saturation',
+      'Inserts vs Sends', 'Time-Based Effects Last',
+      'The Master Bus Chain', 'Signal Chain Templates',
+    ]
+  },
+  {
+    num: 9, id: 'modulation', label: 'Modulation', url: '/learn/modulation/', accent: '#34d399',
+    lessons: [
+      'What is Modulation?', 'The LFO — Rate & Depth', 'Chorus', 'Flanger',
+      'Phaser', 'Tremolo', 'Vibrato', 'Telling Them Apart',
+      'Modulation in the Mix', 'Practical Workflow',
+    ]
+  },
+  {
+    num: 10, id: 'limiting', label: 'Limiting', url: '/learn/limiting/', accent: '#fda4af',
+    lessons: [
+      'What is a Limiter?', 'Ceiling, Threshold & Input Gain',
+      'Brickwall vs Dynamics Limiters', 'Release Time & Artifacts',
+      'LUFS in Depth', 'Streaming Normalization', 'True Peak', 'Practical Workflow',
+    ]
+  },
+];
+
+const MT_COURSES = [
+  {
+    num: 1, id: 'notes', label: 'Notes & The Piano', url: '/learn/music-theory/notes/',
+    accent: '#3ecf8e',
+    lessons: ['The 12 Notes', 'Sharps, Flats & Enharmonics', 'The Piano Keyboard', 'Octaves & Pitch Registers'],
+  },
+  {
+    num: 2, id: 'intervals', label: 'Intervals', url: '/learn/music-theory/intervals/',
+    accent: '#60e8ff',
+    lessons: ['Half Steps & Whole Steps', 'Naming Intervals', 'Perfect Intervals', 'Major & Minor Intervals', 'Augmented & Diminished'],
+  },
+  {
+    num: 3, id: 'scales', label: 'Scales', url: '/learn/music-theory/scales/',
+    accent: '#fbbf24',
+    lessons: ['The Major Scale', 'Natural Minor Scale', 'Harmonic & Melodic Minor', 'Pentatonic Scales', 'The Blues Scale', 'Modes'],
+  },
+  {
+    num: 4, id: 'chords', label: 'Chords & Triads', url: '/learn/music-theory/chords/',
+    accent: '#f97316',
+    lessons: ['What is a Chord?', 'Major & Minor Triads', 'Diminished & Augmented', 'Seventh Chords', 'Extended Chords', 'Voicings & Inversions'],
+  },
+  {
+    num: 5, id: 'keys', label: 'Keys & Circle of Fifths', url: '/learn/music-theory/keys/',
+    accent: '#c084fc',
+    lessons: ['Key Signatures', 'The Circle of Fifths', 'Relative Major & Minor', 'Parallel Keys'],
+  },
+  {
+    num: 6, id: 'progressions', label: 'Chord Progressions', url: '/learn/music-theory/progressions/',
+    accent: '#fb7185',
+    lessons: ['Roman Numeral Analysis', 'Diatonic Chords', 'Common Progressions', 'Functional Harmony', 'Modal Interchange'],
+  },
+  {
+    num: 7, id: 'rhythm', label: 'Rhythm & Meter', url: '/learn/music-theory/rhythm/',
+    accent: '#a3e635',
+    lessons: ['Note Values', 'Time Signatures', 'Ties & Dots', 'Syncopation', 'Feel & Groove'],
+  },
+  {
+    num: 8, id: 'notation', label: 'Staff Notation', url: '/learn/music-theory/notation/',
+    accent: '#e879f9',
+    lessons: ['The Staff & Clefs', 'Treble Clef Notes', 'Bass Clef Notes', 'Ledger Lines', 'Note Values & Rests', 'Time Signatures & Bar Lines'],
+  },
+];
+
+// ─────────────────────────────────────────────────────────────
+//  SIDEBAR RENDERER
+// ─────────────────────────────────────────────────────────────
+
+function buildSidebar() {
+  const body = document.getElementById('sidebarBody');
+
+  const aeHTML = AE_COURSES.map(c => renderCourse(c, 'ae')).join('');
+  const mtHTML = MT_COURSES.map(c => renderCourse(c, 'mt')).join('');
+
+  body.innerHTML = `
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">
+        <div class="section-dot" style="background:#5b6aff;"></div>
+        Audio Engineering
+      </div>
+      ${aeHTML}
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">
+        <div class="section-dot" style="background:#3ecf8e;"></div>
+        Music Theory
+      </div>
+      ${mtHTML}
+    </div>
+  `;
+}
+
+function renderCourse(c, section) {
+  const uid = `${section}-${c.id}`;
+  const isOpen = !!c.current;
+
+  const lessonsHTML = c.lessons.map((l, i) => {
+    if (c.current) {
+      // EQ — in-page navigation
+      return `<div class="lesson-row" id="lesson-${uid}-${i}" onclick="jumpToStep(${i})" role="button" tabindex="0">
+        <span class="lesson-n">${c.num}.${i + 1}</span>
+        <span class="lesson-label">${l}</span>
+      </div>`;
+    } else if (c.soon) {
+      return `<div class="lesson-row lesson-soon" aria-disabled="true">
+        <span class="lesson-n">${c.num}.${i + 1}</span>
+        <span class="lesson-label">${l}</span>
+      </div>`;
+    } else {
+      return `<a class="lesson-row" href="${c.url}#${i + 1}" style="color:inherit;">
+        <span class="lesson-n">${c.num}.${i + 1}</span>
+        <span class="lesson-label">${l}</span>
+      </a>`;
+    }
+  }).join('');
+
+  return `
+    <div class="sidebar-course ${isOpen ? 'is-open' : ''}" id="course-${uid}">
+      <div class="course-hdr ${c.current ? 'is-active' : ''}"
+           onclick="toggleCourse('${uid}', ${!!c.current}, '${c.url}', ${!!c.soon})"
+           role="button" tabindex="0"
+           aria-expanded="${isOpen}">
+        <span class="course-n">${c.num}.</span>
+        <span class="course-label">${c.label}</span>
+        ${c.soon ? '<span class="course-soon-badge">Soon</span>' : `<span class="course-chevron">›</span>`}
+      </div>
+      <div class="course-lessons" id="lessons-${uid}" style="${isOpen ? '' : 'display:none'}">
+        ${lessonsHTML}
+      </div>
+    </div>
+  `;
+}
+
+function toggleCourse(uid, isCurrent, url, isSoon) {
+  const lessonsEl = document.getElementById('lessons-' + uid);
+  const courseEl  = document.getElementById('course-' + uid);
+  if (!lessonsEl) return;
+
+  const isOpen = lessonsEl.style.display !== 'none';
+
+  if (isOpen) {
+    // Don't collapse the active course
+    if (!isCurrent) {
+      lessonsEl.style.display = 'none';
+      courseEl.classList.remove('is-open');
+    }
+  } else {
+    lessonsEl.style.display = '';
+    courseEl.classList.add('is-open');
+    // Navigate to the page if not current and not soon
+    if (!isCurrent && !isSoon) {
+      window.location.href = url;
+    }
+  }
+}
+
+function updateSidebarActive(idx) {
+  // Remove active from all EQ lessons
+  document.querySelectorAll('[id^="lesson-ae-eq-"]').forEach(el => el.classList.remove('is-active'));
+  const activeEl = document.getElementById(`lesson-ae-eq-${idx}`);
+  if (activeEl) {
+    activeEl.classList.add('is-active');
+    // Scroll the lesson into view in the sidebar
+    activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  MOBILE SIDEBAR TOGGLE
+// ─────────────────────────────────────────────────────────────
+
+const learnSidebar  = document.getElementById('learnSidebar');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+function openSidebar() {
+  learnSidebar.classList.add('is-open');
+  sidebarOverlay.classList.add('is-open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSidebar() {
+  learnSidebar.classList.remove('is-open');
+  sidebarOverlay.classList.remove('is-open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('sidebarToggleBtn').addEventListener('click', openSidebar);
+document.getElementById('sidebarCloseBtn').addEventListener('click', closeSidebar);
+sidebarOverlay.addEventListener('click', closeSidebar);
+
+
+// ─────────────────────────────────────────────────────────────
+//  STEP DATA  (EQ module)
+// ─────────────────────────────────────────────────────────────
+
+const steps = [
+
+  // ── Step 1 ──────────────────────────────────────────────
+  {
+    title: "What is EQ?",
+    number: "Step 01 — Introduction",
+    body: `<strong>Equalization (EQ)</strong> is one of the most fundamental tools in audio production. It lets you adjust the <em>volume of specific frequency ranges</em> within a sound — boosting or cutting particular parts of the frequency spectrum.
+
+<br><br>Think of it like a very precise tone control. Instead of just turning up the "bass" or "treble" on a stereo, an EQ lets you pinpoint exactly which frequencies to adjust and by how much — with surgical precision or broad, musical curves.
+
+<br><br>EQ is used for two main purposes: <strong>corrective</strong> (fixing problems — removing harshness, reducing muddiness) and <strong>creative</strong> (shaping character — making something brighter, warmer, or more present).`,
+    keyPoints: [
+      { strong: "Boost", rest: " — raise the volume at a specific frequency range" },
+      { strong: "Cut", rest: " — reduce the volume at a specific frequency range" },
+      { strong: "Corrective EQ", rest: " — removing unwanted elements (hum, resonance, boxiness)" },
+      { strong: "Creative EQ", rest: " — shaping tone to serve the mix (adding brightness, warmth, presence)" },
+    ],
+    audio: { desc: "Hear the difference — a raw triangle tone, then the same tone with a high shelf boost adding 'air'", type: "intro" },
+    spectrum: { highlight: null, label: "Full audible range: 20 Hz – 20 kHz" }
+  },
+
+  // ── Step 2 ──────────────────────────────────────────────
+  {
+    title: "The Frequency Spectrum",
+    number: "Step 02 — Overview",
+    body: `Before mapping the spectrum, a note worth keeping in mind: <em>the exact boundaries between frequency regions are not universally defined.</em> Different engineers, textbooks, and audio tool manufacturers draw these lines differently. "Bass" might end at 200 Hz in one reference and 300 Hz in another. "Low mids" might begin at 200 Hz or 400 Hz depending on who you ask.
+
+<br><br>The chart below reflects how working engineers <em>commonly describe</em> what different frequency regions sound like — words you'll hear in studio conversations and mix feedback. Labels above the bar describe what a boost in that region adds; labels below describe what a cut sounds like.
+
+<br><br>For consistency throughout this module, we use the simplified six-band breakdown shown after it. What matters is developing a feel for what each zone sounds like — not memorizing exact cutoff numbers.`,
+    showRefChart: true,
+    keyPoints: [
+      { strong: "Sub Bass (20–60 Hz)", rest: " — felt more than heard; rumble, deep kick" },
+      { strong: "Bass (60–250 Hz)", rest: " — weight and warmth; bass guitar, kick body" },
+      { strong: "Low Mids (250–500 Hz)", rest: " — fullness or muddiness; body of most instruments" },
+      { strong: "Midrange (500 Hz–2 kHz)", rest: " — presence and character; vocals, guitars, piano" },
+      { strong: "High Mids (2–6 kHz)", rest: " — attack, clarity, or harshness" },
+      { strong: "Presence & Air (6–20 kHz)", rest: " — brightness, sparkle, sibilance" },
+    ],
+    audio: { desc: "Sweep through the spectrum — listen as a band of noise sweeps from low to high", type: "sweep" },
+    spectrum: { highlight: "all", label: "Our simplified six-band breakdown (used throughout this module)" }
+  },
+
+  // ── Step 3 ──────────────────────────────────────────────
+  {
+    title: "Sub Bass — 20 to 60 Hz",
+    number: "Step 03 — Low End",
+    body: `This is the <em>lowest region</em> of the audible spectrum — frequencies you often <strong>feel</strong> through your chest, floor, or subwoofer more than hear through regular speakers. Sub bass is the foundation of electronic music, hip-hop, and modern pop production.
+
+<br><br>The fundamental pitches of sub bass synthesizers and 808s live here. So does the lowest rumble of a kick drum. On smaller speakers (laptops, earbuds, many studio monitors), this range is nearly inaudible — which is why checking your mix on multiple playback systems is critical.
+
+<br><br><strong>Boosting here</strong> adds power and physical impact, but too much creates a woofy, muddy mix that translates poorly. <strong>Cutting here</strong> with a high-pass filter (also called a low-cut) cleans up mic bleed, rumble, and unneeded low-end on elements like vocals or hi-hats.`,
+    keyPoints: [
+      { strong: "20–40 Hz", rest: " — infrasonic edge; felt on large systems, mostly inaudible" },
+      { strong: "40–60 Hz", rest: " — sub bass fundamentals; 808s, sine sub bass, deepest kick body" },
+      { strong: "Boost with care", rest: " — easy to overdo; check on full-range speakers" },
+      { strong: "High-pass filters", rest: " — essential on vocals, guitars, anything that doesn't need sub" },
+    ],
+    audio: { desc: "Listen to a 40 Hz tone — pure sub bass. Use headphones or speakers with bass extension.", type: "tone", freq: 40 },
+    spectrum: { highlight: [20, 60], label: "Sub Bass: 20–60 Hz" }
+  },
+
+  // ── Step 4 ──────────────────────────────────────────────
+  {
+    title: "Bass — 60 to 250 Hz",
+    number: "Step 04 — Low End",
+    body: `The bass region is where most music gets its <strong>weight, warmth, and power</strong>. This is the home of bass guitar fundamentals, the body of a kick drum, the lowest notes of a piano, and the chest resonance of male vocals.
+
+<br><br>This is also one of the <em>most competitive</em> regions of a mix — kick drums, bass guitars, and synthesizers all fight for space here. Smart EQ work (cutting one instrument to make room for another) is key to a tight, punchy low end.
+
+<br><br><strong>Boosting around 80–120 Hz</strong> adds warmth and fullness. <strong>Cutting around 150–250 Hz</strong> can reduce "boxiness" or muddiness — a common issue when instruments pile up in the low-mid transition area.`,
+    keyPoints: [
+      { strong: "60–100 Hz", rest: " — kick drum punch, bass guitar fundamental, warmth" },
+      { strong: "100–200 Hz", rest: " — body of bass instruments; can feel full or boomy" },
+      { strong: "200–250 Hz", rest: " — transition to low mids; can get muddy if overcrowded" },
+      { strong: "Sidechain compression", rest: " — often used alongside EQ to manage kick/bass competition" },
+    ],
+    audio: { desc: "Listen to a 100 Hz tone — classic bass body region.", type: "tone", freq: 100 },
+    spectrum: { highlight: [60, 250], label: "Bass: 60–250 Hz" }
+  },
+
+  // ── Step 5 ──────────────────────────────────────────────
+  {
+    title: "Low Mids — 250 to 500 Hz",
+    number: "Step 05 — Midrange",
+    body: `The low mids are one of the trickiest regions to manage. Too much energy here makes a mix sound <em>muddy, boxy, or congested</em>. Too little and things feel thin or hollow.
+
+<br><br>This range contains the <strong>fundamental frequencies of many midrange instruments</strong> — acoustic guitar body resonance, piano lower registers, snare warmth, and the fullness of vocals. It's often called the "mud zone" because it's where buildup and cloudiness tend to accumulate in dense mixes.
+
+<br><br>A common technique is a gentle cut in the 200–350 Hz range on multiple instruments to <strong>open up the mix</strong> without making anything sound thin. If something sounds boxy or nasal, this is often where to look.`,
+    keyPoints: [
+      { strong: "250–350 Hz", rest: " — boxiness, body resonance; common problem area" },
+      { strong: "350–500 Hz", rest: " — warmth; guitar body, vocals, piano lower registers" },
+      { strong: "Gentle cuts here", rest: " — one of the most common corrective moves in mixing" },
+      { strong: "Don't cut too much", rest: " — this range still provides essential body and warmth" },
+    ],
+    audio: { desc: "Listen to a 300 Hz tone — the classic 'boxy' low-mid zone.", type: "tone", freq: 300 },
+    spectrum: { highlight: [250, 500], label: "Low Mids: 250–500 Hz" }
+  },
+
+  // ── Step 6 ──────────────────────────────────────────────
+  {
+    title: "Midrange — 500 Hz to 2 kHz",
+    number: "Step 06 — Midrange",
+    body: `The midrange is the <em>most important region of the audio spectrum</em> for musical content. This is where the <strong>human ear is most sensitive</strong>, and where the vast majority of melodic and harmonic information lives.
+
+<br><br>Vocals, guitars, pianos, synth leads, horns, and strings all have their core character here. This is the range that makes instruments recognizable and voices feel intimate. A mix that's missing energy in the mids will feel distant and thin, even if the lows and highs are great.
+
+<br><br><strong>Boosting around 1–2 kHz</strong> can add presence and cut-through in a dense mix. Be careful — this region can also introduce nasality or harshness if overcooked. Cuts here are less common but useful for taming particularly aggressive resonances.`,
+    keyPoints: [
+      { strong: "500–800 Hz", rest: " — warmth and body; guitar character, vocal chest resonance" },
+      { strong: "800 Hz–1.5 kHz", rest: " — honky, nasal; key vocal clarity zone" },
+      { strong: "1.5–2 kHz", rest: " — attack and presence; instruments cutting through a mix" },
+      { strong: "Most sensitive", rest: " — the ear is most perceptive here; subtle moves go far" },
+    ],
+    audio: { desc: "Listen to a 1 kHz tone — the reference frequency used to calibrate speakers and meters.", type: "tone", freq: 1000 },
+    spectrum: { highlight: [500, 2000], label: "Midrange: 500 Hz–2 kHz" }
+  },
+
+  // ── Step 7 ──────────────────────────────────────────────
+  {
+    title: "High Mids — 2 to 6 kHz",
+    number: "Step 07 — High Mids",
+    body: `The high mids are where audio can start to get <em>exciting or fatiguing</em>. This region governs the <strong>attack transients</strong> of percussive elements, the articulation of speech, and the "presence" of instruments in a mix.
+
+<br><br>A boost around <strong>3–5 kHz</strong> makes vocals forward and intelligible — you can understand lyrics more clearly. It's a classic trick for cutting through a dense arrangement. However, too much of this region causes listener fatigue quickly. Extended listening to boosted high mids is genuinely tiring.
+
+<br><br>Harshness, brittleness, and that ice-pick quality in mixes? Almost always somewhere in the 2–6 kHz range. This is also where a lot of the "smack" on a snare drum lives, and where guitar picks click and string attack cuts through.`,
+    keyPoints: [
+      { strong: "2–3 kHz", rest: " — vocal presence; piano attack; ear sensitivity peak" },
+      { strong: "3–5 kHz", rest: " — guitar pick attack, snare crack, vocal intelligibility" },
+      { strong: "5–6 kHz", rest: " — harshness; edge of listener fatigue territory" },
+      { strong: "De-essing", rest: " — a cut around 5–8 kHz reduces harsh sibilance on vocals" },
+    ],
+    audio: { desc: "Listen to a 3.5 kHz tone — the high-mid presence/harshness zone.", type: "tone", freq: 3500 },
+    spectrum: { highlight: [2000, 6000], label: "High Mids: 2–6 kHz" }
+  },
+
+  // ── Step 8 ──────────────────────────────────────────────
+  {
+    title: "Presence & Air — 6 to 20 kHz",
+    number: "Step 08 — High Frequencies",
+    body: `The high frequency range gives audio its sense of <strong>brightness, detail, and air</strong>. This is where cymbal shimmer lives, where vocal "s" sounds (sibilance) happen, and where the breathiness and room ambience of recordings reside.
+
+<br><br>A gentle <em>high shelf boost</em> in the 10–16 kHz range is one of the most common "finishing" moves in mixing and mastering — adding an openness and spaciousness to the whole mix. It can make a track feel more modern and polished.
+
+<br><br>But too much brightness creates <strong>sibilance</strong> (harsh, hissing "s" and "t" sounds in vocals) and listening fatigue. The key is finding the sweet spot where the mix feels alive without being brittle.`,
+    keyPoints: [
+      { strong: "6–10 kHz", rest: " — sibilance, cymbal presence, top-end of most instruments" },
+      { strong: "10–16 kHz", rest: " — 'air'; the breathy, open quality of a well-recorded space" },
+      { strong: "16–20 kHz", rest: " — extreme highs; diminishing returns, often filtered in mastering" },
+      { strong: "High shelf boost", rest: " — a common mastering move; adds gloss and openness" },
+    ],
+    audio: { desc: "Listen to a 10 kHz tone — the upper high-frequency 'air' zone.", type: "tone", freq: 10000 },
+    spectrum: { highlight: [6000, 20000], label: "Presence & Air: 6–20 kHz" }
+  },
+
+  // ── Step 9 ──────────────────────────────────────────────
+  {
+    title: "EQ Filter Types",
+    number: "Step 09 — Filter Types",
+    body: `Not all EQ moves are the same shape. Different <strong>filter types</strong> cut or boost the frequency spectrum in different ways, and knowing when to use each is essential.
+
+<br><br>The <em>bell (peak)</em> filter is the most common — it boosts or cuts in a focused, symmetrical curve around a center frequency. The width of this bell is controlled by the <strong>Q</strong> parameter: a high Q is narrow and surgical; a low Q is wide and musical.
+
+<br><br><em>Shelf filters</em> affect everything above (high shelf) or below (low shelf) the cutoff point — great for broad tonal changes. <em>High-pass</em> and <em>low-pass</em> filters cut everything below or above the cutoff — essential for cleanup and creative effect. <em>Notch filters</em> are extremely narrow cuts used to remove a specific problem frequency, like a 60 Hz hum.`,
+    keyPoints: [
+      { strong: "Bell / Peak", rest: " — boost or cut around a center frequency; Q controls width" },
+      { strong: "High Shelf", rest: " — affects everything above the cutoff; adds brightness or warmth" },
+      { strong: "Low Shelf", rest: " — affects everything below the cutoff; adds body or removes rumble" },
+      { strong: "High-Pass (Low-Cut)", rest: " — removes everything below the cutoff; essential cleanup tool" },
+      { strong: "Low-Pass (High-Cut)", rest: " — removes everything above the cutoff; tames harshness or for effect" },
+      { strong: "Notch", rest: " — extremely narrow cut; surgical removal of resonances or hum" },
+    ],
+    audio: { desc: "A high-pass filter in action — pink noise with the cutoff frequency sweeping upward.", type: "highpass" },
+    spectrum: { highlight: null, label: "Filter shapes overview" }
+  },
+
+  // ── Step 10 ─────────────────────────────────────────────
+  {
+    title: "Practical EQ Tips",
+    number: "Step 10 — Putting It Together",
+    body: `With the frequency map in mind, here are the principles that separate great EQ decisions from random guessing.
+
+<br><br><strong>Cut first, boost second.</strong> Most problems are caused by excess energy — look for what to remove before adding more. Subtractive EQ sounds more natural and leaves more headroom.
+
+<br><br><strong>EQ in context.</strong> Never EQ in solo for more than a moment. A sound can seem too bright in isolation but sit perfectly in the mix. Always reference against the full arrangement.
+
+<br><br><strong>Boost wide, cut narrow.</strong> Wide (low Q) boosts sound musical and smooth. Narrow (high Q) cuts remove specific problems without affecting the overall tone. This is a classic rule that holds up most of the time.
+
+<br><br><strong>Use high-pass filters everywhere.</strong> Almost every track benefits from a high-pass filter. Removing sub-sonic rumble and unnecessary low-end prevents buildup and clarifies the mix.`,
+    keyPoints: [
+      { strong: "Cut first", rest: " — subtractive EQ is more natural and maintains headroom" },
+      { strong: "EQ in context", rest: " — always check EQ decisions against the full mix" },
+      { strong: "Boost wide, cut narrow", rest: " — low Q boosts = musical; high Q cuts = surgical" },
+      { strong: "High-pass everything", rest: " — remove unwanted low-end from non-bass elements" },
+      { strong: "Trust your ears", rest: " — a/b compare your EQ on and off to check if it's helping" },
+    ],
+    audio: { desc: "Compare: pink noise flat vs. with a typical 'mix EQ' — subtle cuts at 200 Hz and 3 kHz, shelf boost at 12 kHz.", type: "mixeq" },
+    spectrum: { highlight: "tips", label: "Common EQ moves — the mixing toolkit" }
+  },
+];
+
+// ─────────────────────────────────────────────────────────────
+//  SPECTRUM SVG BUILDER
+// ─────────────────────────────────────────────────────────────
+
+const BANDS = [
+  { label: "Sub",     range: "20–60",   x1: 0,     x2: 15.90, color: "#5b6aff" },
+  { label: "Bass",    range: "60–250",  x1: 15.90, x2: 36.56, color: "#818cf8" },
+  { label: "Low Mid", range: "250–500", x1: 36.56, x2: 46.60, color: "#7c5cfc" },
+  { label: "Mid",     range: "500–2k",  x1: 46.60, x2: 66.67, color: "#8892ff" },
+  { label: "Hi Mid",  range: "2–6k",    x1: 66.67, x2: 82.57, color: "#a5b4fc" },
+  { label: "Hi",      range: "6–20k",   x1: 82.57, x2: 100,   color: "#c7d2fe" },
+];
+
+function freqToPercent(hz) {
+  const logMin = Math.log10(20), logMax = Math.log10(20000);
+  return ((Math.log10(hz) - logMin) / (logMax - logMin)) * 100;
+}
+
+function buildReferenceChartSVG() {
+  const W = 760, BX = 10, BW = 740, BY = 88, BH = 20;
+  const Lmin = Math.log10(20), Lr = 3.0;
+  const xp = hz => BX + (Math.log10(hz) - Lmin) / Lr * BW;
+
+  function spanLabel(text, hz1, hz2, ty, col, tw) {
+    const x1 = xp(hz1), x2 = xp(hz2);
+    const lineStart = x1 + tw + 3;
+    const lineEnd   = Math.max(lineStart + 6, x2);
+    const lineY     = ty - 2.5;
+    const conn  = `<line x1="${x1.toFixed(1)}" y1="${ty+3}" x2="${x1.toFixed(1)}" y2="${(BY-1).toFixed(1)}" stroke="${col}" stroke-width="0.4" stroke-dasharray="2,2" opacity="0.2"/>`;
+    const hline = lineEnd > lineStart + 4
+      ? `<line x1="${lineStart.toFixed(1)}" y1="${lineY.toFixed(1)}" x2="${lineEnd.toFixed(1)}" y2="${lineY.toFixed(1)}" stroke="${col}" stroke-width="0.85" opacity="0.65"/>` : '';
+    const label = `<text x="${x1.toFixed(1)}" y="${ty}" font-family="IBM Plex Mono,monospace" font-size="9.5" font-weight="600" letter-spacing="0.08em" fill="${col}" opacity="0.9">${text}</text>`;
+    return conn + hline + label;
+  }
+
+  function centeredLabel(text, hz1, hz2, ty, col, tw) {
+    const x1 = xp(hz1), x2 = xp(hz2), xc = (x1 + x2) / 2;
+    const halfText = tw / 2 + 4;
+    const lx2 = xc - halfText, rx1 = xc + halfText;
+    const lineY = ty - 3;
+    return [
+      lx2 > x1 + 4 ? `<line x1="${x1.toFixed(1)}" y1="${lineY.toFixed(1)}" x2="${lx2.toFixed(1)}" y2="${lineY.toFixed(1)}" stroke="${col}" stroke-width="0.85" opacity="0.55"/>` : '',
+      `<text x="${xc.toFixed(1)}" y="${ty}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" letter-spacing="0.1em" fill="${col}" opacity="0.82">${text}</text>`,
+      rx1 < x2 - 4 ? `<line x1="${rx1.toFixed(1)}" y1="${lineY.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${lineY.toFixed(1)}" stroke="${col}" stroke-width="0.85" opacity="0.55"/>` : '',
+    ].join('');
+  }
+
+  const aboveSpans = [
+    ['PRESENCE', 2000, 10000, 11, '#a5b4fc', 72],
+    ['BOOMY',    62,   250,   23, '#9ca3af', 50],
+    ['HARSH',    2500, 5500,  23, '#9ca3af', 46],
+    ['AIR',      10000,16000, 23, '#dbeafe', 26],
+    ['MUDDY',    200,  500,   35, '#9ca3af', 50],
+    ['SIBILANT', 3500, 8000,  35, '#9ca3af', 65],
+    ['WARM',     150,  450,   47, '#8892ff', 44],
+    ['NASAL',    800,  1500,  47, '#9ca3af', 48],
+    ['BRIGHT',   6000, 12000, 47, '#c7d2fe', 54],
+    ['BASS',     62,   200,   59, '#818cf8', 37],
+    ['BOXY',     300,  700,   59, '#9ca3af', 40],
+    ['EDGY',     3000, 7000,  59, '#9ca3af', 36],
+  ];
+  const aboveSVG = aboveSpans.map(args => spanLabel(...args)).join('');
+
+  const ticks = [
+    {hz:62,l:'62'},{hz:125,l:'125'},{hz:250,l:'250'},{hz:500,l:'500'},
+    {hz:1000,l:'1k'},{hz:2000,l:'2k'},{hz:4000,l:'4k'},{hz:8000,l:'8k'},{hz:16000,l:'16k'},
+  ];
+  const tickSVG = ticks.map(t => {
+    const x = xp(t.hz).toFixed(1);
+    return `<line x1="${x}" y1="${BY+BH}" x2="${x}" y2="${BY+BH+6}" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+            <text x="${x}" y="${BY+BH+17}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" fill="rgba(255,255,255,0.4)">${t.l}</text>`;
+  }).join('');
+  const sepSVG = ticks.map(t => {
+    const x = xp(t.hz).toFixed(1);
+    return `<line x1="${x}" y1="${BY}" x2="${x}" y2="${BY+BH}" stroke="rgba(0,0,0,0.28)" stroke-width="0.8"/>`;
+  }).join('');
+  const regionSVG = [
+    ['SUB', 35], ['BASS', 122], ['LOW MIDS', 354],
+    ['MIDS', 1000], ['HI MIDS', 3464], ['HIGHS', 10954],
+  ].map(([t, hz]) => {
+    const x = xp(hz).toFixed(1);
+    return `<text x="${x}" y="${BY+BH+31}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7.5" letter-spacing="0.1em" fill="rgba(255,255,255,0.2)">${t}</text>`;
+  }).join('');
+
+  const B1 = BY + BH + 48, B2 = B1 + 14, B3 = B2 + 14;
+  const col_b = 'rgba(255,255,255,0.3)';
+  const belowSVG = [
+    centeredLabel('THIN',  20,   400,   B1, col_b, 34),
+    centeredLabel('DULL',  6000, 16000, B1, col_b, 34),
+    centeredLabel('WARM',  800,  6000,  B2, col_b, 34),
+    centeredLabel('SWEET', 1500, 8000,  B3, col_b, 40),
+  ].join('');
+  const svgH = B3 + 12;
+
+  return `<svg class="spectrum-svg" viewBox="0 0 ${W} ${svgH}" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="refBarGrad" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0%"   stop-color="#1e1b4b"/>
+        <stop offset="18%"  stop-color="#3730a3"/>
+        <stop offset="40%"  stop-color="#4f46e5"/>
+        <stop offset="62%"  stop-color="#6366f1"/>
+        <stop offset="80%"  stop-color="#818cf8"/>
+        <stop offset="100%" stop-color="#bfdbfe"/>
+      </linearGradient>
+    </defs>
+    <rect x="${BX}" y="${BY}" width="${BW}" height="${BH}" fill="url(#refBarGrad)" rx="3"/>
+    <rect x="${BX}" y="${BY}" width="${BW}" height="${BH}" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5" rx="3"/>
+    ${sepSVG}${aboveSVG}${tickSVG}${regionSVG}${belowSVG}
+  </svg>`;
+}
+
+function buildSpectrumSVG(step) {
+  const hl = step.spectrum.highlight;
+  const label = step.spectrum.label;
+  const w = 760, h = 80, barH = 36, barY = 16;
+
+  let regionRects = '';
+  BANDS.forEach(b => {
+    let opacity = 0.12, strokeOp = 0.22, highlighted = false;
+    if (hl === 'all' || hl === 'tips') {
+      highlighted = true;
+    } else if (Array.isArray(hl)) {
+      const hzMin = hl[0], hzMax = hl[1];
+      const bMin = b.x1 / 100 * (Math.log10(20000) - Math.log10(20)) + Math.log10(20);
+      const bMax = b.x2 / 100 * (Math.log10(20000) - Math.log10(20)) + Math.log10(20);
+      const hlMin = Math.log10(hzMin), hlMax = Math.log10(hzMax);
+      if (bMax >= hlMin && bMin <= hlMax) highlighted = true;
+    }
+    if (highlighted) { opacity = 0.38; strokeOp = 0.7; }
+    const rx = (b.x1 / 100) * w, rw = ((b.x2 - b.x1) / 100) * w;
+    regionRects += `<rect x="${rx}" y="${barY}" width="${rw}" height="${barH}" fill="${b.color}" fill-opacity="${opacity}" stroke="${b.color}" stroke-opacity="${strokeOp}" stroke-width="0.5" rx="3"/>`;
+  });
+
+  let hlOverlay = '';
+  if (Array.isArray(hl)) {
+    const pMin = freqToPercent(hl[0]), pMax = freqToPercent(hl[1]);
+    const hlX = (pMin / 100) * w, hlW = ((pMax - pMin) / 100) * w;
+    hlOverlay = `<rect x="${hlX}" y="${barY - 4}" width="${hlW}" height="${barH + 8}" fill="none" stroke="var(--eq-accent2)" stroke-width="1.5" stroke-dasharray="4,3" rx="4" opacity="0.7"/>`;
+  }
+
+  const freqLabels = [20, 60, 100, 250, 500, 1000, 2000, 5000, 10000, 20000];
+  let labelEls = '';
+  freqLabels.forEach(f => {
+    const px = (freqToPercent(f) / 100) * w;
+    const txt = f >= 1000 ? (f / 1000) + 'k' : f;
+    labelEls += `<line x1="${px}" y1="${barY + barH}" x2="${px}" y2="${barY + barH + 5}" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+      <text x="${px}" y="${barY + barH + 14}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8" fill="rgba(255,255,255,0.3)">${txt}</text>`;
+  });
+
+  let separators = '';
+  BANDS.slice(0, -1).forEach(b => {
+    const px = (b.x2 / 100) * w;
+    separators += `<line x1="${px}" y1="${barY}" x2="${px}" y2="${barY + barH}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`;
+  });
+
+  let bandNames = '';
+  BANDS.forEach(b => {
+    const cx = ((b.x1 + b.x2) / 2 / 100) * w;
+    const isHighlighted = hl === 'all' || hl === 'tips' || (Array.isArray(hl) && (() => {
+      const hzMin = hl[0], hzMax = hl[1];
+      const bMin = b.x1 / 100 * (Math.log10(20000) - Math.log10(20)) + Math.log10(20);
+      const bMax = b.x2 / 100 * (Math.log10(20000) - Math.log10(20)) + Math.log10(20);
+      const hlMin = Math.log10(hzMin), hlMax = Math.log10(hzMax);
+      return bMax >= hlMin && bMin <= hlMax;
+    })());
+    bandNames += `<text x="${cx}" y="${barY + barH/2 + 4}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="${b.color}" fill-opacity="${isHighlighted ? 0.9 : 0.3}">${b.label}</text>`;
+  });
+
+  return `<svg class="spectrum-svg" viewBox="0 0 ${w} ${h + 10}" xmlns="http://www.w3.org/2000/svg">
+    ${regionRects}${separators}${hlOverlay}${bandNames}${labelEls}
+  </svg>`;
+}
+
+// ─────────────────────────────────────────────────────────────
+//  STEP RENDERER
+// ─────────────────────────────────────────────────────────────
+
+let currentStep = 0;
+let audioCtx = null;
+let activeNodes = [];
+let isPlaying = false;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function stopAudio() {
+  activeNodes.forEach(n => { try { n.stop(); } catch(e){} });
+  clearTimeout(activeNodes._stopTimeout);
+  activeNodes = [];
+  isPlaying = false;
+  const btn = document.querySelector('.play-btn');
+  if (btn) {
+    btn.classList.remove('playing');
+    btn.querySelector('.play-icon').style.display = '';
+    btn.querySelector('.stop-icon').style.display = 'none';
+  }
+}
+
+function playDemo(type, freq) {
+  const ctx = getAudioCtx();
+  const vol = parseFloat(document.querySelector('.vol-slider')?.value ?? 0.5);
+  stopAudio();
+
+  const gainNode = ctx.createGain();
+  gainNode.gain.value = vol * 0.4;
+  gainNode.connect(ctx.destination);
+  const duration = 4;
+
+  if (type === 'tone') {
+    const osc = ctx.createOscillator();
+    osc.type = 'sine'; osc.frequency.value = freq;
+    const env = ctx.createGain();
+    env.gain.setValueAtTime(0, ctx.currentTime);
+    env.gain.linearRampToValueAtTime(1, ctx.currentTime + 0.08);
+    env.gain.setValueAtTime(1, ctx.currentTime + duration - 0.3);
+    env.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+    osc.connect(env); env.connect(gainNode);
+    osc.start(); osc.stop(ctx.currentTime + duration);
+    activeNodes = [osc];
+  }
+  else if (type === 'sweep') {
+    const bufferSize = ctx.sampleRate * 2;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+    for (let i = 0; i < bufferSize; i++) {
+      const w = Math.random() * 2 - 1;
+      b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
+      b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
+      b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
+      data[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)/7; b6=w*0.115926;
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buffer; src.loop = true;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass'; bp.Q.value = 4;
+    bp.frequency.setValueAtTime(40, ctx.currentTime);
+    bp.frequency.exponentialRampToValueAtTime(16000, ctx.currentTime + duration * 0.9);
+    src.connect(bp); bp.connect(gainNode);
+    src.start(); src.stop(ctx.currentTime + duration);
+    activeNodes = [src];
+  }
+  else if (type === 'intro') {
+    const osc1 = ctx.createOscillator();
+    osc1.type = 'triangle'; osc1.frequency.value = 440;
+    const env1 = ctx.createGain();
+    env1.gain.setValueAtTime(0, ctx.currentTime);
+    env1.gain.linearRampToValueAtTime(0.7, ctx.currentTime + 0.05);
+    env1.gain.setValueAtTime(0.7, ctx.currentTime + 1.6);
+    env1.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.8);
+    osc1.connect(env1); env1.connect(gainNode);
+    osc1.start(); osc1.stop(ctx.currentTime + 1.8);
+    const osc2 = ctx.createOscillator();
+    osc2.type = 'triangle'; osc2.frequency.value = 440;
+    const shelf = ctx.createBiquadFilter();
+    shelf.type = 'highshelf'; shelf.frequency.value = 5000; shelf.gain.value = 9;
+    const env2 = ctx.createGain();
+    env2.gain.setValueAtTime(0, ctx.currentTime + 2.0);
+    env2.gain.linearRampToValueAtTime(0.7, ctx.currentTime + 2.1);
+    env2.gain.setValueAtTime(0.7, ctx.currentTime + duration - 0.3);
+    env2.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+    osc2.connect(shelf); shelf.connect(env2); env2.connect(gainNode);
+    osc2.start(ctx.currentTime + 2.0); osc2.stop(ctx.currentTime + duration);
+    activeNodes = [osc1, osc2];
+  }
+  else if (type === 'highpass') {
+    const bufferSize = ctx.sampleRate * 2;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+    for (let i = 0; i < bufferSize; i++) {
+      const w = Math.random() * 2 - 1;
+      b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
+      b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
+      b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
+      data[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)/7; b6=w*0.115926;
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buffer; src.loop = true;
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass'; hp.Q.value = 0.7;
+    hp.frequency.setValueAtTime(20, ctx.currentTime);
+    hp.frequency.exponentialRampToValueAtTime(4000, ctx.currentTime + duration * 0.85);
+    src.connect(hp); hp.connect(gainNode);
+    src.start(); src.stop(ctx.currentTime + duration);
+    activeNodes = [src];
+  }
+  else if (type === 'mixeq') {
+    const bufferSize = ctx.sampleRate * 2;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+    for (let i = 0; i < bufferSize; i++) {
+      const w = Math.random() * 2 - 1;
+      b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
+      b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
+      b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
+      data[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)/7; b6=w*0.115926;
+    }
+    const src1 = ctx.createBufferSource();
+    src1.buffer = buffer; src1.loop = true;
+    const env1 = ctx.createGain();
+    env1.gain.setValueAtTime(0, ctx.currentTime);
+    env1.gain.linearRampToValueAtTime(1, ctx.currentTime + 0.05);
+    env1.gain.setValueAtTime(1, ctx.currentTime + 1.7);
+    env1.gain.linearRampToValueAtTime(0, ctx.currentTime + 2.0);
+    src1.connect(env1); env1.connect(gainNode);
+    src1.start(); src1.stop(ctx.currentTime + 2.0);
+    const src2 = ctx.createBufferSource();
+    src2.buffer = buffer; src2.loop = true;
+    const cut200 = ctx.createBiquadFilter();
+    cut200.type = 'peaking'; cut200.frequency.value = 200; cut200.Q.value = 1.2; cut200.gain.value = -4;
+    const cut3k = ctx.createBiquadFilter();
+    cut3k.type = 'peaking'; cut3k.frequency.value = 3000; cut3k.Q.value = 1.0; cut3k.gain.value = -3;
+    const shelf12k = ctx.createBiquadFilter();
+    shelf12k.type = 'highshelf'; shelf12k.frequency.value = 12000; shelf12k.gain.value = 5;
+    const env2 = ctx.createGain();
+    env2.gain.setValueAtTime(0, ctx.currentTime + 2.2);
+    env2.gain.linearRampToValueAtTime(1, ctx.currentTime + 2.3);
+    env2.gain.setValueAtTime(1, ctx.currentTime + duration - 0.3);
+    env2.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+    src2.connect(cut200); cut200.connect(cut3k); cut3k.connect(shelf12k); shelf12k.connect(env2); env2.connect(gainNode);
+    src2.start(ctx.currentTime + 2.2); src2.stop(ctx.currentTime + duration);
+    activeNodes = [src1, src2];
+  }
+
+  isPlaying = true;
+  const stopTimeout = setTimeout(() => {
+    isPlaying = false;
+    const btn = document.querySelector('.play-btn');
+    if (btn) {
+      btn.classList.remove('playing');
+      btn.querySelector('.play-icon').style.display = '';
+      btn.querySelector('.stop-icon').style.display = 'none';
+    }
+  }, duration * 1000 + 100);
+  activeNodes._stopTimeout = stopTimeout;
+
+  const btn = document.querySelector('.play-btn');
+  if (btn) {
+    btn.classList.add('playing');
+    btn.querySelector('.play-icon').style.display = 'none';
+    btn.querySelector('.stop-icon').style.display = '';
+  }
+}
+
+function togglePlay(type, freq) {
+  if (isPlaying) { stopAudio(); return; }
+  playDemo(type, freq);
+}
+
+function renderStep(idx) {
+  stopAudio();
+  const step = steps[idx];
+  const card = document.getElementById('stepCard');
+  const total = steps.length;
+
+  const kpHTML = step.keyPoints.map(kp =>
+    `<div class="key-point"><strong>${kp.strong}</strong>${kp.rest}</div>`
+  ).join('');
+
+  const aType = step.audio.type;
+  const aFreq = step.audio.freq || 440;
+
+  card.innerHTML = `
+    <div class="step-number">${step.number}</div>
+    <h2 class="step-title">${step.title}</h2>
+    <div class="step-body">${step.body}</div>
+    ${step.showRefChart ? `
+    <div class="spectrum-wrap" style="margin-bottom:16px;">
+      <div class="spectrum-title">Common frequency descriptors — how engineers talk about these regions</div>
+      ${buildReferenceChartSVG()}
+    </div>
+    <p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:20px;padding:0 2px;font-style:italic;">
+      The definitions above vary by source. Below is the simplified breakdown we use throughout this module.
+    </p>
+    ` : ''}
+    <div class="spectrum-wrap">
+      <div class="spectrum-title">Frequency Spectrum — ${step.spectrum.label}</div>
+      ${buildSpectrumSVG(step)}
+    </div>
+    <div class="key-points">
+      <div class="key-points-label">Key Takeaways</div>
+      ${kpHTML}
+    </div>
+    <div class="audio-demo">
+      <div class="audio-demo-info">
+        <div class="audio-demo-label">Listen</div>
+        <div class="audio-demo-desc">${step.audio.desc}</div>
+      </div>
+      <div class="demo-controls">
+        <div class="vol-wrap">
+          <svg class="vol-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" style="color:var(--muted)">
+            <polygon points="11,5 6,9 2,9 2,15 6,15 11,19" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" fill="none"/>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+          </svg>
+          <input type="range" class="vol-slider" min="0" max="1" step="0.02" value="0.55"
+                 title="Volume" oninput="updateVolume(this.value)">
+        </div>
+        <button class="play-btn" onclick="togglePlay('${aType}', ${aFreq})" title="Play / Stop">
+          <svg class="play-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <polygon points="6,4 20,12 6,20" fill="white"/>
+          </svg>
+          <svg class="stop-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" style="display:none">
+            <rect x="5" y="5" width="14" height="14" rx="2" fill="white"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  `;
+
+  // Progress dots
+  const dots = document.getElementById('progressDots');
+  dots.innerHTML = steps.map((_, i) =>
+    `<div class="progress-dot ${i < idx ? 'done' : ''} ${i === idx ? 'active' : ''}"
+          onclick="jumpToStep(${i})" title="Step ${i+1}"></div>`
+  ).join('');
+
+  document.getElementById('progressLabel').textContent = `Step ${idx+1} of ${total}`;
+  document.getElementById('stepCounter').textContent = `${idx+1} / ${total}`;
+
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  prevBtn.disabled = idx === 0;
+  if (idx === total - 1) {
+    nextBtn.textContent = 'Complete ✓';
+    nextBtn.className = 'nav-btn finish';
+    nextBtn.onclick = showCompletion;
+  } else {
+    nextBtn.textContent = 'Next →';
+    nextBtn.className = 'nav-btn primary';
+    nextBtn.onclick = () => navigate(1);
+  }
+}
+
+function updateVolume() { /* live update handled on next play */ }
+
+function jumpToStep(idx) {
+  if (idx < 0 || idx >= steps.length) return;
+  currentStep = idx;
+  renderStep(currentStep);
+  updateSidebarActive(currentStep);
+  history.replaceState(null, '', '#' + (idx + 1));
+  window.scrollTo({ top: document.getElementById('stepCard').offsetTop - 90, behavior: 'smooth' });
+  // Close sidebar on mobile after selecting
+  if (window.innerWidth <= 900) closeSidebar();
+}
+
+function navigate(dir) {
+  jumpToStep(currentStep + dir);
+}
+
+function goToStep(idx) {
+  jumpToStep(idx);
+}
+
+function showCompletion() {
+  stopAudio();
+  const card = document.getElementById('stepCard');
+  card.innerHTML = `
+    <div class="completion-card">
+      <svg width="56" height="56" viewBox="0 0 56 56" fill="none" style="display:block;margin:0 auto 20px;">
+        <circle cx="28" cy="28" r="25" stroke="var(--eq-accent)" stroke-width="1.5" fill="rgba(91,106,255,0.08)"/>
+        <polyline points="17,28 25,36 39,19" stroke="var(--eq-accent2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="completion-title">EQ Module Complete!</div>
+      <p class="completion-sub">You now have a map of the frequency spectrum and the tools to navigate it. The best way to cement this knowledge is to practice — go put your ears to work.</p>
+      <a class="completion-cta" href="/eq-match/">Try EQ Match →</a>
+      <button class="completion-restart" onclick="restartModule()">← Restart this module</button>
+    </div>
+  `;
+  document.getElementById('stepNav').style.display = 'none';
+  document.getElementById('progressLabel').textContent = 'Complete!';
+  const dots = document.getElementById('progressDots');
+  dots.innerHTML = steps.map((_, i) =>
+    `<div class="progress-dot done" onclick="jumpToStep(${i})" title="Step ${i+1}"></div>`
+  ).join('');
+}
+
+function restartModule() {
+  document.getElementById('stepNav').style.display = '';
+  jumpToStep(0);
+}
+
+// ─────────────────────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────────────────────
+
+// Build sidebar first
+buildSidebar();
+
+// Read hash for initial step
+const hashStep = parseInt(location.hash.replace('#', '')) - 1;
+currentStep = (!isNaN(hashStep) && hashStep >= 0 && hashStep < steps.length) ? hashStep : 0;
+
+// Render step
+renderStep(currentStep);
+
+// Mark active sidebar lesson
+setTimeout(() => updateSidebarActive(currentStep), 0);
+
+// Keyboard navigation
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') navigate(1);
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   navigate(-1);
+  if (e.key === ' ') {
+    e.preventDefault();
+    const step = steps[currentStep];
+    togglePlay(step.audio.type, step.audio.freq || 440);
+  }
+  if (e.key === 'Escape') closeSidebar();
+});
+</script>
+</body>
+</html>
