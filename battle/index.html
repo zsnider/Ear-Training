@@ -35,25 +35,9 @@ body {
   display: flex; flex-direction: column; align-items: center;
 }
 
-/* ── Nav ── */
-nav {
-  width: 100%; padding: 20px 32px;
-  display: flex; align-items: center; justify-content: space-between;
-  border-bottom: 1px solid var(--border);
-}
-.nav-logo { font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 15px; color: var(--text); text-decoration: none; }
-.nav-logo span { color: var(--accent); }
-.nav-links { display: flex; align-items: center; gap: 20px; }
-.nav-link { font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.15s; }
-.nav-link:hover { color: var(--text); }
-#authArea { display: flex; align-items: center; gap: 10px; }
-.auth-btn {
-  font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600;
-  padding: 7px 16px; border-radius: 8px; cursor: pointer;
-  background: transparent; border: 1px solid var(--border2); color: var(--text);
-  transition: background 0.15s, border-color 0.15s;
-}
-.auth-btn:hover { background: var(--surface2); border-color: var(--accent); }
+/* ── Nav active-battle override ── */
+.nav-link.active { color: var(--text); }
+.nav-link.battle-active { color: var(--accent) !important; }
 
 /* ── Hero banner ── */
 .battle-hero {
@@ -216,11 +200,18 @@ nav {
 <body>
 
 <!-- Nav -->
-<nav>
-  <a class="nav-logo" href="/"><span>Sonic</span>Sandbox</a>
-  <div class="nav-links">
+<nav class="site-nav">
+  <div class="nav-logo-wrap">
+    <a class="nav-logo" href="/">Sonic<span>Sandbox</span></a>
+  </div>
+  <div class="nav-center">
+    <a class="nav-link" href="/">Home</a>
     <a class="nav-link" href="/games/">Games</a>
+    <a class="nav-link" href="/learn/">Learn</a>
     <a class="nav-link" href="/stats/">Stats</a>
+    <a class="nav-link battle-active" href="/battle/">Battle</a>
+  </div>
+  <div class="nav-right">
     <div id="authArea"></div>
   </div>
 </nav>
@@ -339,6 +330,20 @@ nav {
     </div>
     <div class="card-body" style="padding-top:16px;">
       <button class="btn btn-primary btn-full" id="queueBtn">Find Match</button>
+    </div>
+
+    <div class="or-divider" style="margin:0 24px;"><span>OR</span></div>
+
+    <!-- Bot / Practice -->
+    <div class="card-header" style="border-top:1px solid var(--border);border-bottom:none;">
+      <div class="card-icon" style="background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.3);">🤖</div>
+      <div>
+        <div class="card-title">Practice vs Bot</div>
+        <div class="card-desc">Play solo against an AI opponent — no account needed</div>
+      </div>
+    </div>
+    <div class="card-body" style="padding-top:16px;">
+      <button class="btn btn-full" id="botBtn" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);color:#f59e0b;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px;padding:11px 22px;border-radius:10px;cursor:pointer;">Play vs Bot</button>
     </div>
   </div>
 
@@ -505,6 +510,13 @@ nav {
     document.getElementById('queuePanel').classList.remove('visible');
     document.getElementById('lobbyCard').style.display = '';
     document.getElementById('queueBtn').disabled = false;
+  });
+
+  // ── Bot mode ──────────────────────────────────────────────────────────────
+  document.getElementById('botBtn').addEventListener('click', () => {
+    // No Supabase needed — navigate with ?bot=1 flag
+    sessionStorage.setItem('ss_battle_name', _displayName || 'You');
+    window.location.href = '/freq-quiz/?bot=1';
   });
 
   // Pre-fill join code from URL param ?code=XXXXXX

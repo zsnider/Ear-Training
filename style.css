@@ -82,6 +82,7 @@ body {
   text-decoration: none; transition: color 0.15s;
 }
 .nav-link:hover, .nav-link.active { color: var(--text); }
+.nav-link.battle-active { color: #f45b69; }
 
 .nav-right {
   flex: 1; display: flex; align-items: center;

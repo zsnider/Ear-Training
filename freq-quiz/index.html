@@ -343,7 +343,7 @@
     <a class="nav-link active" href="/games/">Games</a>
     <a class="nav-link" href="/learn/">Learn</a>
     <a class="nav-link" href="/stats/">Stats</a>
-    <a class="nav-link" href="/battle/" style="color:var(--cut,#f45b69);">⚔ Battle</a>
+    <a class="nav-link" href="/battle/">Battle</a>
   </div>
   <div class="nav-right">
     <div id="authArea">
@@ -1776,6 +1776,159 @@ function _showBattleResult() {
 function _showBattleToast(msg) {
   if (typeof showToast === 'function') showToast(msg);
 }
+
+// ── Bot mode (client-side only, no Supabase) ──────────────────────────────────
+(function initBotMode() {
+  const params = new URLSearchParams(location.search);
+  if (!params.get('bot')) return;
+
+  // Bot config
+  const BOT_NAME        = 'SonicBot';
+  const BOT_ACCURACY_LO = 0.60;   // 60% min accuracy
+  const BOT_ACCURACY_HI = 0.90;   // 90% max accuracy
+  const BOT_DELAY_LO    = 3000;   // ms — fastest the bot can answer
+  const BOT_DELAY_HI    = 18000;  // ms — slowest (but capped by 30s timer)
+  const BOT_ROUNDS      = 5;
+
+  _battleMode  = true;
+  _battleTotal = BOT_ROUNDS;
+
+  let botScore   = 0;
+  let botRound   = 0;
+  let botTimeout = null;
+
+  // Resolve display name
+  const myName = sessionStorage.getItem('ss_battle_name') ||
+                 localStorage.getItem('ss_guest_battle_name') || 'You';
+
+  // Show HUD
+  const hud = document.getElementById('battleHUD');
+  hud.style.display = 'flex';
+  document.getElementById('bhudYouName').textContent  = myName;
+  document.getElementById('bhudOppName').textContent  = BOT_NAME;
+  document.getElementById('bhudTotal').textContent    = BOT_ROUNDS;
+  const setTopPad = () => document.body.style.paddingTop = (hud.offsetHeight + 4) + 'px';
+  setTopPad();
+  window.addEventListener('resize', setTopPad);
+
+  // Default to loops
+  setSource('loop');
+
+  // Bot plays a turn for the current round
+  function botPlay() {
+    if (botTimeout) clearTimeout(botTimeout);
+
+    // Pick a random delay within the timer window
+    const delay = BOT_DELAY_LO + Math.random() * (BOT_DELAY_HI - BOT_DELAY_LO);
+
+    botTimeout = setTimeout(() => {
+      if (answered) return; // player already answered; we'll show bot result at reveal
+
+      // Decide if bot gets it right this round
+      const accuracy   = BOT_ACCURACY_LO + Math.random() * (BOT_ACCURACY_HI - BOT_ACCURACY_LO);
+      const botCorrect = Math.random() < accuracy;
+      const arr        = [...activeFreqs];
+      const botFreq    = botCorrect
+        ? targetFreq
+        : arr.filter(f => f !== targetFreq)[Math.floor(Math.random() * (arr.length - 1))];
+
+      _oppAnswerFreq = botFreq;
+
+      if (botCorrect) {
+        const pts = window.ScoringEngine ? ScoringEngine.points('freq-quiz', { gainAmount }) : 100;
+        botScore += pts;
+      }
+      document.getElementById('bhudOppScore').textContent = botScore;
+
+      // If player hasn't answered yet, show a subtle "Bot answered" indicator
+      if (!_myAnswered) {
+        _showBattleToast(`${BOT_NAME} answered`);
+      } else {
+        // Player already answered — reveal bot's choice immediately
+        if (activeFreqs.has(botFreq)) {
+          document.getElementById(`freq-${botFreq}`)?.classList.add('opp-answer');
+        }
+      }
+    }, Math.min(delay, (BATTLE_ROUND_SECS - 2) * 1000)); // never past timer
+  }
+
+  // After each round ends, bot score is finalized; schedule next round
+  // We hook into the existing battle result display to inject botScore
+  const _origShowResult = window._showBattleResult;
+  window._showBattleResult = function() {
+    // Override scores with real my score vs bot score
+    const myScore = score;
+    let outcome, color;
+    if (myScore > botScore)      { outcome = '🏆 You Win!'; color = '#3ecf8e'; }
+    else if (myScore < botScore) { outcome = '💀 You Lose'; color = '#f45b69'; }
+    else                         { outcome = '🤝 Tied!';    color = '#f59e0b'; }
+
+    _stopBattleTimer();
+    document.getElementById('brOutcome').textContent = outcome;
+    document.getElementById('brOutcome').style.color = color;
+    document.getElementById('brScores').innerHTML =
+      `${myName}: <strong style="color:#60e8ff">${myScore} pts</strong><br>` +
+      `${BOT_NAME}: <strong style="color:#ff8a94">${botScore} pts</strong>`;
+    document.getElementById('battleResult').style.display = 'flex';
+    // Change rematch button to restart bot game
+    document.querySelector('#battleResult button').textContent = '🤖 Play Again vs Bot';
+    document.querySelector('#battleResult button').onclick = () => window.location.href = '/freq-quiz/?bot=1';
+  };
+
+  // Patch newRound to also trigger bot play and track round count
+  const _origNewRound = window.newRound;
+  // We can't directly patch newRound (it's a local function) so we use
+  // the _battleMode hook already in newRound — instead we hook _startBattleTimer
+  const _origStartTimer = window._startBattleTimer;
+  window._startBattleTimer = function() {
+    _origStartTimer();
+    botRound++;
+    document.getElementById('bhudRound').textContent = botRound;
+    botPlay();
+  };
+
+  // After player answers, reveal bot freq if bot already answered
+  // (handled by existing _myAnswered + _oppAnswerFreq logic in submitAnswer/skipRound)
+
+  // Patch the round-advance in submitAnswer/skipRound: in bot mode the "host" is us,
+  // so we need to start the next round ourselves (like the host would).
+  // BattleRoom.role is null in bot mode, so the battle advance block won't fire.
+  // Instead we hook the nextTimeout directly after answer.
+  // We achieve this by overriding the per-round advance by making BattleRoom.role return 'host'.
+  // Simpler: override the _updateBattleHUD to also update bot score display.
+  const _origUpdateHUD = window._updateBattleHUD;
+  window._updateBattleHUD = function() {
+    document.getElementById('bhudYouScore').textContent  = score;
+    document.getElementById('bhudOppScore').textContent  = botScore;
+    document.getElementById('bhudRound').textContent     = totalRounds;
+  };
+
+  // For round advance in bot mode: we act as "host" — override BattleRoom stubs
+  // The submitAnswer/skipRound battle block checks BattleRoom.role === 'host'.
+  // In bot mode BattleRoom.role is null, so the else branch fires (nextTimeout = setTimeout(newRound, delay)).
+  // That's actually fine for bot mode! The solo timer branch will call newRound automatically.
+  // We just need to NOT call BattleRoom.submitAnswer (which would fail) — guard it.
+  // The existing guard `if (_battleMode && window.BattleRoom)` will fire because BattleRoom exists.
+  // We need to short-circuit it for bot mode. Patch BattleRoom.submitAnswer to be a no-op in bot mode.
+  const _origSubmit = BattleRoom.submitAnswer.bind(BattleRoom);
+  BattleRoom.submitAnswer = async function(correct, pts, answer) {
+    // In bot mode: no network call needed; HUD is updated by _updateBattleHUD
+  };
+  BattleRoom.startNextRound = async function() {
+    // Return a stub so the round-advance branch calls newRound()
+    // _battleSeed = null means newRound() will use its own Math.random() — that's fine for bot
+    return { round: totalRounds + 1, seed: null, totalRounds: _battleTotal };
+  };
+  BattleRoom.endBattle = async function() {};
+  // Make role appear as 'host' so round-advance logic fires correctly
+  Object.defineProperty(BattleRoom, 'role', { get: () => 'host', configurable: true });
+
+  // Kick off round 1 after a short delay
+  setTimeout(() => {
+    _battleSeed = Math.floor(Math.random() * 2**32); // any seed works in bot mode
+    newRound();
+  }, 800);
+})();
 </script>
 <!-- Auth modal -->
 <div class="modal-overlay" id="authModal">
