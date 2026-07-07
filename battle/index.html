@@ -284,9 +284,9 @@ body {
             Freq Quiz
             <span class="chip-tag">Live</span>
           </div>
-          <div class="game-chip" data-game="eq-match" style="opacity:0.45;cursor:default" title="Coming soon">
+          <div class="game-chip" data-game="eq-match">
             EQ Match
-            <span class="chip-tag" style="color:var(--muted)">Soon</span>
+            <span class="chip-tag">Live</span>
           </div>
           <div class="game-chip" data-game="interval-master" style="opacity:0.45;cursor:default" title="Coming soon">
             Intervals
@@ -380,7 +380,7 @@ body {
 
   // ── Game selection ────────────────────────────────────────────────────────
   let selectedGame = 'freq-quiz';
-  document.querySelectorAll('#createGameGrid .game-chip:not([style*="cursor:default"])').forEach(chip => {
+  document.querySelectorAll('#createGameGrid .game-chip:not([data-disabled])').forEach(chip => {
     chip.addEventListener('click', () => {
       document.querySelectorAll('#createGameGrid .game-chip').forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
@@ -449,7 +449,7 @@ body {
       ? (BattleRoom.role === 'host' ? BattleRoom.battleRow.host_name : BattleRoom.battleRow.guest_name)
       : (localStorage.getItem('ss_battle_name') || ''));
 
-    const gameRoutes = { 'freq-quiz': '/freq-quiz/' };
+    const gameRoutes = { 'freq-quiz': '/freq-quiz/', 'eq-match': '/eq-match/' };
     const base = gameRoutes[game] || '/freq-quiz/';
     window.location.href = `${base}?battle=${roomCode}`;
   }
@@ -516,7 +516,8 @@ body {
   document.getElementById('botBtn').addEventListener('click', () => {
     // No Supabase needed — navigate with ?bot=1 flag
     sessionStorage.setItem('ss_battle_name', _displayName || 'You');
-    window.location.href = '/freq-quiz/?bot=1';
+    const botRoutes = { 'freq-quiz': '/freq-quiz/', 'eq-match': '/eq-match/' };
+    window.location.href = (botRoutes[selectedGame] || '/freq-quiz/') + '?bot=1';
   });
 
   // Pre-fill join code from URL param ?code=XXXXXX

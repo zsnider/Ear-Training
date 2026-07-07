@@ -1814,42 +1814,41 @@ function _showBattleToast(msg) {
   // Default to loops
   setSource('loop');
 
-  // Bot plays a turn for the current round
+  // Bot plays a turn for the current round.
+  // We decide the bot's answer IMMEDIATELY (so _oppAnswerFreq is set before the player
+  // answers and the reveal always shows it), then fire a delayed toast for realism.
   function botPlay() {
     if (botTimeout) clearTimeout(botTimeout);
 
-    // Pick a random delay within the timer window
-    const delay = BOT_DELAY_LO + Math.random() * (BOT_DELAY_HI - BOT_DELAY_LO);
+    // Decide outcome right now
+    const accuracy   = BOT_ACCURACY_LO + Math.random() * (BOT_ACCURACY_HI - BOT_ACCURACY_LO);
+    const botCorrect = Math.random() < accuracy;
+    const arr        = [...activeFreqs];
+    const botFreq    = botCorrect
+      ? targetFreq
+      : arr.filter(f => f !== targetFreq)[Math.floor(Math.random() * Math.max(1, arr.length - 1))];
 
+    // Store answer immediately — reveal code in submitAnswer/skipRound will pick it up
+    _oppAnswerFreq = botFreq;
+
+    if (botCorrect) {
+      const pts = window.ScoringEngine ? ScoringEngine.points('freq-quiz', { gainAmount }) : 100;
+      botScore += pts;
+    }
+
+    // Fire the "answered" toast after a realistic delay, then update score display
+    const toastDelay = BOT_DELAY_LO + Math.random() * (BOT_DELAY_HI - BOT_DELAY_LO);
     botTimeout = setTimeout(() => {
-      if (answered) return; // player already answered; we'll show bot result at reveal
-
-      // Decide if bot gets it right this round
-      const accuracy   = BOT_ACCURACY_LO + Math.random() * (BOT_ACCURACY_HI - BOT_ACCURACY_LO);
-      const botCorrect = Math.random() < accuracy;
-      const arr        = [...activeFreqs];
-      const botFreq    = botCorrect
-        ? targetFreq
-        : arr.filter(f => f !== targetFreq)[Math.floor(Math.random() * (arr.length - 1))];
-
-      _oppAnswerFreq = botFreq;
-
-      if (botCorrect) {
-        const pts = window.ScoringEngine ? ScoringEngine.points('freq-quiz', { gainAmount }) : 100;
-        botScore += pts;
-      }
       document.getElementById('bhudOppScore').textContent = botScore;
-
-      // If player hasn't answered yet, show a subtle "Bot answered" indicator
       if (!_myAnswered) {
         _showBattleToast(`${BOT_NAME} answered`);
-      } else {
-        // Player already answered — reveal bot's choice immediately
+        // If player still hasn't answered, show the opp badge now
         if (activeFreqs.has(botFreq)) {
           document.getElementById(`freq-${botFreq}`)?.classList.add('opp-answer');
         }
       }
-    }, Math.min(delay, (BATTLE_ROUND_SECS - 2) * 1000)); // never past timer
+      // If player already answered, the badge was added during submitAnswer/skipRound
+    }, Math.min(toastDelay, (BATTLE_ROUND_SECS - 1) * 1000));
   }
 
   // After each round ends, bot score is finalized; schedule next round
@@ -1898,9 +1897,9 @@ function _showBattleToast(msg) {
   // Simpler: override the _updateBattleHUD to also update bot score display.
   const _origUpdateHUD = window._updateBattleHUD;
   window._updateBattleHUD = function() {
-    document.getElementById('bhudYouScore').textContent  = score;
-    document.getElementById('bhudOppScore').textContent  = botScore;
-    document.getElementById('bhudRound').textContent     = totalRounds;
+    document.getElementById('bhudYouScore').textContent = score;
+    document.getElementById('bhudOppScore').textContent = botScore; // always current
+    document.getElementById('bhudRound').textContent    = totalRounds;
   };
 
   // For round advance in bot mode: we act as "host" — override BattleRoom stubs
