@@ -69,6 +69,14 @@ window.SonicSandbox = {
     return _sb.auth.signOut();
   },
 
+  async signInWithProvider(provider) {
+    const { data, error } = await _sb.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: window.location.origin },
+    });
+    return { data, error };
+  },
+
   // Call this at the end of each round in a game
   // game:       string slug e.g. 'eq-match', 'compressor', 'freq-quiz'
   // correct:    boolean
