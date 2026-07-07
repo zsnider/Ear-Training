@@ -262,38 +262,40 @@ body {
   <!-- ── Create / Join card ── -->
   <div class="card" id="lobbyCard">
 
-    <!-- Playing as badge -->
-    <div style="padding:16px 24px 0; display:flex; align-items:center; gap:10px;">
-      <span style="font-size:12px;color:var(--muted);">Playing as</span>
+    <!-- Playing as -->
+    <div style="padding:20px 24px 0; display:flex; align-items:center; gap:10px;">
+      <span style="font-size:12px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:0.06em;text-transform:uppercase;">Playing as</span>
       <span id="playingAsBadge" style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;color:var(--text);background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:4px 12px;">…</span>
     </div>
 
+    <!-- Game picker -->
+    <div style="padding:20px 24px;">
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Game</div>
+      <div class="game-grid" id="createGameGrid">
+        <div class="game-chip active" data-game="freq-quiz">
+          Freq Quiz
+          <span class="chip-tag">Live</span>
+        </div>
+        <div class="game-chip" data-game="eq-match">
+          EQ Match
+          <span class="chip-tag">Live</span>
+        </div>
+        <div class="game-chip" data-game="interval-master" style="opacity:0.45;cursor:default" title="Coming soon">
+          Intervals
+          <span class="chip-tag" style="color:var(--muted)">Soon</span>
+        </div>
+      </div>
+    </div>
+
     <!-- Create room -->
-    <div class="card-header" style="margin-top:12px;">
+    <div class="card-header" style="border-top:1px solid var(--border);">
       <div class="card-icon">⚔</div>
       <div>
         <div class="card-title">Create a Room</div>
         <div class="card-desc">Get a code — share it with anyone to battle</div>
       </div>
     </div>
-    <div class="card-body">
-      <div class="field">
-        <label>Game</label>
-        <div class="game-grid" id="createGameGrid">
-          <div class="game-chip active" data-game="freq-quiz">
-            Freq Quiz
-            <span class="chip-tag">Live</span>
-          </div>
-          <div class="game-chip" data-game="eq-match">
-            EQ Match
-            <span class="chip-tag">Live</span>
-          </div>
-          <div class="game-chip" data-game="interval-master" style="opacity:0.45;cursor:default" title="Coming soon">
-            Intervals
-            <span class="chip-tag" style="color:var(--muted)">Soon</span>
-          </div>
-        </div>
-      </div>
+    <div class="card-body" style="padding-top:16px;">
       <button class="btn btn-primary btn-full" id="createBtn">Create Room</button>
     </div>
 
