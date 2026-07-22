@@ -1458,6 +1458,97 @@ function _showBattleResult() {
     }, 1000);
   }
 })();
+
+// ── Bot mode (client-side only, no Supabase) ──────────────────────────────────
+(function initBotMode() {
+  const params = new URLSearchParams(location.search);
+  if (!params.get('bot')) return;
+
+  const BOT_NAME        = 'SonicBot';
+  const BOT_ACCURACY_LO = 0.55;
+  const BOT_ACCURACY_HI = 0.85;
+  const BOT_ROUNDS      = 5;
+
+  _battleMode  = true;
+  _battleTotal = BOT_ROUNDS;
+
+  let playerBattleScore = 0;
+  let botScore          = 0;
+  let botTimeout        = null;
+  let _botRoundNum      = 1;
+
+  const myName = sessionStorage.getItem('ss_battle_name') ||
+                 localStorage.getItem('ss_guest_battle_name') || 'You';
+
+  // Show HUD
+  const hud = document.getElementById('battleHUD');
+  hud.style.display = 'flex';
+  document.getElementById('bhudYouName').textContent = myName;
+  document.getElementById('bhudOppName').textContent = BOT_NAME;
+  document.getElementById('bhudTotal').textContent   = BOT_ROUNDS;
+  document.getElementById('bhudRound').textContent   = 1;
+  const setTopPad = () => document.body.style.paddingTop = (hud.offsetHeight + 4) + 'px';
+  setTopPad();
+  window.addEventListener('resize', setTopPad);
+
+  // Music theory games — no setSource needed
+
+  // Stub BattleRoom so battle logic fires without Supabase
+  BattleRoom.submitAnswer = async function(correct, pts) {
+    if (correct && pts) { playerBattleScore += pts; }
+    document.getElementById('bhudYouScore').textContent = playerBattleScore;
+  };
+  BattleRoom.startNextRound = async function() {
+    _botRoundNum++;
+    return { round: _botRoundNum, seed: null, totalRounds: BOT_ROUNDS };
+  };
+  BattleRoom.endBattle = async function() {};
+  Object.defineProperty(BattleRoom, 'role', { get: () => 'host', configurable: true });
+
+  // Bot plays each round
+  function botPlay() {
+    if (botTimeout) clearTimeout(botTimeout);
+    const botCorrect = Math.random() < (BOT_ACCURACY_LO + Math.random() * (BOT_ACCURACY_HI - BOT_ACCURACY_LO));
+    const maxWait    = Math.max(1000, (30 - 4) * 1000);
+    const delay      = 2000 + Math.random() * (maxWait - 2000);
+    botTimeout = setTimeout(() => {
+      if (botCorrect) botScore += 100;
+      document.getElementById('bhudOppScore').textContent = botScore;
+    }, delay);
+  }
+
+  // Override result screen
+  window._showBattleResult = function() {
+    if (botTimeout) clearTimeout(botTimeout);
+    if (typeof _stopBattleTimer === 'function') _stopBattleTimer();
+    let outcome, color;
+    if (playerBattleScore > botScore)      { outcome = '🏆 You Win!'; color = '#3ecf8e'; }
+    else if (playerBattleScore < botScore) { outcome = '💀 You Lose'; color = '#f45b69'; }
+    else                                   { outcome = '🤝 Tied!';    color = '#f59e0b'; }
+    document.getElementById('brOutcome').textContent = outcome;
+    document.getElementById('brOutcome').style.color = color;
+    document.getElementById('brScores').innerHTML =
+      `${myName}: <strong style="color:#f472b6">${playerBattleScore} pts</strong><br>` +
+      `${BOT_NAME}: <strong style="color:#ff8a94">${botScore} pts</strong>`;
+    document.getElementById('battleResult').style.display = 'flex';
+    document.querySelector('#battleResult button').textContent = '🤖 Play Again vs Bot';
+    document.querySelector('#battleResult button').onclick = () =>
+      window.location.href = '/progression-detection/?bot=1';
+  };
+
+  // Hook timer start to trigger bot play each round
+  const _origStart = window._startBattleTimer;
+  window._startBattleTimer = function() {
+    _origStart();
+    botPlay();
+  };
+
+  // Kick off round 1
+  setTimeout(() => {
+    _battleSeed = null;
+    newRound();
+  }, 800);
+})();
 </script>
 
 <!-- ── Auth modal ─────────────────────────────────────────────────────────── -->
