@@ -280,9 +280,17 @@ body {
           EQ Match
           <span class="chip-tag">Live</span>
         </div>
-        <div class="game-chip" data-game="interval-master" style="opacity:0.45;cursor:default" title="Coming soon">
-          Intervals
-          <span class="chip-tag" style="color:var(--muted)">Soon</span>
+        <div class="game-chip" data-game="quick-eq">
+          Quick EQ
+          <span class="chip-tag">Live</span>
+        </div>
+        <div class="game-chip" data-game="level-logic">
+          Level Logic
+          <span class="chip-tag">Live</span>
+        </div>
+        <div class="game-chip" data-game="compressor">
+          Compressor
+          <span class="chip-tag">Live</span>
         </div>
       </div>
     </div>
@@ -433,7 +441,7 @@ body {
     })
     .on('matched', ({ roomCode, opponentName, role }) => {
       showToast(`Matched with ${opponentName}! Loading…`);
-      setTimeout(() => redirectToGame(roomCode, 'freq-quiz'), 1200);
+      setTimeout(() => redirectToGame(roomCode, BattleRoom.battleRow?.game || 'freq-quiz'), 1200);
     })
     .on('error', msg => {
       showToast('Error: ' + msg, 4000);
@@ -451,7 +459,13 @@ body {
       ? (BattleRoom.role === 'host' ? BattleRoom.battleRow.host_name : BattleRoom.battleRow.guest_name)
       : (localStorage.getItem('ss_battle_name') || ''));
 
-    const gameRoutes = { 'freq-quiz': '/freq-quiz/', 'eq-match': '/eq-match/' };
+    const gameRoutes = {
+      'freq-quiz'  : '/freq-quiz/',
+      'eq-match'   : '/eq-match/',
+      'quick-eq'   : '/quick-eq/',
+      'level-logic': '/level-logic/',
+      'compressor' : '/compressor/',
+    };
     const base = gameRoutes[game] || '/freq-quiz/';
     window.location.href = `${base}?battle=${roomCode}`;
   }
@@ -504,7 +518,7 @@ body {
     document.getElementById('lobbyCard').style.display = 'none';
     document.getElementById('queuePanel').classList.add('visible');
 
-    await BattleRoom.joinQueue(_displayName, 'freq-quiz');
+    await BattleRoom.joinQueue(_displayName, selectedGame);
   });
 
   document.getElementById('leaveQueueBtn').addEventListener('click', async () => {
@@ -518,7 +532,13 @@ body {
   document.getElementById('botBtn').addEventListener('click', () => {
     // No Supabase needed — navigate with ?bot=1 flag
     sessionStorage.setItem('ss_battle_name', _displayName || 'You');
-    const botRoutes = { 'freq-quiz': '/freq-quiz/', 'eq-match': '/eq-match/' };
+    const botRoutes = {
+      'freq-quiz'  : '/freq-quiz/',
+      'eq-match'   : '/eq-match/',
+      'quick-eq'   : '/quick-eq/',
+      'level-logic': '/level-logic/',
+      'compressor' : '/compressor/',
+    };
     window.location.href = (botRoutes[selectedGame] || '/freq-quiz/') + '?bot=1';
   });
 

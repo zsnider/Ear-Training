@@ -588,6 +588,8 @@ const USER_C  = (_css.getPropertyValue('--accent')  || '#1fd58a').trim();
 const USER_C2 = (_css.getPropertyValue('--accent2') || '#5be8b0').trim();
 const TGT_C   = (_css.getPropertyValue('--tgt')  || '#5b7fff').trim();
 const TGT_C2  = (_css.getPropertyValue('--tgt2') || '#87a0ff').trim();
+const OPP_C   = '#c084fc';   // purple — opponent's curve in battle mode
+const OPP_C2  = '#e9d5ff';
 
 // ── Colour helpers ────────────────────────────────────────────────────────────
 function hexA(hex, a) {
@@ -658,6 +660,7 @@ let _battleSeed    = null;   // set before newRound() to make target bands deter
 let _battleTotal   = 5;
 let _myRoundScore  = 0;      // this player's score (0-100) for current round
 let _oppRoundScore = null;   // opponent's round score (null until received)
+let _oppBands      = null;   // opponent's userBands snapshot — drawn as purple curve after reveal
 
 // ── Audio State ───────────────────────────────────────────────────────────────
 let audioCtx         = null;
@@ -902,6 +905,38 @@ function drawEQ() {
       ctx.fillStyle = hexA(TGT_C, 0.30); ctx.strokeStyle = TGT_C2;
       ctx.lineWidth = 1.5; ctx.fill(); ctx.stroke();
       ctx.fillStyle = TGT_C2; ctx.font = '700 9px "IBM Plex Mono", monospace';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(i+1, x, y+0.5);
+      ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    }
+  }
+
+  // Opponent curve — purple, shown in battle mode after both players have answered
+  if (_oppBands && answered) {
+    const og = computeResponse(_oppBands, fpts);
+    drawCurvePath(og, fpts, N, W, H);
+    ctx.lineTo(W, H/2); ctx.lineTo(0, H/2); ctx.closePath();
+    const ogFill = ctx.createLinearGradient(0, 0, 0, H);
+    ogFill.addColorStop(0,   hexA(OPP_C, 0.14));
+    ogFill.addColorStop(0.5, hexA(OPP_C, 0.03));
+    ogFill.addColorStop(1,   hexA(OPP_C, 0.14));
+    ctx.fillStyle = ogFill; ctx.fill();
+
+    ctx.save();
+    ctx.shadowColor = hexA(OPP_C, 0.4); ctx.shadowBlur = 8;
+    drawCurvePath(og, fpts, N, W, H);
+    ctx.strokeStyle = OPP_C; ctx.lineWidth = 2.2; ctx.lineJoin = 'round';
+    ctx.setLineDash([4, 5]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.restore();
+
+    // Opponent band nodes
+    for (let i = 0; i < _oppBands.length; i++) {
+      const b = _oppBands[i];
+      const x = freqToX(b.frequency, W), y = gainToY(b.gain || 0, H);
+      ctx.beginPath(); ctx.arc(x, y, 7, 0, Math.PI*2);
+      ctx.fillStyle = hexA(OPP_C, 0.20); ctx.strokeStyle = OPP_C;
+      ctx.lineWidth = 1.5; ctx.fill(); ctx.stroke();
+      ctx.fillStyle = OPP_C2; ctx.font = '700 9px "IBM Plex Mono", monospace';
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(i+1, x, y+0.5);
       ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
@@ -1595,7 +1630,7 @@ function newRound() {
 
   // Battle/bot mode: use seeded PRNG so both players get identical target bands
   const _rng = (_battleMode && _battleSeed != null) ? _seededRng(_battleSeed) : Math.random;
-  if (_battleMode) { _battleSeed = null; _oppRoundScore = null; _myRoundScore = 0; }
+  if (_battleMode) { _battleSeed = null; _oppRoundScore = null; _myRoundScore = 0; _oppBands = null; }
 
   for (let i=0;i<difficulty;i++) {
     const nt = randomBand(i, usedTypes, _rng);
@@ -1768,7 +1803,9 @@ function checkAnswer() {
     br.appendChild(c);
   }
 
-  document.getElementById('canvasHint').textContent = 'Green = Your EQ · Blue = Target';
+  document.getElementById('canvasHint').textContent = _battleMode
+    ? 'Green = You · Blue = Target · Purple = Opponent'
+    : 'Green = Your EQ · Blue = Target';
   showToast(`Round Finished: ${score}/100`);
 }
 
@@ -1927,8 +1964,9 @@ function _onEqAnswered(roundScore, roundPts) {
   document.getElementById('eqhudRound').textContent    = round;
 
   if (window.BattleRoom && BattleRoom.roomCode) {
-    // Real multiplayer: broadcast score
-    BattleRoom.submitAnswer(roundScore >= 75, roundPts, roundScore);
+    // Real multiplayer: broadcast score + bands so opponent can see our curve
+    const payload = JSON.stringify({ score: roundScore, bands: userBands });
+    BattleRoom.submitAnswer(roundScore >= 75, roundPts, payload);
     const isLast = round >= _battleTotal;
     if (isLast) {
       if (BattleRoom.role === 'host') setTimeout(async () => { await BattleRoom.endBattle(); _showEqBattleResult(); }, 3000);
@@ -2022,10 +2060,17 @@ function _showEqBattleResult(myName, oppName) {
       document.getElementById('eqhudOppAnswered').textContent = '';
       newRound();
     })
-    .on('opponentAnswer', ({ score: opPts, answer: opRoundScore }) => {
+    .on('opponentAnswer', ({ score: opPts, answer: rawAnswer }) => {
       _eqOppTotal = opPts ?? _eqOppTotal;
-      document.getElementById('eqhudOppScore').textContent    = _eqOppTotal;
-      document.getElementById('eqhudOppAnswered').textContent = opRoundScore != null ? `Scored ${opRoundScore}/100` : 'Checked ✓';
+      document.getElementById('eqhudOppScore').textContent = _eqOppTotal;
+      let oppRoundScore = null;
+      try {
+        const parsed = typeof rawAnswer === 'string' ? JSON.parse(rawAnswer) : rawAnswer;
+        if (parsed?.bands) { _oppBands = parsed.bands; drawEQ(); }
+        oppRoundScore = parsed?.score ?? null;
+      } catch(e) { /* older clients send score directly */ oppRoundScore = rawAnswer; }
+      document.getElementById('eqhudOppAnswered').textContent =
+        oppRoundScore != null ? `OPP: ${oppRoundScore}/100` : 'OPP: Checked ✓';
     })
     .on('opponentLeft', () => { showToast('Opponent disconnected'); setTimeout(_showEqBattleResult, 2000); });
 
@@ -2099,7 +2144,21 @@ function _showEqBattleResult(myName, oppName) {
     _eqOppTotal += _botRoundPts;
     document.getElementById('eqhudYouScore').textContent    = _eqMyTotal;
     document.getElementById('eqhudOppScore').textContent    = _eqOppTotal;
-    document.getElementById('eqhudOppAnswered').textContent = `Scored ${_botRoundScore}/100`;
+    document.getElementById('eqhudOppAnswered').textContent = `OPP: ${_botRoundScore}/100`;
+
+    // Synthesise the bot's bands from targetBands + noise scaled by accuracy
+    const acc = _botRoundScore / 100;
+    _oppBands = targetBands.map(b => {
+      const maxOctErr  = (1 - acc) * 1.8;
+      const freqMult   = Math.pow(2, (Math.random() * 2 - 1) * maxOctErr);
+      const maxGainErr = (1 - acc) * 10;
+      return {
+        ...b,
+        frequency: Math.max(20, Math.min(20000, b.frequency * freqMult)),
+        gain: (b.gain || 0) + (Math.random() * 2 - 1) * maxGainErr,
+      };
+    });
+    drawEQ();
 
     const isLast = round >= _battleTotal;
     if (isLast) {

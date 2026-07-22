@@ -740,6 +740,68 @@ kbd { font-family:'IBM Plex Mono', monospace; font-size:10px; background:var(--s
 
 </div>
 
+<!-- Battle HUD (hidden until battle mode activates) -->
+<div id="battleHUD" style="display:none;">
+  <style>
+    #battleHUD {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(8,10,14,0.93); backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(129,140,248,0.3);
+      padding: 10px 24px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+    .bhud-player { display: flex; flex-direction: column; align-items: center; min-width: 120px; }
+    .bhud-name   { font-size: 11px; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+    .bhud-score  { font-size: 22px; font-weight: 700; color: var(--text); }
+    .bhud-you .bhud-score { color: var(--accent2); }
+    .bhud-opp.ahead .bhud-score { color: #f45b69; }
+    .bhud-center { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .bhud-vs     { font-size: 11px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
+    .bhud-round  { font-size: 11px; color: var(--muted); }
+    .bhud-round strong { color: var(--text); }
+    .bhud-timer  { font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 700; color: var(--text); min-width: 36px; text-align: center; line-height: 1; }
+    .bhud-timer.urgent { color: #f45b69; animation: timerPulse 0.5s ease-in-out infinite; }
+    @keyframes timerPulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+    .bhud-timer-bar  { width: 60px; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+    .bhud-timer-fill { height: 100%; border-radius: 2px; background: var(--accent2); transition: width 1s linear, background 0.3s; }
+    .battle-guest-locked { pointer-events: none !important; opacity: 0.35 !important; }
+    /* Opponent's choice highlight */
+    .eq-panel.opp-answer { outline: 2px solid #c084fc; outline-offset: 2px; }
+    @media (max-width: 500px) {
+      #battleHUD { padding: 8px 12px; }
+      .bhud-score { font-size: 18px; }
+      .bhud-name  { font-size: 10px; }
+      .bhud-timer { font-size: 16px; }
+      .bhud-timer-bar { width: 40px; }
+    }
+  </style>
+  <div class="bhud-player bhud-you">
+    <div class="bhud-name" id="bhudYouName">You</div>
+    <div class="bhud-score" id="bhudYouScore">0</div>
+  </div>
+  <div class="bhud-center">
+    <div class="bhud-vs">⚔ Battle</div>
+    <div class="bhud-timer" id="bhudTimer">30</div>
+    <div class="bhud-timer-bar"><div class="bhud-timer-fill" id="bhudTimerFill" style="width:100%"></div></div>
+    <div class="bhud-round">Round <strong id="bhudRound">—</strong> / <strong id="bhudTotal">5</strong></div>
+  </div>
+  <div class="bhud-player bhud-opp" id="bhudOppSlot">
+    <div class="bhud-name" id="bhudOppName">Opponent</div>
+    <div class="bhud-score" id="bhudOppScore">0</div>
+  </div>
+</div>
+
+<!-- Battle result overlay -->
+<div id="battleResult" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(8,10,14,0.96);align-items:center;justify-content:center;flex-direction:column;gap:16px;font-family:'IBM Plex Mono',monospace;text-align:center;padding:24px;">
+  <div id="brOutcome" style="font-size:clamp(28px,6vw,52px);font-weight:700;"></div>
+  <div id="brScores" style="font-size:16px;color:var(--muted);line-height:2;"></div>
+  <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;justify-content:center;">
+    <button onclick="window.location.href='/battle/'" style="padding:12px 24px;border-radius:10px;background:var(--accent);color:#fff;border:none;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:14px;">⚔ Rematch Lobby</button>
+    <button onclick="window.location.href='/quick-eq/'" style="padding:12px 24px;border-radius:10px;background:transparent;border:1px solid rgba(255,255,255,0.15);color:var(--text);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:14px;">Solo Practice</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -944,10 +1006,10 @@ function pickRoundFreq(existingFreqs, zoneIdx) {
     existingFreqs.every(ef => Math.abs(Math.log2(f) - Math.log2(ef)) > 1.2)
   );
   const pool = available.length > 0 ? available : candidates;
-  return pool[Math.floor(Math.random() * pool.length)];
+  return pool[Math.floor(_rng() * pool.length)];
 }
 
-function coin() { return Math.random() < 0.5; }
+function coin() { return _rng() < 0.5; }
 
 function makeTargetBands(nBands, diff) {
   const gainCfg = {
@@ -970,12 +1032,12 @@ function makeTargetBands(nBands, diff) {
     usedFreqs.push(freq);
     const isShapeOnly = zone.type === 'lowpass' || zone.type === 'highpass';
     const isShelf = zone.type === 'lowshelf' || zone.type === 'highshelf';
-    const gainMag = gainCfg.min + Math.random() * (gainCfg.max - gainCfg.min);
+    const gainMag = gainCfg.min + _rng() * (gainCfg.max - gainCfg.min);
     const gain = isShapeOnly ? 0 : (coin() ? gainMag : -gainMag);
     // Q is variable for peaking and LP/HP; shelves get a gentle fixed slope
     const Q = isShelf
       ? 0.707
-      : qCfg.min + Math.random() * (qCfg.max - qCfg.min);
+      : qCfg.min + _rng() * (qCfg.max - qCfg.min);
     return { type: zone.type, freq, gain: isShapeOnly ? 0 : Math.round(gain * 2) / 2, Q };
   });
 }
@@ -1003,17 +1065,17 @@ function makeDecoyBands(targetBands, diff) {
       // Flip gain sign — opposite tonal character
       b.gain = -band.gain;
     } else if (diff === 'medium') {
-      if (Math.random() < 0.65) {
+      if (_rng() < 0.65) {
         b.gain = -band.gain; // flip
       } else {
         // Same sign, 1.6-2.5× magnitude
-        const mult = 1.6 + Math.random() * 0.9;
+        const mult = 1.6 + _rng() * 0.9;
         b.gain = band.gain * mult;
         b.gain = Math.sign(b.gain) * Math.min(Math.abs(b.gain), GAIN_RANGE - 1);
       }
     } else {
       // Hard: same sign, 35-65% of original magnitude
-      const ratio = 0.35 + Math.random() * 0.30;
+      const ratio = 0.35 + _rng() * 0.30;
       b.gain = Math.sign(band.gain) * Math.max(Math.abs(band.gain) * ratio, 1.5);
       b.gain = Math.round(b.gain * 2) / 2;
       // Ensure it's clearly different from target
@@ -1023,7 +1085,7 @@ function makeDecoyBands(targetBands, diff) {
   });
 }
 
-function shuffleArr(a) { const b=[...a]; for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];} return b; }
+function shuffleArr(a) { const b=[...a]; for(let i=b.length-1;i>0;i--){const j=Math.floor(_rng()*(i+1));[b[i],b[j]]=[b[j],b[i]];} return b; }
 
 // ── Help Section ───────────────────────────────────────────────────────────────
 function toggleHelp() {
@@ -1032,6 +1094,26 @@ function toggleHelp() {
   const open = sec.classList.toggle('visible');
   btn.classList.toggle('open', open);
 }
+
+// ── Battle state ───────────────────────────────────────────────────────────────
+let _battleMode  = false;
+let _battleSeed  = null;
+let _battleTotal = 5;
+let _oppAnswerChoice = null;  // 'A' | 'B' received from opponent
+let _myAnswered  = false;
+
+// Seeded PRNG (mulberry32) — shared with multiplayer.js logic
+function _seededRandom(seed) {
+  let s = seed >>> 0;
+  return function() {
+    s += 0x6D2B79F5;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+// _rng is used by coin(), shuffleArr(), pickRoundFreq(), makeTargetBands(), makeDecoyBands()
+let _rng = Math.random;
 
 // ── State ──────────────────────────────────────────────────────────────────────
 let numBands      = 1;
@@ -1117,6 +1199,17 @@ function updateOverlays() {
 function newRound() {
   clearTimeout(nextTimeout);
   stopPlayback();
+
+  // Battle mode: use seeded RNG so both players get identical rounds
+  if (_battleMode && _battleSeed != null) {
+    _rng = _seededRandom(_battleSeed);
+    _battleSeed = null;
+  } else {
+    _rng = Math.random;
+  }
+  _oppAnswerChoice = null;
+  _myAnswered = false;
+  if (_battleMode && typeof _startBattleTimer === 'function') _startBattleTimer();
 
   const targetBands = makeTargetBands(numBands, difficulty);
   const decoyBands  = makeDecoyBands(targetBands, difficulty);
@@ -1565,6 +1658,28 @@ function submitAnswer(choice) {
     SonicSandbox.saveScore({ game: 'quick-eq', correct: isCorrect, roundScore: isCorrect ? pts : 0 });
   }
 
+  // Battle mode: stop timer, submit answer, advance/end
+  if (_battleMode && window.BattleRoom) {
+    if (typeof _stopBattleTimer === 'function') _stopBattleTimer();
+    _myAnswered = true;
+    BattleRoom.submitAnswer(isCorrect, isCorrect ? pts : 0, choice);
+    const isLast = totalRounds >= _battleTotal;
+    const delay = isCorrect ? 2200 : 3000;
+    if (isLast) {
+      if (BattleRoom.role === 'host') setTimeout(async () => { await BattleRoom.endBattle(); _showBattleResult(); }, delay);
+      else setTimeout(_showBattleResult, delay + 1500);
+    } else if (BattleRoom.role === 'host') {
+      setTimeout(async () => {
+        const rd = await BattleRoom.startNextRound();
+        if (rd) { _battleSeed = rd.seed; document.getElementById('bhudRound').textContent = rd.round; newRound(); }
+      }, delay);
+    }
+    // Reveal opponent's choice if already received
+    if (_oppAnswerChoice && ['panelA','panelB'].includes('panel' + _oppAnswerChoice)) {
+      document.getElementById('panel' + _oppAnswerChoice)?.classList.add('opp-answer');
+    }
+  }
+
   updateScoreDisplay();
   addHistory(isCorrect);
   const _sd = document.getElementById('scoreDelta');
@@ -1618,7 +1733,8 @@ function submitAnswer(choice) {
     fill.style.transition = `width ${delay}ms linear`;
     fill.style.width = '0%';
   }));
-  nextTimeout = setTimeout(newRound, delay);
+  // In battle mode the host drives pacing — don't auto-advance locally
+  if (!_battleMode) nextTimeout = setTimeout(newRound, delay);
 
   // Replay the correct (target) EQ after a short pause
   setTimeout(() => {
@@ -1699,6 +1815,194 @@ if ('serviceWorker' in navigator) {
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="../supabase-client.js"></script>
+<script src="../multiplayer.js"></script>
+<script>
+// ── Quick EQ battle / bot mode ─────────────────────────────────────────────────
+const BATTLE_ROUND_SECS = 30;
+let _battleTimerInterval = null;
+let _battleTimerRemaining = BATTLE_ROUND_SECS;
+
+function _startBattleTimer() {
+  _stopBattleTimer();
+  _battleTimerRemaining = BATTLE_ROUND_SECS;
+  const timerEl = document.getElementById('bhudTimer');
+  const fillEl  = document.getElementById('bhudTimerFill');
+  if (timerEl) { timerEl.textContent = BATTLE_ROUND_SECS; timerEl.classList.remove('urgent'); }
+  if (fillEl)  { fillEl.style.transition = 'none'; fillEl.style.width = '100%'; fillEl.style.background = ''; }
+
+  _battleTimerInterval = setInterval(() => {
+    _battleTimerRemaining--;
+    if (timerEl) {
+      timerEl.textContent = _battleTimerRemaining;
+      if (_battleTimerRemaining <= 5) timerEl.classList.add('urgent');
+    }
+    if (fillEl) {
+      const pct = (_battleTimerRemaining / BATTLE_ROUND_SECS) * 100;
+      fillEl.style.transition = 'width 1s linear';
+      fillEl.style.width = pct + '%';
+      if (_battleTimerRemaining <= 5) fillEl.style.background = '#f45b69';
+    }
+    if (_battleTimerRemaining <= 0) {
+      _stopBattleTimer();
+      // Auto-submit wrong if not yet answered
+      if (!answered) {
+        answered = true;
+        _myAnswered = true;
+        if (window.BattleRoom) {
+          BattleRoom.submitAnswer(false, 0, null);
+          const isLast = totalRounds >= _battleTotal;
+          const delay = 2000;
+          if (isLast) {
+            if (BattleRoom.role === 'host') setTimeout(async () => { await BattleRoom.endBattle(); _showBattleResult(); }, delay);
+            else setTimeout(_showBattleResult, delay + 1500);
+          } else if (BattleRoom.role === 'host') {
+            setTimeout(async () => {
+              const rd = await BattleRoom.startNextRound();
+              if (rd) { _battleSeed = rd.seed; document.getElementById('bhudRound').textContent = rd.round; newRound(); }
+            }, delay);
+          }
+        }
+      }
+    }
+  }, 1000);
+}
+
+function _stopBattleTimer() {
+  if (_battleTimerInterval) { clearInterval(_battleTimerInterval); _battleTimerInterval = null; }
+}
+
+function _showBattleResult() {
+  _stopBattleTimer();
+  const row = BattleRoom.battleRow;
+  const isHost = BattleRoom.role === 'host';
+  const myScore = isHost ? (row?.host_score ?? 0) : (row?.guest_score ?? 0);
+  const opScore = isHost ? (row?.guest_score ?? 0) : (row?.host_score ?? 0);
+  const myName  = isHost ? (row?.host_name ?? 'You') : (row?.guest_name ?? 'You');
+  const opName  = isHost ? (row?.guest_name ?? 'Opponent') : (row?.host_name ?? 'Opponent');
+  const won = myScore > opScore;
+  const tied = myScore === opScore;
+  document.getElementById('brOutcome').textContent  = tied ? '🤝 Tied!' : won ? '🏆 You Win!' : '💀 You Lose';
+  document.getElementById('brOutcome').style.color  = tied ? '#f59e0b' : won ? '#3ecf8e' : '#f45b69';
+  document.getElementById('brScores').innerHTML =
+    `${myName}: <strong style="color:#60e8ff">${myScore}</strong><br>${opName}: <strong>${opScore}</strong>`;
+  const overlay = document.getElementById('battleResult');
+  overlay.style.display = 'flex';
+  BattleRoom.leave();
+}
+
+function _showBattleToast(msg) { showToast(msg); }
+
+(async function initBattleMode() {
+  const params   = new URLSearchParams(location.search);
+  const roomCode = params.get('battle');
+  if (!roomCode) return; // solo / bot mode
+
+  const displayName    = sessionStorage.getItem('ss_battle_name') ||
+                         localStorage.getItem('ss_guest_battle_name') || 'Player';
+  const savedRole      = sessionStorage.getItem('ss_battle_role');
+  const savedSessionId = sessionStorage.getItem('ss_battle_session');
+
+  if (!BattleRoom.roomCode && savedSessionId && savedRole) {
+    await BattleRoom._reattach(roomCode, savedSessionId, displayName, savedRole);
+  }
+
+  _battleMode  = true;
+
+  const row = BattleRoom.battleRow;
+  if (row) {
+    _battleTotal = row.total_rounds || 5;
+    const isHost = BattleRoom.role === 'host';
+    document.getElementById('bhudYouName').textContent = isHost ? row.host_name : (row.guest_name || displayName);
+    document.getElementById('bhudOppName').textContent = isHost ? (row.guest_name || '…') : row.host_name;
+    document.getElementById('bhudTotal').textContent   = _battleTotal;
+  }
+
+  // Show HUD
+  const hud = document.getElementById('battleHUD');
+  hud.style.display = 'flex';
+  const setTopPad = () => document.body.style.paddingTop = (hud.offsetHeight + 4) + 'px';
+  setTopPad();
+  window.addEventListener('resize', setTopPad);
+
+  // Default to loops in battle mode
+  setSource('loop');
+
+  // Lock source/settings controls for guests
+  if (BattleRoom.role === 'guest') {
+    ['srcPink','srcOneShot','srcLoop','srcCustom','folderInput',
+     'showCurvesBtn','hideCurvesBtn','bands1','bands2','bands3',
+     'diffEasy','diffMedium','diffHard'].forEach(id =>
+       document.getElementById(id)?.classList.add('battle-guest-locked'));
+  }
+
+  // BattleRoom events
+  BattleRoom
+    .on('stateChange', row => {
+      if (!row) return;
+      _battleTotal = row.total_rounds || _battleTotal;
+      document.getElementById('bhudTotal').textContent = _battleTotal;
+      const isHost  = BattleRoom.role === 'host';
+      const myScore = isHost ? row.host_score : row.guest_score;
+      const opScore = isHost ? row.guest_score : row.host_score;
+      document.getElementById('bhudYouScore').textContent = myScore ?? 0;
+      document.getElementById('bhudOppScore').textContent = opScore ?? 0;
+      document.getElementById('bhudOppSlot').classList.toggle('ahead', (opScore ?? 0) > (myScore ?? 0));
+      if (row.guest_name) document.getElementById('bhudOppName').textContent =
+        BattleRoom.role === 'host' ? row.guest_name : row.host_name;
+    })
+    .on('roundStart', ({ round, seed, totalRounds: tot }) => {
+      _battleSeed  = seed;
+      _battleTotal = tot;
+      document.getElementById('bhudRound').textContent = round;
+      document.getElementById('bhudTotal').textContent = tot;
+      clearTimeout(nextTimeout);
+      newRound();
+    })
+    .on('opponentAnswer', ({ correct, score: opScore, answer: oppChoice }) => {
+      document.getElementById('bhudOppScore').textContent = opScore ?? 0;
+      const myScore = parseInt(document.getElementById('bhudYouScore').textContent) || 0;
+      document.getElementById('bhudOppSlot').classList.toggle('ahead', (opScore ?? 0) > myScore);
+      // Show opponent's choice if we've already answered
+      if (oppChoice) {
+        _oppAnswerChoice = oppChoice;
+        if (_myAnswered) document.getElementById('panel' + oppChoice)?.classList.add('opp-answer');
+      }
+    })
+    .on('settingsChange', s => {
+      if (s.numBands  !== undefined) setNumBands(s.numBands);
+      if (s.difficulty !== undefined) setDifficulty(s.difficulty);
+      if (s.showCurves !== undefined) setCurvesVisible(s.showCurves);
+      if (s.sourceType !== undefined) setSource(s.sourceType);
+    })
+    .on('opponentLeft', () => {
+      _stopBattleTimer();
+      _showBattleToast('Opponent disconnected');
+      setTimeout(_showBattleResult, 2000);
+    });
+
+  // Host: broadcast settings changes
+  if (BattleRoom.role === 'host') {
+    const _origSetNumBands = window.setNumBands;
+    window.setNumBands = function(n) { _origSetNumBands(n); BattleRoom.broadcastSettings({ numBands: n }); };
+    const _origSetDiff = window.setDifficulty;
+    window.setDifficulty = function(d) { _origSetDiff(d); BattleRoom.broadcastSettings({ difficulty: d }); };
+    const _origSetCurves = window.setCurvesVisible;
+    window.setCurvesVisible = function(v) { _origSetCurves(v); BattleRoom.broadcastSettings({ showCurves: v }); };
+    const _origSetSrc = window.setSource;
+    window.setSource = function(t) { _origSetSrc(t); BattleRoom.broadcastSettings({ sourceType: t }); };
+
+    // Kick off round 1
+    setTimeout(async () => {
+      const rd = await BattleRoom.startNextRound(1);
+      if (rd) {
+        _battleSeed = rd.seed;
+        document.getElementById('bhudRound').textContent = 1;
+        newRound();
+      }
+    }, 1000);
+  }
+})();
+</script>
 <!-- Auth modal -->
 <div class="modal-overlay" id="authModal">
   <div class="modal">
