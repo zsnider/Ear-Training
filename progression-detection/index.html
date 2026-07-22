@@ -740,6 +740,17 @@ let difficulty = 'beginner', voicing = 'harmonic';
 let currentProgName = null, currentRoot = null, currentChoices = [];
 let answered = false, gameStarted = false, paused = false, waitingForAdvance = false;
 let score = 0, streak = 0, bestStreak = 0, totalCorrect = 0, totalRounds = 0;
+let _battleMode = false, _battleSeed = null, _battleTotal = 5;
+function _seededRandom(seed) {
+  let s = seed >>> 0;
+  return function() {
+    s += 0x6D2B79F5;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+let _rng = Math.random;
 let history = [], slotTimers = [], savedPromptHTML = '';
 
 // ── Instruments ───────────────────────────────────────────────────────────────
@@ -878,7 +889,7 @@ function resetSlotHighlights() {
 // ── Choices ───────────────────────────────────────────────────────────────────
 function shuffle(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]];
+    const j = Math.floor(_rng() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
 }
@@ -995,9 +1006,12 @@ function newRound() {
   if (paused) return;
   clearSlotTimers();
   answered = false; waitingForAdvance = false;
+  if (_battleMode && _battleSeed != null) { _rng = _seededRandom(_battleSeed); _battleSeed = null; }
+  else { _rng = Math.random; }
+  if (_battleMode && typeof _startBattleTimer === 'function') _startBattleTimer();
   const pool = DIFFICULTY_POOLS[difficulty];
-  currentProgName = pool[Math.floor(Math.random() * pool.length)];
-  currentRoot     = 48 + Math.floor(Math.random() * 12);
+  currentProgName = pool[Math.floor(_rng() * pool.length)];
+  currentRoot     = 48 + Math.floor(_rng() * 12);
   currentChoices  = selectChoices(currentProgName);
 
   document.getElementById('theoryBadge').textContent  = '♩ Identify the progression';
@@ -1100,7 +1114,24 @@ async function submitAnswer(guess) {
     }
   } catch(e) {}
 
-  setTimeout(() => {
+  if (_battleMode && window.BattleRoom) {
+    if (typeof _stopBattleTimer === 'function') _stopBattleTimer();
+    const pts = isCorrect ? ScoringEngine.points('progression-detection', { difficulty }) : 0;
+    BattleRoom.submitAnswer(isCorrect, pts, guess);
+    const isLast = totalRounds >= _battleTotal;
+    const delay2 = isCorrect ? 2500 : 3500;
+    if (isLast) {
+      if (BattleRoom.role === 'host') setTimeout(async () => { await BattleRoom.endBattle(); _showBattleResult(); }, delay2);
+      else setTimeout(_showBattleResult, delay2 + 1500);
+    } else if (BattleRoom.role === 'host') {
+      setTimeout(async () => {
+        const rd = await BattleRoom.startNextRound();
+        if (rd) { _battleSeed = rd.seed; document.getElementById('bhudRound').textContent = rd.round; newRound(); }
+      }, delay2);
+    }
+  }
+
+  if (!_battleMode) setTimeout(() => {
     waitingForAdvance = true;
     document.getElementById('continuePrompt').classList.add('show');
   }, 350);
@@ -1227,9 +1258,207 @@ renderAnswerGrid(DIFFICULTY_POOLS['beginner']);
 document.querySelectorAll('.prog-btn').forEach(btn => { btn.disabled = true; btn.classList.add('dimmed'); });
 </script>
 
+<div id="battleHUD" style="display:none;">
+  <style>
+    #battleHUD {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 20px; background: rgba(8,10,14,0.95);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(8px); gap: 12px;
+    }
+    .bhud-player { display: flex; flex-direction: column; align-items: center; min-width: 120px; }
+    .bhud-name   { font-size: 11px; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+    .bhud-score  { font-size: 22px; font-weight: 700; color: var(--text); }
+    .bhud-you .bhud-score { color: #f472b6; }
+    .bhud-opp.ahead .bhud-score { color: #f45b69; }
+    .bhud-center { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .bhud-vs     { font-size: 11px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
+    .bhud-round  { font-size: 11px; color: var(--muted); }
+    .bhud-round strong { color: var(--text); }
+    .bhud-timer  { font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 700; color: var(--text); min-width: 36px; text-align: center; line-height: 1; }
+    .bhud-timer.urgent { color: #f45b69; animation: timerPulse 0.5s ease-in-out infinite; }
+    @keyframes timerPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .bhud-timer-bar  { width: 60px; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+    .bhud-timer-fill { height: 100%; border-radius: 2px; background: #f472b6; transition: width 1s linear, background 0.3s; }
+    .battle-guest-locked { pointer-events: none !important; opacity: 0.35 !important; }
+    @media(max-width:480px) {
+      #battleHUD { padding: 8px 12px; }
+      .bhud-score { font-size: 18px; }
+      .bhud-name  { font-size: 10px; }
+      .bhud-timer { font-size: 16px; }
+      .bhud-timer-bar { width: 40px; }
+    }
+  </style>
+  <div class="bhud-player bhud-you">
+    <div class="bhud-name" id="bhudYouName">You</div>
+    <div class="bhud-score" id="bhudYouScore">0</div>
+  </div>
+  <div class="bhud-center">
+    <div class="bhud-vs">⚔ Battle</div>
+    <div class="bhud-timer" id="bhudTimer">30</div>
+    <div class="bhud-timer-bar"><div class="bhud-timer-fill" id="bhudTimerFill" style="width:100%"></div></div>
+    <div class="bhud-round">Round <strong id="bhudRound">—</strong> / <strong id="bhudTotal">5</strong></div>
+  </div>
+  <div class="bhud-player bhud-opp" id="bhudOppSlot">
+    <div class="bhud-name" id="bhudOppName">Opponent</div>
+    <div class="bhud-score" id="bhudOppScore">0</div>
+  </div>
+</div>
+<div id="battleResult" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(8,10,14,0.96);align-items:center;justify-content:center;flex-direction:column;gap:16px;font-family:'IBM Plex Mono',monospace;text-align:center;padding:24px;">
+  <div id="brOutcome" style="font-size:clamp(28px,6vw,52px);font-weight:700;"></div>
+  <div id="brScores" style="font-size:16px;color:var(--muted);line-height:2;"></div>
+  <button onclick="location.href='/battle/'" style="margin-top:8px;padding:12px 28px;background:#f472b6;color:#08090e;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;">Back to Lobby</button>
+</div>
+
 <!-- ── Supabase ────────────────────────────────────────────────────────────── -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="../supabase-client.js"></script>
+<script src="../multiplayer.js"></script>
+<script>
+// ── Progression Detection battle mode ────────────────────────────────────────────────
+const BATTLE_ROUND_SECS = 30;
+let _battleTimerInterval = null;
+let _battleTimerRemaining = BATTLE_ROUND_SECS;
+
+function _startBattleTimer() {
+  _stopBattleTimer();
+  _battleTimerRemaining = BATTLE_ROUND_SECS;
+  const timerEl = document.getElementById('bhudTimer');
+  const fillEl  = document.getElementById('bhudTimerFill');
+  if (timerEl) { timerEl.textContent = BATTLE_ROUND_SECS; timerEl.classList.remove('urgent'); }
+  if (fillEl)  { fillEl.style.transition = 'none'; fillEl.style.width = '100%'; fillEl.style.background = ''; }
+
+  _battleTimerInterval = setInterval(() => {
+    _battleTimerRemaining--;
+    if (timerEl) {
+      timerEl.textContent = _battleTimerRemaining;
+      if (_battleTimerRemaining <= 5) timerEl.classList.add('urgent');
+    }
+    if (fillEl) {
+      const pct = (_battleTimerRemaining / BATTLE_ROUND_SECS) * 100;
+      fillEl.style.transition = 'width 1s linear';
+      fillEl.style.width = pct + '%';
+      if (_battleTimerRemaining <= 5) fillEl.style.background = '#f45b69';
+    }
+    if (_battleTimerRemaining <= 0) {
+      _stopBattleTimer();
+      if (!answered && gameStarted && !paused) submitAnswer(null);
+    }
+  }, 1000);
+}
+
+function _stopBattleTimer() {
+  if (_battleTimerInterval) { clearInterval(_battleTimerInterval); _battleTimerInterval = null; }
+}
+
+function _showBattleResult() {
+  _stopBattleTimer();
+  const row = BattleRoom.battleRow;
+  const isHost = BattleRoom.role === 'host';
+  const myScore = isHost ? (row?.host_score ?? 0) : (row?.guest_score ?? 0);
+  const opScore = isHost ? (row?.guest_score ?? 0) : (row?.host_score ?? 0);
+  const myName  = isHost ? (row?.host_name ?? 'You') : (row?.guest_name ?? 'You');
+  const opName  = isHost ? (row?.guest_name ?? 'Opponent') : (row?.host_name ?? 'Opponent');
+  const won = myScore > opScore;
+  const tied = myScore === opScore;
+  document.getElementById('brOutcome').textContent  = tied ? '🤝 Tied!' : won ? '🏆 You Win!' : '💀 You Lose';
+  document.getElementById('brOutcome').style.color  = tied ? '#f59e0b' : won ? '#3ecf8e' : '#f45b69';
+  document.getElementById('brScores').innerHTML =
+    `${myName}: <strong style="color:#f472b6">${myScore}</strong><br>${opName}: <strong>${opScore}</strong>`;
+  document.getElementById('battleResult').style.display = 'flex';
+  BattleRoom.leave();
+}
+
+(async function initBattleMode() {
+  const params   = new URLSearchParams(location.search);
+  const roomCode = params.get('battle');
+  if (!roomCode) return;
+
+  const displayName    = sessionStorage.getItem('ss_battle_name') ||
+                         localStorage.getItem('ss_guest_battle_name') || 'Player';
+  const savedRole      = sessionStorage.getItem('ss_battle_role');
+  const savedSessionId = sessionStorage.getItem('ss_battle_session');
+
+  if (!BattleRoom.roomCode && savedSessionId && savedRole) {
+    await BattleRoom._reattach(roomCode, savedSessionId, displayName, savedRole);
+  }
+
+  _battleMode = true;
+
+  const row = BattleRoom.battleRow;
+  if (row) {
+    _battleTotal = row.total_rounds || 5;
+    const isHost = BattleRoom.role === 'host';
+    document.getElementById('bhudYouName').textContent = isHost ? row.host_name : (row.guest_name || displayName);
+    document.getElementById('bhudOppName').textContent = isHost ? (row.guest_name || '…') : row.host_name;
+    document.getElementById('bhudTotal').textContent   = _battleTotal;
+  }
+
+  const hud = document.getElementById('battleHUD');
+  hud.style.display = 'flex';
+  const setTopPad = () => document.body.style.paddingTop = (hud.offsetHeight + 4) + 'px';
+  setTopPad();
+  window.addEventListener('resize', setTopPad);
+
+  if (BattleRoom.role === 'guest') {
+    ['diffBeginner','diffIntermediate','diffAdvanced'].forEach(id =>
+      document.getElementById(id)?.classList.add('battle-guest-locked'));
+    document.querySelectorAll('.instrument-btn').forEach(el => el.classList.add('battle-guest-locked'));
+  }
+
+  BattleRoom
+    .on('stateChange', row => {
+      if (!row) return;
+      _battleTotal = row.total_rounds || _battleTotal;
+      document.getElementById('bhudTotal').textContent = _battleTotal;
+      const isHost  = BattleRoom.role === 'host';
+      const myScore = isHost ? row.host_score : row.guest_score;
+      const opScore = isHost ? row.guest_score : row.host_score;
+      document.getElementById('bhudYouScore').textContent = myScore ?? 0;
+      document.getElementById('bhudOppScore').textContent = opScore ?? 0;
+      document.getElementById('bhudOppSlot').classList.toggle('ahead', (opScore ?? 0) > (myScore ?? 0));
+      if (row.guest_name) document.getElementById('bhudOppName').textContent =
+        BattleRoom.role === 'host' ? row.guest_name : row.host_name;
+    })
+    .on('roundStart', ({ round, seed, totalRounds: tot }) => {
+      _battleSeed  = seed;
+      _battleTotal = tot;
+      document.getElementById('bhudRound').textContent = round;
+      document.getElementById('bhudTotal').textContent = tot;
+      newRound();
+    })
+    .on('opponentAnswer', ({ correct, score: opScore }) => {
+      document.getElementById('bhudOppScore').textContent = opScore ?? 0;
+      const myScore = parseInt(document.getElementById('bhudYouScore').textContent) || 0;
+      document.getElementById('bhudOppSlot').classList.toggle('ahead', (opScore ?? 0) > myScore);
+    })
+    .on('settingsChange', s => {
+      if (s.difficulty !== undefined) setDifficulty(s.difficulty);
+      if (s.instrument !== undefined) setInstrument(s.instrument);
+    })
+    .on('opponentLeft', () => {
+      _stopBattleTimer();
+      setTimeout(_showBattleResult, 2000);
+    });
+
+  if (BattleRoom.role === 'host') {
+    const _origSetDiff = window.setDifficulty;
+    window.setDifficulty = function(d) { _origSetDiff(d); BattleRoom.broadcastSettings({ difficulty: d }); };
+    const _origSetInstr = window.setInstrument;
+    window.setInstrument = function(k) { _origSetInstr(k); BattleRoom.broadcastSettings({ instrument: k }); };
+
+    setTimeout(async () => {
+      const rd = await BattleRoom.startNextRound(1);
+      if (rd) {
+        _battleSeed = rd.seed;
+        document.getElementById('bhudRound').textContent = 1;
+        newRound();
+      }
+    }, 1000);
+  }
+})();
+</script>
 
 <!-- ── Auth modal ─────────────────────────────────────────────────────────── -->
 <div class="modal-overlay" id="authModal">

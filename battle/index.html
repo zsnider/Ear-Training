@@ -320,6 +320,30 @@ body {
           Signal Chain
           <span class="chip-tag">Live</span>
         </div>
+        <div class="game-chip" data-game="chord-quiz">
+          Chord Quiz
+          <span class="chip-tag">Live</span>
+        </div>
+        <div class="game-chip" data-game="progression-detection">
+          Progression
+          <span class="chip-tag">Live</span>
+        </div>
+        <div class="game-chip" data-game="interval-master">
+          Interval Master
+          <span class="chip-tag">Live</span>
+        </div>
+        <div class="game-chip" data-game="staff-specialist">
+          Staff Specialist
+          <span class="chip-tag">Live</span>
+        </div>
+        <div class="game-chip" data-game="scale-quiz">
+          Scale Quiz
+          <span class="chip-tag">Live</span>
+        </div>
+        <div class="game-chip" data-game="scale-sight">
+          Scale Sight
+          <span class="chip-tag">Live</span>
+        </div>
       </div>
     </div>
 
@@ -500,6 +524,12 @@ body {
       'reverb-master'         : '/reverb-master/',
       'delay-master'          : '/delay-master/',
       'signal-chain-architect': '/signal-chain-architect/',
+      'chord-quiz'           : '/chord-quiz/',
+      'progression-detection': '/progression-detection/',
+      'interval-master'      : '/interval-master/',
+      'staff-specialist'     : '/staff-specialist/',
+      'scale-quiz'           : '/scale-quiz/',
+      'scale-sight'          : '/scale-sight/',
     };
     const base = gameRoutes[game] || '/freq-quiz/';
     window.location.href = `${base}?battle=${roomCode}`;
@@ -580,6 +610,12 @@ body {
       'reverb-master'         : '/reverb-master/',
       'delay-master'          : '/delay-master/',
       'signal-chain-architect': '/signal-chain-architect/',
+      'chord-quiz'           : '/chord-quiz/',
+      'progression-detection': '/progression-detection/',
+      'interval-master'      : '/interval-master/',
+      'staff-specialist'     : '/staff-specialist/',
+      'scale-quiz'           : '/scale-quiz/',
+      'scale-sight'          : '/scale-sight/',
     };
     window.location.href = (botRoutes[selectedGame] || '/freq-quiz/') + '?bot=1';
   });
