@@ -292,6 +292,34 @@ body {
           Compressor
           <span class="chip-tag">Live</span>
         </div>
+        <div class="game-chip" data-game="quick-compress">
+          Quick Compress
+          <span class="chip-tag">Live</span>
+        </div>
+        <div class="game-chip" data-game="distortion-master">
+          Distortion Master
+          <span class="chip-tag">Live</span>
+        </div>
+        <div class="game-chip" data-game="spatial-specialist">
+          Spatial Specialist
+          <span class="chip-tag">Live</span>
+        </div>
+        <div class="game-chip" data-game="freq-hunter">
+          Freq Hunter
+          <span class="chip-tag">Live</span>
+        </div>
+        <div class="game-chip" data-game="reverb-master">
+          Reverb Master
+          <span class="chip-tag">Live</span>
+        </div>
+        <div class="game-chip" data-game="delay-master">
+          Delay Master
+          <span class="chip-tag">Live</span>
+        </div>
+        <div class="game-chip" data-game="signal-chain-architect">
+          Signal Chain
+          <span class="chip-tag">Live</span>
+        </div>
       </div>
     </div>
 
@@ -460,11 +488,18 @@ body {
       : (localStorage.getItem('ss_battle_name') || ''));
 
     const gameRoutes = {
-      'freq-quiz'  : '/freq-quiz/',
-      'eq-match'   : '/eq-match/',
-      'quick-eq'   : '/quick-eq/',
-      'level-logic': '/level-logic/',
-      'compressor' : '/compressor/',
+      'freq-quiz'             : '/freq-quiz/',
+      'eq-match'              : '/eq-match/',
+      'quick-eq'              : '/quick-eq/',
+      'level-logic'           : '/level-logic/',
+      'compressor'            : '/compressor/',
+      'quick-compress'        : '/quick-compress/',
+      'distortion-master'     : '/distortion-master/',
+      'spatial-specialist'    : '/spatial-specialist/',
+      'freq-hunter'           : '/freq-hunter/',
+      'reverb-master'         : '/reverb-master/',
+      'delay-master'          : '/delay-master/',
+      'signal-chain-architect': '/signal-chain-architect/',
     };
     const base = gameRoutes[game] || '/freq-quiz/';
     window.location.href = `${base}?battle=${roomCode}`;
@@ -533,11 +568,18 @@ body {
     // No Supabase needed — navigate with ?bot=1 flag
     sessionStorage.setItem('ss_battle_name', _displayName || 'You');
     const botRoutes = {
-      'freq-quiz'  : '/freq-quiz/',
-      'eq-match'   : '/eq-match/',
-      'quick-eq'   : '/quick-eq/',
-      'level-logic': '/level-logic/',
-      'compressor' : '/compressor/',
+      'freq-quiz'             : '/freq-quiz/',
+      'eq-match'              : '/eq-match/',
+      'quick-eq'              : '/quick-eq/',
+      'level-logic'           : '/level-logic/',
+      'compressor'            : '/compressor/',
+      'quick-compress'        : '/quick-compress/',
+      'distortion-master'     : '/distortion-master/',
+      'spatial-specialist'    : '/spatial-specialist/',
+      'freq-hunter'           : '/freq-hunter/',
+      'reverb-master'         : '/reverb-master/',
+      'delay-master'          : '/delay-master/',
+      'signal-chain-architect': '/signal-chain-architect/',
     };
     window.location.href = (botRoutes[selectedGame] || '/freq-quiz/') + '?bot=1';
   });

@@ -367,6 +367,17 @@ let gameMode='freqpan', bpQ=2;
 let targetFreq=null, targetPan=null;
 let roundActive=false, answered=false;
 let totalScore=0, streak=0, totalRounds=0, totalError=0;
+let _battleMode = false, _battleSeed = null, _battleTotal = 5;
+function _seededRandom(seed) {
+  let s = seed >>> 0;
+  return function() {
+    s += 0x6D2B79F5;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+let _rng = Math.random;
 let musicOffset=0;
 
 // Audio
@@ -577,14 +588,17 @@ function setBPQ(v){ bpQ=v; drawScope(); }
 // ── Round ──
 function startRound(){
   if(roundActive && !answered) return;
+  if (_battleMode && _battleSeed != null) { _rng = _seededRandom(_battleSeed); _battleSeed = null; }
+  else { _rng = Math.random; }
+  if (_battleMode && typeof _startBattleTimer === 'function') _startBattleTimer();
   clearTimeout(window._nextTimeout);
   answered=false; guessX=guessY=targetX=targetY=null;
   roundActive=true; totalRounds++;
   document.getElementById('roundVal').textContent=totalRounds;
 
-  const snapIdx=Math.floor(Math.random()*SNAP_FREQS.length);
+  const snapIdx=Math.floor(_rng()*SNAP_FREQS.length);
   targetFreq=SNAP_FREQS[snapIdx];
-  targetPan=(Math.random()*2-1);
+  targetPan=(_rng()*2-1);
   if(gameMode==='freq') targetPan=0;
   if(gameMode==='pan')  targetFreq=1000;
 
@@ -670,11 +684,28 @@ function submitGuess(){
   addHistory(tier);
   startScopeLoop();
 
+  if (_battleMode && window.BattleRoom) {
+    if (typeof _stopBattleTimer === 'function') _stopBattleTimer();
+    const isCorrect = pts >= 60;
+    BattleRoom.submitAnswer(isCorrect, weightedPts, null);
+    const isLast = totalRounds >= _battleTotal;
+    const delay2 = pts >= 60 ? 1500 : 2500;
+    if (isLast) {
+      if (BattleRoom.role === 'host') setTimeout(async () => { await BattleRoom.endBattle(); _showBattleResult(); }, delay2);
+      else setTimeout(_showBattleResult, delay2 + 1500);
+    } else if (BattleRoom.role === 'host') {
+      setTimeout(async () => {
+        const rd = await BattleRoom.startNextRound();
+        if (rd) { _battleSeed = rd.seed; document.getElementById('bhudRound').textContent = rd.round; startRound(); }
+      }, delay2);
+    }
+  }
+
   const delay=pts>=60?1500:2500;
   const bar=document.getElementById('nextBar'), fill=document.getElementById('nextFill');
   bar.style.display='block'; fill.style.transition='none'; fill.style.width='100%';
   requestAnimationFrame(()=>requestAnimationFrame(()=>{ fill.style.transition=`width ${delay}ms linear`; fill.style.width='0%'; }));
-  window._nextTimeout=setTimeout(startRound, delay);
+  if (!_battleMode) window._nextTimeout=setTimeout(startRound, delay);
 }
 
 function addHistory(tier){ const s=document.getElementById('historyStrip'); const d=document.createElement('div'); d.className=`hist-dot ${tier}`; s.appendChild(d); while(s.children.length>40) s.removeChild(s.firstChild); }
@@ -842,8 +873,227 @@ updateMultBadge();
 
 if('serviceWorker' in navigator){ window.addEventListener('load', ()=>{ navigator.serviceWorker.register('./sw.js').then(()=>{}).catch(()=>{}); }); }
 </script>
+<div id="battleHUD" style="display:none;">
+  <style>
+    #battleHUD {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 20px; background: rgba(8,10,14,0.95);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(8px); gap: 12px;
+    }
+    .bhud-player { display: flex; flex-direction: column; align-items: center; min-width: 120px; }
+    .bhud-name   { font-size: 11px; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+    .bhud-score  { font-size: 22px; font-weight: 700; color: var(--text); }
+    .bhud-you .bhud-score { color: #fb923c; }
+    .bhud-opp.ahead .bhud-score { color: #f45b69; }
+    .bhud-center { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .bhud-vs     { font-size: 11px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
+    .bhud-round  { font-size: 11px; color: var(--muted); }
+    .bhud-round strong { color: var(--text); }
+    .bhud-timer  { font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 700; color: var(--text); min-width: 36px; text-align: center; line-height: 1; }
+    .bhud-timer.urgent { color: #f45b69; animation: timerPulse 0.5s ease-in-out infinite; }
+    @keyframes timerPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .bhud-timer-bar  { width: 60px; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+    .bhud-timer-fill { height: 100%; border-radius: 2px; background: #fb923c; transition: width 1s linear, background 0.3s; }
+    .battle-guest-locked { pointer-events: none !important; opacity: 0.35 !important; }
+    @media(max-width:480px) {
+      #battleHUD { padding: 8px 12px; }
+      .bhud-score { font-size: 18px; }
+      .bhud-name  { font-size: 10px; }
+      .bhud-timer { font-size: 16px; }
+      .bhud-timer-bar { width: 40px; }
+    }
+  </style>
+  <div class="bhud-player bhud-you">
+    <div class="bhud-name" id="bhudYouName">You</div>
+    <div class="bhud-score" id="bhudYouScore">0</div>
+  </div>
+  <div class="bhud-center">
+    <div class="bhud-vs">⚔ Battle</div>
+    <div class="bhud-timer" id="bhudTimer">30</div>
+    <div class="bhud-timer-bar"><div class="bhud-timer-fill" id="bhudTimerFill" style="width:100%"></div></div>
+    <div class="bhud-round">Round <strong id="bhudRound">—</strong> / <strong id="bhudTotal">5</strong></div>
+  </div>
+  <div class="bhud-player bhud-opp" id="bhudOppSlot">
+    <div class="bhud-name" id="bhudOppName">Opponent</div>
+    <div class="bhud-score" id="bhudOppScore">0</div>
+  </div>
+</div>
+<div id="battleResult" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(8,10,14,0.96);align-items:center;justify-content:center;flex-direction:column;gap:16px;font-family:'IBM Plex Mono',monospace;text-align:center;padding:24px;">
+  <div id="brOutcome" style="font-size:clamp(28px,6vw,52px);font-weight:700;"></div>
+  <div id="brScores" style="font-size:16px;color:var(--muted);line-height:2;"></div>
+  <button onclick="location.href='/battle/'" style="margin-top:8px;padding:12px 28px;background:#fb923c;color:#08090e;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;">Back to Lobby</button>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="../supabase-client.js"></script>
+<script src="../multiplayer.js"></script>
+<script>
+// ── Freq Hunter battle mode ────────────────────────────────────────────────────
+const BATTLE_ROUND_SECS = 30;
+let _battleTimerInterval = null;
+let _battleTimerRemaining = BATTLE_ROUND_SECS;
+
+function _startBattleTimer() {
+  _stopBattleTimer();
+  _battleTimerRemaining = BATTLE_ROUND_SECS;
+  const timerEl = document.getElementById('bhudTimer');
+  const fillEl  = document.getElementById('bhudTimerFill');
+  if (timerEl) { timerEl.textContent = BATTLE_ROUND_SECS; timerEl.classList.remove('urgent'); }
+  if (fillEl)  { fillEl.style.transition = 'none'; fillEl.style.width = '100%'; fillEl.style.background = ''; }
+
+  _battleTimerInterval = setInterval(() => {
+    _battleTimerRemaining--;
+    if (timerEl) {
+      timerEl.textContent = _battleTimerRemaining;
+      if (_battleTimerRemaining <= 5) timerEl.classList.add('urgent');
+    }
+    if (fillEl) {
+      const pct = (_battleTimerRemaining / BATTLE_ROUND_SECS) * 100;
+      fillEl.style.transition = 'width 1s linear';
+      fillEl.style.width = pct + '%';
+      if (_battleTimerRemaining <= 5) fillEl.style.background = '#f45b69';
+    }
+    if (_battleTimerRemaining <= 0) {
+      _stopBattleTimer();
+      // Auto-submit at center of canvas if time runs out
+      if (!answered && window.BattleRoom) {
+        BattleRoom.submitAnswer(false, 0, null);
+        answered = true;
+        const isLast = totalRounds >= _battleTotal;
+        const delay = 2000;
+        if (isLast) {
+          if (BattleRoom.role === 'host') setTimeout(async () => { await BattleRoom.endBattle(); _showBattleResult(); }, delay);
+          else setTimeout(_showBattleResult, delay + 1500);
+        } else if (BattleRoom.role === 'host') {
+          setTimeout(async () => {
+            const rd = await BattleRoom.startNextRound();
+            if (rd) { _battleSeed = rd.seed; document.getElementById('bhudRound').textContent = rd.round; startRound(); }
+          }, delay);
+        }
+      }
+    }
+  }, 1000);
+}
+
+function _stopBattleTimer() {
+  if (_battleTimerInterval) { clearInterval(_battleTimerInterval); _battleTimerInterval = null; }
+}
+
+function _showBattleResult() {
+  _stopBattleTimer();
+  const row = BattleRoom.battleRow;
+  const isHost = BattleRoom.role === 'host';
+  const myScore = isHost ? (row?.host_score ?? 0) : (row?.guest_score ?? 0);
+  const opScore = isHost ? (row?.guest_score ?? 0) : (row?.host_score ?? 0);
+  const myName  = isHost ? (row?.host_name ?? 'You') : (row?.guest_name ?? 'You');
+  const opName  = isHost ? (row?.guest_name ?? 'Opponent') : (row?.host_name ?? 'Opponent');
+  const won = myScore > opScore;
+  const tied = myScore === opScore;
+  document.getElementById('brOutcome').textContent  = tied ? '🤝 Tied!' : won ? '🏆 You Win!' : '💀 You Lose';
+  document.getElementById('brOutcome').style.color  = tied ? '#f59e0b' : won ? '#3ecf8e' : '#f45b69';
+  document.getElementById('brScores').innerHTML =
+    `${myName}: <strong style="color:#fb923c">${myScore}</strong><br>${opName}: <strong>${opScore}</strong>`;
+  document.getElementById('battleResult').style.display = 'flex';
+  BattleRoom.leave();
+}
+
+(async function initBattleMode() {
+  const params   = new URLSearchParams(location.search);
+  const roomCode = params.get('battle');
+  if (!roomCode) return;
+
+  const displayName    = sessionStorage.getItem('ss_battle_name') ||
+                         localStorage.getItem('ss_guest_battle_name') || 'Player';
+  const savedRole      = sessionStorage.getItem('ss_battle_role');
+  const savedSessionId = sessionStorage.getItem('ss_battle_session');
+
+  if (!BattleRoom.roomCode && savedSessionId && savedRole) {
+    await BattleRoom._reattach(roomCode, savedSessionId, displayName, savedRole);
+  }
+
+  _battleMode = true;
+
+  const row = BattleRoom.battleRow;
+  if (row) {
+    _battleTotal = row.total_rounds || 5;
+    const isHost = BattleRoom.role === 'host';
+    document.getElementById('bhudYouName').textContent = isHost ? row.host_name : (row.guest_name || displayName);
+    document.getElementById('bhudOppName').textContent = isHost ? (row.guest_name || '…') : row.host_name;
+    document.getElementById('bhudTotal').textContent   = _battleTotal;
+  }
+
+  const hud = document.getElementById('battleHUD');
+  hud.style.display = 'flex';
+  const setTopPad = () => document.body.style.paddingTop = (hud.offsetHeight + 4) + 'px';
+  setTopPad();
+  window.addEventListener('resize', setTopPad);
+
+  setSource('loop');
+
+  if (BattleRoom.role === 'guest') {
+    ['srcPink','srcOneShot','srcLoop','srcCustom','folderInput',
+     'modeFreqPan','modeFreq','modePan'].forEach(id =>
+      document.getElementById(id)?.classList.add('battle-guest-locked'));
+  }
+
+  BattleRoom
+    .on('stateChange', row => {
+      if (!row) return;
+      _battleTotal = row.total_rounds || _battleTotal;
+      document.getElementById('bhudTotal').textContent = _battleTotal;
+      const isHost  = BattleRoom.role === 'host';
+      const myScore = isHost ? row.host_score : row.guest_score;
+      const opScore = isHost ? row.guest_score : row.host_score;
+      document.getElementById('bhudYouScore').textContent = myScore ?? 0;
+      document.getElementById('bhudOppScore').textContent = opScore ?? 0;
+      document.getElementById('bhudOppSlot').classList.toggle('ahead', (opScore ?? 0) > (myScore ?? 0));
+      if (row.guest_name) document.getElementById('bhudOppName').textContent =
+        BattleRoom.role === 'host' ? row.guest_name : row.host_name;
+    })
+    .on('roundStart', ({ round, seed, totalRounds: tot }) => {
+      _battleSeed  = seed;
+      _battleTotal = tot;
+      document.getElementById('bhudRound').textContent = round;
+      document.getElementById('bhudTotal').textContent = tot;
+      clearTimeout(window._nextTimeout);
+      startRound();
+    })
+    .on('opponentAnswer', ({ correct, score: opScore }) => {
+      document.getElementById('bhudOppScore').textContent = opScore ?? 0;
+      const myScore = parseInt(document.getElementById('bhudYouScore').textContent) || 0;
+      document.getElementById('bhudOppSlot').classList.toggle('ahead', (opScore ?? 0) > myScore);
+    })
+    .on('settingsChange', s => {
+      if (s.mode !== undefined) {
+        const el = document.getElementById('mode' + s.mode.charAt(0).toUpperCase() + s.mode.slice(1).replace(/pan$/,'Pan'));
+        if (el) setMode(s.mode, el);
+      }
+      if (s.sourceType !== undefined) setSource(s.sourceType);
+    })
+    .on('opponentLeft', () => {
+      _stopBattleTimer();
+      document.getElementById('toast') && showToast('Opponent disconnected');
+      setTimeout(_showBattleResult, 2000);
+    });
+
+  if (BattleRoom.role === 'host') {
+    const _origSetMode = window.setMode;
+    window.setMode = function(m, el) { _origSetMode(m, el); BattleRoom.broadcastSettings({ mode: m }); };
+    const _origSetSrc = window.setSource;
+    window.setSource = function(t) { _origSetSrc(t); BattleRoom.broadcastSettings({ sourceType: t }); };
+
+    setTimeout(async () => {
+      const rd = await BattleRoom.startNextRound(1);
+      if (rd) {
+        _battleSeed = rd.seed;
+        document.getElementById('bhudRound').textContent = 1;
+        startRound();
+      }
+    }, 1000);
+  }
+})();
+</script>
 
 <!-- Auth modal -->
 <div class="modal-overlay" id="authModal">
