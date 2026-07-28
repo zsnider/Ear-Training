@@ -689,8 +689,6 @@ body {
       authArea.innerHTML = `<button class="auth-btn" id="openAuthBtn">Sign in</button>`;
     }
 
-    // ── Community chat UI ─────────────────────────────────────────────────
-    initChatUI(user);
   });
 
   // ── Toast ─────────────────────────────────────────────────────────────────
@@ -1180,6 +1178,12 @@ body {
       BattleChat.cleanup();
     }
   }
+
+  // ── Auth listener (inside IIFE so initChatUI is in scope) ────────────────
+
+  document.addEventListener('ss:authchange', async e => {
+    await initChatUI(e.detail);
+  });
 
   // ── Boot ──────────────────────────────────────────────────────────────────
 
