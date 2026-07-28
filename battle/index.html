@@ -195,6 +195,148 @@ body {
   font-family: 'IBM Plex Mono', monospace;
 }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── Community (Battle Board + Direct Messages) ── */
+.community-wrap {
+  width: 100%; max-width: 780px;
+  padding: 0 24px 64px;
+}
+.comm-section-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 12px;
+}
+.comm-tabs {
+  display: flex; gap: 4px; margin-bottom: 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 4px;
+}
+.comm-tab {
+  flex: 1; padding: 9px 16px; border-radius: 9px; border: none;
+  background: transparent; color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: background 0.15s, color 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+}
+.comm-tab.active { background: var(--surface2); color: var(--text); }
+.comm-tab:hover:not(.active) { color: var(--text); }
+.comm-panel {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 20px; overflow: hidden;
+}
+/* Post form */
+.post-form textarea {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 10px; color: var(--text); font-size: 14px; font-family: inherit;
+  padding: 10px 14px; outline: none; resize: none; display: block;
+  transition: border-color 0.15s;
+}
+.post-form textarea:focus { border-color: var(--accent); }
+.post-form-footer {
+  display: flex; justify-content: space-between; align-items: center; margin-top: 8px;
+}
+.char-count { font-size: 11px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+/* Guest message */
+.guest-msg {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 16px; background: var(--surface2); border-radius: 10px;
+  font-size: 13px; color: var(--muted); margin-bottom: 14px; gap: 12px;
+}
+/* Forum feed */
+.post-feed { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.forum-post {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 16px; position: relative;
+}
+.forum-post-meta {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 5px;
+}
+.forum-post-user {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  font-weight: 700; color: var(--accent2);
+}
+.forum-post-time { font-size: 11px; color: var(--muted); }
+.forum-post-text { font-size: 14px; line-height: 1.5; word-break: break-word; }
+.forum-post-del {
+  position: absolute; top: 8px; right: 10px;
+  background: none; border: none; color: var(--muted);
+  font-size: 13px; cursor: pointer; padding: 3px 5px;
+  opacity: 0; transition: opacity 0.15s, color 0.15s; border-radius: 5px;
+}
+.forum-post:hover .forum-post-del { opacity: 1; }
+.forum-post-del:hover { color: var(--accent); }
+.feed-loading { text-align: center; padding: 28px; color: var(--muted); font-size: 13px; }
+.feed-empty   { text-align: center; padding: 28px; color: var(--muted); font-size: 13px; }
+/* Unread badge (tab) */
+.tab-badge {
+  background: var(--accent); color: #fff; border-radius: 100px;
+  font-size: 10px; font-weight: 700; padding: 2px 6px; min-width: 18px; text-align: center;
+}
+/* DM toolbar */
+.dm-toolbar {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+}
+.dm-toolbar-title {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 700;
+  color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em;
+}
+/* Conversation list */
+.convo-list { display: flex; flex-direction: column; gap: 8px; }
+.convo-item {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 16px; cursor: pointer;
+  transition: border-color 0.15s;
+}
+.convo-item:hover { border-color: var(--border2); }
+.convo-info { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.convo-name { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 700; }
+.convo-unread {
+  background: var(--accent); color: #fff; border-radius: 100px;
+  font-size: 10px; font-weight: 700; padding: 2px 6px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.convo-preview {
+  font-size: 12px; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.convo-time { font-size: 10px; color: var(--muted); margin-top: 4px; }
+/* Back button */
+.back-btn {
+  background: none; border: none; color: var(--muted); cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px; padding: 0;
+  margin-bottom: 16px; display: block; transition: color 0.15s;
+}
+.back-btn:hover { color: var(--text); }
+/* DM textarea */
+.dm-textarea {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 10px; color: var(--text); font-size: 14px; font-family: inherit;
+  padding: 10px 14px; outline: none; resize: vertical; display: block;
+  transition: border-color 0.15s;
+}
+.dm-textarea:focus { border-color: var(--accent); }
+.status-msg { font-size: 12px; margin-top: 8px; text-align: center; min-height: 18px; }
+.status-msg.error   { color: var(--accent); }
+.status-msg.success { color: var(--green); }
+/* Thread */
+.thread-with-user {
+  font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 700;
+  color: var(--accent2); margin-bottom: 12px;
+}
+.thread-messages {
+  max-height: 300px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 2px 0; margin-bottom: 12px;
+}
+.msg-bubble {
+  max-width: 76%; padding: 9px 13px; border-radius: 12px;
+  font-size: 13px; line-height: 1.5; word-break: break-word;
+}
+.msg-sent     { background: var(--accent); color: #fff; align-self: flex-end; border-bottom-right-radius: 3px; }
+.msg-received { background: var(--surface2); color: var(--text); align-self: flex-start; border: 1px solid var(--border2); border-bottom-left-radius: 3px; }
+.msg-time { font-size: 10px; opacity: 0.65; margin-top: 3px; }
+.thread-reply { display: flex; gap: 8px; align-items: flex-end; }
+.thread-reply .dm-textarea { flex: 1; resize: none; }
 </style>
 </head>
 <body>
@@ -411,12 +553,94 @@ body {
 
 </div><!-- /lobby-wrap -->
 
+<!-- ── Community: Battle Board + Direct Messages ── -->
+<div class="community-wrap">
+  <div class="comm-section-title">Community</div>
+
+  <div class="comm-tabs">
+    <button class="comm-tab active" id="forumTabBtn" data-tab="forum">⚔ Battle Board</button>
+    <button class="comm-tab" id="dmTabBtn" data-tab="dms">
+      ✉ Messages
+      <span class="tab-badge" id="unreadBadge" style="display:none;"></span>
+    </button>
+  </div>
+
+  <!-- Battle Board panel -->
+  <div class="comm-panel" id="forumPanel">
+    <!-- Post form — shown to signed-in users -->
+    <div class="post-form" id="postForm" style="display:none;">
+      <textarea id="postInput" placeholder="Post to the Battle Board…" maxlength="500" rows="2"></textarea>
+      <div class="post-form-footer">
+        <span class="char-count" id="postCharCount">0 / 500</span>
+        <button class="btn btn-primary" id="postBtn" style="padding:8px 18px;font-size:12px;">Post</button>
+      </div>
+    </div>
+    <!-- Nudge for signed-out visitors -->
+    <div class="guest-msg" id="forumGuestMsg" style="display:none;">
+      <span>Sign in to post on the Battle Board.</span>
+      <button class="btn btn-ghost" style="font-size:12px;padding:6px 14px;" id="forumSignInBtn">Sign in</button>
+    </div>
+    <!-- Feed -->
+    <div class="post-feed" id="forumFeed">
+      <div class="feed-loading">Loading…</div>
+    </div>
+  </div>
+
+  <!-- Direct Messages panel -->
+  <div class="comm-panel" id="dmsPanel" style="display:none;">
+    <!-- Signed-out prompt -->
+    <div class="guest-msg" id="dmGuestMsg">
+      <span>Sign in to send direct messages.</span>
+      <button class="btn btn-ghost" style="font-size:12px;padding:6px 14px;" id="dmSignInBtn">Sign in</button>
+    </div>
+    <!-- Signed-in inner UI -->
+    <div id="dmAuthed" style="display:none;">
+      <!-- View: conversation list -->
+      <div id="convoListView">
+        <div class="dm-toolbar">
+          <span class="dm-toolbar-title">Messages</span>
+          <button class="btn btn-ghost" id="newDMBtn" style="font-size:12px;padding:6px 12px;">+ New</button>
+        </div>
+        <div class="convo-list" id="convoList">
+          <div class="feed-loading">Loading…</div>
+        </div>
+      </div>
+      <!-- View: compose new DM -->
+      <div id="composeView" style="display:none;">
+        <button class="back-btn" id="backFromComposeBtn">← Back</button>
+        <div class="field">
+          <label>To (username)</label>
+          <input type="text" id="dmRecipient" placeholder="username" autocomplete="off">
+        </div>
+        <div class="field">
+          <label>Message</label>
+          <textarea class="dm-textarea" id="dmMessage" placeholder="Write your message…" maxlength="1000" rows="4"></textarea>
+        </div>
+        <button class="btn btn-primary btn-full" id="sendDMBtn">Send Message</button>
+        <div class="status-msg" id="dmStatus"></div>
+      </div>
+      <!-- View: open thread -->
+      <div id="threadView" style="display:none;">
+        <button class="back-btn" id="backFromThreadBtn">← Back</button>
+        <div class="thread-with-user" id="threadWithUser"></div>
+        <div class="thread-messages" id="threadMessages"></div>
+        <div class="thread-reply">
+          <textarea class="dm-textarea" id="replyInput" placeholder="Reply…" maxlength="1000" rows="2"></textarea>
+          <button class="btn btn-primary" id="replyBtn" style="padding:10px 18px;">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /community-wrap -->
+
 <div id="toast"></div>
 
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="/supabase-client.js"></script>
 <script src="/multiplayer.js"></script>
+<script src="/chat.js"></script>
 <script>
   // ── Display name resolution ───────────────────────────────────────────────
   // Logged-in users get their username (or email prefix as fallback).
@@ -464,6 +688,9 @@ body {
     } else {
       authArea.innerHTML = `<button class="auth-btn" id="openAuthBtn">Sign in</button>`;
     }
+
+    // ── Community chat UI ─────────────────────────────────────────────────
+    initChatUI(user);
   });
 
   // ── Toast ─────────────────────────────────────────────────────────────────
@@ -623,6 +850,344 @@ body {
   // Pre-fill join code from URL param ?code=XXXXXX
   const urlCode = new URLSearchParams(location.search).get('code');
   if (urlCode) document.getElementById('joinCode').value = urlCode.toUpperCase();
+</script>
+
+<!-- ── Community: Battle Board + Direct Messages ── -->
+<script>
+(function () {
+  'use strict';
+
+  // ── Utilities ─────────────────────────────────────────────────────────────
+
+  function esc(s) {
+    return String(s || '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function timeAgo(iso) {
+    if (!iso) return '';
+    const s = Math.floor((Date.now() - new Date(iso)) / 1000);
+    if (s < 60)   return 'just now';
+    if (s < 3600) return Math.floor(s / 60) + 'm ago';
+    if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+    return Math.floor(s / 86400) + 'd ago';
+  }
+
+  function setStatus(el, msg, type) {
+    el.textContent  = msg;
+    el.className    = 'status-msg' + (type ? ' ' + type : '');
+  }
+
+  // ── Tab switching ─────────────────────────────────────────────────────────
+
+  document.querySelectorAll('.comm-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.comm-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const which = tab.dataset.tab;
+      document.getElementById('forumPanel').style.display = which === 'forum' ? '' : 'none';
+      document.getElementById('dmsPanel').style.display   = which === 'dms'   ? '' : 'none';
+      if (which === 'dms') { refreshConvoList(); }
+    });
+  });
+
+  // Sign-in button shortcuts in guest messages
+  document.getElementById('forumSignInBtn').addEventListener('click', () => {
+    document.getElementById('authModal').style.display = 'flex';
+  });
+  document.getElementById('dmSignInBtn').addEventListener('click', () => {
+    document.getElementById('authModal').style.display = 'flex';
+  });
+
+  // ── Forum (Battle Board) ─────────────────────────────────────────────────
+
+  let _myUserId = null;  // set on auth
+
+  function renderPost(post, prepend = false) {
+    const feed = document.getElementById('forumFeed');
+    // Clear the loading placeholder on first real post
+    if (feed.querySelector('.feed-loading') || feed.querySelector('.feed-empty')) {
+      feed.innerHTML = '';
+    }
+    const isOwn = _myUserId && post.user_id === _myUserId;
+    const div = document.createElement('div');
+    div.className = 'forum-post';
+    div.dataset.postId = post.id;
+    div.innerHTML =
+      `<div class="forum-post-meta">
+        <span class="forum-post-user">@${esc(post.username)}</span>
+        <span class="forum-post-time">${timeAgo(post.created_at)}</span>
+      </div>
+      <div class="forum-post-text">${esc(post.message)}</div>
+      ${isOwn ? `<button class="forum-post-del" title="Delete" data-id="${post.id}">✕</button>` : ''}`;
+    if (prepend) {
+      feed.insertBefore(div, feed.firstChild);
+    } else {
+      feed.appendChild(div);
+    }
+    div.querySelector('.forum-post-del')?.addEventListener('click', async () => {
+      if (!confirm('Delete this post?')) return;
+      const { error } = await BattleChat.deletePost(post.id);
+      if (!error) div.remove();
+    });
+  }
+
+  async function loadForum() {
+    const posts = await BattleChat.loadForum();
+    const feed  = document.getElementById('forumFeed');
+    if (!posts.length) {
+      feed.innerHTML = '<div class="feed-empty">No posts yet. Be the first to post!</div>';
+      return;
+    }
+    feed.innerHTML = '';
+    posts.forEach(p => renderPost(p));
+  }
+
+  // realtime: new post arrives
+  BattleChat.on('newPost', post => {
+    // Avoid duplicating a post we just submitted (optimistic render already done)
+    if (document.querySelector(`.forum-post[data-post-id="${post.id}"]`)) return;
+    renderPost(post);
+    // Scroll feed to bottom if near bottom
+    const feed = document.getElementById('forumFeed');
+    feed.scrollTop = feed.scrollHeight;
+  });
+
+  BattleChat.on('deletePost', ({ id }) => {
+    document.querySelector(`.forum-post[data-post-id="${id}"]`)?.remove();
+  });
+
+  // Post button
+  document.getElementById('postBtn').addEventListener('click', async () => {
+    const input = document.getElementById('postInput');
+    const msg   = input.value.trim();
+    if (!msg) return;
+    const btn = document.getElementById('postBtn');
+    btn.disabled = true;
+    const { error } = await BattleChat.postToForum(msg);
+    btn.disabled = false;
+    if (error) { showToast('Error: ' + error.message, 3500); return; }
+    input.value = '';
+    document.getElementById('postCharCount').textContent = '0 / 500';
+  });
+
+  document.getElementById('postInput').addEventListener('input', function () {
+    document.getElementById('postCharCount').textContent = this.value.length + ' / 500';
+  });
+
+  document.getElementById('postInput').addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') document.getElementById('postBtn').click();
+  });
+
+  // ── Direct Messages ───────────────────────────────────────────────────────
+
+  let _activeThreadId   = null;  // other user's UUID
+  let _activeThreadName = null;  // other user's username
+
+  function showDMView(view) {
+    document.getElementById('convoListView').style.display = view === 'list'    ? '' : 'none';
+    document.getElementById('composeView').style.display   = view === 'compose' ? '' : 'none';
+    document.getElementById('threadView').style.display    = view === 'thread'  ? '' : 'none';
+  }
+
+  async function refreshConvoList() {
+    const user = SonicSandbox.getUser();
+    if (!user) return;
+    const convos = await BattleChat.getConversationList();
+    renderConvoList(convos);
+    const totalUnread = convos.reduce((n, c) => n + c.unread, 0);
+    updateUnreadBadge(totalUnread);
+  }
+
+  function renderConvoList(convos) {
+    const el = document.getElementById('convoList');
+    if (!convos.length) {
+      el.innerHTML = '<div class="feed-empty">No messages yet. Hit "+ New" to start one!</div>';
+      return;
+    }
+    el.innerHTML = convos.map(c => {
+      const last = c.messages.at(-1);
+      return `<div class="convo-item" data-other-id="${esc(c.otherId)}" data-other-name="${esc(c.otherName)}">
+        <div class="convo-info">
+          <span class="convo-name">@${esc(c.otherName)}</span>
+          ${c.unread > 0 ? `<span class="convo-unread">${c.unread}</span>` : ''}
+        </div>
+        <div class="convo-preview">${esc(last?.message || '')}</div>
+        <div class="convo-time">${timeAgo(last?.created_at)}</div>
+      </div>`;
+    }).join('');
+    el.querySelectorAll('.convo-item').forEach(item => {
+      item.addEventListener('click', () => openThread(item.dataset.otherId, item.dataset.otherName));
+    });
+  }
+
+  async function openThread(otherId, otherName) {
+    _activeThreadId   = otherId;
+    _activeThreadName = otherName;
+    showDMView('thread');
+    document.getElementById('threadWithUser').textContent = '@' + otherName;
+    document.getElementById('threadMessages').innerHTML = '<div class="feed-loading">Loading…</div>';
+    await BattleChat.markRead(otherId);
+    const msgs = await BattleChat.getConversation(otherId);
+    renderThread(msgs);
+    scrollThread();
+    updateUnreadBadge(0, true);  // optimistically clear; real count refreshes on next list open
+  }
+
+  function renderThread(msgs) {
+    const user = SonicSandbox.getUser();
+    const el = document.getElementById('threadMessages');
+    if (!msgs.length) {
+      el.innerHTML = '<div class="feed-empty">No messages yet.</div>';
+      return;
+    }
+    el.innerHTML = msgs.map(m => {
+      const mine = m.sender_id === user.id;
+      return `<div class="msg-bubble ${mine ? 'msg-sent' : 'msg-received'}">
+        ${esc(m.message)}
+        <div class="msg-time">${timeAgo(m.created_at)}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function appendMsgToThread(m) {
+    const user = SonicSandbox.getUser();
+    const el = document.getElementById('threadMessages');
+    const empty = el.querySelector('.feed-empty');
+    if (empty) el.innerHTML = '';
+    const mine = m.sender_id === user.id;
+    const div = document.createElement('div');
+    div.className = `msg-bubble ${mine ? 'msg-sent' : 'msg-received'}`;
+    div.innerHTML = `${esc(m.message)}<div class="msg-time">${timeAgo(m.created_at)}</div>`;
+    el.appendChild(div);
+    scrollThread();
+  }
+
+  function scrollThread() {
+    const el = document.getElementById('threadMessages');
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function updateUnreadBadge(count, accumulate = false) {
+    const badge = document.getElementById('unreadBadge');
+    const current = parseInt(badge.textContent || '0', 10);
+    const show = accumulate ? Math.max(0, current - 0) : count;  // just use passed count
+    if (count > 0) {
+      badge.textContent = count;
+      badge.style.display = '';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  // Realtime: incoming DM
+  BattleChat.on('newDM', async msg => {
+    // If thread with this sender is open, append immediately and mark read
+    if (_activeThreadId === msg.sender_id &&
+        document.getElementById('threadView').style.display !== 'none') {
+      appendMsgToThread(msg);
+      await BattleChat.markRead(msg.sender_id);
+    } else {
+      showToast(`📩 New message from @${msg.sender_username}`);
+      const count = await BattleChat.getUnreadCount();
+      updateUnreadBadge(count);
+    }
+  });
+
+  // Compose view
+  document.getElementById('newDMBtn').addEventListener('click', () => {
+    document.getElementById('dmRecipient').value = '';
+    document.getElementById('dmMessage').value   = '';
+    setStatus(document.getElementById('dmStatus'), '', '');
+    showDMView('compose');
+  });
+  document.getElementById('backFromComposeBtn').addEventListener('click', () => showDMView('list'));
+
+  document.getElementById('sendDMBtn').addEventListener('click', async () => {
+    const to  = document.getElementById('dmRecipient').value.trim();
+    const msg = document.getElementById('dmMessage').value.trim();
+    const statusEl = document.getElementById('dmStatus');
+    if (!to)  { setStatus(statusEl, 'Enter a username.', 'error'); return; }
+    if (!msg) { setStatus(statusEl, 'Enter a message.', 'error');  return; }
+    const btn = document.getElementById('sendDMBtn');
+    btn.disabled = true;
+    setStatus(statusEl, 'Sending…', '');
+    const { error } = await BattleChat.sendDM(to, msg);
+    btn.disabled = false;
+    if (error) { setStatus(statusEl, error.message, 'error'); return; }
+    setStatus(statusEl, 'Sent!', 'success');
+    document.getElementById('dmMessage').value = '';
+    setTimeout(() => { showDMView('list'); refreshConvoList(); }, 900);
+  });
+
+  // Thread view
+  document.getElementById('backFromThreadBtn').addEventListener('click', () => {
+    _activeThreadId = _activeThreadName = null;
+    showDMView('list');
+    refreshConvoList();
+  });
+
+  document.getElementById('replyBtn').addEventListener('click', async () => {
+    const input = document.getElementById('replyInput');
+    const msg   = input.value.trim();
+    if (!msg || !_activeThreadName) return;
+    const btn = document.getElementById('replyBtn');
+    btn.disabled = true;
+    const { error } = await BattleChat.sendDM(_activeThreadName, msg);
+    btn.disabled = false;
+    if (error) { showToast('Error: ' + error.message, 3000); return; }
+    input.value = '';
+    // Optimistically append own message
+    const user = SonicSandbox.getUser();
+    appendMsgToThread({
+      sender_id: user.id, message: msg, created_at: new Date().toISOString(),
+    });
+  });
+
+  document.getElementById('replyInput').addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') document.getElementById('replyBtn').click();
+  });
+
+  // ── Auth-gated initialization ─────────────────────────────────────────────
+
+  async function initChatUI(user) {
+    _myUserId = user?.id || null;
+
+    // Forum auth state
+    document.getElementById('postForm').style.display    = user ? ''     : 'none';
+    document.getElementById('forumGuestMsg').style.display = user ? 'none' : '';
+
+    // DM auth state
+    document.getElementById('dmGuestMsg').style.display = user ? 'none' : '';
+    document.getElementById('dmAuthed').style.display   = user ? ''     : 'none';
+
+    if (user) {
+      // Subscribe to realtime DMs
+      BattleChat.subscribeToDMs(user.id);
+      // Load inbox + unread badge
+      const count = await BattleChat.getUnreadCount();
+      updateUnreadBadge(count);
+      // Load conversation list if DMs tab is visible
+      if (document.getElementById('dmsPanel').style.display !== 'none') {
+        refreshConvoList();
+      } else {
+        // Pre-load silently so first open is fast
+        refreshConvoList();
+      }
+    } else {
+      updateUnreadBadge(0);
+      BattleChat.cleanup();
+    }
+  }
+
+  // ── Boot ──────────────────────────────────────────────────────────────────
+
+  // Start forum feed immediately (no auth required to read)
+  BattleChat.subscribeToForum();
+  loadForum();
+
+}());
 </script>
 
 <!-- Auth modal (shared) -->
